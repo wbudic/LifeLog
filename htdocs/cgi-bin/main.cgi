@@ -41,10 +41,9 @@ if(!$sth->fetchrow_array()) {
 			my $stmt = qq(
 
 			CREATE TABLE LOG (
-			  ID INT PRIMARY KEY NOT NULL,
-			  ID_CAT TINY,
+			  ID_CAT TINY NOT NULL,
 			  DATE DATETIME  NOT NULL,
-			  LOG VCHAR(60)
+			  LOG VCHAR(60) NOT NULL
 					);
 						   
 			);
@@ -55,9 +54,9 @@ if(!$sth->fetchrow_array()) {
 				      print "<p>Error->"& $DBI::errstri &"</p>";
 			} 
 
-			$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
+			$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?)');
 
-	$sth->execute(1, 3, $today, "DB Created!");
+			$sth->execute( 3, $today, "DB Created!");
 
 			
 			 $stmt = qq(
@@ -85,7 +84,7 @@ if(!$sth->fetchrow_array()) {
 	$sth->execute(32, "Expense");
 }
 my $stmtCat = "SELECT * FROM CAT;";
-my $stmt = "SELECT * from LOG;";
+my $stmt = "SELECT rowid, ID_CAT, DATE, LOG from LOG ORDER BY rowid DESC, DATE DESC;";
 
 
 $sth = $dbh->prepare( $stmtCat );
@@ -95,14 +94,14 @@ my $cats = '<select name="cat">\n';
 my %hshCats;
 
  while(my @row = $sth->fetchrow_array()) {
-	$cats = $cats. '<option value="'.@row[0].'">'.@row[1].'</option>\n';
-	$hshCats{@row[0]} = @row[1];
+	$cats = $cats. '<option value="'.$row[0].'">'.$row[1].'</option>\n';
+	$hshCats{$row[0]} = $row[1];
  }
 
 $cats = $cats.'</select>';
 
 
-my $tbl = '<table border="1px" width="480px"><tr><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
+my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table border="1px" width="580px"><tr><th>Date</th><th>Time</th><th>Log</th><th>Category</th><th>Del</th></tr>';
 my $tbl_rc = 0;
 
 ##################################
@@ -126,19 +125,21 @@ if($rv < 0) {
 
 	         $tbl = $tbl . "<tr><td>". $dt->ymd . "</td>" . 
 		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>".
-			  "<td>" . $ct ."</td></tr>\n";
+			  "<td>" . $ct .
+			  "</td><td><input type=\"radio\" value=\"".$row[0]."\"/> </td></tr>\n";
 	$tbl_rc +=1;	
  }
 
  if($tbl_rc==1){
-	 $tbl = $tbl . "<tr><td colspan=\"4\"><b>Table is Empty!</b></td></tr>\n";
+	 $tbl = $tbl . "<tr><td colspan=\"5\"><b>Table is Empty!</b></td></tr>\n";
  }
- $tbl = $tbl . "</table>";
+ $tbl = $tbl . "<tr><td colspan=\"4\"></td><td><input type=\"submit\" value=\"Del\"/></td></tr>";
+ $tbl = $tbl . "</table></form>";
 
 my  $frm = qq(
  <form name="frm_log" action="main.cgi" onSubmit="return formValidation();">
 	 <table><tr>
-		 <td>Date</td><td><input type="text" name="date" value=") .$today->ymd . qq("></td>
+		 <td>Date</td><td><input type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("></td>
 		 </tr>
 		 <tr><td>Log:</td> <td><textarea name="log" rows="2" cols="40"></textarea></td>
  		 <td>).$cats.qq(</td></tr>
@@ -149,9 +150,8 @@ my  $frm = qq(
 
 
 
-print "<div id=\"tbl\">\n" . $tbl ."</div>";
 print "<div id=\"frm\">\n" . $frm ."</div>";
-
+print "<div id=\"tbl\">\n" . $tbl ."</div>";
 print $q->end_html;
 
 $dbh->disconnect();
@@ -163,17 +163,23 @@ sub processSubmit {
 	my $log = $q->param('log');
 	my $cat = $q->param('cat');
 
+	if($log && $date && $cat){
+		#check for double entry
+		#
+		
+		my $sth = $dbh->prepare(
+			  "SELECT DATE,LOG FROM LOG where DATE='".$date ."' AND LOG='".$log."';"
+			);
 
-	if($log){
-		print "<h2>Received!". $log. "</h2>";
+		$sth->execute();
+		if(my @row = $sth->fetchrow_array()){
+			return;
+		}
 
-	}
-	if($date){
-		print "<h2>Received!". $date. "</h2>";
+		
+		$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?)');
 
-	}
-	if($cat){
-		print "<h2>Received!". $hshCats{$cat}. "</h2>";
-
+		$sth->execute( $cat, $date, $log);
+	
 	}
 }
