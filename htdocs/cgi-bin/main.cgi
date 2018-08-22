@@ -101,11 +101,12 @@ my %hshCats;
 $cats = $cats.'</select>';
 
 
-my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table border="1px" width="580px"><tr><th>Date</th><th>Time</th><th>Log</th><th>Category</th><th>Del</th></tr>';
+my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
+<table border="1px"><tr><th>Date</th><th>Time</th><th>Log</th><th>Category</th><th>Del</th></tr>';
 my $tbl_rc = 0;
 
 ##################################
-&processSubmit($q, %hshCats);
+&processSubmit;
 ##################################
 
 #Fetch entries!
@@ -126,7 +127,7 @@ if($rv < 0) {
 	         $tbl = $tbl . "<tr><td>". $dt->ymd . "</td>" . 
 		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>".
 			  "<td>" . $ct .
-			  "</td><td><input type=\"radio\" value=\"".$row[0]."\"/> </td></tr>\n";
+			  "</td><td><input type=\"checkbox\" value=\"".$row[0]."\"/> </td></tr>\n";
 	$tbl_rc +=1;	
  }
 
@@ -139,7 +140,7 @@ if($rv < 0) {
 my  $frm = qq(
  <form name="frm_log" action="main.cgi" onSubmit="return formValidation();">
 	 <table><tr>
-		 <td>Date</td><td><input type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("></td>
+		 <td>Date:</td><td><input type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("></td><td>Category:</td>
 		 </tr>
 		 <tr><td>Log:</td> <td><textarea name="log" rows="2" cols="40"></textarea></td>
  		 <td>).$cats.qq(</td></tr>
