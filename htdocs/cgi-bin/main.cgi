@@ -127,7 +127,7 @@ if($rv < 0) {
 	         $tbl = $tbl . "<tr><td>". $dt->ymd . "</td>" . 
 		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>".
 			  "<td>" . $ct .
-			  "</td><td><input type=\"checkbox\" value=\"".$row[0]."\"/> </td></tr>\n";
+			  "</td><td><input name=\"chk\"type=\"checkbox\" value=\"".$row[0]."\"/> </td></tr>\n";
 	$tbl_rc +=1;	
  }
 

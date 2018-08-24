@@ -36,10 +36,11 @@ $today->set_time_zone( 'Australia/Sydney' );
 my $stmtCat = "SELECT * FROM CAT;";
 
 
-$sth = $dbh->prepare( $stmtCat );
+my $sth = $dbh->prepare( $stmtCat );
 my $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 my %hshCats;
+my $tbl_rc =0;
 
  while(my @row = $sth->fetchrow_array()) {
 	$hshCats{$row[0]} = $row[1];
@@ -64,10 +65,16 @@ sub NotConfirmed{
 #Get prms and build confirm table and check
 
 ### TODO	
+my $stm = $stmS ." ";
+foreach my $prm ($q->param('chk')){
+	$stm = $stm . "rowid = '" . $prm . "' OR ";
+}
+#rid=0 hack! ;)
+	$stm = $stm . "rowid = '0' " . $stmE;
 
-#Fetch entries!
+print $stm;	
 #
-$sth = $dbh->prepare( $stmt );
+$sth = $dbh->prepare( $stm );
 $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 if($rv < 0) {
 	     print "<p>Error->"& $DBI::errstri &"</p>";
@@ -93,21 +100,9 @@ if($rv < 0) {
  $tbl = $tbl . "<tr><td colspan=\"4\"></td><td><input type=\"submit\" value=\"Del\"/></td></tr>";
  $tbl = $tbl . "</table></form>";
 
-my  $frm = qq(
- <form name="frm_log" action="main.cgi" onSubmit="return formValidation();">
-	 <table><tr>
-		 <td>Date</td><td><input type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("></td>
-		 </tr>
-		 <tr><td>Log:</td> <td><textarea name="log" rows="2" cols="40"></textarea></td>
- 		 <td>).$cats.qq(</td></tr>
-		 <tr><td></td><td></td><td><input type="submit" value="Submit"></td>
-	</tr></table>
-</form>
- );
 
 
 
-print "<div id=\"frm\">\n" . $frm ."</div>";
 print "<div id=\"tbl\">\n" . $tbl ."</div>";
 }
 
