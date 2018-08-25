@@ -49,7 +49,7 @@ my $tbl_rc =0;
 
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
 my $stmE = " ORDER BY rowid DESC, DATE DESC;";
-my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table border="1px" width="580px"><tr><th>Date</th><th>Time</th><th>Log</th><th>Category</th><th>Del</th></tr>';
+my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table border="1px" width="580px"><tr><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
 my $confirmed = $q->param('confirmed');
 if (!$confirmed){
 	&NotConfirmed;
@@ -72,7 +72,6 @@ foreach my $prm ($q->param('chk')){
 #rid=0 hack! ;)
 	$stm = $stm . "rowid = '0' " . $stmE;
 
-print $stm;	
 #
 $sth = $dbh->prepare( $stm );
 $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
@@ -88,17 +87,21 @@ if($rv < 0) {
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 
 	         $tbl = $tbl . "<tr><td>". $dt->ymd . "</td>" . 
-		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>".
-			  "<td>" . $ct .
-			  "</td><td><input type=\"checkbox\" value=\"".$row[0]."\"/> </td></tr>\n";
-	$tbl_rc +=1;	
+		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>\n".
+			  "<td>" . $ct. "<input type=\"hidden\" name=\"chk\" value=\"".$row[0]."\"></td></tr>\n"; 	
  }
 
- if($tbl_rc==1){
-	 $tbl = $tbl . "<tr><td colspan=\"5\"><b>Table is Empty!</b></td></tr>\n";
- }
- $tbl = $tbl . "<tr><td colspan=\"4\"></td><td><input type=\"submit\" value=\"Del\"/></td></tr>";
- $tbl = $tbl . "</table></form>";
+ $tbl = $tbl .  '<tr><td colspan="4">
+ <center>
+ <h2>Please Confirm You Want This Deleted!</h2>
+ (Or hit you Browsers Back Button!)</center>
+ </td></tr>
+ <tr><td colspan="4"><center>
+ <input type="submit" value="I AM CONFIRMING!">
+ </center>
+ <input type="hidden" name="confirmed" value="1">
+</td></tr>
+</table></form>';
 
 
 
