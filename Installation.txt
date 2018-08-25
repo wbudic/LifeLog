@@ -1,4 +1,26 @@
+#Install tiny thttpd web server.
 
+https://acme.com/software/thttpd/
+
+Create an mkdir ~/thttpd_dev directory.
+
+Run server using this config file, where {user} is your home login location.
+
+
+# This section overrides defaults
+dir=/home/{user}/thttpd_dev/htdocs
+user={user}
+logfile=/home/{user}/thttpd_dev/log/thttpd.log
+pidfile=/home/{user}/thttpd_dev/run/thttpd.pid
+# This section _documents_ defaults in effect
+port=8080
+# nosymlink# default = !chroot
+# novhost
+# nocgipat
+# nothrottles
+host=0.0.0.0
+charset=utf-8
+cgipat=**.cgi
 
 
 #Install cpanm to make installing other modules easier (you'll thank us later). You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
@@ -6,3 +28,13 @@ sudo apt install cpanminus
 
 #Install DBI module
 sudo cpanm DBI
+
+#Install SQLite
+https://www.sqlite.org/download.html
+
+
+#Install or make sure you have following perl modules.
+ 
+sudo cpanm  DateTime;
+sudo cpanm  DateTime::Format::SQLite;
+
