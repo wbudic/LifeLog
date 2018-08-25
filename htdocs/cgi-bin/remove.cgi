@@ -21,13 +21,7 @@ my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
 
 
 
-print $q->header(-expires=>"+6os");    
 
-print $q->start_html(-title => "Personal Log Record Removal", 
-       		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
-
-		        );	  
 
 
 my $today = DateTime->now;
@@ -52,19 +46,44 @@ my $stmE = " ORDER BY rowid DESC, DATE DESC;";
 my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table border="1px" width="580px"><tr><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
 my $confirmed = $q->param('confirmed');
 if (!$confirmed){
-	&NotConfirmed;
+     print $q->header(-expires=>"+6os");    
+     print $q->start_html(-title => "Personal Log Record Removal", 
+       		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
+
+        );	  
+
+			&NotConfirmed;
+	print $q->end_html;
 }
 else{
 	&ConfirmedDelition;
 }
 
-print $q->end_html;
 $dbh->disconnect();
+
+
+sub ConfirmedDelition{
+
+	my $stm;
+	my $stmS = 'DELETE FROM LOG WHERE '; 
+
+	foreach my $prm ($q->param('chk')){
+		$stm = $stmS . "rowid = '" . $prm ."';";
+	        $sth = $dbh->prepare( $stm );
+		$rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+		if($rv < 0) {
+		     print "<p>Error->"& $DBI::errstri &"</p>";
+		}
+	}
+	
+	
+	print $q->redirect('main.cgi');
+
+}
 
 sub NotConfirmed{
 #Get prms and build confirm table and check
-
-### TODO	
 my $stm = $stmS ." ";
 foreach my $prm ($q->param('chk')){
 	$stm = $stm . "rowid = '" . $prm . "' OR ";
@@ -108,8 +127,3 @@ if($rv < 0) {
 
 print "<div id=\"tbl\">\n" . $tbl ."</div>";
 }
-
-sub ConfirmedDelition{
-#### TODO
-}
-
