@@ -107,7 +107,7 @@ if($rv < 0) {
 
 	         $tbl = $tbl . "<tr><td>". $dt->ymd . "</td>" . 
 		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>\n".
-			  "<td>" . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>\n'; 	
+			  "<td>" . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';	
  }
 
  $tbl = $tbl .  '<tr><td colspan="4">
@@ -119,9 +119,9 @@ if($rv < 0) {
  <input type="submit" value="I AM CONFIRMING!">
  </center>
  <input type="hidden" name="confirmed" value="1">
-:git</td></tr>
+</td></tr>
 </table></form>';
 
-print '<div id="tbl">\n" . $tbl .'\n</div>';
+print '<div id="tbl">' . $tbl .'</div>';
 
 }
