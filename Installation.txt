@@ -1,0 +1,8 @@
+
+
+
+#Install cpanm to make installing other modules easier (you'll thank us later). You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
+sudo apt install cpanminus
+
+#Install DBI module
+sudo cpanm DBI
