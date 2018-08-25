@@ -127,15 +127,17 @@ if($rv < 0) {
 	         $tbl = $tbl . "<tr><td>". $dt->ymd . "</td>" . 
 		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>".
 			  "<td>" . $ct .
-			  "</td><td><input type=\"checkbox\" value=\"".$row[0]."\"/> </td></tr>\n";
+			  "</td><td><input name=\"chk\"type=\"checkbox\" value=\"".$row[0]."\"/> </td></tr>\n";
 	$tbl_rc +=1;	
  }
 
  if($tbl_rc==1){
 	 $tbl = $tbl . "<tr><td colspan=\"5\"><b>Table is Empty!</b></td></tr>\n";
  }
- $tbl = $tbl . "<tr><td colspan=\"4\"></td><td><input type=\"submit\" value=\"Del\"/></td></tr>";
- $tbl = $tbl . "</table></form>";
+ $tbl = $tbl . '<tr><td colspan="5" align="right">
+ <input type="reset" value="Unselect All"/><input type="submit" value="Delete Selected"/>
+ </td></tr>
+ </table></form>';
 
 my  $frm = qq(
  <form name="frm_log" action="main.cgi" onSubmit="return formValidation();">

@@ -36,10 +36,11 @@ $today->set_time_zone( 'Australia/Sydney' );
 my $stmtCat = "SELECT * FROM CAT;";
 
 
-$sth = $dbh->prepare( $stmtCat );
+my $sth = $dbh->prepare( $stmtCat );
 my $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 my %hshCats;
+my $tbl_rc =0;
 
  while(my @row = $sth->fetchrow_array()) {
 	$hshCats{$row[0]} = $row[1];
@@ -48,7 +49,7 @@ my %hshCats;
 
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
 my $stmE = " ORDER BY rowid DESC, DATE DESC;";
-my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table border="1px" width="580px"><tr><th>Date</th><th>Time</th><th>Log</th><th>Category</th><th>Del</th></tr>';
+my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table border="1px" width="580px"><tr><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
 my $confirmed = $q->param('confirmed');
 if (!$confirmed){
 	&NotConfirmed;
@@ -64,10 +65,15 @@ sub NotConfirmed{
 #Get prms and build confirm table and check
 
 ### TODO	
+my $stm = $stmS ." ";
+foreach my $prm ($q->param('chk')){
+	$stm = $stm . "rowid = '" . $prm . "' OR ";
+}
+#rid=0 hack! ;)
+	$stm = $stm . "rowid = '0' " . $stmE;
 
-#Fetch entries!
 #
-$sth = $dbh->prepare( $stmt );
+$sth = $dbh->prepare( $stm );
 $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 if($rv < 0) {
 	     print "<p>Error->"& $DBI::errstri &"</p>";
@@ -81,33 +87,25 @@ if($rv < 0) {
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 
 	         $tbl = $tbl . "<tr><td>". $dt->ymd . "</td>" . 
-		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>".
-			  "<td>" . $ct .
-			  "</td><td><input type=\"checkbox\" value=\"".$row[0]."\"/> </td></tr>\n";
-	$tbl_rc +=1;	
+		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>\n".
+			  "<td>" . $ct. "<input type=\"hidden\" name=\"chk\" value=\"".$row[0]."\"></td></tr>\n"; 	
  }
 
- if($tbl_rc==1){
-	 $tbl = $tbl . "<tr><td colspan=\"5\"><b>Table is Empty!</b></td></tr>\n";
- }
- $tbl = $tbl . "<tr><td colspan=\"4\"></td><td><input type=\"submit\" value=\"Del\"/></td></tr>";
- $tbl = $tbl . "</table></form>";
-
-my  $frm = qq(
- <form name="frm_log" action="main.cgi" onSubmit="return formValidation();">
-	 <table><tr>
-		 <td>Date</td><td><input type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("></td>
-		 </tr>
-		 <tr><td>Log:</td> <td><textarea name="log" rows="2" cols="40"></textarea></td>
- 		 <td>).$cats.qq(</td></tr>
-		 <tr><td></td><td></td><td><input type="submit" value="Submit"></td>
-	</tr></table>
-</form>
- );
+ $tbl = $tbl .  '<tr><td colspan="4">
+ <center>
+ <h2>Please Confirm You Want This Deleted!</h2>
+ (Or hit you Browsers Back Button!)</center>
+ </td></tr>
+ <tr><td colspan="4"><center>
+ <input type="submit" value="I AM CONFIRMING!">
+ </center>
+ <input type="hidden" name="confirmed" value="1">
+</td></tr>
+</table></form>';
 
 
 
-print "<div id=\"frm\">\n" . $frm ."</div>";
+
 print "<div id=\"tbl\">\n" . $tbl ."</div>";
 }
 
