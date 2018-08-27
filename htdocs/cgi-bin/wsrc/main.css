@@ -9,6 +9,24 @@ p {
 	font-weight: bold;
 }
 
-table{
- width: 640px;
+table {
+	    border-collapse: collapse;
 }
+
+table, th, td{
+ width: 640px;
+ border: 1px solid black;
+}
+
+.tbl {
+ border: 1px solid black;
+}
+.entry, th, td{
+ width: 640px;
+ border: 0px;
+ border-collapse: collapse;
+}
+#frm{
+	padding: 5px;
+}
+
