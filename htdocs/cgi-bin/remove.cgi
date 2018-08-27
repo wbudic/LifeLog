@@ -43,7 +43,7 @@ my $tbl_rc =0;
 
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
 my $stmE = " ORDER BY rowid DESC, DATE DESC;";
-my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table><tr><th class="tbl">Date</th><th class="tbl">Time</th><th>Log</th><th>Category</th></tr>';
+my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table><tr class="tbl"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
 my $confirmed = $q->param('confirmed');
 if (!$confirmed){
      print $q->header(-expires=>"+6os");    
@@ -105,7 +105,7 @@ if($rv < 0) {
 	 my $ct = $hshCats{@row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 
-	 $tbl = $tbl . "<tr><td>". $dt->ymd . "</td>" . 
+	 $tbl = $tbl . '<tr class="tbl"><td>'. $dt->ymd . "</td>" . 
 		  "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>\n".
 		  "<td>" . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';	
  }
