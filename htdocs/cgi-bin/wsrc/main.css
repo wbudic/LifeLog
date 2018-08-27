@@ -11,6 +11,7 @@ p {
 
 table {
 	    border-collapse: collapse;
+
 }
 
 table, th, td{
@@ -29,4 +30,13 @@ table, th, td{
 #frm{
 	padding: 5px;
 }
+
+#log{
+	width:82px;
+	text-align: justify;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+}
+
 

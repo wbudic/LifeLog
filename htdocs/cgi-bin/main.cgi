@@ -43,7 +43,7 @@ if(!$sth->fetchrow_array()) {
 			CREATE TABLE LOG (
 			  ID_CAT TINY NOT NULL,
 			  DATE DATETIME  NOT NULL,
-			  LOG VCHAR(60) NOT NULL
+			  LOG VCHAR(128) NOT NULL
 					);
 						   
 			);
@@ -125,7 +125,7 @@ if($rv < 0) {
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 
 	         $tbl = $tbl . '<tr class="tbl"><td>'. $dt->ymd . '</td>' . 
-		          "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>".
+		          "<td>" . $dt->hms . "</td>" . '<td class="log">' . $row[3] . "</td>".
 			  "<td>" . $ct .
 			  "</td><td><input name=\"chk\" type=\"checkbox\" value=\"".$row[0]."\"/> </td></tr>\n";
 	$tbl_rc +=1;	
@@ -144,7 +144,7 @@ my  $frm = qq(
 	 <table class="entry"><tr>
 		 <td>Date:</td><td><input type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("><button onclick="return setNow();">Now</button></td><td>Category:</td>
 		 </tr>
-		 <tr><td>Log:</td> <td><textarea name="log" rows="2" cols="40"></textarea></td>
+		 <tr><td>Log:</td> <td><textarea name="log" rows="2" cols="60"></textarea></td>
  		 <td>).$cats.qq(</td></tr>
 		 <tr><td></td><td></td><td><input type="submit" value="Submit"></td>
 	</tr></table>
