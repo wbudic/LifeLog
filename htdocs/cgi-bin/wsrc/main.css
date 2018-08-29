@@ -15,7 +15,7 @@ table {
 }
 
 table, th, td{
- width: 640px;
+ width: 660px;
  border: 1px solid black;
 }
 
@@ -23,7 +23,7 @@ table, th, td{
  border: 1px solid black;
 }
 .entry, th, td{
- width: 640px;
+ width: 660px;
  border: 0px;
  border-collapse: collapse;
 }
@@ -39,4 +39,9 @@ table, th, td{
         text-overflow: ellipsis;
 }
 
-
+.edit{
+	margin: 0;
+	padding 1px;
+	font-size:7pt;
+	border=:0px;
+}

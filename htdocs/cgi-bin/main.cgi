@@ -90,7 +90,7 @@ my $stmt = "SELECT rowid, ID_CAT, DATE, LOG from LOG ORDER BY rowid DESC, DATE D
 $sth = $dbh->prepare( $stmtCat );
 $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
-my $cats = '<select name="cat">\n';
+my $cats = '<select id="ec" name="cat">\n';
 my %hshCats;
 
  while(my @row = $sth->fetchrow_array()) {
@@ -124,10 +124,12 @@ if($rv < 0) {
 	 my $ct = $hshCats{@row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 
-	         $tbl = $tbl . '<tr class="tbl"><td>'. $dt->ymd . '</td>' . 
-		          "<td>" . $dt->hms . "</td>" . '<td class="log">' . $row[3] . "</td>".
-			  "<td>" . $ct .
-			  "</td><td><input name=\"chk\" type=\"checkbox\" value=\"".$row[0]."\"/> </td></tr>\n";
+	         $tbl = $tbl . '<tr class="tbl"><td id="y'.$row[0].'">'. $dt->ymd . '</td>' . 
+		          '<td id="t'.$row[0].'">' . $dt->hms . "</td>" . '<td id="v'.$row[0].'" class="log">' . $row[3] . "</td>".
+			  '<td id="c'.$row[0].'">' . $ct .
+			  '</td>
+			  <td><input class="edit" type="button" value="Edit" onclick="edit(this);return false;"/><input name="chk" type="checkbox" value="'.$row[0].'"/>
+			  </td></tr>';
 	$tbl_rc +=1;	
  }
 
@@ -142,11 +144,12 @@ if($rv < 0) {
 my  $frm = qq(
  <form name="frm_log" action="main.cgi" onSubmit="return formValidation();">
 	 <table class="entry"><tr>
-		 <td>Date:</td><td><input type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("><button onclick="return setNow();">Now</button></td><td>Category:</td>
+		 <td>Date:</td><td><input id="ed" type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("><button onclick="return setNow();">Now</button></td><td>Category:</td>
 		 </tr>
-		 <tr><td>Log:</td> <td><textarea name="log" rows="2" cols="60"></textarea></td>
+		 <tr><td>Log:</td> <td><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
  		 <td>).$cats.qq(</td></tr>
-		 <tr><td></td><td></td><td><input type="submit" value="Submit"></td>
+		 <tr><td></td><td></td><td><input type="submit" value="Submit"/>
+		 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/></td>
 	</tr></table>
 </form>
  );
@@ -165,6 +168,12 @@ sub processSubmit {
 	my $date = $q->param('date');
 	my $log = $q->param('log');
 	my $cat = $q->param('cat');
+	my $edit_mode =  $q->param('submit_is_edit');
+
+	if($edit_mode == "1"){
+	 print "<h2>Sorry Editing Not Implemented Yet</h2>";
+	 return;
+	}
 
 	if($log && $date && $cat){
 		#check for double entry
