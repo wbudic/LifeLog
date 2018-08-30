@@ -34,6 +34,7 @@ my $rv;
 my $today = DateTime->now;
 $today->set_time_zone( 'Australia/Sydney' );
 
+
 my $sth = $dbh->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='LOG';");
 $sth->execute();
 
@@ -117,14 +118,21 @@ if($rv < 0) {
 	     print "<p>Error->"& $DBI::errstri &"</p>";
 }
 
-
+my $tfId = 1;
 
  while(my @row = $sth->fetchrow_array()) {
 
 	 my $ct = $hshCats{@row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
+	 
+	 if($tfId==1){
+		 $tfId = 0;
+	 }else{
+		 $tfId = 1;
+	 }
 
-	         $tbl = $tbl . '<tr class="tbl"><td id="y'.$row[0].'">'. $dt->ymd . '</td>' . 
+	         $tbl = $tbl . '<tr class="tbl" id="r'.$tfId.'"><td id="y'.$row[0].'">'. 
+		 	$dt->ymd . '</td>' . 
 		          '<td id="t'.$row[0].'">' . $dt->hms . "</td>" . '<td id="v'.$row[0].'" class="log">' . $row[3] . "</td>".
 			  '<td id="c'.$row[0].'">' . $ct .
 			  '</td>
@@ -170,9 +178,13 @@ sub processSubmit {
 	my $cat = $q->param('cat');
 	my $edit_mode =  $q->param('submit_is_edit');
 
-	if($edit_mode == "1"){
-	 print "<h2>Sorry Editing Not Implemented Yet</h2>";
-	 return;
+	if($edit_mode != "0"){
+		#Update
+
+		my $stm = "UPDATE LOG SET ID_CAT='".$cat."', DATE='".$date ."' , LOG='".$log."' WHERE rowid=".$edit_mode.";"; 
+		my $sth = $dbh->prepare($stm); 
+			  $sth->execute();
+		return;
 	}
 
 	if($log && $date && $cat){

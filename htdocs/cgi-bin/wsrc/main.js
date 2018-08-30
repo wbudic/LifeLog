@@ -53,7 +53,7 @@ function edit(el){
 				   break;
 	         }
 	}
-	document.getElementById("submit_is_edit").value = "1";
+	document.getElementById("submit_is_edit").value = row;
 
 return false;
 }
