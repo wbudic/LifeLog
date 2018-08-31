@@ -43,7 +43,9 @@ my $tbl_rc =0;
 
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
 my $stmE = " ORDER BY rowid DESC, DATE DESC;";
-my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();"><table><tr class="tbl"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
+my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
+		<table class="tbl">
+		<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
 my $confirmed = $q->param('confirmed');
 if (!$confirmed){
      print $q->header(-expires=>"+6os");    
@@ -99,23 +101,28 @@ if($rv < 0) {
 }
 
 
-
- while(my @row = $sth->fetchrow_array()) {
+my $r_cnt = 0;
+while(my @row = $sth->fetchrow_array()) {
 
 	 my $ct = $hshCats{@row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 
-	 $tbl = $tbl . '<tr class="tbl"><td>'. $dt->ymd . "</td>" . 
+	 $tbl = $tbl . '<tr class="r1"><td>'. $dt->ymd . "</td>" . 
 		  "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>\n".
 		  "<td>" . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';	
- }
+	$r_cnt++;
+}
+my $plural = "";
+if($r_cnt>1){
+	$plural = "s";
+}
 
- $tbl = $tbl .  '<tr><td colspan="4">
+ $tbl = $tbl .  '<tr class="r0"><td colspan="4">
  <center>
- <h2>Please Confirm You Want This Deleted!</h2>
+ <h2>Please Confirm You Want <br/>The Above Record'.$plural.' Deleted?</h2>
  (Or hit you Browsers Back Button!)</center>
  </td></tr>
- <tr><td colspan="4"><center>
+ <tr class="r0"><td colspan="4"><center>
  <input type="submit" value="I AM CONFIRMING!">
  </center>
  <input type="hidden" name="confirmed" value="1">

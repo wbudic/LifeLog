@@ -102,8 +102,11 @@ my %hshCats;
 $cats = $cats.'</select>';
 
 
-my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
-<table class="tbl"><tr class="tbl"><th>Date</th><th>Time</th><th>Log</th><th>Category</th><th>Del</th></tr>';
+my $tbl = qq(
+<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
+<table class="tbl">
+<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th><th>Edit</th></tr>);
+
 my $tbl_rc = 0;
 
 ##################################
@@ -118,7 +121,7 @@ if($rv < 0) {
 	     print "<p>Error->"& $DBI::errstri &"</p>";
 }
 
-my $tfId = 1;
+my $tfId = 0;
 
  while(my @row = $sth->fetchrow_array()) {
 
@@ -131,9 +134,10 @@ my $tfId = 1;
 		 $tfId = 1;
 	 }
 
-	         $tbl = $tbl . '<tr class="tbl" id="r'.$tfId.'"><td id="y'.$row[0].'">'. 
+	         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$row[0].'">'. 
 		 	$dt->ymd . '</td>' . 
-		          '<td id="t'.$row[0].'">' . $dt->hms . "</td>" . '<td id="v'.$row[0].'" class="log">' . $row[3] . "</td>".
+		          '<td id="t'.$row[0].'">' . $dt->hms . "</td>" . '<td id="v'.$row[0].
+			  '" class="log">' . $row[3] . "</td>".
 			  '<td id="c'.$row[0].'">' . $ct .
 			  '</td>
 			  <td><input class="edit" type="button" value="Edit" onclick="edit(this);return false;"/><input name="chk" type="checkbox" value="'.$row[0].'"/>
@@ -144,28 +148,33 @@ my $tfId = 1;
  if($tbl_rc==1){
 	 $tbl = $tbl . "<tr><td colspan=\"5\"><b>Table is Empty!</b></td></tr>\n";
  }
- $tbl = $tbl . '<tr><td colspan="5" align="right">
+ $tbl = $tbl . '<tr class="r0"><td colspan="5" align="right">
  <input type="reset" value="Unselect All"/><input type="submit" value="Delete Selected"/>
  </td></tr>
  </table></form>';
 
 my  $frm = qq(
  <form name="frm_log" action="main.cgi" onSubmit="return formValidation();">
-	 <table class="entry"><tr>
+	 <table class="tbl">
+	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
+	 <tr><td colspan="3"><br/></td></tr>
+	 <tr>
 		 <td>Date:</td><td><input id="ed" type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("><button onclick="return setNow();">Now</button></td><td>Category:</td>
 		 </tr>
 		 <tr><td>Log:</td> <td><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
  		 <td>).$cats.qq(</td></tr>
-		 <tr><td></td><td></td><td><input type="submit" value="Submit"/>
-		 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/></td>
+		 <tr><td></td><td></td><td>
+		 <input type="submit" value="Submit"/>
+		 </td>
 	</tr></table>
+		 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
 </form>
  );
 
 
 
-print "<div id=\"frm\">\n" . $frm ."</div>";
-print "<div id=\"tbl\">\n" . $tbl ."</div>";
+print "<div>\n" . $frm ."</div>\n<br/>";
+print "<div>\n" . $tbl ."</div>";
 print $q->end_html;
 
 $dbh->disconnect();
