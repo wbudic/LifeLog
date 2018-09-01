@@ -172,9 +172,11 @@ my  $frm = qq(
  );
 
 
-
+print "<center>";
 print "<div>\n" . $frm ."</div>\n<br/>";
 print "<div>\n" . $tbl ."</div>";
+print "</center>";
+
 print $q->end_html;
 
 $dbh->disconnect();
