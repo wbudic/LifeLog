@@ -21,7 +21,7 @@ my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
 
 
 
-print $q->header(-expires=>"+6os");    
+print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
 print $q->start_html(-title => "Personal Log", 
        		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
