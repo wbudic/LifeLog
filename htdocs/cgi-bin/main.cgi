@@ -127,7 +127,10 @@ my $tfId = 0;
 
 	 my $ct = $hshCats{@row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
-	 
+	 my $log = $row[3]; 
+	    #Apostrophe in the log value is doubled to avoid SQL errors.
+	    $log =~ s/''/'/g;
+
 	 if($tfId==1){
 		 $tfId = 0;
 	 }else{
@@ -137,7 +140,7 @@ my $tfId = 0;
 	         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$row[0].'">'. 
 		 	$dt->ymd . '</td>' . 
 		          '<td id="t'.$row[0].'">' . $dt->hms . "</td>" . '<td id="v'.$row[0].
-			  '" class="log">' . $row[3] . "</td>".
+			  '" class="log">' . $log . "</td>".
 			  '<td id="c'.$row[0].'">' . $ct .
 			  '</td>
 			  <td><input class="edit" type="button" value="Edit" onclick="edit(this);return false;"/><input name="chk" type="checkbox" value="'.$row[0].'"/>
@@ -188,6 +191,8 @@ sub processSubmit {
 	my $log = $q->param('log');
 	my $cat = $q->param('cat');
 	my $edit_mode =  $q->param('submit_is_edit');
+	#Apostroph's need to be replaced with doubles  and white space fixed for the SQL.
+	$log =~ s/(?<=\w) ?' ?(?=\w)/''/g;
 
 	if($edit_mode != "0"){
 		#Update
@@ -213,7 +218,6 @@ sub processSubmit {
 
 		
 		$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?)');
-
 		$sth->execute( $cat, $date, $log);
 	
 	}
