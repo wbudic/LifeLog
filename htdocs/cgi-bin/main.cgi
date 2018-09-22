@@ -18,6 +18,14 @@ my $userid = "";
 my $password = "";
 my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
    or die "<p>Error->"& $DBI::errstri &"</p>";
+my $rs_prev=0;
+
+
+
+
+#SETTINGS HERE!
+my $REC_LIMIT = 0;
+#END OF SETTINGS
 
 
 
@@ -25,10 +33,9 @@ print $q->header(-expires=>"+6os", -charset=>"UTF-8");
 
 print $q->start_html(-title => "Personal Log", 
        		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
-
+		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+		     -onload => "loadedBody();"
 		        );	  
-
 
 my $rv;
 my $today = DateTime->now;
@@ -145,7 +152,32 @@ my $tfId = 0;
 			  '</td>
 			  <td><input class="edit" type="button" value="Edit" onclick="edit(this);return false;"/><input name="chk" type="checkbox" value="'.$row[0].'"/>
 			  </td></tr>';
-	$tbl_rc +=1;	
+	$tbl_rc += 1;	
+
+	if($REC_LIMIT>0 && $tbl_rc>$REC_LIMIT){
+		
+#UNDER DEVELOPMENT!
+		#
+		 if($tfId==1){
+			 $tfId = 0;
+		 }else{
+			 $tfId = 1;
+		 }
+
+	         $tbl = $tbl . '<tr class="r'.$tfId.'"><td>&dagger;</td>';
+
+		 if($rs_prev>0){
+
+		         $tbl = $tbl . '<td>&lsaquo;&lsaquo;&ndash; Previous</td>';
+
+		 }
+
+
+	        $tbl = $tbl . '<td>Next &ndash;&rsaquo;&rsaquo;</td>';
+
+		$tbl = $tbl .'<td colspan="2"></td></tr>';
+		last;
+	}
  }
 
  if($tbl_rc==1){
@@ -191,6 +223,10 @@ sub processSubmit {
 	my $log = $q->param('log');
 	my $cat = $q->param('cat');
 	my $edit_mode =  $q->param('submit_is_edit');
+
+	
+	   $rs_prev = $q->param("rs_cnt");
+
 	#Apostroph's need to be replaced with doubles  and white space fixed for the SQL.
 	$log =~ s/(?<=\w) ?' ?(?=\w)/''/g;
 
