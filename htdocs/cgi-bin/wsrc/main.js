@@ -1,3 +1,7 @@
+function loadedBody(){
+	document.frm_log.log.focus();
+}
+
 function formValidation(){
   
 var date = document.frm_log.date;
@@ -23,6 +27,7 @@ function validLog(log){
 	}
 return true;
 }
+
 
 function setNow(){
 
