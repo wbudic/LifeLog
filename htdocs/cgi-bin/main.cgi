@@ -25,6 +25,7 @@ my $rs_prev=0;
 
 #SETTINGS HERE!
 my $REC_LIMIT = 0;
+my $TIME_ZONE = 'Australia/Sydney';
 #END OF SETTINGS
 
 
@@ -39,7 +40,7 @@ print $q->start_html(-title => "Personal Log",
 
 my $rv;
 my $today = DateTime->now;
-$today->set_time_zone( 'Australia/Sydney' );
+$today->set_time_zone( $TIME_ZONE );
 
 
 my $sth = $dbh->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='LOG';");
@@ -91,6 +92,7 @@ if(!$sth->fetchrow_array()) {
 	$sth->execute(28,"Personal");
 	$sth->execute(32, "Expense");
 }
+
 my $stmtCat = "SELECT * FROM CAT;";
 my $stmt = "SELECT rowid, ID_CAT, DATE, LOG from LOG ORDER BY rowid DESC, DATE DESC;";
 
@@ -155,8 +157,8 @@ my $tfId = 0;
 	$tbl_rc += 1;	
 
 	if($REC_LIMIT>0 && $tbl_rc>$REC_LIMIT){
-		
-#UNDER DEVELOPMENT!
+	 	#	
+		#UNDER DEVELOPMENT!
 		#
 		 if($tfId==1){
 			 $tfId = 0;
@@ -168,15 +170,22 @@ my $tfId = 0;
 
 		 if($rs_prev>0){
 
-		         $tbl = $tbl . '<td>&lsaquo;&lsaquo;&ndash; Previous</td>';
+		         $tbl = $tbl . '<td><input type="hidden" value="'.$rs_prev.'"/>
+		 	 <input type="button" onclick="submitPrev(this)"
+			  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>';
 
 		 }
 
 
-	        $tbl = $tbl . '<td>Next &ndash;&rsaquo;&rsaquo;</td>';
+	        $tbl = $tbl . '<td><input type="hidden" name="rsc" value="'.  $tbl_rc .  '"/>
+		<input type="button" onclick="return submitNext(this);" 
+		value="Next &ndash;&rsaquo;&rsaquo;"/></td>';
 
 		$tbl = $tbl .'<td colspan="2"></td></tr>';
 		last;
+	 	#	
+		#END OF UNDER DEVELOPMENT!
+		#
 	}
  }
 
@@ -203,6 +212,7 @@ my  $frm = qq(
 		 </td>
 	</tr></table>
 		 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
+		 <input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
 </form>
  );
 
@@ -213,8 +223,9 @@ print "<div>\n" . $tbl ."</div>";
 print "</center>";
 
 print $q->end_html;
-
+$sth->finish;
 $dbh->disconnect();
+exit;
 
 sub processSubmit { 
 
@@ -223,6 +234,7 @@ sub processSubmit {
 	my $log = $q->param('log');
 	my $cat = $q->param('cat');
 	my $edit_mode =  $q->param('submit_is_edit');
+	my $view_mode =  $q->param('submit_is_view');
 
 	
 	   $rs_prev = $q->param("rs_cnt");
@@ -233,13 +245,26 @@ sub processSubmit {
 	if($edit_mode != "0"){
 		#Update
 
-		my $stm = "UPDATE LOG SET ID_CAT='".$cat."', DATE='".$date ."' , LOG='".$log."' WHERE rowid=".$edit_mode.";"; 
+		my $stm = "UPDATE LOG SET ID_CAT='".$cat."', DATE='". $date ."',
+	       			LOG='".$log."' WHERE rowid=".$edit_mode.";"; 
 		my $sth = $dbh->prepare($stm); 
 			  $sth->execute();
 		return;
 	}
 
+	if($view_mode != "0"){
+		#
+		#UNDER DEVELOPMENT
+		#
+	
+		my $rsc = $q->param('rsc');		
+ 		$stmt = 'SELECT rowid, ID_CAT, DATE, LOG from LOG 
+			where rowid > "'.$rsc.'" ORDER BY rowid DESC, DATE DESC;';
+		return;
+	}
+
 	if($log && $date && $cat){
+
 		#check for double entry
 		#
 		

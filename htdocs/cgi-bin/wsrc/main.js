@@ -62,3 +62,9 @@ function edit(el){
 
 return false;
 }
+
+function submitNext(el){
+	document.getElementById("submit_is_view").value = 1;
+	return true;
+}
+
