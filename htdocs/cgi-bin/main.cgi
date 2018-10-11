@@ -18,7 +18,6 @@ my $userid = "";
 my $password = "";
 my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
    or die "<p>Error->"& $DBI::errstri &"</p>";
-my $rs_prev=0;
 
 
 
@@ -39,59 +38,13 @@ print $q->start_html(-title => "Personal Log",
 		        );	  
 
 my $rv;
+my $sth;
 my $today = DateTime->now;
 $today->set_time_zone( $TIME_ZONE );
 
-
-my $sth = $dbh->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='LOG';");
-$sth->execute();
-
-if(!$sth->fetchrow_array()) {
-			my $stmt = qq(
-
-			CREATE TABLE LOG (
-			  ID_CAT TINY NOT NULL,
-			  DATE DATETIME  NOT NULL,
-			  LOG VCHAR(128) NOT NULL
-					);
-						   
-			);
-
-			$rv = $dbh->do($stmt);
-
-			if($rv < 0) {
-				      print "<p>Error->"& $DBI::errstri &"</p>";
-			} 
-
-			$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?)');
-
-			$sth->execute( 3, $today, "DB Created!");
-
-			
-			 $stmt = qq(
-
-			CREATE TABLE CAT(
-			  ID INT PRIMARY KEY NOT NULL,
-			  NAME VCHAR(16)
-			);
-						   
-			);
-
-			$rv = $dbh->do($stmt);
-
-			if($rv < 0) {
-				      print "<p>Error->"& $DBI::errstri &"</p>";
-			} 
-
-			$sth = $dbh->prepare('INSERT INTO CAT VALUES (?,?)');
-
-	$sth->execute(1,"Unspecified");
-	$sth->execute(3,"File System");
-	$sth->execute(6,"System Log");
-	$sth->execute(9,"Event");
-	$sth->execute(28,"Personal");
-	$sth->execute(32, "Expense");
-}
+#####################
+	&checkCreateTables;
+#####################
 
 my $stmtCat = "SELECT * FROM CAT;";
 my $stmt = "SELECT rowid, ID_CAT, DATE, LOG from LOG ORDER BY rowid DESC, DATE DESC;";
@@ -112,16 +65,24 @@ $cats = $cats.'</select>';
 
 
 my $tbl = qq(
-<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
+<form id="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
 <table class="tbl">
 <tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th><th>Edit</th></tr>);
 
 my $tbl_rc = 0;
+my $tbl_rc_prev = 0;
+my $tbl_cur_id;
 
-##################################
-&processSubmit;
-##################################
+###############
+	&processSubmit;
+###############
+	#
+	# Enable to see main query statment issued!
+	#
+#		print "### -> ".$stmt;
 
+	#
+	#
 #Fetch entries!
 #
 $sth = $dbh->prepare( $stmt );
@@ -134,32 +95,45 @@ my $tfId = 0;
 
  while(my @row = $sth->fetchrow_array()) {
 
+	 my $id = $row[0];
 	 my $ct = $hshCats{@row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 	 my $log = $row[3]; 
-	    #Apostrophe in the log value is doubled to avoid SQL errors.
-	    $log =~ s/''/'/g;
 
+
+	 #Apostrophe in the log value is doubled to avoid SQL errors.
+		    $log =~ s/''/'/g;
+	 #
+	    
+
+         if($tbl_rc_prev == 0){
+ 	    $tbl_rc_prev = $id;
+	 }
 	 if($tfId==1){
 		 $tfId = 0;
 	 }else{
 		 $tfId = 1;
 	 }
 
-	         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$row[0].'">'. 
+	         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$id.'">'. 
 		 	$dt->ymd . '</td>' . 
-		          '<td id="t'.$row[0].'">' . $dt->hms . "</td>" . '<td id="v'.$row[0].
+		          '<td id="t'.$id.'">' . $dt->hms . "</td>" . '<td id="v'.$id.
 			  '" class="log">' . $log . "</td>".
-			  '<td id="c'.$row[0].'">' . $ct .
+			  '<td id="c'.$id.'">' . $ct .
 			  '</td>
-			  <td><input class="edit" type="button" value="Edit" onclick="edit(this);return false;"/><input name="chk" type="checkbox" value="'.$row[0].'"/>
+			  <td><input class="edit" type="button" value="Edit" onclick="edit(this);return false;"/>
+			  <input name="chk" type="checkbox" value="'.$id.'"/>
 			  </td></tr>';
 	$tbl_rc += 1;	
 
-	if($REC_LIMIT>0 && $tbl_rc>$REC_LIMIT){
+	if($REC_LIMIT>0 && $tbl_rc==$REC_LIMIT){
 	 	#	
 		#UNDER DEVELOPMENT!
 		#
+		 if(!$tbl_cur_id){
+		     #Following is a quick hack as previous id as current minus one might not coincide in the database table!
+		     $tbl_cur_id = $id-1;
+		 }
 		 if($tfId==1){
 			 $tfId = 0;
 		 }else{
@@ -168,20 +142,25 @@ my $tfId = 0;
 
 	         $tbl = $tbl . '<tr class="r'.$tfId.'"><td>&dagger;</td>';
 
-		 if($rs_prev>0){
+		 my $rs_prev = $q->param('rs_prev'); 
+		 if($rs_prev && $rs_prev>0){
 
 		         $tbl = $tbl . '<td><input type="hidden" value="'.$rs_prev.'"/>
-		 	 <input type="button" onclick="submitPrev(this)"
+		 	 <input type="button" onclick="submitPrev('.$rs_prev.');return false;"
 			  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>';
 
+		 }else{
+
+			$tbl = $tbl .'<td><i>Top</i></td>';
 		 }
 
 
-	        $tbl = $tbl . '<td><input type="hidden" name="rsc" value="'.  $tbl_rc .  '"/>
-		<input type="button" onclick="return submitNext(this);" 
+		$tbl = $tbl .'<td colspan="1"><input type="button" onclick="viewAll();return false;" 
+		value="View All"/></td>';
+	        $tbl = $tbl . '<td><input type="button" onclick="submitNext('.$tbl_cur_id.');return false;" 
 		value="Next &ndash;&rsaquo;&rsaquo;"/></td>';
 
-		$tbl = $tbl .'<td colspan="2"></td></tr>';
+		$tbl = $tbl .'<td colspan="1"></td></tr>';
 		last;
 	 	#	
 		#END OF UNDER DEVELOPMENT!
@@ -189,8 +168,8 @@ my $tfId = 0;
 	}
  }
 
- if($tbl_rc==1){
-	 $tbl = $tbl . "<tr><td colspan=\"5\"><b>Table is Empty!</b></td></tr>\n";
+ if($tbl_rc==0){
+	 $tbl = $tbl . "<tr><td colspan=\"5\"><b>Database is New or  Empty!</b></td></tr>\n";
  }
  $tbl = $tbl . '<tr class="r0"><td colspan="5" align="right">
  <input type="reset" value="Unselect All"/><input type="submit" value="Delete Selected"/>
@@ -198,7 +177,7 @@ my $tfId = 0;
  </table></form>';
 
 my  $frm = qq(
- <form name="frm_log" action="main.cgi" onSubmit="return formValidation();">
+ <form id="frm_log" action="main.cgi" onSubmit="return formValidation();">
 	 <table class="tbl">
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
 	 <tr><td colspan="3"><br/></td></tr>
@@ -213,7 +192,9 @@ my  $frm = qq(
 	</tr></table>
 		 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
 		 <input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
-</form>
+		 <input type="hidden" name="rs_all" value="0"/>
+		 <input type="hidden" name="rs_cur" value="0"/>
+		 <input type="hidden" name="rs_prev" value=").$tbl_rc_prev.q("/> </form>
  );
 
 
@@ -235,14 +216,14 @@ sub processSubmit {
 	my $cat = $q->param('cat');
 	my $edit_mode =  $q->param('submit_is_edit');
 	my $view_mode =  $q->param('submit_is_view');
+	my $view_all  =  $q->param('rs_all');
 
 	
-	   $rs_prev = $q->param("rs_cnt");
 
 	#Apostroph's need to be replaced with doubles  and white space fixed for the SQL.
 	$log =~ s/(?<=\w) ?' ?(?=\w)/''/g;
 
-	if($edit_mode != "0"){
+	if($edit_mode && $edit_mode != "0"){
 		#Update
 
 		my $stm = "UPDATE LOG SET ID_CAT='".$cat."', DATE='". $date ."',
@@ -252,15 +233,23 @@ sub processSubmit {
 		return;
 	}
 
-	if($view_mode != "0"){
+	if($view_all && $view_all=="1"){
+		$REC_LIMIT = 0;
+	}
+
+	if($view_mode && $view_mode == "1"){
 		#
 		#UNDER DEVELOPMENT
 		#
 	
-		my $rsc = $q->param('rsc');		
- 		$stmt = 'SELECT rowid, ID_CAT, DATE, LOG from LOG 
-			where rowid > "'.$rsc.'" ORDER BY rowid DESC, DATE DESC;';
-		return;
+		my $rs = $q->param("rs_cur");
+		my $rs_prev = $q->param("rs_prev");
+
+		if($rs){
+			 $stmt = 'SELECT rowid, ID_CAT, DATE, LOG from LOG 
+			          where rowid <= "'.$rs.'" ORDER BY rowid DESC, DATE DESC;';
+			 return;
+		}
 	}
 
 	if($log && $date && $cat){
@@ -283,3 +272,60 @@ sub processSubmit {
 	
 	}
 }
+
+
+
+sub checkCreateTables(){
+
+	$sth = $dbh->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='LOG';");
+	$sth->execute();
+
+	if(!$sth->fetchrow_array()) {
+				my $stmt = qq(
+
+				CREATE TABLE LOG (
+				  ID_CAT TINY NOT NULL,
+				  DATE DATETIME  NOT NULL,
+				  LOG VCHAR(128) NOT NULL
+						);
+							   
+				);
+
+				$rv = $dbh->do($stmt);
+
+				if($rv < 0) {
+					      print "<p>Error->"& $DBI::errstri &"</p>";
+				} 
+
+				$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?)');
+
+				$sth->execute( 3, $today, "DB Created!");
+
+				
+				 $stmt = qq(
+
+				CREATE TABLE CAT(
+				  ID INT PRIMARY KEY NOT NULL,
+				  NAME VCHAR(16)
+				);
+							   
+				);
+
+				$rv = $dbh->do($stmt);
+
+				if($rv < 0) {
+					      print "<p>Error->"& $DBI::errstri &"</p>";
+				} 
+
+				$sth = $dbh->prepare('INSERT INTO CAT VALUES (?,?)');
+
+		$sth->execute(1,"Unspecified");
+		$sth->execute(3,"File System");
+		$sth->execute(6,"System Log");
+		$sth->execute(9,"Event");
+		$sth->execute(28,"Personal");
+		$sth->execute(32, "Expense");
+	}
+
+}
+

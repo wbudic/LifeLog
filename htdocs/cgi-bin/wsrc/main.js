@@ -63,8 +63,40 @@ function edit(el){
 return false;
 }
 
-function submitNext(el){
-	document.getElementById("submit_is_view").value = 1;
-	return true;
+function submitNext(tbl_rc){
+
+	var frm = document.getElementById("frm_log");
+	    frm.submit_is_view.value = 1;
+	    frm.rs_all.value = 0;
+	    frm.rs_cur.value = tbl_rc;
+	    frm.submit_is_view.value = 1;
+	    frm.submit();
+
+	return false;
 }
 
+function submitPrev(tbl_rc){
+
+	var frm = document.getElementById("frm_log");
+	    frm.submit_is_view.value = 1;
+	    frm.rs_all.value = 0;
+	    frm.rs_cur.value = tbl_rc;
+	    frm.rs_prev.value = tbl_rc;
+	    frm.submit_is_view.value = 1;
+	    frm.submit();
+
+	return false;
+}
+
+function viewAll(){
+
+	var frm = document.getElementById("frm_log");
+	    frm.submit_is_view.value = 1;
+	    frm.rs_all.value = 1;
+	    frm.rs_cur.value = 0;
+	    frm.rs_prev.value = 0;
+	    frm.submit_is_view.value = 1;
+	    frm.submit();
+
+	return false;
+}
