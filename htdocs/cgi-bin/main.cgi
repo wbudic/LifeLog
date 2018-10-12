@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use Try::Tiny;
  
 use CGI;
 use DBI;
@@ -77,9 +78,9 @@ my $tbl_cur_id;
 	&processSubmit;
 ###############
 	#
-	# Enable to see main query statment issued!
+	# Enable to see main query statement issued!
 	#
-#		print "### -> ".$stmt;
+		print "### -> ".$stmt;
 
 	#
 	#
@@ -92,10 +93,12 @@ if($rv < 0) {
 }
 
 my $tfId = 0;
+my $id = 0;
+my $rs_prev = $q->param('rs_prev'); 
 
  while(my @row = $sth->fetchrow_array()) {
 
-	 my $id = $row[0];
+	 $id = $row[0];
 	 my $ct = $hshCats{@row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 	 my $log = $row[3]; 
@@ -127,45 +130,15 @@ my $tfId = 0;
 	$tbl_rc += 1;	
 
 	if($REC_LIMIT>0 && $tbl_rc==$REC_LIMIT){
-	 	#	
-		#UNDER DEVELOPMENT!
-		#
-		 if(!$tbl_cur_id){
-		     #Following is a quick hack as previous id as current minus one might not coincide in the database table!
-		     $tbl_cur_id = $id-1;
-		 }
-		 if($tfId==1){
-			 $tfId = 0;
-		 }else{
-			 $tfId = 1;
-		 }
 
-	         $tbl = $tbl . '<tr class="r'.$tfId.'"><td>&dagger;</td>';
-
-		 my $rs_prev = $q->param('rs_prev'); 
-		 if($rs_prev && $rs_prev>0){
-
-		         $tbl = $tbl . '<td><input type="hidden" value="'.$rs_prev.'"/>
-		 	 <input type="button" onclick="submitPrev('.$rs_prev.');return false;"
-			  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>';
-
-		 }else{
-
-			$tbl = $tbl .'<td><i>Top</i></td>';
-		 }
-
-
-		$tbl = $tbl .'<td colspan="1"><input type="button" onclick="viewAll();return false;" 
-		value="View All"/></td>';
-	        $tbl = $tbl . '<td><input type="button" onclick="submitNext('.$tbl_cur_id.');return false;" 
-		value="Next &ndash;&rsaquo;&rsaquo;"/></td>';
-
-		$tbl = $tbl .'<td colspan="1"></td></tr>';
+		&buildNavigationButtons;
 		last;
-	 	#	
-		#END OF UNDER DEVELOPMENT!
-		#
 	}
+ }
+
+ #End of record set?
+ if($rs_prev && $tbl_rc < $REC_LIMIT){
+	&buildNavigationButtons(1);
  }
 
  if($tbl_rc==0){
@@ -207,6 +180,60 @@ print $q->end_html;
 $sth->finish;
 $dbh->disconnect();
 exit;
+
+### CGI END
+
+
+sub buildNavigationButtons{
+	#	
+	#UNDER DEVELOPMENT!
+	#
+	my $is_end_of_rs = shift;
+	
+
+	if(!$tbl_cur_id){
+	#Following is a quick hack as previous id as current minus one might not
+	#coincide in the database table!
+	$tbl_cur_id = $id-1;
+	}
+	if($tfId==1){
+	 $tfId = 0;
+	}else{
+	 $tfId = 1;
+	}
+
+	$tbl = $tbl . '<tr class="r'.$tfId.'"><td>&dagger;</td>';
+
+	if($rs_prev && $rs_prev>0){
+
+	 $tbl = $tbl . '<td><input type="hidden" value="'.$rs_prev.'"/>
+	 <input type="button" onclick="submitPrev('.$rs_prev.');return false;"
+	  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>';
+
+	}
+	else{
+                $tbl = $tbl .'<td><i>Top</i></td>';
+	}
+
+
+	$tbl = $tbl .'<td colspan="1"><input type="button" onclick="viewAll();return false;" 
+	value="View All"/></td>';
+
+	if($is_end_of_rs == 1){
+	  $tbl = $tbl .'<td><i>End</i></td>';
+	}
+	else{
+
+	$tbl = $tbl . '<td><input type="button" onclick="submitNext('.$tbl_cur_id.');return false;" 
+	value="Next &ndash;&rsaquo;&rsaquo;"/></td>';
+
+	}
+
+	$tbl = $tbl .'<td colspan="1"></td></tr>';
+	#	
+	#END OF UNDER DEVELOPMENT!
+	#
+}
 
 sub processSubmit { 
 
