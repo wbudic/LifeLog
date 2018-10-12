@@ -37,5 +37,8 @@ https://www.sqlite.org/download.html
  
 sudo cpanm  DateTime;
 sudo cpanm  DateTime::Format::SQLite;
+
+#Developers Install
+
 sudo cpanm  TryCatch;
 
