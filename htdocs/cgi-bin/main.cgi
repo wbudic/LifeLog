@@ -80,7 +80,7 @@ my $tbl_cur_id;
 	#
 	# Enable to see main query statement issued!
 	#
-		print "### -> ".$stmt;
+#		print "### -> ".$stmt;
 
 	#
 	#
