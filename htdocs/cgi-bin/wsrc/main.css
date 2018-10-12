@@ -48,3 +48,11 @@ div{
 	font-size:7pt;
 	border=:0px;
 }
+
+#al{
+	align-items:left;
+	align:left;
+	align-content:left;
+	text-align:left;
+}
+

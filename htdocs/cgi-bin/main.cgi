@@ -48,7 +48,7 @@ $today->set_time_zone( $TIME_ZONE );
 #####################
 
 my $stmtCat = "SELECT * FROM CAT;";
-my $stmt = "SELECT rowid, ID_CAT, DATE, LOG from LOG ORDER BY rowid DESC, DATE DESC;";
+my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid DESC, DATE DESC;";
 
 
 $sth = $dbh->prepare( $stmtCat );
@@ -68,7 +68,7 @@ $cats = $cats.'</select>';
 my $tbl = qq(
 <form id="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
 <table class="tbl">
-<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th><th>Edit</th></tr>);
+<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>#</th><th>Category</th><th>Edit</th></tr>);
 
 my $tbl_rc = 0;
 my $tbl_rc_prev = 0;
@@ -102,13 +102,15 @@ my $rs_prev = $q->param('rs_prev');
 	 my $ct = $hshCats{@row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 	 my $log = $row[3]; 
-
+	 my $amm = $row[4];
 
 	 #Apostrophe in the log value is doubled to avoid SQL errors.
 		    $log =~ s/''/'/g;
 	 #
 	    
-
+	 if(!$amm){
+		 $amm = "0.00";
+	 }
          if($tbl_rc_prev == 0){
  	    $tbl_rc_prev = $id;
 	 }
@@ -121,10 +123,11 @@ my $rs_prev = $q->param('rs_prev');
 	         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$id.'">'. 
 		 	$dt->ymd . '</td>' . 
 		          '<td id="t'.$id.'">' . $dt->hms . "</td>" . '<td id="v'.$id.
-			  '" class="log">' . $log . "</td>".
-			  '<td id="c'.$id.'">' . $ct .
-			  '</td>
-			  <td><input class="edit" type="button" value="Edit" onclick="edit(this);return false;"/>
+			  '" class="log">' . $log . '</td>'.
+			  '<td id="a'.$id.'">' . $amm .'</td>'.
+			  '<td id="c'.$id.'">' . $ct .'</td>'.
+			  '<td><input class="edit" type="button" value="Edit"
+			 	 onclick="edit(this);return false;"/>
 			  <input name="chk" type="checkbox" value="'.$id.'"/>
 			  </td></tr>';
 	$tbl_rc += 1;	
@@ -151,15 +154,15 @@ my $rs_prev = $q->param('rs_prev');
 
 my  $frm = qq(
  <form id="frm_log" action="main.cgi" onSubmit="return formValidation();">
-	 <table class="tbl">
+	 <table class="tbl" border=0>
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
 	 <tr><td colspan="3"><br/></td></tr>
 	 <tr>
-		 <td>Date:</td><td><input id="ed" type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("><button onclick="return setNow();">Now</button></td><td>Category:</td>
+		 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("><button onclick="return setNow();">Now</button></td><td>Category:</td>
 		 </tr>
-		 <tr><td>Log:</td> <td><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
+		 <tr><td>Log:</td><td><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
  		 <td>).$cats.qq(</td></tr>
-		 <tr><td></td><td></td><td>
+		 <tr><td>Ammount:</td><td id="al"><input id="am" name="am" type="number"/></td><td>
 		 <input type="submit" value="Submit"/>
 		 </td>
 	</tr></table>
@@ -313,7 +316,8 @@ sub checkCreateTables(){
 				CREATE TABLE LOG (
 				  ID_CAT TINY NOT NULL,
 				  DATE DATETIME  NOT NULL,
-				  LOG VCHAR(128) NOT NULL
+				  LOG VCHAR(128) NOT NULL,
+				  AMMOUNT integer
 						);
 							   
 				);
@@ -352,6 +356,7 @@ sub checkCreateTables(){
 		$sth->execute(9,"Event");
 		$sth->execute(28,"Personal");
 		$sth->execute(32, "Expense");
+		$sth->execute(35, "Income");
 	}
 
 }
