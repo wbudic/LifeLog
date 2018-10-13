@@ -149,7 +149,7 @@ my $rs_prev = $q->param('rs_prev');
  if($tbl_rc==0){
 	 $tbl = $tbl . "<tr><td colspan=\"5\"><b>Database is New or  Empty!</b></td></tr>\n";
  }
- $tbl = $tbl . '<tr class="r0"><td colspan="5" align="right">
+ $tbl = $tbl . '<tr class="r0"><td colspan="6" align="right">
  <input type="reset" value="Unselect All"/><input type="submit" value="Delete Selected"/>
  </td></tr>
  </table></form>';
