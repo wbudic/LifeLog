@@ -74,13 +74,15 @@ my $tbl_rc = 0;
 my $tbl_rc_prev = 0;
 my $tbl_cur_id;
 
+
+
 ###############
 	&processSubmit;
 ###############
 	#
 	# Enable to see main query statement issued!
 	#
-#		print "### -> ".$stmt;
+#	print "### -> ".$stmt;
 
 	#
 	#
@@ -99,7 +101,7 @@ my $rs_prev = $q->param('rs_prev');
  while(my @row = $sth->fetchrow_array()) {
 
 	 $id = $row[0];
-	 my $ct = $hshCats{@row[1]};
+	 my $ct = $hshCats{$row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 	 my $log = $row[3]; 
 	 my $amm = $row[4];
@@ -127,7 +129,7 @@ my $rs_prev = $q->param('rs_prev');
 			  '<td id="a'.$id.'">' . $amm .'</td>'.
 			  '<td id="c'.$id.'">' . $ct .'</td>'.
 			  '<td><input class="edit" type="button" value="Edit"
-			 	 onclick="edit(this);return false;"/>
+			 	 onclick="edit('.$id.');return false;"/>
 			  <input name="chk" type="checkbox" value="'.$id.'"/>
 			  </td></tr>';
 	$tbl_rc += 1;	
@@ -178,6 +180,7 @@ print "<center>";
 print "<div>\n" . $frm ."</div>\n<br/>";
 print "<div>\n" . $tbl ."</div>";
 print "</center>";
+
 
 print $q->end_html;
 $sth->finish;
@@ -244,12 +247,14 @@ sub processSubmit {
 	my $date = $q->param('date');
 	my $log = $q->param('log');
 	my $cat = $q->param('cat');
+	my $amm = $q->param('am');
+
 	my $edit_mode =  $q->param('submit_is_edit');
 	my $view_mode =  $q->param('submit_is_view');
 	my $view_all  =  $q->param('rs_all');
 
 	
-
+try{
 	#Apostroph's need to be replaced with doubles  and white space fixed for the SQL.
 	$log =~ s/(?<=\w) ?' ?(?=\w)/''/g;
 
@@ -276,7 +281,7 @@ sub processSubmit {
 		my $rs_prev = $q->param("rs_prev");
 
 		if($rs){
-			 $stmt = 'SELECT rowid, ID_CAT, DATE, LOG from LOG 
+			 $stmt = 'SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG 
 			          where rowid <= "'.$rs.'" ORDER BY rowid DESC, DATE DESC;';
 			 return;
 		}
@@ -286,21 +291,22 @@ sub processSubmit {
 
 		#check for double entry
 		#
-		
 		my $sth = $dbh->prepare(
-			  "SELECT DATE,LOG FROM LOG where DATE='".$date ."' AND LOG='".$log."';"
+			  "SELECT DATE,LOG FROM LOG where DATE='".$date."' AND LOG='".$log."';"
 			);
 
 		$sth->execute();
 		if(my @row = $sth->fetchrow_array()){
 			return;
 		}
-
 		
-		$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?)');
-		$sth->execute( $cat, $date, $log);
-	
+		$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
+		$sth->execute( $cat, $date, $log, $amm);
 	}
+}
+catch{
+	print "ERROR:".$_;
+}	
 }
 
 

@@ -38,8 +38,7 @@ function setNow(){
 return false;
 }
 
-function edit(el){
-	var row = el.nextSibling.value;
+function edit(row){
 
 	var ec_v = document.getElementById("c"+ row).innerText;
 	var ec   = document.getElementById("ec");
@@ -59,6 +58,7 @@ function edit(el){
 	         }
 	}
 	document.getElementById("submit_is_edit").value = row;
+	document.getElementById("frm_log").log.focus();
 
 return false;
 }
