@@ -84,7 +84,7 @@ my $rs_cur = $q->param('rs_cur');
 	#
 	# Enable to see main query statement issued!
 	#
-	print "### -> ".$stmt;
+#	print "### -> ".$stmt;
 
 	#
 	#
