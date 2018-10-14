@@ -12,13 +12,13 @@ p {
 
 table, th, td{
 	border-collapse: collapse;
-	width: 680px;
+	width: 740px;
 	padding-bottom: 5px;
 }
 
 div{
 
-	width: 700px;
+	width: 740px;
 	text-align: center;
 	vertical-align: middle;
 }

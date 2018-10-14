@@ -129,6 +129,6 @@ if($r_cnt>1){
 </td></tr>
 </table></form>';
 
-print '<div id="tbl">' . $tbl .'</div>';
+print '<center><div>' . $tbl .'</div></center>';
 
 }

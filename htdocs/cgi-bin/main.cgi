@@ -24,7 +24,7 @@ my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
 
 
 #SETTINGS HERE!
-my $REC_LIMIT = 0;
+my $REC_LIMIT = 25;
 my $TIME_ZONE = 'Australia/Sydney';
 #END OF SETTINGS
 
@@ -75,6 +75,8 @@ my $tbl_rc_prev = 0;
 my $tbl_cur_id;
 
 
+my $rs_prev = $q->param('rs_prev'); 
+my $rs_cur = $q->param('rs_cur');
 
 ###############
 	&processSubmit;
@@ -82,7 +84,7 @@ my $tbl_cur_id;
 	#
 	# Enable to see main query statement issued!
 	#
-#	print "### -> ".$stmt;
+	print "### -> ".$stmt;
 
 	#
 	#
@@ -96,7 +98,18 @@ if($rv < 0) {
 
 my $tfId = 0;
 my $id = 0;
-my $rs_prev = $q->param('rs_prev'); 
+my $tbl_start = index $stmt, "<=";
+
+if($tbl_start>0){
+	#check if we are at the beggining of the LOG table?
+	
+	my $sthc = $dbh->prepare('select rowid from LOG order by rowid DESC LIMIT 1;');
+	   $sthc->execute();
+	my @row =$sthc->fetchrow_array();
+	if($row[0] == $rs_prev && $rs_cur == $rs_prev){
+		$tbl_start = -1;
+	}
+}
 
  while(my @row = $sth->fetchrow_array()) {
 
@@ -122,16 +135,16 @@ my $rs_prev = $q->param('rs_prev');
 		 $tfId = 1;
 	 }
 
-	         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$id.'">'. 
-		 	$dt->ymd . '</td>' . 
-		          '<td id="t'.$id.'">' . $dt->hms . "</td>" . '<td id="v'.$id.
-			  '" class="log">' . $log . '</td>'.
+         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$id.'">'. $dt->ymd . '</td>'. 
+		          '<td id="t'.$id.'">' . $dt->hms . "</td>" .
+			  '<td id="v'.$id.'" class="log">' . $log . '</td>'.
 			  '<td id="a'.$id.'">' . $amm .'</td>'.
 			  '<td id="c'.$id.'">' . $ct .'</td>'.
 			  '<td><input class="edit" type="button" value="Edit"
 			 	 onclick="edit('.$id.');return false;"/>
 			  <input name="chk" type="checkbox" value="'.$id.'"/>
-			  </td></tr>';
+			  </td>
+			</tr>';
 	$tbl_rc += 1;	
 
 	if($REC_LIMIT>0 && $tbl_rc==$REC_LIMIT){
@@ -141,9 +154,14 @@ my $rs_prev = $q->param('rs_prev');
 	}
  }
 
- #End of record set?
+ #End of table?
  if($rs_prev && $tbl_rc < $REC_LIMIT){
-	&buildNavigationButtons(1);
+	$sth = $dbh->prepare( "SELECT count(*) FROM LOG;" );
+	$sth->execute();	
+	my @row = $sth->fetchrow_array(); 
+	if($row[0]>$REC_LIMIT){
+	   &buildNavigationButtons(1);
+	}
  }
 
  if($tbl_rc==0){
@@ -162,7 +180,7 @@ my  $frm = qq(
 	 <tr>
 		 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("><button onclick="return setNow();">Now</button></td><td>Category:</td>
 		 </tr>
-		 <tr><td>Log:</td><td><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
+		 <tr><td>Log:</td><td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
  		 <td>).$cats.qq(</td></tr>
 		 <tr><td>Ammount:</td><td id="al"><input id="am" name="am" type="number"/></td><td>
 		 <input type="submit" value="Submit"/>
@@ -191,12 +209,9 @@ exit;
 
 
 sub buildNavigationButtons{
-	#	
-	#UNDER DEVELOPMENT!
-	#
+
 	my $is_end_of_rs = shift;
 	
-
 	if(!$tbl_cur_id){
 	#Following is a quick hack as previous id as current minus one might not
 	#coincide in the database table!
@@ -210,7 +225,7 @@ sub buildNavigationButtons{
 
 	$tbl = $tbl . '<tr class="r'.$tfId.'"><td>&dagger;</td>';
 
-	if($rs_prev && $rs_prev>0){
+	if($rs_prev && $rs_prev>0 && $tbl_start>0){
 
 	 $tbl = $tbl . '<td><input type="hidden" value="'.$rs_prev.'"/>
 	 <input type="button" onclick="submitPrev('.$rs_prev.');return false;"
@@ -218,7 +233,7 @@ sub buildNavigationButtons{
 
 	}
 	else{
-                $tbl = $tbl .'<td><i>Top</i></td>';
+                $tbl = $tbl .'<td><i>Top</i></td>'.$tbl_start;
 	}
 
 
@@ -235,10 +250,7 @@ sub buildNavigationButtons{
 
 	}
 
-	$tbl = $tbl .'<td colspan="1"></td></tr>';
-	#	
-	#END OF UNDER DEVELOPMENT!
-	#
+	$tbl = $tbl .'<td colspan="2"></td></tr>';
 }
 
 sub processSubmit { 
@@ -273,16 +285,10 @@ try{
 	}
 
 	if($view_mode && $view_mode == "1"){
-		#
-		#UNDER DEVELOPMENT
-		#
-	
-		my $rs = $q->param("rs_cur");
-		my $rs_prev = $q->param("rs_prev");
 
-		if($rs){
+		if($rs_cur){
 			 $stmt = 'SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG 
-			          where rowid <= "'.$rs.'" ORDER BY rowid DESC, DATE DESC;';
+			          where rowid <= "'.$rs_cur.'" ORDER BY rowid DESC, DATE DESC;';
 			 return;
 		}
 	}
