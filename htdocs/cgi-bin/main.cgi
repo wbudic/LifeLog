@@ -182,7 +182,7 @@ my  $frm = qq(
 		 </tr>
 		 <tr><td>Log:</td><td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
  		 <td>).$cats.qq(</td></tr>
-		 <tr><td>Ammount:</td><td id="al"><input id="am" name="am" type="number"/></td><td>
+		 <tr><td>Ammount:</td><td id="al"><input id="am" name="am" type="number" step="any"/></td><td>
 		 <input type="submit" value="Submit"/>
 		 </td>
 	</tr></table>
