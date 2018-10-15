@@ -1,0 +1,1 @@
+thttpd -C thttpd.conf&
