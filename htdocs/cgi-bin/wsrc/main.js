@@ -31,9 +31,9 @@ return true;
 
 function setNow(){
 
-	var date = document.frm_log.date;
+	var date = document.getElementById("frm_log").date;
 	var dt = new Date();
-	date.value = dt.getFullYear()+"-"+dt.getMonth()+"-"+dt.getUTCDate() + " " + dt.getHours() + ":" + dt.getMinutes() +":"+dt.getSeconds();
+	date.value = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getUTCDate() + " " + dt.getHours() + ":" + dt.getMinutes() +":"+dt.getSeconds();
 
 return false;
 }
