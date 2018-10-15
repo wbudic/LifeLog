@@ -65,10 +65,11 @@ my %hshCats;
 $cats = $cats.'</select>';
 
 
-my $tbl = qq(
-<form id="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
+my $tbl = qq(<form id="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
 <table class="tbl">
-<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>#</th><th>Category</th><th>Edit</th></tr>);
+<tr class="r0">
+	<th>Date</th><th>Time</th><th>Log</th><th>#</th><th>Category</th><th>Edit</th>
+</tr>);
 
 my $tbl_rc = 0;
 my $tbl_rc_prev = 0;
@@ -109,6 +110,7 @@ if($tbl_start>0){
 	if($row[0] == $rs_prev && $rs_cur == $rs_prev){
 		$tbl_start = -1;
 	}
+	$sthc->finish();
 }
 
  while(my @row = $sth->fetchrow_array()) {
@@ -141,7 +143,7 @@ if($tbl_start>0){
 			  '<td id="a'.$id.'">' . $amm .'</td>'.
 			  '<td id="c'.$id.'">' . $ct .'</td>'.
 			  '<td><input class="edit" type="button" value="Edit"
-			 	 onclick="edit('.$id.');return false;"/>
+			 	 onclick="return edit('.$id.');"/>
 			  <input name="chk" type="checkbox" value="'.$id.'"/>
 			  </td>
 			</tr>';
@@ -165,8 +167,9 @@ if($tbl_start>0){
  }
 
  if($tbl_rc==0){
-	 $tbl = $tbl . "<tr><td colspan=\"5\"><b>Database is New or  Empty!</b></td></tr>\n";
+	 $tbl = $tbl . '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
  }
+
  $tbl = $tbl . '<tr class="r0"><td colspan="6" align="right">
  <input type="reset" value="Unselect All"/><input type="submit" value="Delete Selected"/>
  </td></tr>
@@ -193,17 +196,17 @@ my  $frm = qq(
 		 <input type="submit" value="Submit"/>
 		 </td>
 	</tr></table>
-		 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
-		 <input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
-		 <input type="hidden" name="rs_all" value="0"/>
-		 <input type="hidden" name="rs_cur" value="0"/>
-		 <input type="hidden" name="rs_prev" value=").$tbl_rc_prev.q("/> </form>
- );
+	 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
+	 <input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
+	 <input type="hidden" name="rs_all" value="0"/>
+	 <input type="hidden" name="rs_cur" value="0"/>
+	 <input type="hidden" name="rs_prev" value=").$tbl_rc_prev.q("/> </form>
+	 );
 
 
 print "<center>";
-print "<div>\n" . $frm ."</div>\n<br/>";
-print "<div>\n" . $tbl ."</div>";
+	print "\n<div>\n" . $frm ."\n</div>\n</br>";
+	print "\n<div>\n" . $tbl ."\n</div>";
 print "</center>";
 
 
@@ -240,7 +243,7 @@ sub buildNavigationButtons{
 
 	}
 	else{
-                $tbl = $tbl .'<td><i>Top</i></td>'.$tbl_start;
+                $tbl = $tbl .'<td><i>Top</i></td>';
 	}
 
 
