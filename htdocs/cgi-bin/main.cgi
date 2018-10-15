@@ -178,11 +178,18 @@ my  $frm = qq(
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
 	 <tr><td colspan="3"><br/></td></tr>
 	 <tr>
-		 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" value=") .$today->ymd ." ". $today->hms . qq("><button onclick="return setNow();">Now</button></td><td>Category:</td>
-		 </tr>
-		 <tr><td>Log:</td><td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
- 		 <td>).$cats.qq(</td></tr>
-		 <tr><td>Ammount:</td><td id="al"><input id="am" name="am" type="number" step="any"/></td><td>
+	 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" value=") .$today->ymd.
+	 " ". $today->hms .
+	 qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
+ 	      &nbsp;<button type="reset">Clear</button>
+	 	</td>
+	 	<td>Category:</td>
+	 </tr>
+		 <tr><td>Log:</td>
+		  <td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
+ 		  <td>).$cats.qq(</td></tr>
+		 <tr><td>Ammount:</td>
+		 <td id="al"><input id="am" name="am" type="number" step="any"/></td><td>
 		 <input type="submit" value="Submit"/>
 		 </td>
 	</tr></table>
