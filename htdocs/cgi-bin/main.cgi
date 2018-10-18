@@ -15,8 +15,8 @@ my $q = CGI->new;
 my $driver   = "SQLite"; 
 my $database = "../../dbLifeLog/data_log.db";
 my $dsn = "DBI:$driver:dbname=$database";
-my $userid = "";
-my $password = "";
+my $userid = $ENV{'DB_USER'};
+my $password = $ENV{'DB_PASS'};
 my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
    or die "<p>Error->"& $DBI::errstri &"</p>";
 
@@ -27,8 +27,6 @@ my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
 my $REC_LIMIT = 25;
 my $TIME_ZONE = 'Australia/Sydney';
 #END OF SETTINGS
-
-
 
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
@@ -205,8 +203,9 @@ my  $frm = qq(
 
 
 print "<center>";
-	print "\n<div>\n" . $frm ."\n</div>\n</br>";
+	print "\n<div>\n" . $frm ."\n</div>\n<br/>";
 	print "\n<div>\n" . $tbl ."\n</div>";
+	print '</br><div><a href="stats.cgi">View Statistics</a></div>';
 print "</center>";
 
 
