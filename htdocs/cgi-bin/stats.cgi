@@ -67,7 +67,7 @@ my $sum =  sprintf("%.2f",$row[0]);
 $sth->finish;
 
 my $hardware_status =`inxi -b -c0`;
-$hardware_status =~ s/\n/<\/br>/g;
+$hardware_status =~ s/\n/<br\/>/g;
 
  $tbl = $tbl . '<tr class="r0"><td>Number of Records:</td><td>'.
  		$log_rc.'</td></tr>
@@ -78,10 +78,10 @@ $hardware_status =~ s/\n/<\/br>/g;
 		<tr class="r1"><td>'.$database.'</td><td>'.
  		 (uc format_bytes($stat[7], bs => 1000)).'</td></tr>
 
-</table></form>';
+</table>';
 
 print '<center><div>' . $tbl .'</div></center>';
-print '<center><div style="text-align:left;"></br><b>Server Info</b></br></br>' . $hardware_status .'</div></center>';
+print '<center><div style="text-align:left;"><br/><b>Server Info</b><br/><br/>' . $hardware_status .'</div></center>';
 
 print $q->end_html;
 $sth->finish;
