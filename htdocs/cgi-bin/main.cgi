@@ -349,9 +349,9 @@ sub checkCreateTables(){
 					      print "<p>Error->"& $DBI::errstri &"</p>";
 				} 
 
-				$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?)');
+				$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
 
-				$sth->execute( 3, $today, "DB Created!");
+				$sth->execute( 3, $today, "DB Created!",0);
 
 				
 				 $stmt = qq(
