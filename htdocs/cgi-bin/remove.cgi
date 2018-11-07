@@ -42,7 +42,7 @@ my $tbl_rc =0;
 
 
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
-my $stmE = " ORDER BY rowid DESC, DATE DESC;";
+my $stmE = " ORDER BY DATE DESC, rowid DESC;";
 my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
 		<table class="tbl">
 		<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';

@@ -46,7 +46,7 @@ $today->set_time_zone( $TIME_ZONE );
 #####################
 
 my $stmtCat = "SELECT * FROM CAT;";
-my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid DESC, DATE DESC;";
+my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY DATE DESC, rowid DESC;";
 
 
 $sth = $dbh->prepare( $stmtCat );
@@ -297,7 +297,7 @@ try{
 
 		if($rs_cur){
 			 $stmt = 'SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG 
-			          where rowid <= "'.$rs_cur.'" ORDER BY rowid DESC, DATE DESC;';
+			          where rowid <= "'.$rs_cur.'" ORDER BY DATE DESC, rowid DESC;';
 			 return;
 		}
 	}
