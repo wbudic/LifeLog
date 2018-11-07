@@ -117,7 +117,7 @@ if($tbl_start>0){
 	 my $ct = $hshCats{$row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 	 my $log = $row[3]; 
-	 my $amm = $row[4];
+	 my $amm = sprintf "%.2f", $row[4];
 
 	 #Apostrophe in the log value is doubled to avoid SQL errors.
 		    $log =~ s/''/'/g;
