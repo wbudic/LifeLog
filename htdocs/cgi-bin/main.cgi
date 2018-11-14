@@ -87,7 +87,7 @@ if($rs_keys){
 	if(@keywords){
 		foreach (@keywords)
 		{
-			$stm = $stm . " LOWER(LOG) REGEXP '\\b" .$_."\\b'";
+			$stm = $stm . " LOWER(LOG) REGEXP '\\b" . lc $_."\\b'";
 			if(  \$_ != \$keywords[-1]  ) {
 				$stm = $stm." OR ";
 			}
