@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+package PersonalLog;
 
 use strict;
 use warnings;

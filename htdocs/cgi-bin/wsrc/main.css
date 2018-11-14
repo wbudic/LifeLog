@@ -23,6 +23,14 @@ div{
 	vertical-align: middle;
 }
 
+#div_srh{
+
+	width: 740px;
+	text-align: center;
+	vertical-align: middle;
+	display: none;
+}
+
 .tbl {
 	border: 1px solid black;
 	padding-top: 5px;

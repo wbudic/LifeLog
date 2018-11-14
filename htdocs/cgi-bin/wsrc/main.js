@@ -100,3 +100,16 @@ function viewAll(){
 
 	return false;
 }
+
+
+function toggleSearch(btn) {
+
+	    var d = document.getElementById("div_srh");
+	    if (d.style.display === "none" || d.style.display ==="") {
+		  d.style.display = "block";
+		  btn.innerText="Hide Search";
+	   } else {
+	          d.style.display = "none";
+		  btn.innerText="Show Search";
+	   }
+}

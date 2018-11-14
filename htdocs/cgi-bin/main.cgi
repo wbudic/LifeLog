@@ -10,13 +10,13 @@ use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 
-my $q = CGI->new;
 
 my $driver   = "SQLite"; 
 my $database = "../../dbLifeLog/data_log.db";
 my $dsn = "DBI:$driver:dbname=$database";
 my $userid = $ENV{'DB_USER'};
 my $password = $ENV{'DB_PASS'};
+
 my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
    or die "<p>Error->"& $DBI::errstri &"</p>";
 
@@ -24,9 +24,11 @@ my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
 
 
 #SETTINGS HERE!
-my $REC_LIMIT = 25;
-my $TIME_ZONE = 'Australia/Sydney';
+our $REC_LIMIT = 25;
+our $TIME_ZONE = 'Australia/Sydney';
 #END OF SETTINGS
+
+my $q = CGI->new;
 
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
@@ -76,14 +78,30 @@ my $tbl_cur_id;
 
 my $rs_prev = $q->param('rs_prev'); 
 my $rs_cur = $q->param('rs_cur');
-
+my $rs_keys = $q->param('keywords');
+if($rs_keys){
+	
+	my $stm = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
+	my $stmE = " ORDER BY DATE DESC, rowid DESC;";
+	my @keywords = split / /, $rs_keys;
+	if(@keywords){
+		foreach (@keywords)
+		{
+			$stm = $stm . " LOWER(LOG) REGEXP '\\b" .$_."\\b'";
+			if(  \$_ != \$keywords[-1]  ) {
+				$stm = $stm." OR ";
+			}
+		}
+		$stmt = $stm . $stmE;
+	}
+}
 ###############
 	&processSubmit;
 ###############
 	#
 	# Enable to see main query statement issued!
 	#
-#	print "### -> ".$stmt;
+# 	print $q->pre("### -> ".$stmt);
 
 	#
 	#
@@ -165,13 +183,22 @@ if($tbl_start>0){
  }
 
  if($tbl_rc==0){
+	 if($rs_keys){
+	 $tbl = $tbl . '<tr><td colspan="5">
+	 <b>Search Failed to Retrive any records on keywords: [<i>'. $rs_keys .'</i>] !</b></td></tr>\n';
+	 }
+	else{
 	 $tbl = $tbl . '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
+	 }
  }
 
  $tbl = $tbl . '<tr class="r0"><td colspan="6" align="right">
  <input type="reset" value="Unselect All"/><input type="submit" value="Delete Selected"/>
- </td></tr>
- </table></form>';
+ </form></td></tr>
+<tr class="r0"><td><form id="frm_srch" action="main.cgi">Keywords:</td><td colspan="4">
+<input name="keywords" type="text" size="60"/></td>
+<td><input type="submit" value="Search"/></form></td></tr>
+ </table>';
 
 my  $frm = qq(
  <form id="frm_log" action="main.cgi" onSubmit="return formValidation();">
@@ -179,19 +206,19 @@ my  $frm = qq(
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
 	 <tr><td colspan="3"><br/></td></tr>
 	 <tr>
-	 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" value=") .$today->ymd.
+	 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" size="16" value=") .$today->ymd.
 	 " ". $today->hms .
 	 qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
  	      &nbsp;<button type="reset">Clear</button>
-	 	</td>
+	      &nbsp; <button onclick="toggleSearch(this); return false;">Show Search</button></td>
 	 	<td>Category:</td>
 	 </tr>
 		 <tr><td>Log:</td>
 		  <td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
  		  <td>).$cats.qq(</td></tr>
 		 <tr><td>Ammount:</td>
-		 <td id="al"><input id="am" name="am" type="number" step="any"/></td><td>
-		 <input type="submit" value="Submit"/>
+		 <td id="al"><input id="am" name="am" type="number" step="any"/></td>
+		 <td><input type="submit" value="Submit"/>
 		 </td>
 	</tr></table>
 	 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
@@ -202,8 +229,24 @@ my  $frm = qq(
 	 );
 
 
+my  $srh = qq(
+	 <form id="frm_srch" action="main.cgi">
+	 <table class="tbl" border=0>
+		 <tr class="r0"><td colspan="4"><b>Search/View By</b></td></tr>
+<tr><td>Keywords:</td><td colspan="2">
+<input name="keywords" type="text" size="60" value=").$rs_keys.qq("/></td>
+<td><input type="submit" value="Search"/></form></td></tr>
+		 <tr><td colspan="4"><br/></td></tr>
+	 </table>
+	 </form><br/>
+	 );
+
+#
+#Page printout from here!
+#
 print "<center>";
 	print "\n<div>\n" . $frm ."\n</div>\n<br/>";
+	print '<div id="div_srh">' . $srh .'</div>';
 	print "\n<div>\n" . $tbl ."\n</div>";
 	print '</br><div><a href="stats.cgi">View Statistics</a></div>';
 print "</center>";
