@@ -81,7 +81,7 @@ my $rs_cur = $q->param('rs_cur');
 my $rs_keys = $q->param('keywords');
 if($rs_keys){
 	
-	my $stm = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
+	my $stm = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
 	my $stmE = " ORDER BY DATE DESC, rowid DESC;";
 	my @keywords = split / /, $rs_keys;
 	if(@keywords){
