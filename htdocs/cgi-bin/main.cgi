@@ -29,13 +29,14 @@ our $TIME_ZONE = 'Australia/Sydney';
 #END OF SETTINGS
 
 my $q = CGI->new;
-
+my $rs_keys = $q->param('keywords');
+	
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
 print $q->start_html(-title => "Personal Log", 
        		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-		     -onload => "loadedBody();"
+		     -onload => "loadedBody('".$rs_keys."');"
 		        );	  
 
 my $rv;
@@ -78,7 +79,6 @@ my $tbl_cur_id;
 
 my $rs_prev = $q->param('rs_prev'); 
 my $rs_cur = $q->param('rs_cur');
-my $rs_keys = $q->param('keywords');
 if($rs_keys){
 	
 	my $stm = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
@@ -210,7 +210,7 @@ my  $frm = qq(
 	 " ". $today->hms .
 	 qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
  	      &nbsp;<button type="reset">Clear</button>
-	      &nbsp; <button onclick="toggleSearch(this); return false;">Show Search</button></td>
+	      &nbsp; <button id="btn_srch" onclick="toggleSearch(this); return false;">Show Search</button></td>
 	 	<td>Category:</td>
 	 </tr>
 		 <tr><td>Log:</td>
@@ -233,14 +233,17 @@ my  $srh = qq(
 	 <form id="frm_srch" action="main.cgi">
 	 <table class="tbl" border=0>
 		 <tr class="r0"><td colspan="4"><b>Search/View By</b></td></tr>
-<tr><td>Keywords:</td><td colspan="2">
-<input name="keywords" type="text" size="60" value=").$rs_keys.qq("/></td>
-<td><input type="submit" value="Search"/></form></td></tr>
-		 <tr><td colspan="4"><br/></td></tr>
-	 </table>
-	 </form><br/>
-	 );
+	<tr><td>Keywords:</td><td colspan="2">
+	<input name="keywords" type="text" size="60" value=").$rs_keys.qq("/></td>
+	<td><input type="submit" value="Search"/></td></tr>);
 
+if($rs_keys){
+	$srh = $srh.'<tr><td colspan="2"><button onClick="resetView()">Reset Whole View</button></td>
+	<td colspan="2"></td></tr>'
+}
+    $srh = $srh.'<tr><td colspan="4"><br/></td></tr>
+		 </table>
+		 </form><br/>';
 #
 #Page printout from here!
 #
