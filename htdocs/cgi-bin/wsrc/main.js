@@ -1,11 +1,14 @@
-function loadedBody(){
-	document.frm_log.log.focus();
+function loadedBody(toggle){
+	document.getElementById("frm_log").log.focus();
+	if(toggle){
+		toggleSearch(document.getElementById("btn_srch"));
+	}
 }
 
 function formValidation(){
   
-var date = document.frm_log.date;
-var log  = document.frm_log.log;
+var date = document.getElementById("frm_log").date;
+var log  = document.getElementById("frm_log").log;
 
 return validDate(date.value) && validLog(log.value);
 
@@ -112,4 +115,10 @@ function toggleSearch(btn) {
 	          d.style.display = "none";
 		  btn.innerText="Show Search";
 	   }
+}
+
+function resetView(){
+		
+	    var f = document.getElementById("frm_srch");
+	    f.keywords.value = "";
 }
