@@ -12,4 +12,6 @@ Latest tested stable realease is under tag 1.1
 2. SQLite3.
 2. Any CGI enabled web server (thttpd).
 
+## Basic Command Line Download
+git clone https://github.com/wbudic/LifeLog
 
