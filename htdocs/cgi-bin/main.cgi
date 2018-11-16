@@ -9,7 +9,7 @@ use DBI;
 
 use DateTime;
 use DateTime::Format::SQLite;
-
+use DateTime::Duration;
 
 my $driver   = "SQLite"; 
 my $database = "../../dbLifeLog/data_log.db";
@@ -363,6 +363,19 @@ try{
 		
 		$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
 		$sth->execute( $cat, $date, $log, $amm);
+		#
+		# UNDER DEVELOPMENT!
+		#
+		# After Insert renumeration check
+		#
+		my $dt = DateTime::Format::SQLite->parse_datetime($date);
+		my $dtCur = DateTime->now();
+		$dtCur->set_time_zone($TIME_ZONE);
+		$dtCur = $dtCur - DateTime::Duration->new( days => 1);
+
+		if($dtCur> $dt){
+#			print $q->p('<b>Insert is in the past!</b>');
+		}
 	}
 }
 catch{
