@@ -1,0 +1,3 @@
+* Create View By Category
+* Implement Record Set operation based on introduced ID column not using inbuild SQLite rowid.
+* Test with mySQL database as alternative to SQLite.
