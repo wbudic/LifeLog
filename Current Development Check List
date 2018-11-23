@@ -1,3 +1,10 @@
+
+##Urgent
 * Create View By Category
 * Implement Record Set operation based on introduced ID column not using inbuild SQLite rowid.
 * Test with mySQL database as alternative to SQLite.
+##Minor
+* Fix CSS spacing.
+* Test on few browsers.
+* Add other categories. i.e. Work, Reacurring.
+* Add category desciption column and page, view and editing.
