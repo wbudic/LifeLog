@@ -374,7 +374,19 @@ try{
 		$dtCur = $dtCur - DateTime::Duration->new( days => 1);
 
 		if($dtCur> $dt){
-#			print $q->p('<b>Insert is in the past!</b>');
+			print $q->p('<b>Insert is in the past!</b>');
+			#Renumerate directly (not proper SQL but faster);
+			$sth = $dbh->prepare('select rowid from LOG ORDER BY DATE;');
+			$sth->execute();
+			my @row = $sth->fetchrow_array();
+			my $cnt = 1;
+ 			while(my @row = $sth->fetchrow_array()) {
+
+			my $sth_upd = $dbh->("UPDATE LOG SET rowid=".$cnt.
+						" WHERE rowid=".$row[0].";");
+				$sth_upd->execute();
+				$cnt = $cnt + 1;
+			}
 		}
 	}
 }
@@ -413,11 +425,17 @@ sub checkCreateTables(){
 				$sth->execute( 3, $today, "DB Created!",0);
 
 				
-				 $stmt = qq(
+	}
+
+	$sth = $dbh->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='CAT';");
+	$sth->execute();
+	if(!$sth->fetchrow_array()) {
+			        my $stmt = qq(
 
 				CREATE TABLE CAT(
 				  ID INT PRIMARY KEY NOT NULL,
-				  NAME VCHAR(16)
+				  NAME VCHAR(16),
+				  DESCRIPTION NAME VCHAR(64)
 				);
 							   
 				);
@@ -428,15 +446,16 @@ sub checkCreateTables(){
 					      print "<p>Error->"& $DBI::errstri &"</p>";
 				} 
 
-				$sth = $dbh->prepare('INSERT INTO CAT VALUES (?,?)');
+				$sth = $dbh->prepare('INSERT INTO CAT VALUES (?,?,?)');
 
-		$sth->execute(1,"Unspecified");
-		$sth->execute(3,"File System");
-		$sth->execute(6,"System Log");
-		$sth->execute(9,"Event");
-		$sth->execute(28,"Personal");
-		$sth->execute(32, "Expense");
-		$sth->execute(35, "Income");
+		$sth->execute(1,"Unspecified", "For quick uncategories entries.");
+		$sth->execute(3,"File System", "Operating file system short log.");
+		$sth->execute(6,"System Log", "Operating system inportant log.");
+		$sth->execute(9,"Event", "Event that occured, meeting, historical important.");
+		$sth->execute(28,"Personal", "Personal log of historical importants, diary type.");
+		$sth->execute(32, "Expense", "Significant yearly expense.");
+		$sth->execute(35, "Income", "Significant yearly income.");
+		$sth->execute(40, "Work", "Work related entry, worth monitoring.");
 	}
 
 }
