@@ -1,7 +1,8 @@
 
 ## Urgent
 * Create View By Category
-* Implement Record Set operation based on introduced ID column not using inbuild SQLite rowid.
+
+&#10004; Implement Record Set operation renumerating id's if inserting records in the past (rowid renum.).
 * Test with mySQL database as alternative to SQLite.
 ## Minor
 * Fix CSS spacing.
