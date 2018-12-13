@@ -122,3 +122,18 @@ function resetView(){
 	    var f = document.getElementById("frm_srch");
 	    f.keywords.value = "";
 }
+
+function updateSelCategory(sel){
+	 
+	 
+    var b = document.getElementById("btn_cat");
+    var cat = document.getElementById("idx_cat");
+
+    cat.value = sel.options[sel.selectedIndex].value;
+    b.innerText = sel.options[sel.selectedIndex].text;
+    
+}
+
+function viewByCategory(btn){
+//	alert(btn.value);
+}
