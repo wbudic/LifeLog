@@ -30,6 +30,7 @@ our $TIME_ZONE = 'Australia/Sydney';
 
 my $q = CGI->new;
 my $rs_keys = $q->param('keywords');
+my $rs_cat_idx = $q->param('category');
 	
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
@@ -55,7 +56,7 @@ my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY DATE D
 $sth = $dbh->prepare( $stmtCat );
 $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
-my $cats = '<select id="ec" name="cat">\n';
+my $cats = '<select id="ec" name="cat" onChange="updateSelCategory(this)">\n';
 my %hshCats;
 
  while(my @row = $sth->fetchrow_array()) {
@@ -84,6 +85,10 @@ if($rs_keys){
 	my $stm = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
 	my $stmE = " ORDER BY DATE DESC, rowid DESC;";
 	my @keywords = split / /, $rs_keys;
+	if($rs_cat_idx){
+		$stm = $stm .  " ID_CAT='".$rs_cat_idx."' AND";
+	}	
+
 	if(@keywords){
 		foreach (@keywords)
 		{
@@ -95,6 +100,11 @@ if($rs_keys){
 		$stmt = $stm . $stmE;
 	}
 }
+elsif($rs_cat_idx){
+  $stmt = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE ID_CAT='".$rs_cat_idx."'" .
+          " ORDER BY DATE DESC, rowid DESC;";
+}
+
 ###############
 	&processSubmit;
 ###############
@@ -241,8 +251,9 @@ if($rs_keys){
 	$srh = $srh.'<tr><td colspan="2"><button onClick="resetView()">Reset Whole View</button></td>
 	<td colspan="2"></td></tr>'
 }
-    $srh = $srh.'<tr><td colspan="4"><br/></td></tr>
-		 </table>
+    $srh = $srh.'<tr><td>View by Category:</td><td><button id="btn_cat" onclick="viewByCategory(this);">Unspecified</button><input id="idx_cat" name="category" type="hidden" value=""></td></tr>
+    <tr><td colspan="4"><br/></td></tr>
+</table>
 		 </form><br/>';
 #
 #Page printout from here!
