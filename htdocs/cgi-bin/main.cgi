@@ -247,11 +247,12 @@ my  $srh = qq(
 	<input name="keywords" type="text" size="60" value=").$rs_keys.qq("/></td>
 	<td><input type="submit" value="Search"/></td></tr>);
 
-if($rs_keys){
+if($rs_keys || $rs_cat_idx){
 	$srh = $srh.'<tr><td colspan="2"><button onClick="resetView()">Reset Whole View</button></td>
 	<td colspan="2"></td></tr>'
 }
-    $srh = $srh.'<tr><td>View by Category:</td><td><button id="btn_cat" onclick="viewByCategory(this);">Unspecified</button><input id="idx_cat" name="category" type="hidden" value=""></td></tr>
+    $srh = $srh.'<tr><td>View by Category:</td><td><button id="btn_cat" onclick="viewByCategory(this);">Unspecified</button><input id="idx_cat" name="category" type="hidden" value="">
+    &nbsp;&nbsp;(Use the Category dropdown to change).</td></tr>
     <tr><td colspan="4"><br/></td></tr>
 </table>
 		 </form><br/>';
