@@ -131,7 +131,8 @@ function updateSelCategory(sel){
 
     cat.value = sel.options[sel.selectedIndex].value;
     b.innerText = sel.options[sel.selectedIndex].text;
-    
+	
+    document.getElementById("ctmsg").style.display = "none";    
 }
 
 function viewByCategory(btn){
