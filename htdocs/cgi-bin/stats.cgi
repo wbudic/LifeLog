@@ -59,7 +59,7 @@ $stm = 'SELECT sum(ammount) from LOG where date>=date("now","start of year")
 
 my $income =  sprintf("%.2f",selectSQL($stm));
 my $revenue = big_money($income - $expense);
-my $hardware_status =`inxi -b -c0`;
+my $hardware_status =`inxi -b -c0;uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 my  $processes = `$prc | sort -u -r -`;
