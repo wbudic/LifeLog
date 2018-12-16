@@ -399,8 +399,8 @@ try{
 			my $cnt = 1;
  			while(my @row = $sth->fetchrow_array()) {
 
-			my $sth_upd = $dbh->("UPDATE LOG SET rowid=".$cnt.
-						" WHERE rowid=".$row[0].";");
+			my $sth_upd = $dbh->prepare("UPDATE LOG SET rowid=".$cnt.
+						" WHERE rowid='".$row[0]."';");
 				$sth_upd->execute();
 				$cnt = $cnt + 1;
 			}
