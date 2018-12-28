@@ -1,6 +1,6 @@
 
 # Current Branch Development
-### Checked (&#10004;) Has been done and submitted to banch.
+### Checked (&#10004;) Has been done and submitted to branch.
 ## Urgent
 * Build config.cgi that creates database and allowes editing of configuration. Main cgi redirect or links to it not doing that job no more.
 * &#10004; Create View By Category Button
