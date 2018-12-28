@@ -138,3 +138,8 @@ function updateSelCategory(sel){
 function viewByCategory(btn){
 //	alert(btn.value);
 }
+
+function submitNewCategory(){
+	
+  return false;
+}

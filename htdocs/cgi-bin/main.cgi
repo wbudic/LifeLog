@@ -17,7 +17,7 @@ my $dsn = "DBI:$driver:dbname=$database";
 my $userid = $ENV{'DB_USER'};
 my $password = $ENV{'DB_PASS'};
 
-my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
    or die "<p>Error->"& $DBI::errstri &"</p>";
 
 
@@ -41,7 +41,7 @@ print $q->start_html(-title => "Personal Log",
 		        );	  
 
 my $rv;
-my $sth;
+my $st;
 my $today = DateTime->now;
 $today->set_time_zone( $TIME_ZONE );
 
@@ -53,13 +53,13 @@ my $stmtCat = "SELECT * FROM CAT;";
 my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY DATE DESC, rowid DESC;";
 
 
-$sth = $dbh->prepare( $stmtCat );
-$rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+$st = $db->prepare( $stmtCat );
+$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 my $cats = '<select id="ec" name="cat" onChange="updateSelCategory(this)">\n';
 my %hshCats;
 
- while(my @row = $sth->fetchrow_array()) {
+ while(my @row = $st->fetchrow_array()) {
 	$cats = $cats. '<option value="'.$row[0].'">'.$row[1].'</option>\n';
 	$hshCats{$row[0]} = $row[1];
  }
@@ -117,8 +117,8 @@ elsif($rs_cat_idx){
 	#
 #Fetch entries!
 #
-$sth = $dbh->prepare( $stmt );
-$rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+$st = $db->prepare( $stmt );
+$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 if($rv < 0) {
 	     print "<p>Error->"& $DBI::errstri &"</p>";
 }
@@ -130,16 +130,16 @@ my $tbl_start = index $stmt, "<=";
 if($tbl_start>0){
 	#check if we are at the beggining of the LOG table?
 	
-	my $sthc = $dbh->prepare('select rowid from LOG order by rowid DESC LIMIT 1;');
-	   $sthc->execute();
-	my @row =$sthc->fetchrow_array();
+	my $stc = $db->prepare('select rowid from LOG order by rowid DESC LIMIT 1;');
+	   $stc->execute();
+	my @row =$stc->fetchrow_array();
 	if($row[0] == $rs_prev && $rs_cur == $rs_prev){
 		$tbl_start = -1;
 	}
-	$sthc->finish();
+	$stc->finish();
 }
 
- while(my @row = $sth->fetchrow_array()) {
+ while(my @row = $st->fetchrow_array()) {
 
 	 $id = $row[0];
 	 my $ct = $hshCats{$row[1]};
@@ -184,9 +184,9 @@ if($tbl_start>0){
 
  #End of table?
  if($rs_prev && $tbl_rc < $REC_LIMIT){
-	$sth = $dbh->prepare( "SELECT count(*) FROM LOG;" );
-	$sth->execute();	
-	my @row = $sth->fetchrow_array(); 
+	$st = $db->prepare( "SELECT count(*) FROM LOG;" );
+	$st->execute();	
+	my @row = $st->fetchrow_array(); 
 	if($row[0]>$REC_LIMIT){
 	   &buildNavigationButtons(1);
 	}
@@ -269,12 +269,13 @@ print "<center>";
 	print '<div id="div_srh">' . $srh .'</div>';
 	print "\n<div>\n" . $tbl ."\n</div>";
 	print '</br><div><a href="stats.cgi">View Statistics</a></div>';
+	print '</br><div><a href="config.cgi">Configure Log (Careful)</a></div>';
 print "</center>";
 
 
 print $q->end_html;
-$sth->finish;
-$dbh->disconnect();
+$st->finish;
+$db->disconnect();
 exit;
 
 ### CGI END
@@ -347,8 +348,8 @@ try{
 
 		my $stm = "UPDATE LOG SET ID_CAT='".$cat."', DATE='". $date ."',
 	       			LOG='".$log."' WHERE rowid=".$edit_mode.";"; 
-		my $sth = $dbh->prepare($stm); 
-			  $sth->execute();
+		my $st = $db->prepare($stm); 
+			  $st->execute();
 		return;
 	}
 
@@ -369,17 +370,17 @@ try{
 
 		#check for double entry
 		#
-		my $sth = $dbh->prepare(
+		my $st = $db->prepare(
 			  "SELECT DATE,LOG FROM LOG where DATE='".$date."' AND LOG='".$log."';"
 			);
 
-		$sth->execute();
-		if(my @row = $sth->fetchrow_array()){
+		$st->execute();
+		if(my @row = $st->fetchrow_array()){
 			return;
 		}
 		
-		$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
-		$sth->execute( $cat, $date, $log, $amm);
+		$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
+		$st->execute( $cat, $date, $log, $amm);
 		#
 		# UNDER DEVELOPMENT!
 		#
@@ -393,15 +394,15 @@ try{
 		if($dtCur> $dt){
 			print $q->p('<b>Insert is in the past!</b>');
 			#Renumerate directly (not proper SQL but faster);
-			$sth = $dbh->prepare('select rowid from LOG ORDER BY DATE;');
-			$sth->execute();
-			my @row = $sth->fetchrow_array();
+			$st = $db->prepare('select rowid from LOG ORDER BY DATE;');
+			$st->execute();
+			my @row = $st->fetchrow_array();
 			my $cnt = 1;
- 			while(my @row = $sth->fetchrow_array()) {
+ 			while(my @row = $st->fetchrow_array()) {
 
-			my $sth_upd = $dbh->prepare("UPDATE LOG SET rowid=".$cnt.
+			my $st_upd = $db->prepare("UPDATE LOG SET rowid=".$cnt.
 						" WHERE rowid='".$row[0]."';");
-				$sth_upd->execute();
+				$st_upd->execute();
 				$cnt = $cnt + 1;
 			}
 		}
@@ -416,10 +417,10 @@ catch{
 
 sub checkCreateTables(){
 
-	$sth = $dbh->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='LOG';");
-	$sth->execute();
+	$st = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='LOG';");
+	$st->execute();
 
-	if(!$sth->fetchrow_array()) {
+	if(!$st->fetchrow_array()) {
 				my $stmt = qq(
 
 				CREATE TABLE LOG (
@@ -431,48 +432,48 @@ sub checkCreateTables(){
 							   
 				);
 
-				$rv = $dbh->do($stmt);
+				$rv = $db->do($stmt);
 
 				if($rv < 0) {
 					      print "<p>Error->"& $DBI::errstri &"</p>";
 				} 
 
-				$sth = $dbh->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
+				$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
 
-				$sth->execute( 3, $today, "DB Created!",0);
+				$st->execute( 3, $today, "DB Created!",0);
 
 				
 	}
 
-	$sth = $dbh->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='CAT';");
-	$sth->execute();
-	if(!$sth->fetchrow_array()) {
+	$st = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='CAT';");
+	$st->execute();
+	if(!$st->fetchrow_array()) {
 			        my $stmt = qq(
 
 				CREATE TABLE CAT(
 				  ID INT PRIMARY KEY NOT NULL,
 				  NAME VCHAR(16),
-				  DESCRIPTION NAME VCHAR(64)
+				  DESCRIPTION VCHAR(64)
 				);
 							   
 				);
 
-				$rv = $dbh->do($stmt);
+				$rv = $db->do($stmt);
 
 				if($rv < 0) {
 					      print "<p>Error->"& $DBI::errstri &"</p>";
 				} 
 
-				$sth = $dbh->prepare('INSERT INTO CAT VALUES (?,?,?)');
+				$st = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
 
-		$sth->execute(1,"Unspecified", "For quick uncategories entries.");
-		$sth->execute(3,"File System", "Operating file system short log.");
-		$sth->execute(6,"System Log", "Operating system inportant log.");
-		$sth->execute(9,"Event", "Event that occured, meeting, historical important.");
-		$sth->execute(28,"Personal", "Personal log of historical importants, diary type.");
-		$sth->execute(32, "Expense", "Significant yearly expense.");
-		$sth->execute(35, "Income", "Significant yearly income.");
-		$sth->execute(40, "Work", "Work related entry, worth monitoring.");
+		$st->execute(1,"Unspecified", "For quick uncategories entries.");
+		$st->execute(3,"File System", "Operating file system short log.");
+		$st->execute(6,"System Log", "Operating system inportant log.");
+		$st->execute(9,"Event", "Event that occured, meeting, historical important.");
+		$st->execute(28,"Personal", "Personal log of historical importants, diary type.");
+		$st->execute(32, "Expense", "Significant yearly expense.");
+		$st->execute(35, "Income", "Significant yearly income.");
+		$st->execute(40, "Work", "Work related entry, worth monitoring.");
 	}
 
 }
