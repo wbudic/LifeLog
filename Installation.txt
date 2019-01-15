@@ -50,10 +50,30 @@ Before installing newer version scripts, perform an data export.
 cd /home/{user}/thttpd_dev/dbLifeLog
 sqlite3 -header -csv data_log.db "select * from LOG;" > current_log.csv
 
-#Install Lifelog
-cd /home/{user}/
+##Install Lifelog
+cd /home/{user}/ 
 git clone https://github.com/wbudic/LifeLog
+mkdir /home/{user}/thttpd_dev/dbLifeLog
+
 
 Copy from /home/{user}/LifeLog/htdocs/cgi-bin to /home/{user}/thttpd_dev/htdocs/cgi-bin
 if doing development. Copy also the /home/{user}/LifeLog/.git to /home/{user}/thttpd_dev/
 
+Access the webserver cgi-bin. http://localhost:8080/cgi-bin/main.cgi
+(this might redirect to login.cgi or config.cgi in the future)
+
+##Import CSV Exported File
+This requires all CGI working. As it will creat a brand new database for you.
+Once created you must import the from above example current_log.csv
+cd /home/{user}/thttpd_dev/dbLifeLog
+see: http://www.sqlitetutorial.net/sqlite-import-csv/
+
+Example (data_dev1_2_log.db would be created as the latest version by the CGI created): 
+cd /home/{user}/thttpd_dev/dbLifeLog
+sqlite3 data_dev1_2_log.db
+sqlite> .mode csv
+sqlite> .import curren_log.csv LOG;
+sqlite> select * FROM LOG;
+sqlite>.quit
+
+Note exporting/impotying of other tables is similar, but not recommended.
