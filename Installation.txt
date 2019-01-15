@@ -76,4 +76,4 @@ sqlite> .import curren_log.csv LOG;
 sqlite> select * FROM LOG;
 sqlite>.quit
 
-Note exporting/impotying of other tables is similar, but not recommended.
+Note exporting/importing of other tables is similar, but not recommended.
