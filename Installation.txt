@@ -39,10 +39,6 @@ sudo cpanm DateTime;
 sudo cpanm DateTime::Format::SQLite;
 sudo cpanm Text::CSV;
 sudo cpanm CGI::Session;
-
-
-#Developers Install
-
 sudo cpanm  TryCatch;
 sudo cpanm Number/Bytes/Human.pm
 
@@ -55,8 +51,9 @@ cd /home/{user}/thttpd_dev/dbLifeLog
 sqlite3 -header -csv data_log.db "select * from LOG;" > current_log.csv
 
 #Install Lifelog
-cd /home/{user}/thttpd_dev
+cd /home/{user}/
 git clone https://github.com/wbudic/LifeLog
 
-
+Copy from /home/{user}/LifeLog/htdocs/cgi-bin to /home/{user}/thttpd_dev/htdocs/cgi-bin
+if doing development. Copy also the /home/{user}/LifeLog/.git to /home/{user}/thttpd_dev/
 
