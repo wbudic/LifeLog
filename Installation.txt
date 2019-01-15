@@ -45,3 +45,18 @@ sudo cpanm CGI::Session;
 
 sudo cpanm  TryCatch;
 sudo cpanm Number/Bytes/Human.pm
+
+#Upgrade Instructions
+
+To upgrade to newer version of this software requires data migration.
+Before installing newer version scripts, perform an data export.
+
+cd /home/{user}/thttpd_dev/dbLifeLog
+sqlite3 -header -csv data_log.db "select * from LOG;" > current_log.csv
+
+#Install Lifelog
+cd /home/{user}/thttpd_dev
+git clone https://github.com/wbudic/LifeLog
+
+
+
