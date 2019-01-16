@@ -50,17 +50,22 @@ Before installing newer version scripts, perform an data export.
 cd /home/{user}/thttpd_dev/dbLifeLog
 sqlite3 -csv data_log.db "select * from LOG;" > current_log.csv
 
-##Install Lifelog
+##Install LifeLog Independantly
 cd /home/{user}/ 
 git clone https://github.com/wbudic/LifeLog
 mkdir /home/{user}/thttpd_dev/dbLifeLog
-
 
 Copy from /home/{user}/LifeLog/htdocs/cgi-bin to /home/{user}/thttpd_dev/htdocs/cgi-bin
 if doing development. Copy also the /home/{user}/LifeLog/.git to /home/{user}/thttpd_dev/
 
 Access the webserver cgi-bin. http://localhost:8080/cgi-bin/main.cgi
 (this might redirect to login.cgi or config.cgi in the future)
+
+##Install LifeLog Dependatly (not automatic, manual developer way)
+cd /home/{user}/ 
+git clone https://github.com/wbudic/LifeLog
+run thttpd with:
+cd LifeLog; ./startDevWebServer.sh
 
 ##Import CSV Exported File
 This requires all CGI working. As it will creat a brand new database for you.
