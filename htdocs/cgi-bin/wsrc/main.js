@@ -125,7 +125,6 @@ function resetView(){
 
 function updateSelCategory(sel){
 	 
-	 
     var b = document.getElementById("btn_cat");
     var cat = document.getElementById("idx_cat");
 
@@ -141,5 +140,8 @@ function viewByCategory(btn){
 
 function submitNewCategory(){
 	
-  return false;
+	var frm = document.getElementById("frm_config");
+	var cid = frm.caid;
+	    frm.cchg.value = cid.value;
+  return true;
 }
