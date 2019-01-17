@@ -210,7 +210,7 @@ if($tbl_start>0){
 <td><input type="submit" value="Search"/></form></td></tr>
  </table>';
 
-my  $frm = qq(
+my  $frm = qq(<a name="top"/>
  <form id="frm_log" action="main.cgi" onSubmit="return formValidation();">
 	 <table class="tbl" border=0>
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
@@ -226,7 +226,7 @@ my  $frm = qq(
 		 <tr><td>Log:</td>
 		  <td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
  		  <td>).$cats.qq(</td></tr>
-		 <tr><td>Ammount:</td>
+		 <tr><td><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
 		 <td id="al"><input id="am" name="am" type="number" step="any"/></td>
 		 <td><input type="submit" value="Submit"/>
 		 </td>
@@ -247,7 +247,7 @@ my  $srh = qq(
 	<input name="keywords" type="text" size="60" value=").$rs_keys.qq("/></td>
 	<td><input type="submit" value="Search"/></td></tr>);
 
-my $ctmsg = '<p id="ctmsg">&nbsp;&nbsp;(Use the Category dropdown to change).</div>';
+my $ctmsg = '<p id="ctmsg">&nbsp;&nbsp;(Use the Category dropdown to <change).</div>';
 if($rs_keys || $rs_cat_idx){
 	$srh = $srh.'<tr><td colspan="2">
 	<button onClick="resetView()">Reset Whole View</button></td><td colspan="3"></td></tr>';
@@ -269,7 +269,7 @@ print "<center>";
 	print '<div id="div_srh">' . $srh .'</div>';
 	print "\n<div>\n" . $tbl ."\n</div>";
 	print '</br><div><a href="stats.cgi">View Statistics</a></div>';
-	print '</br><div><a href="config.cgi">Configure Log (Careful)</a></div>';
+	print '</br><div><a href="config.cgi">Configure Log (Careful)</a><a name="bottom"/></div>';
 print "</center>";
 
 
@@ -296,7 +296,7 @@ sub buildNavigationButtons{
 	 $tfId = 1;
 	}
 
-	$tbl = $tbl . '<tr class="r'.$tfId.'"><td>&dagger;</td>';
+	$tbl = $tbl . '<tr class="r'.$tfId.'"><td><a href="#top">&#x219F;</a></td>';
 
 	if($rs_prev && $rs_prev>0 && $tbl_start>0){
 
@@ -361,7 +361,7 @@ try{
 
 		if($rs_cur){
 			 $stmt = 'SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG 
-			          where rowid <= "'.$rs_cur.'" ORDER BY DATE DESC, rowid DESC;';
+			          where rowid <= "'.$rs_cur.'" ORDER BY DATE DESC;';
 			 return;
 		}
 	}
