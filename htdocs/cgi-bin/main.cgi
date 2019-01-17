@@ -83,7 +83,7 @@ my $rs_cur = $q->param('rs_cur');
 if($rs_keys){
 	
 	my $stm = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
-	my $stmE = " ORDER BY DATE DESC, rowid DESC;";
+	my $stmE = " ORDER BY DATE DESC;";
 	my @keywords = split / /, $rs_keys;
 	if($rs_cat_idx){
 		$stm = $stm .  " ID_CAT='".$rs_cat_idx."' AND";
@@ -102,7 +102,7 @@ if($rs_keys){
 }
 elsif($rs_cat_idx){
   $stmt = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE ID_CAT='".$rs_cat_idx."'" .
-          " ORDER BY DATE DESC, rowid DESC;";
+          " ORDER BY DATE DESC;";
 }
 
 ###############

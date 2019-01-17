@@ -48,7 +48,7 @@ print $q->start_html(-title => "Personal Log",
 
 
 
-my $stmtCat = "SELECT * FROM CAT ORDER BY rowid;";
+my $stmtCat = "SELECT * FROM CAT ORDER BY ID;";
 
 $dbs = $db->prepare( $stmtCat );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
