@@ -380,6 +380,8 @@ try{
 		}
 		
 		$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
+		#bug In dade strings "-01" doesn't properly translate in SQLLite
+		$date =~ s/-0/-/g;
 		$st->execute( $cat, $date, $log, $amm);
 		#
 		# UNDER DEVELOPMENT!
