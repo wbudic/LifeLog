@@ -220,7 +220,7 @@ if($tbl_start>0){
 <td><input type="submit" value="Search"/></form></td></tr>
  </table>';
 
-my  $frm = qq(<a name="top"/>
+my  $frm = qq(<a name="top"></a>
  <form id="frm_log" action="main.cgi" onSubmit="return formValidation();">
 	 <table class="tbl" border=0>
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
@@ -257,7 +257,7 @@ my  $srh = qq(
 	<input name="keywords" type="text" size="60" value=").$rs_keys.qq("/></td>
 	<td><input type="submit" value="Search"/></td></tr>);
 
-my $ctmsg = '<p id="ctmsg">&nbsp;&nbsp;(Use the Category dropdown to <change).</div>';
+my $ctmsg = '<p id="ctmsg">&nbsp;&nbsp;(Use the Category dropdown to change).</p>';
 if($rs_keys || $rs_cat_idx){
 	$srh = $srh.'<tr><td colspan="2">
 	<button onClick="resetView()">Reset Whole View</button></td><td colspan="3"></td></tr>';
@@ -268,9 +268,9 @@ if($rs_keys || $rs_cat_idx){
 
 $srh = $srh.'<tr><td>View by Category:</td>
     <td><button id="btn_cat" onclick="viewByCategory(this);">Unspecified</button><input id="idx_cat" name="category" type="hidden" value="">'.$ctmsg.'</td></tr>
-    <tr><td colspan="4"><br/></td></tr>
+    <tr><td colspan="4"><br></td></tr>
 </table>
-		 </form><br/>';
+</form><br>';
 #
 #Page printout from here!
 #
@@ -278,8 +278,8 @@ print "<center>";
 	print "\n<div>\n" . $frm ."\n</div>\n<br/>";
 	print '<div id="div_srh">' . $srh .'</div>';
 	print "\n<div>\n" . $tbl ."\n</div>";
-	print '</br><div><a href="stats.cgi">View Statistics</a></div>';
-	print '</br><div><a href="config.cgi">Configure Log (Careful)</a><a name="bottom"/></div>';
+	print '<br><div><a href="stats.cgi">View Statistics</a></div>';
+	print '<br><div><a href="config.cgi">Configure Log (Careful)</a><a name="bottom"/></div>';
 print "</center>";
 
 
