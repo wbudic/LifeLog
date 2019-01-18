@@ -10,6 +10,7 @@ use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 use DateTime::Duration;
+use Regexp::Common qw /URI/;
 
 my $driver   = "SQLite"; 
 my $database = "../../dbLifeLog/data_log.db";
@@ -126,6 +127,7 @@ if($rv < 0) {
 my $tfId = 0;
 my $id = 0;
 my $tbl_start = index $stmt, "<=";
+my $re_a_tag = qr/<a\s+.*?>.*<\/a>/si ;
 
 if($tbl_start>0){
 	#check if we are at the beggining of the LOG table?
@@ -138,6 +140,7 @@ if($tbl_start>0){
 	}
 	$stc->finish();
 }
+
 
  while(my @row = $st->fetchrow_array()) {
 
@@ -162,6 +165,13 @@ if($tbl_start>0){
 	 }else{
 		 $tfId = 1;
 	 }
+	 my @chunks = split(/($re_a_tag)/si , $log) ;
+  
+  	 foreach my $chunks_i ( @chunks ) {
+	     next if $chunks_i =~ /$re_a_tag/ ;
+	        $chunks_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
+	 }	
+	 $log = join('' , @chunks) ;
 
          $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$id.'">'. $dt->ymd . '</td>'. 
 		          '<td id="t'.$id.'">' . $dt->hms . "</td>" .
@@ -279,6 +289,7 @@ $db->disconnect();
 exit;
 
 ### CGI END
+
 
 
 sub buildNavigationButtons{
