@@ -39,8 +39,10 @@ sudo cpanm DateTime;
 sudo cpanm DateTime::Format::SQLite;
 sudo cpanm Text::CSV;
 sudo cpanm CGI::Session;
-sudo cpanm  TryCatch;
+sudo cpanm TryCatch;
 sudo cpanm Number/Bytes/Human.pm
+sudo cpanm Regexp::Common
+
 
 #Upgrade Instructions
 
