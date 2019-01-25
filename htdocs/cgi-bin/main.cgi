@@ -1,5 +1,8 @@
 #!/usr/bin/perl
-
+#
+# Programed in vim by: Will Budic
+# Open Source License -> https://choosealicense.com/licenses/isc/
+#
 use strict;
 use warnings;
 use Try::Tiny;
@@ -30,15 +33,34 @@ our $TIME_ZONE = 'Australia/Sydney';
 #END OF SETTINGS
 
 my $q = CGI->new;
+my $tbl_rc = 0;
+my $tbl_rc_prev = 0;
+my $tbl_cur_id;
 my $rs_keys = $q->param('keywords');
 my $rs_cat_idx = $q->param('category');
+my $rs_dat_from = $q->param('v_from');
+my $rs_dat_to = $q->param('v_to');
+my $rs_prev = $q->param('rs_prev'); 
+my $rs_cur = $q->param('rs_cur');
+my $stmS = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
+my $stmE = " ORDER BY DATE DESC;";
+my $stmD = "";
+if(!$rs_dat_to){
+	$rs_dat_to = 'now';
+}
+
+if($rs_dat_from && $rs_dat_to){
+	$stmD = " DATE BETWEEN date('".$rs_dat_from."') AND date('".$rs_dat_to."') ";
+}
+
+my $toggle =""; if($rs_keys||$rs_cat_idx||$stmD){$toggle=1;};
 	
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
 print $q->start_html(-title => "Personal Log", 
        		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-		     -onload => "loadedBody('".$rs_keys."');"
+		     -onload => "loadedBody('".$toggle."');"
 		        );	  
 
 my $rv;
@@ -74,48 +96,50 @@ my $tbl = qq(<form id="frm_log_del" action="remove.cgi" onSubmit="return formDel
 	<th>Date</th><th>Time</th><th>Log</th><th>#</th><th>Category</th><th>Edit</th>
 </tr>);
 
-my $tbl_rc = 0;
-my $tbl_rc_prev = 0;
-my $tbl_cur_id;
 
-
-my $rs_prev = $q->param('rs_prev'); 
-my $rs_cur = $q->param('rs_cur');
 if($rs_keys){
 	
-	my $stm = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
-	my $stmE = " ORDER BY DATE DESC;";
 	my @keywords = split / /, $rs_keys;
 	if($rs_cat_idx){
-		$stm = $stm .  " ID_CAT='".$rs_cat_idx."' AND";
+		$stmS = $stmS ." ID_CAT='".$rs_cat_idx."' AND";
 	}	
+	if($stmD){
+		$stmS = $stmS .$stmD." AND";
+	}
 
 	if(@keywords){
 		foreach (@keywords)
 		{
-			$stm = $stm . " LOWER(LOG) REGEXP '\\b" . lc $_."\\b'";
+			$stmS = $stmS . " LOWER(LOG) REGEXP '\\b" . lc $_."\\b'";
 			if(  \$_ != \$keywords[-1]  ) {
-				$stm = $stm." OR ";
+				$stmS = $stmS." OR ";
 			}
 		}
-		$stmt = $stm . $stmE;
+		$stmt = $stmS . $stmE;
 	}
 }
 elsif($rs_cat_idx){
-  $stmt = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE ID_CAT='".$rs_cat_idx."'" .
-          " ORDER BY DATE DESC;";
-}
 
+	if($stmD){
+	      $stmt = $stmS.$stmD. " AND ID_CAT='".$rs_cat_idx."'" .$stmE;
+	}
+	else{
+      	     $stmt = $stmS." ID_CAT='".$rs_cat_idx."'" .$stmE;
+      	}
+}
+else{
+      if($stmD){
+      	     $stmt = $stmS.$stmD.$stmE;
+      }
+}
 ###############
 	&processSubmit;
 ###############
-	#
-	# Enable to see main query statement issued!
-	#
-# 	print $q->pre("### -> ".$stmt);
+ #
+ # Enable to see main query statement issued!
+ #print $q->pre("### -> ".$stmt);
 
-	#
-	#
+#
 #Fetch entries!
 #
 $st = $db->prepare( $stmt );
@@ -203,11 +227,18 @@ if($tbl_start>0){
  }
 
  if($tbl_rc==0){
-	 if($rs_keys){
-	 $tbl = $tbl . '<tr><td colspan="5">
-	 <b>Search Failed to Retrive any records on keywords: [<i>'. $rs_keys .'</i>] !</b></td></tr>\n';
-	 }
-	else{
+	 
+    if($stmD){
+       $tbl = $tbl . '<tr><td colspan="5">
+       <b>Search Failed to Retrive any records on select: [<i>'. $stmD .'</i>] !</b></td>
+       </tr>';
+    }
+    elsif($rs_keys){
+       $tbl = $tbl . '<tr><td colspan="5">
+       <b>Search Failed to Retrive any records on keywords: [<i>'. $rs_keys .'</i>] !</b></td>
+       </tr>';
+   }
+    else{
 	 $tbl = $tbl . '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
 	 }
  }
@@ -258,7 +289,7 @@ my  $srh = qq(
 	<td><input type="submit" value="Search"/></td></tr>);
 
 my $ctmsg = '<p id="ctmsg">&nbsp;&nbsp;(Use the Category dropdown to change).</p>';
-if($rs_keys || $rs_cat_idx){
+if($rs_keys || $rs_cat_idx || $stmD){
 	$srh = $srh.'<tr><td colspan="2">
 	<button onClick="resetView()">Reset Whole View</button></td><td colspan="3"></td></tr>';
 	$ctmsg = "";
@@ -267,7 +298,11 @@ if($rs_keys || $rs_cat_idx){
 
 
 $srh = $srh.'<tr><td>View by Category:</td>
-    <td><button id="btn_cat" onclick="viewByCategory(this);">Unspecified</button><input id="idx_cat" name="category" type="hidden" value="">'.$ctmsg.'</td></tr>
+    <td colspan="3"><button id="btn_cat" onclick="viewByCategory(this);">Unspecified</button><input id="idx_cat" name="category" type="hidden" value="">'.$ctmsg.'</td></tr>
+    <tr><td>View by (YYYY-MM-DD)<br>Date:</td>
+    <td>From:&nbsp;<input name="v_from" type="text" size="10"/></td><td>To:&nbsp;<input name="v_to" type="text" size="10"/>
+    <td><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
+    </tr>
     <tr><td colspan="4"><br></td></tr>
 </table>
 </form><br>';
@@ -391,18 +426,14 @@ try{
 		}
 		
 		$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
-		#bug In dade strings "-01" doesn't properly translate in SQLLite
-		$date =~ s/-0/-/g;
 		$st->execute( $cat, $date, $log, $amm);
-		#
-		# UNDER DEVELOPMENT!
 		#
 		# After Insert renumeration check
 		#
 		my $dt = DateTime::Format::SQLite->parse_datetime($date);
 		my $dtCur = DateTime->now();
 		$dtCur->set_time_zone($TIME_ZONE);
-		$dtCur = $dtCur - DateTime::Duration->new( days => 1);
+		$dtCur = $dtCur - DateTime::Duration->new(days => 1);
 
 		if($dtCur> $dt){
 			print $q->p('<b>Insert is in the past!</b>');

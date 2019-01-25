@@ -1,3 +1,8 @@
+/*
+ Programed in vim by: Will Budic
+ Open Source License -> https://choosealicense.com/licenses/isc/
+*/
+
 function loadedBody(toggle){
 	document.getElementById("frm_log").log.focus();
 	if(toggle){
@@ -36,9 +41,19 @@ function setNow(){
 
 	var date = document.getElementById("frm_log").date;
 	var dt = new Date();
-	date.value = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getUTCDate() + " " + dt.getHours() + ":" + dt.getMinutes() +":"+dt.getSeconds();
+	var mm = fix0(dt.getMonth()+1);
+	var dd = fix0(dt.getUTCDate()); 
+	date.value = dt.getFullYear()+"-"+mm+"-"+dd+ " " + 
+	dt.getHours() + ":" + dt.getMinutes() +":"+dt.getSeconds();
 
 return false;
+}
+
+function fix0(v){
+	if(v<10){
+		return "0"+v;
+	}
+	return v;
 }
 
 function edit(row){
@@ -135,6 +150,10 @@ function updateSelCategory(sel){
 }
 
 function viewByCategory(btn){
+//	alert(btn.value);
+}
+
+function viewByDate(btn){
 //	alert(btn.value);
 }
 
