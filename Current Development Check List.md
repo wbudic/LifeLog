@@ -10,6 +10,7 @@
 * &#10004; Implement Record Set operation renumerating id's if inserting records in the past (rowid renum.).
 
 ## Minor
+* HTML - Align [Reset View] button in search panel, not so visible.
 * &#10004; Fix CSS spacing.
 * Test on few browsers.
 * Add other categories. i.e. Work, Reacurring.
