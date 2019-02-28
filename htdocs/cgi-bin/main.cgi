@@ -268,7 +268,7 @@ my  $frm = qq(<a name="top"></a>
 		  <td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
  		  <td>).$cats.qq(</td></tr>
 		 <tr><td><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
-		 <td id="al"><input id="am" name="am" type="number" step="any"/></td>
+		 <td id="al"><input id="am" name="am" type="number" step="any"></td>
 		 <td><input type="submit" value="Submit"/>
 		 </td>
 	</tr></table>
@@ -393,7 +393,7 @@ try{
 		#Update
 
 		my $stm = "UPDATE LOG SET ID_CAT='".$cat."', DATE='". $date ."',
-	       			LOG='".$log."' WHERE rowid=".$edit_mode.";"; 
+	       		   LOG='".$log."', AMMOUNT='".$amm."' WHERE rowid=".$edit_mode.";"; 
 		my $st = $db->prepare($stm); 
 			  $st->execute();
 		return;

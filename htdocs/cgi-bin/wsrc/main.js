@@ -64,10 +64,12 @@ function edit(row){
 	var ed_v = document.getElementById("y"+ row); 
 	var et_v   = document.getElementById("t"+ row); 
 	var ev_v = document.getElementById("v"+ row); 
+	var ea_v = document.getElementById("a"+ row); 
 
 	
 	document.getElementById("el").value = ev_v.innerText;
 	document.getElementById("ed").value = ed_v.innerText + " " +  et_v.innerText;
+	document.getElementById("am").value = ea_v.innerText;
 
 	for(var i = 0, j = ec.options.length; i < j; ++i) {
 	        if(ec.options[i].innerHTML === ec_v) {
