@@ -1,5 +1,8 @@
 #!/usr/bin/perl
-package PersonalLog;
+#
+# Programed in vim by: Will Budic
+# Open Source License -> https://choosealicense.com/licenses/isc/
+#
 
 use strict;
 use warnings;
@@ -17,29 +20,21 @@ my $database = "../../dbLifeLog/data_log.db";
 my $dsn = "DBI:$driver:dbname=$database";
 my $userid = "";
 my $password = "";
-my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
    or die "<p>Error->"& $DBI::errstri &"</p>";
-
-
-
-
-
-
 my $today = DateTime->now;
-$today->set_time_zone( 'Australia/Sydney' );
+   $today->set_time_zone( 'Australia/Sydney' );
 
 my $stmtCat = "SELECT * FROM CAT;";
-
-
-my $sth = $dbh->prepare( $stmtCat );
-my $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+my $st = $db->prepare( $stmtCat );
+my $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 my %hshCats;
 my $tbl_rc =0;
 
- while(my @row = $sth->fetchrow_array()) {
+while(my @row = $st->fetchrow_array()) {
 	$hshCats{$row[0]} = $row[1];
- }
+}
 
 
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
@@ -47,23 +42,46 @@ my $stmE = " ORDER BY DATE DESC, rowid DESC;";
 my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
 		<table class="tbl">
 		<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
+
+print $q->header(-expires=>"+6os");    
+
+my $datediff = $q->param("datediff");
 my $confirmed = $q->param('confirmed');
-if (!$confirmed){
-     print $q->header(-expires=>"+6os");    
-     print $q->start_html(-title => "Personal Log Record Removal", 
-       		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
+if ($datediff){
+	     print $q->start_html(-title => "Date Difference Report", 
+			     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+			     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
 
-        );	  
-
-			&NotConfirmed;
-	print $q->end_html;
+		);	  
+				&DisplayDateDiffs;
 }
 else{
-	&ConfirmedDelition;
+	if (!$confirmed){
+	     print $q->start_html(-title => "Personal Log Record Removal", 
+			     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+			     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
+
+		);	  
+
+				&NotConfirmed;
+	}
+	else{
+		&ConfirmedDelition;
+	}
 }
 
-$dbh->disconnect();
+print $q->end_html;
+$db->disconnect();
+exit;
+
+sub DisplayDateDiffs{
+    $tbl = '<table class="tbl">
+	    <tr class="r0"><h2>Under Development Sorry!</h2></tr>';
+
+    $tbl .= '</table>';
+
+print "<div>".$tbl."</div>";
+}
 
 
 sub ConfirmedDelition{
@@ -73,8 +91,8 @@ sub ConfirmedDelition{
 
 	foreach my $prm ($q->param('chk')){
 		$stm = $stmS . "rowid = '" . $prm ."';";
-	        $sth = $dbh->prepare( $stm );
-		$rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+	        $st = $db->prepare( $stm );
+		$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 		if($rv < 0) {
 		     print "<p>Error->"& $DBI::errstri &"</p>";
 		}
@@ -83,27 +101,28 @@ sub ConfirmedDelition{
 	
 	print $q->redirect('main.cgi');
 
+	$st->finish;
 }
 
 sub NotConfirmed{
 #Get prms and build confirm table and check
 my $stm = $stmS ." ";
-foreach my $prm ($q->param('chk')){
-	$stm = $stm . "rowid = '" . $prm . "' OR ";
-}
+	foreach my $prm ($q->param('chk')){
+		$stm = $stm . "rowid = '" . $prm . "' OR ";
+	}
 #rid=0 hack! ;)
 	$stm = $stm . "rowid = '0' " . $stmE;
 
 #
-$sth = $dbh->prepare( $stm );
-$rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+$st = $db->prepare( $stm );
+$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 if($rv < 0) {
 	     print "<p>Error->"& $DBI::errstri &"</p>";
 }
 
 
 my $r_cnt = 0;
-while(my @row = $sth->fetchrow_array()) {
+while(my @row = $st->fetchrow_array()) {
 
 	 my $ct = $hshCats{@row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
@@ -132,4 +151,6 @@ if($r_cnt>1){
 
 print '<center><div>' . $tbl .'</div></center>';
 
+ $st->finish;
 }
+

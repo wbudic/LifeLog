@@ -44,8 +44,7 @@ function setNow(){
 	var mm = fix0(dt.getMonth()+1);
 	var dd = fix0(dt.getUTCDate()); 
 	date.value = dt.getFullYear()+"-"+mm+"-"+dd+ " " + 
-	dt.getHours() + ":" + dt.getMinutes() +":"+dt.getSeconds();
-
+	fix0(dt.getHours()) + ":" + fix0(dt.getMinutes()) +":"+ fix0(dt.getSeconds());
 return false;
 }
 
@@ -164,5 +163,10 @@ function submitNewCategory(){
 	var frm = document.getElementById("frm_config");
 	var cid = frm.caid;
 	    frm.cchg.value = cid.value;
+  return true;
+}
+
+function dateDiffSelected(){
+ document.getElementById("datediff").value = 1;
   return true;
 }

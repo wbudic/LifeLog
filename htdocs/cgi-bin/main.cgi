@@ -189,13 +189,16 @@ if($tbl_start>0){
 	 }else{
 		 $tfId = 1;
 	 }
-	 my @chunks = split(/($re_a_tag)/si , $log) ;
-  
-  	 foreach my $chunks_i ( @chunks ) {
-	     next if $chunks_i =~ /$re_a_tag/ ;
-	        $chunks_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
+
+	 #Replace with a full link an HTTP URI
+	 my @chnks = split(/($re_a_tag)/si , $log) ;  
+  	 foreach my $ch_i ( @chnks ) {
+	     next if $ch_i =~ /$re_a_tag/ ;
+	        $ch_i =~ s/https/http/gsi;
+	        $ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
 	 }	
-	 $log = join('' , @chunks) ;
+	 $log = join('' , @chnks) ;
+
 
          $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$id.'">'. $dt->ymd . '</td>'. 
 		          '<td id="t'.$id.'">' . $dt->hms . "</td>" .
@@ -244,9 +247,13 @@ if($tbl_start>0){
  }
 
  $tbl = $tbl . '<tr class="r0"><td colspan="6" align="right">
- <input type="reset" value="Unselect All"/><input type="submit" value="Delete Selected"/>
- </form></td></tr>
-<tr class="r0"><td><form id="frm_srch" action="main.cgi">Keywords:</td><td colspan="4">
+
+ <input type="hidden" name="datediff" id="datediff" value="0"/>
+ <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
+ <input type="reset" value="Unselect All"/>
+ <input type="submit" value="Delete Selected"/>
+ </td></tr></form>
+<tr class="r0"><form id="frm_srch" action="main.cgi"><td>Keywords:</td><td colspan="4">
 <input name="keywords" type="text" size="60"/></td>
 <td><input type="submit" value="Search"/></form></td></tr>
  </table>';
@@ -260,15 +267,18 @@ my  $frm = qq(<a name="top"></a>
 	 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" size="16" value=") .$today->ymd.
 	 " ". $today->hms .
 	 qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
- 	      &nbsp;<button type="reset">Clear</button>
-	      &nbsp; <button id="btn_srch" onclick="toggleSearch(this); return false;">Show Search</button></td>
+ 	      &nbsp;<button type="reset">Reset</button>
+	      </td>
 	 	<td>Category:</td>
 	 </tr>
 		 <tr><td>Log:</td>
 		  <td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
  		  <td>).$cats.qq(</td></tr>
 		 <tr><td><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
-		 <td id="al"><input id="am" name="am" type="number" step="any"></td>
+		 <td id="al">
+		   <input id="am" name="am" type="number" step="any">
+		   <button id="btn_srch" onclick="toggleSearch(this); return false;"i style="float: right;">Show Search</button>
+		 </td>
 		 <td><input type="submit" value="Submit"/>
 		 </td>
 	</tr></table>

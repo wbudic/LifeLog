@@ -39,7 +39,7 @@ print $q->start_html(-title => "Log Data Stats",
 		        );	  
 
 
-my $tbl = '<table class="tbl" border="1px"><tr class="r1"><td colspan="4">Personal Log Data Stats</td></tr>';
+my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="4"><b>* PERSONAL LOG DATA STATS *</b></td></tr>';
 
 
 
@@ -68,9 +68,9 @@ my  $processes = `$prc | sort -u -r -`;
 #Strip kernel 0 processes reported
 $processes =~ s/\s*0.00.*//gd;
  
-$tbl = $tbl . '<tr class="r0"><td>Number of Records:</td><td>'.
+$tbl = $tbl . '<tr class="r1"><td>Number of Records:</td><td>'.
  		$log_rc.'</td></tr>
-		<tr class="r1"><td>No. of Records This Year:</td><td>'.
+		<tr class="r0"><td>No. of Records This Year:</td><td>'.
  		$log_this_year_rc.'</td></tr>
 		<tr class="r0"><td># Sum of Expenses For Year '.$today->year().
 		'</td><td>'.$expense.'</td></tr>
