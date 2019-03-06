@@ -5,12 +5,14 @@
 }
 
 p {
+	font-family: Bookman;
 	margin-left: 70px;
 	font-weight: bold;
 }
 
 
 table, th, td{
+	font-family: Bookman;
 	border-collapse: collapse;
 	width: 740px;
 	padding-top: 5px;
@@ -18,7 +20,7 @@ table, th, td{
 }
 
 div{
-
+	font-family: Verdana;
 	width: 740px;
 	text-align: center;
 	vertical-align: middle;

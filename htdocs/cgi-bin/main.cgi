@@ -91,9 +91,9 @@ $cats = $cats.'</select>';
 
 
 my $tbl = qq(<form id="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
-<table class="tbl">
+<table class="tbl" border=0>
 <tr class="r0">
-	<th>Date</th><th>Time</th><th>Log</th><th>#</th><th>Category</th><th>Edit</th>
+	<th style="border-right: solid 1px;">Date</th><th style="border-right:solid 1px;">Time</th><th>Log</th><th>#</th><th>Category</th><th>Edit</th>
 </tr>);
 
 
@@ -200,8 +200,8 @@ if($tbl_start>0){
 	 $log = join('' , @chnks) ;
 
 
-         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$id.'">'. $dt->ymd . '</td>'. 
-		          '<td id="t'.$id.'">' . $dt->hms . "</td>" .
+         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$id.'" style="border-right: solid 1px;">'. $dt->ymd . '</td>'. 
+		          '<td id="t'.$id.'" style="border-right: solid 1px;">' . $dt->hms . "</td>" .
 			  '<td id="v'.$id.'" class="log">' . $log . '</td>'.
 			  '<td id="a'.$id.'">' . $amm .'</td>'.
 			  '<td id="c'.$id.'">' . $ct .'</td>'.
@@ -246,8 +246,7 @@ if($tbl_start>0){
 	 }
  }
 
- $tbl = $tbl . '<tr class="r0"><td colspan="6" align="right">
-
+ $tbl .= '<tr class="r0"><td colspan="6" align="right"> 
  <input type="hidden" name="datediff" id="datediff" value="0"/>
  <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
  <input type="reset" value="Unselect All"/>
@@ -300,16 +299,16 @@ my  $srh = qq(
 
 my $ctmsg = '<p id="ctmsg">&nbsp;&nbsp;(Use the Category dropdown to change).</p>';
 if($rs_keys || $rs_cat_idx || $stmD){
-	$srh = $srh.'<tr><td colspan="2">
-	<button onClick="resetView()">Reset Whole View</button></td><td colspan="3"></td></tr>';
+	$srh .= '<tr><td></td><td></td><td></td><td align="float:right">
+	<button onClick="resetView()">Reset Whole View</button></td></tr>';
 	$ctmsg = "";
 }
 
 
 
-$srh = $srh.'<tr><td>View by Category:</td>
-    <td colspan="3"><button id="btn_cat" onclick="viewByCategory(this);">Unspecified</button><input id="idx_cat" name="category" type="hidden" value="">'.$ctmsg.'</td></tr>
-    <tr><td>View by (YYYY-MM-DD)<br>Date:</td>
+$srh .= '<tr><td>View by Category:</td>
+    <td colspan="3"><button id="btn_cat" onclick="viewByCategory(this);" style="float:left">Unspecified</button><input id="idx_cat" name="category" type="hidden" value="">'.$ctmsg.'</td></tr>
+    <tr><td>View by Date:</td>
     <td>From:&nbsp;<input name="v_from" type="text" size="10"/></td><td>To:&nbsp;<input name="v_to" type="text" size="10"/>
     <td><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
     </tr>
@@ -352,7 +351,7 @@ sub buildNavigationButtons{
 	 $tfId = 1;
 	}
 
-	$tbl = $tbl . '<tr class="r'.$tfId.'"><td><a href="#top">&#x219F;</a></td>';
+	$tbl .=  '<tr class="r'.$tfId.'"><td><a href="#top">&#x219F;</a></td>';
 
 	if($rs_prev && $rs_prev>0 && $tbl_start>0){
 

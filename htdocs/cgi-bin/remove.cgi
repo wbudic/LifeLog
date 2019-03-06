@@ -75,7 +75,7 @@ exit;
 
 sub DisplayDateDiffs{
     $tbl = '<table class="tbl">
-	    <tr class="r0"><td colspan="2"><h3>Date Differences</h3></td></tr>';
+	    <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
     $stm = 'SELECT DATE, LOG FROM LOG WHERE '; 
 my  @prms = $q->param('chk');
@@ -111,10 +111,14 @@ sub dateDiff{
 	my($d1,$d2)=@_;
 	my $span = DateTime::Format::Human::Duration->new();
 	my $dur = $span->format_duration($d2 - $d1);
-return sprintf( "%s <br>between %s and %s", $dur, $d1, $d2 );
+return sprintf( "%s <br>between %s and %s", $dur, boldDate($d1), boldDate($d2));
+
 }
 
-
+sub boldDate{
+	my($d)=@_;
+return "<b>".$d->ymd."</b> ".$d->hms;
+}
 
 
 sub ConfirmedDelition{
