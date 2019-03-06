@@ -15,8 +15,7 @@ table, th, td{
 	font-family: Bookman;
 	border-collapse: collapse;
 	width: 740px;
-	padding-top: 5px;
-	padding-bottom: 5px;
+	padding: 5px;
 }
 
 div{
@@ -65,5 +64,11 @@ div{
 	align:left;
 	align-content:left;
 	text-align:left;
+}
+
+.log{
+	text-align:left;
+	word-wrap: break-word;
+	padding-left: 5px;
 }
 
