@@ -10,8 +10,9 @@ use warnings;
 use CGI;
 use DBI;
 
-use DateTime;
+use DateTime qw();
 use DateTime::Format::SQLite;
+use DateTime::Format::Human::Duration;
 
 my $q = CGI->new;
 
@@ -25,6 +26,7 @@ my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
 my $today = DateTime->now;
    $today->set_time_zone( 'Australia/Sydney' );
 
+my $stm;
 my $stmtCat = "SELECT * FROM CAT;";
 my $st = $db->prepare( $stmtCat );
 my $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
@@ -53,22 +55,19 @@ if ($datediff){
 			     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
 
 		);	  
-				&DisplayDateDiffs;
-}
-else{
-	if (!$confirmed){
+		&DisplayDateDiffs;
+}elsif (!$confirmed){
 	     print $q->start_html(-title => "Personal Log Record Removal", 
 			     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 			     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
 
 		);	  
 
-				&NotConfirmed;
-	}
-	else{
+		&NotConfirmed;
+}else{
 		&ConfirmedDelition;
-	}
 }
+
 
 print $q->end_html;
 $db->disconnect();
@@ -76,17 +75,50 @@ exit;
 
 sub DisplayDateDiffs{
     $tbl = '<table class="tbl">
-	    <tr class="r0"><h2>Under Development Sorry!</h2></tr>';
+	    <tr class="r0"><td colspan="2"><h3>Date Differences</h3></td></tr>';
+
+    $stm = 'SELECT DATE, LOG FROM LOG WHERE '; 
+my  @prms = $q->param('chk');
+
+	foreach (@prms){
+		$stm .= "rowid = '" . $_ ."'";
+		if(  \$_ != \$prms[-1]  ) {
+			$stm = $stm." OR ";
+		}
+	}
+	$stm .= ';';
+	$st = $db->prepare( $stm );
+	$st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+
+	my $dt_prev = $today;
+	while(my @row = $st->fetchrow_array()) {
+
+		 my $dt = DateTime::Format::SQLite->parse_datetime( $row[0] );
+		 my $dif = dateDiff($dt_prev, $dt);
+		 $tbl .= '<tr class="r1"><td>'. $dt->ymd . '</td> 
+			  </td><td style="text-align:left;">'.$row[1]."</td></tr>".
+		          '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';	
+		$dt_prev = $dt;
+	}
 
     $tbl .= '</table>';
 
-print "<div>".$tbl."</div>";
+print "<center><div>".$tbl."</div></center>";
 }
+
+
+sub dateDiff{
+	my($d1,$d2)=@_;
+	my $span = DateTime::Format::Human::Duration->new();
+	my $dur = $span->format_duration($d2 - $d1);
+return sprintf( "%s <br>between %s and %s", $dur, $d1, $d2 );
+}
+
+
 
 
 sub ConfirmedDelition{
 
-	my $stm;
 	my $stmS = 'DELETE FROM LOG WHERE '; 
 
 	foreach my $prm ($q->param('chk')){
@@ -105,6 +137,7 @@ sub ConfirmedDelition{
 }
 
 sub NotConfirmed{
+
 #Get prms and build confirm table and check
 my $stm = $stmS ." ";
 	foreach my $prm ($q->param('chk')){
