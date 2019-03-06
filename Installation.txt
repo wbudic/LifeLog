@@ -36,6 +36,7 @@ https://www.sqlite.org/download.html
 #Install or make sure you have following perl modules.
  
 sudo cpanm DateTime;
+sudo cpanm DateTime::Format::Human::Duration
 sudo cpanm DateTime::Format::SQLite;
 sudo cpanm Text::CSV;
 sudo cpanm CGI::Session;
