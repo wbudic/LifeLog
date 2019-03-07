@@ -103,7 +103,7 @@ my  @prms = $q->param('chk');
 
     $tbl .= '</table>';
 
-print "<center><div>".$tbl."</div></center>";
+print '<center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</a></div></center>';
 }
 
 
