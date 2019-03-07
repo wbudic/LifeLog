@@ -89,3 +89,22 @@ Note exporting/importing of other tables is similar, but not recommended.
 
 #Current Latest Development Branch
 git fetch && git checkout dev.1.3
+
+
+#Install thttpd_dev as an Linux System Service
+Not recommended, but the thttpd development environment for LifeLog
+can be installed to start on reboot.
+
+sudo cp startDevWebServer.sh  /etc/init.d/
+
+Modify the following to the path of your development environment 
+where thttpd.conf file is in /etc/init.d/startDevWebServer.sh
+
+Modify line -> cd /home/will/thttpd_dev
+vim /etc/init.d/startDevWebServer.sh
+
+Install as service with:
+sudo update-rc.d startDevWebServer.sh defaults
+
+
+
