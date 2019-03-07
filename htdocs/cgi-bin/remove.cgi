@@ -45,11 +45,11 @@ my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDel
 		<table class="tbl">
 		<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
 
-print $q->header(-expires=>"+6os");    
 
 my $datediff = $q->param("datediff");
 my $confirmed = $q->param('confirmed');
 if ($datediff){
+	     print $q->header(-expires=>"+6os");    
 	     print $q->start_html(-title => "Date Difference Report", 
 			     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 			     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
@@ -57,6 +57,7 @@ if ($datediff){
 		);	  
 		&DisplayDateDiffs;
 }elsif (!$confirmed){
+	     print $q->header(-expires=>"+6os");    
 	     print $q->start_html(-title => "Personal Log Record Removal", 
 			     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 			     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
@@ -135,9 +136,10 @@ sub ConfirmedDelition{
 	}
 	
 	
+	$st->finish;
+
 	print $q->redirect('main.cgi');
 
-	$st->finish;
 }
 
 sub NotConfirmed{
