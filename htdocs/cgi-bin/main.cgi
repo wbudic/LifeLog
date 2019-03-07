@@ -527,6 +527,7 @@ sub checkCreateTables(){
 		$st->execute(32, "Expense", "Significant yearly expense.");
 		$st->execute(35, "Income", "Significant yearly income.");
 		$st->execute(40, "Work", "Work related entry, worth monitoring.");
+		$st->execute(45, "Food", "Quick reference to recepies, observations.");
 	}
 
 }
