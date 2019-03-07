@@ -35,10 +35,53 @@ https://www.sqlite.org/download.html
 
 #Install or make sure you have following perl modules.
  
-sudo cpanm  DateTime;
-sudo cpanm  DateTime::Format::SQLite;
-
-#Developers Install
-
-sudo cpanm  TryCatch;
+sudo cpanm DateTime;
+sudo cpanm DateTime::Format::Human::Duration
+sudo cpanm DateTime::Format::SQLite;
+sudo cpanm Text::CSV;
+sudo cpanm CGI::Session;
+sudo cpanm TryCatch;
 sudo cpanm Number/Bytes/Human.pm
+sudo cpanm Regexp::Common
+
+
+#Upgrade Instructions
+
+To upgrade to newer version of this software requires data migration.
+Before installing newer version scripts, perform an data export.
+
+cd /home/{user}/thttpd_dev/dbLifeLog
+sqlite3 -csv data_log.db "select * from LOG;" > current_log.csv
+
+##Install LifeLog Independantly
+cd /home/{user}/ 
+git clone https://github.com/wbudic/LifeLog
+mkdir /home/{user}/thttpd_dev/dbLifeLog
+
+Copy from /home/{user}/LifeLog/htdocs/cgi-bin to /home/{user}/thttpd_dev/htdocs/cgi-bin
+if doing development. Copy also the /home/{user}/LifeLog/.git to /home/{user}/thttpd_dev/
+
+Access the webserver cgi-bin. http://localhost:8080/cgi-bin/main.cgi
+(this might redirect to login.cgi or config.cgi in the future)
+
+##Install LifeLog Dependatly (not automatic, manual developer way)
+cd /home/{user}/ 
+git clone https://github.com/wbudic/LifeLog
+run thttpd with:
+cd LifeLog; ./startDevWebServer.sh
+
+##Import CSV Exported File
+This requires all CGI working. As it will creat a brand new database for you.
+Once created you must import the from above example current_log.csv
+cd /home/{user}/thttpd_dev/dbLifeLog
+see: http://www.sqlitetutorial.net/sqlite-import-csv/
+
+Example (data_dev1_2_log.db would be created as the latest version by the CGI created): 
+cd /home/{user}/thttpd_dev/dbLifeLog
+sqlite3 data_dev1_2_log.db
+sqlite> .mode csv
+sqlite> .import curren_log.csv LOG;
+sqlite> select * FROM LOG;
+sqlite>.quit
+
+Note exporting/importing of other tables is similar, but not recommended.
