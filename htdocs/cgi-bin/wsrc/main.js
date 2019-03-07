@@ -42,7 +42,7 @@ function setNow(){
 	var date = document.getElementById("frm_log").date;
 	var dt = new Date();
 	var mm = fix0(dt.getMonth()+1);
-	var dd = fix0(dt.getUTCDate()); 
+	var dd = fix0(dt.getUTCDate()+1); 
 	date.value = dt.getFullYear()+"-"+mm+"-"+dd+ " " + 
 	fix0(dt.getHours()) + ":" + fix0(dt.getMinutes()) +":"+ fix0(dt.getSeconds());
 return false;
