@@ -14,7 +14,7 @@ use DateTime::Duration;
 use Text::CSV;
 
 my $driver   = "SQLite"; 
-my $database = "../../dbLifeLog/data_config_test_log.db";
+my $database = "../../dbLifeLog/data_log.db";
 my $dsn = "DBI:$driver:dbname=$database";
 my $userid = $ENV{'DB_USER'};
 my $password = $ENV{'DB_PASS'};
@@ -264,6 +264,7 @@ try{
 		$dbs->execute(32, "Expense", "Significant yearly expense.");
 		$dbs->execute(35, "Income", "Significant yearly income.");
 		$dbs->execute(40, "Work", "Work related entry, worth monitoring.");
+		$dbs->execute(45, "Food", "Quick reference to recepies, observations.");
 	}
 
 	$dbs = $db->prepare("SELECT name FROM sqlite_master
