@@ -1,3 +1,8 @@
+/*
+ Programed in vim by: Will Budic
+ Open Source License -> https://choosealicense.com/licenses/isc/
+*/
+
 function loadedBody(toggle){
 	document.getElementById("frm_log").log.focus();
 	if(toggle){
@@ -36,9 +41,18 @@ function setNow(){
 
 	var date = document.getElementById("frm_log").date;
 	var dt = new Date();
-	date.value = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getUTCDate() + " " + dt.getHours() + ":" + dt.getMinutes() +":"+dt.getSeconds();
-
+	var mm = fix0(dt.getMonth()+1);
+	var dd = fix0(dt.getUTCDate()); 
+	date.value = dt.getFullYear()+"-"+mm+"-"+dd+ " " + 
+	fix0(dt.getHours()) + ":" + fix0(dt.getMinutes()) +":"+ fix0(dt.getSeconds());
 return false;
+}
+
+function fix0(v){
+	if(v<10){
+		return "0"+v;
+	}
+	return v;
 }
 
 function edit(row){
@@ -49,10 +63,12 @@ function edit(row){
 	var ed_v = document.getElementById("y"+ row); 
 	var et_v   = document.getElementById("t"+ row); 
 	var ev_v = document.getElementById("v"+ row); 
+	var ea_v = document.getElementById("a"+ row); 
 
 	
 	document.getElementById("el").value = ev_v.innerText;
 	document.getElementById("ed").value = ed_v.innerText + " " +  et_v.innerText;
+	document.getElementById("am").value = ea_v.innerText;
 
 	for(var i = 0, j = ec.options.length; i < j; ++i) {
 	        if(ec.options[i].innerHTML === ec_v) {
@@ -121,4 +137,36 @@ function resetView(){
 		
 	    var f = document.getElementById("frm_srch");
 	    f.keywords.value = "";
+}
+
+function updateSelCategory(sel){
+	 
+    var b = document.getElementById("btn_cat");
+    var cat = document.getElementById("idx_cat");
+
+    cat.value = sel.options[sel.selectedIndex].value;
+    b.innerText = sel.options[sel.selectedIndex].text;
+	
+    document.getElementById("ctmsg").style.display = "none";    
+}
+
+function viewByCategory(btn){
+//	alert(btn.value);
+}
+
+function viewByDate(btn){
+//	alert(btn.value);
+}
+
+function submitNewCategory(){
+	
+	var frm = document.getElementById("frm_config");
+	var cid = frm.caid;
+	    frm.cchg.value = cid.value;
+  return true;
+}
+
+function dateDiffSelected(){
+ document.getElementById("datediff").value = 1;
+  return true;
 }

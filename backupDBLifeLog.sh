@@ -7,12 +7,15 @@
 #
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
+<<<<<<< HEAD
 
 #Example crontab -e entry for every three hours.
-# crontab -> * */3 * * * ./backupDBLifeLog.sh > /dev/null 2>&1
+#crontab -> * */3 * * * ./backupDBLifeLog.sh > /dev/null 2>&1
 
 
 
+=======
+>>>>>>> dev.1.2
 DIR="/home/will/Documents/dbLifeLog"
 NOW=`date +%Y%m%d`
 

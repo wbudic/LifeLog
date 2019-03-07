@@ -32,14 +32,14 @@ my $q = CGI->new;
 
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
-print $q->start_html(-title => "Personal Log Data Stats", 
+print $q->start_html(-title => "Log Data Stats", 
        		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
 		     -onload => "loadedBody();"
 		        );	  
 
 
-my $tbl = '<table class="tbl" border="1px"><tr class="r1"><td colspan="4">Personal Log Data Stats</td></tr>';
+my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="4"><b>* PERSONAL LOG DATA STATS *</b></td></tr>';
 
 
 
@@ -59,14 +59,18 @@ $stm = 'SELECT sum(ammount) from LOG where date>=date("now","start of year")
 
 my $income =  sprintf("%.2f",selectSQL($stm));
 my $revenue = big_money($income - $expense);
-my $hardware_status =`inxi -b -c0`;
+my $hardware_status =`inxi -b -c0;uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
-my  $processes = `$prc | sort -u -r -`;
 
- $tbl = $tbl . '<tr class="r0"><td>Number of Records:</td><td>'.
+
+my  $processes = `$prc | sort -u -r -`;
+#Strip kernel 0 processes reported
+$processes =~ s/\s*0.00.*//gd;
+ 
+$tbl = $tbl . '<tr class="r1"><td>Number of Records:</td><td>'.
  		$log_rc.'</td></tr>
-		<tr class="r1"><td>No. of Records This Year:</td><td>'.
+		<tr class="r0"><td>No. of Records This Year:</td><td>'.
  		$log_this_year_rc.'</td></tr>
 		<tr class="r0"><td># Sum of Expenses For Year '.$today->year().
 		'</td><td>'.$expense.'</td></tr>
