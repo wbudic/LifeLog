@@ -1,8 +1,3 @@
-[type="submit"] {
-	clear: left;
-	margin: 10px 5px 10px 40px;
-	font-size:12px;
-}
 
 p {
 	font-family: Bookman;
@@ -14,20 +9,17 @@ p {
 table, th, td{
 	font-family: Bookman;
 	border-collapse: collapse;
-	width: 740px;
 	padding: 5px;
+	margin: auto;
 }
 
 div{
-	font-family: Verdana;
-	width: 740px;
+	font-family: Bookman;
 	text-align: center;
 	vertical-align: middle;
 }
 
 #div_srh{
-
-	width: 740px;
 	text-align: center;
 	vertical-align: middle;
 	display: none;

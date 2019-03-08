@@ -30,6 +30,7 @@ my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
 #SETTINGS HERE!
 our $REC_LIMIT = 25;
 our $TIME_ZONE = 'Australia/Sydney';
+our $PRC_WIDTH = '60';
 #END OF SETTINGS
 
 my $q = CGI->new;
@@ -58,7 +59,7 @@ my $toggle =""; if($rs_keys||$rs_cat_idx||$stmD){$toggle=1;};
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
 print $q->start_html(-title => "Personal Log", 
-       		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+       		     -script=>{-type => 'text/javascript',-src => 'wsrc/main.js'},
 		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
 		     -onload => "loadedBody('".$toggle."');"
 		        );	  
@@ -90,8 +91,8 @@ my %hshCats;
 $cats = $cats.'</select>';
 
 
-my $tbl = qq(<form id="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
-<table class="tbl" border=0>
+my $tbl = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
+<table class="tbl" border="0" width="$PRC_WIDTH%">
 <tr class="r0">
 	<th style="border-right: solid 1px;">Date</th><th style="border-right:solid 1px;">Time</th><th>Log</th><th>#</th><th>Category</th><th>Edit</th>
 </tr>);
@@ -197,19 +198,24 @@ if($tbl_start>0){
 	        $ch_i =~ s/https/http/gsi;
 	        $ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
 	 }	
-	 $log = join('' , @chnks) ;
+	 $log = join('' , @chnks);
+	 #Decode escaped \\n
+	 $log =~ s/\\n/<br>/gs;
+	
 
 
-         $tbl = $tbl . '<tr class="r'.$tfId.'"><td id="y'.$id.'" style="border-right: solid 1px;">'. $dt->ymd . '</td>'. 
-		          '<td id="t'.$id.'" style="border-right: solid 1px;">' . $dt->hms . "</td>" .
-			  '<td id="v'.$id.'" class="log">' . $log . '</td>'.
-			  '<td id="a'.$id.'">' . $amm .'</td>'.
-			  '<td id="c'.$id.'">' . $ct .'</td>'.
-			  '<td><input class="edit" type="button" value="Edit"
-			 	 onclick="return edit('.$id.');"/>
-			  <input name="chk" type="checkbox" value="'.$id.'"/>
+         $tbl .= '<tr class="r'.$tfId.'">
+	          <td id="y'.$id.'" width="10%" style="border-right: solid 1px;">'. $dt->ymd . "</td>\n". 
+		          '<td id="t'.$id.'" width="10%" style="border-right: solid 1px;">' .
+			                                                            $dt->hms . "</td>\n".
+			  '<td id="v'.$id.'" width="50%" class="log">' . $log . "</td>\n".
+			  '<td id="a'.$id.'" width="20%">' . $amm ."</td>\n".
+			  '<td id="c'.$id.'" width="10%">' . $ct ."</td>\n".
+			  '<td width="10%">
+  			    <input class="edit" type="button" value="Edit" onclick="return edit('.$id.');"/>
+			    <input name="chk" type="checkbox" value="'.$id.'"/>
 			  </td>
-			</tr>';
+		  </tr>';
 	$tbl_rc += 1;	
 
 	if($REC_LIMIT>0 && $tbl_rc==$REC_LIMIT){
@@ -252,14 +258,14 @@ if($tbl_start>0){
  <input type="reset" value="Unselect All"/>
  <input type="submit" value="Delete Selected"/>
  </td></tr></form>
-<tr class="r0"><form id="frm_srch" action="main.cgi"><td>Keywords:</td><td colspan="4">
+<tr class="r0"><form id="frm_srch" action="main.cgi"><td>Keywords:</td><td colspan="4" align="left">
 <input name="keywords" type="text" size="60"/></td>
 <td><input type="submit" value="Search"/></form></td></tr>
  </table>';
 
 my  $frm = qq(<a name="top"></a>
- <form id="frm_log" action="main.cgi" onSubmit="return formValidation();">
-	 <table class="tbl" border=0>
+ <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
+	 <table class="tbl" border="0" width="$PRC_WIDTH%">
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
 	 <tr><td colspan="3"><br/></td></tr>
 	 <tr>
@@ -268,17 +274,18 @@ my  $frm = qq(<a name="top"></a>
 	 qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
  	      &nbsp;<button type="reset">Reset</button>
 	      </td>
-	 	<td>Category:</td>
+	 	<td></td>
 	 </tr>
 		 <tr><td>Log:</td>
 		  <td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
- 		  <td>).$cats.qq(</td></tr>
+ 		  <td>Category:&nbsp;).$cats.qq(</td></tr>
 		 <tr><td><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
 		 <td id="al">
 		   <input id="am" name="am" type="number" step="any">
-		   <button id="btn_srch" onclick="toggleSearch(this); return false;"i style="float: right;">Show Search</button>
+		   <button id="btn_srch" onclick="toggleSearch(this); return false;"
+		           style="float: right;">Show Search</button>
 		 </td>
-		 <td><input type="submit" value="Submit"/>
+		 <td align="right"><input id="log_submit" type="submit" value="Submit"/>
 		 </td>
 	</tr></table>
 	 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
@@ -291,15 +298,16 @@ my  $frm = qq(<a name="top"></a>
 
 my  $srh = qq(
 	 <form id="frm_srch" action="main.cgi">
-	 <table class="tbl" border=0>
-		 <tr class="r0"><td colspan="4"><b>Search/View By</b></td></tr>
-	<tr><td>Keywords:</td><td colspan="2">
-	<input name="keywords" type="text" size="60" value=").$rs_keys.qq("/></td>
-	<td><input type="submit" value="Search"/></td></tr>);
+	 <table class="tbl" border="0" width="$PRC_WIDTH%">
+           <tr class="r0"><td colspan="4"><b>Search/View By</b></td></tr>
+	   <tr><td>Keywords:</td>
+	       <td colspan="2" align="left">
+       	 	 <input name="keywords" type="text" size="60" value=").$rs_keys.qq("/></td>
+	       <td align="left"><input type="submit" value="Search" align="left"></td></tr>);
 
 my $ctmsg = '<p id="ctmsg">&nbsp;&nbsp;(Use the Category dropdown to change).</p>';
 if($rs_keys || $rs_cat_idx || $stmD){
-	$srh .= '<tr><td></td><td></td><td></td><td align="float:right">
+	$srh .= '<tr><td></td><td></td><td></td><td align="left">
 	<button onClick="resetView()">Reset Whole View</button></td></tr>';
 	$ctmsg = "";
 }
@@ -307,10 +315,14 @@ if($rs_keys || $rs_cat_idx || $stmD){
 
 
 $srh .= '<tr><td>View by Category:</td>
-    <td colspan="3"><button id="btn_cat" onclick="viewByCategory(this);" style="float:left">Unspecified</button><input id="idx_cat" name="category" type="hidden" value="">'.$ctmsg.'</td></tr>
+    <td colspan="3" align="left">
+    <button id="btn_cat" onclick="viewByCategory(this);" style="float:left">Unspecified</button>
+    <input id="idx_cat" name="category" type="hidden" value="1">'.$ctmsg.'</td></tr>
     <tr><td>View by Date:</td>
-    <td>From:&nbsp;<input name="v_from" type="text" size="10"/></td><td>To:&nbsp;<input name="v_to" type="text" size="10"/>
-    <td><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
+    <td align="left">
+    From:&nbsp;<input name="v_from" type="text" size="16"/></td><td align="left">
+    To:&nbsp;<input name="v_to" type="text" size="16"/>
+    <td align="left"><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
     </tr>
     <tr><td colspan="4"><br></td></tr>
 </table>
@@ -319,13 +331,12 @@ $srh .= '<tr><td>View by Category:</td>
 #Page printout from here!
 #
 print "<center>";
-	print "\n<div>\n" . $frm ."\n</div>\n<br/>";
+	print "\n<div>\n" . $frm ."\n</div>\n<br>\n";
 	print '<div id="div_srh">' . $srh .'</div>';
 	print "\n<div>\n" . $tbl ."\n</div>";
 	print '<br><div><a href="stats.cgi">View Statistics</a></div>';
 	print '<br><div><a href="config.cgi">Configure Log (Careful)</a><a name="bottom"/></div>';
 print "</center>";
-
 
 print $q->end_html;
 $st->finish;

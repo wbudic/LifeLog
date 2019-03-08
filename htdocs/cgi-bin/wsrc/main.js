@@ -4,16 +4,28 @@
 */
 
 function loadedBody(toggle){
-	document.getElementById("frm_log").log.focus();
+	var el = document.getElementById("frm_entry");
+	el.log.focus();
 	if(toggle){
 		toggleSearch(document.getElementById("btn_srch"));
 	}
+
+	document.getElementById("log_submit").addEventListener("click", encodeText);
 }
+
+function encodeText(el){
+	var el = document.getElementById("frm_entry");
+	var txt = el.log.value;
+	txt = txt.replace(/\r\n/g, "\\n");
+	txt = txt.replace(/\n/g, "\\n");
+	el.log.value = txt;
+}
+
 
 function formValidation(){
   
-var date = document.getElementById("frm_log").date;
-var log  = document.getElementById("frm_log").log;
+var date = document.getElementById("frm_entry").date;
+var log  = document.getElementById("frm_entry").log;
 
 return validDate(date.value) && validLog(log.value);
 
@@ -39,10 +51,10 @@ return true;
 
 function setNow(){
 
-	var date = document.getElementById("frm_log").date;
+	var date = document.getElementById("frm_entry").date;
 	var dt = new Date();
 	var mm = fix0(dt.getMonth()+1);
-	var dd = fix0(dt.getUTCDate()+1); 
+	var dd = fix0(dt.getDate()); 
 	date.value = dt.getFullYear()+"-"+mm+"-"+dd+ " " + 
 	fix0(dt.getHours()) + ":" + fix0(dt.getMinutes()) +":"+ fix0(dt.getSeconds());
 return false;
@@ -77,14 +89,14 @@ function edit(row){
 	         }
 	}
 	document.getElementById("submit_is_edit").value = row;
-	document.getElementById("frm_log").log.focus();
+	document.getElementById("frm_entry").log.focus();
 
 return false;
 }
 
 function submitNext(tbl_rc){
 
-	var frm = document.getElementById("frm_log");
+	var frm = document.getElementById("frm_entry");
 	    frm.submit_is_view.value = 1;
 	    frm.rs_all.value = 0;
 	    frm.rs_cur.value = tbl_rc;
@@ -96,7 +108,7 @@ function submitNext(tbl_rc){
 
 function submitPrev(tbl_rc){
 
-	var frm = document.getElementById("frm_log");
+	var frm = document.getElementById("frm_entry");
 	    frm.submit_is_view.value = 1;
 	    frm.rs_all.value = 0;
 	    frm.rs_cur.value = tbl_rc;
@@ -109,7 +121,7 @@ function submitPrev(tbl_rc){
 
 function viewAll(){
 
-	var frm = document.getElementById("frm_log");
+	var frm = document.getElementById("frm_entry");
 	    frm.submit_is_view.value = 1;
 	    frm.rs_all.value = 1;
 	    frm.rs_cur.value = 0;
