@@ -34,6 +34,13 @@ my $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 my %hshCats;
 my $tbl_rc =0;
 
+
+#SETTINGS HERE!
+our $REC_LIMIT = 25;
+our $TIME_ZONE = 'Australia/Sydney';
+our $PRC_WIDTH = '60';
+#END OF SETTINGS
+
 while(my @row = $st->fetchrow_array()) {
 	$hshCats{$row[0]} = $row[1];
 }
@@ -42,7 +49,7 @@ while(my @row = $st->fetchrow_array()) {
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
 my $stmE = " ORDER BY DATE DESC, rowid DESC;";
 my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
-		<table class="tbl">
+		<table class="tbl" width="'.$PRC_WIDTH.'%">
 		<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
 
 
@@ -75,7 +82,7 @@ $db->disconnect();
 exit;
 
 sub DisplayDateDiffs{
-    $tbl = '<table class="tbl">
+    $tbl = '<table class="tbl" width="'.$PRC_WIDTH.'%">
 	    <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
     $stm = 'SELECT DATE, LOG FROM LOG WHERE '; 

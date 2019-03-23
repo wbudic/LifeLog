@@ -83,9 +83,9 @@ $tbl = $tbl . '<tr class="r1"><td>Number of Records:</td><td>'.
 
 </table>';
 
-print '<center><div>' . $tbl .'</div></center>';
-print '<center><div style="text-align:left;"><br/><b>Server Info</b><br/><br/>' . $hardware_status .'</div></center>';
-print '<center><div style="text-align:left;"><br/><b>Processes Info</b><br/><br/><pre>' . $processes .'</pre></div>i</center>';
+print '<div style="float:left; padding:10px;">' . $tbl .'</div>';
+print '<div style="text-align:left;  border: 1px solid black;"><br/><b>Server Info</b><br/><br/>' . $hardware_status .'</div><br>';
+print '<div style="text-align:left;"><br/><b>Processes Info</b><br/><br/><pre>' . $processes .'</pre></div>';
 
 print $q->end_html;
 $dbh->disconnect();

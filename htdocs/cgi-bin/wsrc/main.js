@@ -26,6 +26,11 @@ function formValidation(){
   
 var date = document.getElementById("frm_entry").date;
 var log  = document.getElementById("frm_entry").log;
+var cat  = document.getElementById("frm_entry").cat;
+if(cat.value ==0){
+	alert("Category -> has not been selected!");
+	return false;
+}
 
 return validDate(date.value) && validLog(log.value);
 
@@ -81,7 +86,7 @@ function edit(row){
 	document.getElementById("el").value = ev_v.innerText;
 	document.getElementById("ed").value = ed_v.innerText + " " +  et_v.innerText;
 	document.getElementById("am").value = ea_v.innerText;
-
+       //Change selected catergory
 	for(var i = 0, j = ec.options.length; i < j; ++i) {
 	        if(ec.options[i].innerHTML === ec_v) {
 			           ec.selectedIndex = i;
@@ -93,6 +98,18 @@ function edit(row){
 
 return false;
 }
+
+
+
+function selectAllLogs(){
+	var frm = document.getElementById("frm_log");
+	var chks = document.getElementsByName("chk");
+	for(var i=0, n=chks.length;i<n;i++) {
+		      chks[i].checked = true;
+        }
+return false;
+}
+
 
 function submitNext(tbl_rc){
 
@@ -152,18 +169,18 @@ function resetView(){
 }
 
 function updateSelCategory(sel){
-	 
-    var b = document.getElementById("btn_cat");
+//disabled as Search View has own dreopdown since v.1.3	 
+//    var b = document.getElementById("btn_cat");
     var cat = document.getElementById("idx_cat");
-
     cat.value = sel.options[sel.selectedIndex].value;
-    b.innerText = sel.options[sel.selectedIndex].text;
+//    b.innerText = sel.options[sel.selectedIndex].text;
 	
-    document.getElementById("ctmsg").style.display = "none";    
+//    document.getElementById("ctmsg").style.display = "none";    
 }
 
 function viewByCategory(btn){
-//	alert(btn.value);
+	 
+    document.getElementById("rs_keys").value = "";    
 }
 
 function viewByDate(btn){

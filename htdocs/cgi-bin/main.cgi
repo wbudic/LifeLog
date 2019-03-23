@@ -80,11 +80,16 @@ my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY DATE D
 $st = $db->prepare( $stmtCat );
 $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
-my $cats = '<select id="ec" name="cat" onChange="updateSelCategory(this)">\n';
+my $cats = '<select id="ec" name="cat" onChange="updateSelCategory(this)"><option value="0">---</option>\n';
 my %hshCats;
-
+my $c_sel = 1;
  while(my @row = $st->fetchrow_array()) {
-	$cats = $cats. '<option value="'.$row[0].'">'.$row[1].'</option>\n';
+	if($row[0]==$c_sel){
+		$cats = $cats. '<option selected value="'.$row[0].'">'.$row[1].'</option>\n';
+	}
+	else{	
+		$cats = $cats. '<option value="'.$row[0].'">'.$row[1].'</option>\n';
+	}	
 	$hshCats{$row[0]} = $row[1];
  }
 
@@ -103,6 +108,8 @@ if($rs_keys){
 	my @keywords = split / /, $rs_keys;
 	if($rs_cat_idx){
 		$stmS = $stmS ." ID_CAT='".$rs_cat_idx."' AND";
+	}else{
+		$stmS = $stmS ." ID_CAT='0' OR";
 	}	
 	if($stmD){
 		$stmS = $stmS .$stmD." AND";
@@ -140,14 +147,6 @@ else{
  # Enable to see main query statement issued!
  #print $q->pre("### -> ".$stmt);
 
-#
-#Fetch entries!
-#
-$st = $db->prepare( $stmt );
-$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
-if($rv < 0) {
-	     print "<p>Error->"& $DBI::errstri &"</p>";
-}
 
 my $tfId = 0;
 my $id = 0;
@@ -165,8 +164,14 @@ if($tbl_start>0){
 	}
 	$stc->finish();
 }
-
-
+#
+#Fetch entries!
+#
+$st = $db->prepare( $stmt );
+$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+if($rv < 0) {
+	     print "<p>Error->"& $DBI::errstri &"</p>";
+}
  while(my @row = $st->fetchrow_array()) {
 
 	 $id = $row[0];
@@ -239,12 +244,15 @@ if($tbl_start>0){
 	 
     if($stmD){
        $tbl = $tbl . '<tr><td colspan="5">
-       <b>Search Failed to Retrive any records on select: [<i>'. $stmD .'</i>] !</b></td>
-       </tr>';
+       <b>Search Failed to Retrive any records on select: [<i>'. $stmD .'</i>] !</b></td></tr>';
     }
     elsif($rs_keys){
+	    my $criter = "";
+	    if($rs_cat_idx>0){
+		$criter = "->Criteria[".$hshCats{$rs_cat_idx}."]";
+	    }
        $tbl = $tbl . '<tr><td colspan="5">
-       <b>Search Failed to Retrive any records on keywords: [<i>'. $rs_keys .'</i>] !</b></td>
+       <b>Search Failed to Retrive any records on keywords: [<i>'. $rs_keys .'</i>]'.$criter.' !</b></td>
        </tr>';
    }
     else{
@@ -252,18 +260,19 @@ if($tbl_start>0){
 	 }
  }
 
- $tbl .= '<tr class="r0"><td colspan="6" align="right"> 
+ $tbl .= '<tr class="r0"><td><a href="#top">&#x219F;</a></td><td colspan="5" align="right"> 
  <input type="hidden" name="datediff" id="datediff" value="0"/>
  <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
+ <input type="button" value="Select All" onclick="return selectAllLogs()"/>
  <input type="reset" value="Unselect All"/>
  <input type="submit" value="Delete Selected"/>
  </td></tr></form>
-<tr class="r0"><form id="frm_srch" action="main.cgi"><td>Keywords:</td><td colspan="4" align="left">
+<tr class="r0"><form id="frm_srch" action="main.cgi"><td><b>Keywords:</b></td><td colspan="4" align="left">
 <input name="keywords" type="text" size="60"/></td>
 <td><input type="submit" value="Search"/></form></td></tr>
  </table>';
 
-my  $frm = qq(<a name="top"></a>
+ my  $frm = qq(<a name="top"></a>
  <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
 	 <table class="tbl" border="0" width="$PRC_WIDTH%">
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
@@ -300,33 +309,31 @@ my  $srh = qq(
 	 <form id="frm_srch" action="main.cgi">
 	 <table class="tbl" border="0" width="$PRC_WIDTH%">
            <tr class="r0"><td colspan="4"><b>Search/View By</b></td></tr>
-	   <tr><td>Keywords:</td>
-	       <td colspan="2" align="left">
-       	 	 <input name="keywords" type="text" size="60" value=").$rs_keys.qq("/></td>
-	       <td align="left"><input type="submit" value="Search" align="left"></td></tr>);
+	   );
 
-my $ctmsg = '<p id="ctmsg">&nbsp;&nbsp;(Use the Category dropdown to change).</p>';
-if($rs_keys || $rs_cat_idx || $stmD){
-	$srh .= '<tr><td></td><td></td><td></td><td align="left">
-	<button onClick="resetView()">Reset Whole View</button></td></tr>';
-	$ctmsg = "";
-}
-
-
-
-$srh .= '<tr><td>View by Category:</td>
-    <td colspan="3" align="left">
-    <button id="btn_cat" onclick="viewByCategory(this);" style="float:left">Unspecified</button>
-    <input id="idx_cat" name="category" type="hidden" value="1">'.$ctmsg.'</td></tr>
-    <tr><td>View by Date:</td>
+$cats =~ s/selected//g;
+$srh .= '<tr><td align="right"><b>View by Category:</b></td><td>'.$cats.'</td><td></td>
+    <td colspan="1" align="left">
+    <button id="btn_cat" onclick="viewByCategory(this);" style="float:left">View</button>
+    <input id="idx_cat" name="category" type="hidden" value="0"></td></tr>
+    <tr><td align="right"><b>View by Date:</b></td>
     <td align="left">
     From:&nbsp;<input name="v_from" type="text" size="16"/></td><td align="left">
     To:&nbsp;<input name="v_to" type="text" size="16"/>
     <td align="left"><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
     </tr>
-    <tr><td colspan="4"><br></td></tr>
-</table>
-</form><br>';
+    <tr><td align="right"><b>Keywords:</b></td>
+         <td colspan="2" align="left">
+       	 	 <input id="rs_keys" name="keywords" type="text" size="60" value="'.$rs_keys.'"/></td>
+         <td align="left"><input type="submit" value="Search" align="left"></td></tr>';
+
+if($rs_keys || $rs_cat_idx || $stmD){
+	$srh .= '<tr><td align="left" colspan="3">
+	<button onClick="resetView()">Reset Whole View</button></td></tr>';
+}
+	       
+#$srh .='<tr><td colspan="4"><br></td></tr>
+$srh.='</table></form><br>';
 #
 #Page printout from here!
 #
@@ -347,50 +354,6 @@ exit;
 
 
 
-sub buildNavigationButtons{
-
-	my $is_end_of_rs = shift;
-	
-	if(!$tbl_cur_id){
-	#Following is a quick hack as previous id as current minus one might not
-	#coincide in the database table!
-	$tbl_cur_id = $id-1;
-	}
-	if($tfId==1){
-	 $tfId = 0;
-	}else{
-	 $tfId = 1;
-	}
-
-	$tbl .=  '<tr class="r'.$tfId.'"><td><a href="#top">&#x219F;</a></td>';
-
-	if($rs_prev && $rs_prev>0 && $tbl_start>0){
-
-	 $tbl = $tbl . '<td><input type="hidden" value="'.$rs_prev.'"/>
-	 <input type="button" onclick="submitPrev('.$rs_prev.');return false;"
-	  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>';
-
-	}
-	else{
-                $tbl = $tbl .'<td><i>Top</i></td>';
-	}
-
-
-	$tbl = $tbl .'<td colspan="1"><input type="button" onclick="viewAll();return false;" 
-	value="View All"/></td>';
-
-	if($is_end_of_rs == 1){
-	  $tbl = $tbl .'<td><i>End</i></td>';
-	}
-	else{
-
-	$tbl = $tbl . '<td><input type="button" onclick="submitNext('.$tbl_cur_id.');return false;" 
-	value="Next &ndash;&rsaquo;&rsaquo;"/></td>';
-
-	}
-
-	$tbl = $tbl .'<td colspan="2"></td></tr>';
-}
 
 sub processSubmit { 
 
@@ -478,6 +441,50 @@ catch{
 }
 
 
+sub buildNavigationButtons{
+
+	my $is_end_of_rs = shift;
+	
+	if(!$tbl_cur_id){
+	#Following is a quick hack as previous id as current minus one might not
+	#coincide in the database table!
+	$tbl_cur_id = $id-1;
+	}
+	if($tfId==1){
+	 $tfId = 0;
+	}else{
+	 $tfId = 1;
+	}
+
+	$tbl .=  '<tr class="r'.$tfId.'"><td></td>';
+
+	if($rs_prev && $rs_prev>0 && $tbl_start>0){
+
+	 $tbl = $tbl . '<td><input type="hidden" value="'.$rs_prev.'"/>
+	 <input type="button" onclick="submitPrev('.$rs_prev.');return false;"
+	  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>';
+
+	}
+	else{
+                $tbl = $tbl .'<td><i>Top</i></td>';
+	}
+
+
+	$tbl = $tbl .'<td colspan="1"><input type="button" onclick="viewAll();return false;" 
+	value="View All"/></td>';
+
+	if($is_end_of_rs == 1){
+	  $tbl = $tbl .'<td><i>End</i></td>';
+	}
+	else{
+
+	$tbl = $tbl . '<td><input type="button" onclick="submitNext('.$tbl_cur_id.');return false;" 
+	value="Next &ndash;&rsaquo;&rsaquo;"/></td>';
+
+	}
+
+	$tbl = $tbl .'<td colspan="2"></td></tr>';
+}
 
 sub checkCreateTables(){
 
