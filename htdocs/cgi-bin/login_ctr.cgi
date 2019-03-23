@@ -29,7 +29,6 @@ my $dbs;
 my $q = CGI->new;
 	
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
-
 print $q->start_html(-title => "Personal Log", 
        		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},

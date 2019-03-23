@@ -1,4 +1,5 @@
 {
     "git.autofetch": true,
-    "git.autoStash": true
+    "git.autoStash": true,
+ //  "git.credential.helper": "git config --global credential.helper 'cache --timeout=3600'"
 }
