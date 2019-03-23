@@ -39,3 +39,4 @@ thttpd.conf
 .Spotlight-V100
 .Trashes
 *.db
+*.swp

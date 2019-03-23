@@ -48,6 +48,7 @@ sudo apt install cpanminus
 
 #Install DBI module
 sudo cpanm DBI
+sudo cpanm DBD::SQLite
 
 #Install SQLite
 https://www.sqlite.org/download.html
@@ -59,10 +60,12 @@ sudo cpanm DateTime;
 sudo cpanm DateTime::Format::Human::Duration
 sudo cpanm DateTime::Format::SQLite;
 sudo cpanm Text::CSV;
+sudo cpanm Number::Bytes::Human;
 sudo cpanm CGI::Session;
 sudo cpanm TryCatch;
 sudo cpanm Number/Bytes/Human.pm
 sudo cpanm Regexp::Common
+
 
 
 #Upgrade Instructions
