@@ -63,9 +63,9 @@ sudo cpanm Text::CSV;
 sudo cpanm Number::Bytes::Human;
 sudo cpanm CGI::Session;
 sudo cpanm TryCatch;
-sudo cpanm Number/Bytes/Human.pm
-sudo cpanm Regexp::Common
-
+sudo cpanm Number/Bytes/Human.pm;
+sudo cpanm Regexp::Common;
+sudo cpanm Crypt::CBC;
 
 
 #Upgrade Instructions

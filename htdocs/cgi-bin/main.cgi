@@ -6,24 +6,42 @@
 use strict;
 use warnings;
 use Try::Tiny;
+use Switch;
  
 use CGI;
+use CGI::Session '-ip_match';
 use DBI;
 
 use DateTime;
 use DateTime::Format::SQLite;
 use DateTime::Duration;
 use Regexp::Common qw /URI/;
+use Crypt::CBC;
+use Crypt::IDEA;
 
-my $driver   = "SQLite"; 
-my $database = "../../dbLifeLog/data_log.db";
-my $dsn = "DBI:$driver:dbname=$database";
-my $userid = $ENV{'DB_USER'};
-my $password = $ENV{'DB_PASS'};
 
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
-   or die "<p>Error->"& $DBI::errstri &"</p>";
+my $q = CGI->new;
+my $session = new CGI::Session(undef, $q);
+my $sid=$session->id();
+my $dbname=$session->param('database');
+my $userid=$session->param('alias');
+my $password=$session->param('passw');
+my $cphr=$session->param('cipher');
 
+
+### Authenticate session to alias password
+#
+if(!$userid || !$dbname){
+	print $q->redirect('login_ctr.cgi');
+	exit;
+}
+
+# "../../dbLifeLog/data_log.db";
+#my $database = "/home/will/dev/LifeLog/dbLifeLog/data_log.db";
+my $cipher = new Crypt::CBC({key => $cphr, cipher => 'IDEA'});
+my $database = '../../dbLifeLog/'.$dbname;
+my $dsn= "DBI:SQLite:dbname=$database";
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
 
 
 
@@ -32,8 +50,8 @@ our $REC_LIMIT = 25;
 our $TIME_ZONE = 'Australia/Sydney';
 our $PRC_WIDTH = '60';
 #END OF SETTINGS
+&getConfiguration($db);
 
-my $q = CGI->new;
 my $tbl_rc = 0;
 my $tbl_rc_prev = 0;
 my $tbl_cur_id;
@@ -56,25 +74,23 @@ if($rs_dat_from && $rs_dat_to){
 
 my $toggle =""; if($rs_keys||$rs_cat_idx||$stmD){$toggle=1;};
 	
-print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
-
+print $q->header(-expires=>"+6os", -charset=>"UTF-8"); 
 print $q->start_html(-title => "Personal Log", 
-       		     -script=>{-type => 'text/javascript',-src => 'wsrc/main.js'},
-		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-		     -onload => "loadedBody('".$toggle."');"
+       		     			 -script=>{-type => 'text/javascript',-src => 'wsrc/main.js'},
+		     						 -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+		     						 -onload => "loadedBody('".$toggle."');"
 		        );	  
+#print $q->div("session->".$session->header());
+#print $q->div("user:".$userid." passw:".$password);
 
 my $rv;
 my $st;
 my $today = DateTime->now;
 $today->set_time_zone( $TIME_ZONE );
 
-#####################
-	&checkCreateTables;
-#####################
 
 my $stmtCat = "SELECT * FROM CAT;";
-my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY DATE DESC, rowid DESC;";
+my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid DESC, DATE DESC;";
 
 
 $st = $db->prepare( $stmtCat );
@@ -272,7 +288,7 @@ if($rv < 0) {
 <td><input type="submit" value="Search"/></form></td></tr>
  </table>';
 
- my  $frm = qq(<a name="top"></a>
+ my $frm = qq(<a name="top"></a>
  <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
 	 <table class="tbl" border="0" width="$PRC_WIDTH%">
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
@@ -287,7 +303,7 @@ if($rv < 0) {
 	 </tr>
 		 <tr><td>Log:</td>
 		  <td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
- 		  <td>Category:&nbsp;).$cats.qq(</td></tr>
+ 		  <td>Category:&nbsp;$cats</td></tr>
 		 <tr><td><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
 		 <td id="al">
 		   <input id="am" name="am" type="number" step="any">
@@ -301,7 +317,9 @@ if($rv < 0) {
 	 <input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
 	 <input type="hidden" name="rs_all" value="0"/>
 	 <input type="hidden" name="rs_cur" value="0"/>
-	 <input type="hidden" name="rs_prev" value=").$tbl_rc_prev.q("/> </form>
+	 <input type="hidden" name="rs_prev" value="$tbl_rc_prev"/>
+	 <input type="hidden" name="CGISESSID" value="$sid"/>
+	 </form>
 	 );
 
 
@@ -312,7 +330,7 @@ my  $srh = qq(
 	   );
 
 $cats =~ s/selected//g;
-$srh .= '<tr><td align="right"><b>View by Category:</b></td><td>'.$cats.'</td><td></td>
+$srh .= qq(<tr><td align="right"><b>View by Category:</b></td><td>.$cats.</td><td></td>
     <td colspan="1" align="left">
     <button id="btn_cat" onclick="viewByCategory(this);" style="float:left">View</button>
     <input id="idx_cat" name="category" type="hidden" value="0"></td></tr>
@@ -324,8 +342,8 @@ $srh .= '<tr><td align="right"><b>View by Category:</b></td><td>'.$cats.'</td><t
     </tr>
     <tr><td align="right"><b>Keywords:</b></td>
          <td colspan="2" align="left">
-       	 	 <input id="rs_keys" name="keywords" type="text" size="60" value="'.$rs_keys.'"/></td>
-         <td align="left"><input type="submit" value="Search" align="left"></td></tr>';
+       	 	 <input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/></td>
+         <td align="left"><input type="submit" value="Search" align="left"></td></tr>);
 
 if($rs_keys || $rs_cat_idx || $stmD){
 	$srh .= '<tr><td align="left" colspan="3">
@@ -348,6 +366,7 @@ print "</center>";
 print $q->end_html;
 $st->finish;
 $db->disconnect();
+$session->flush();
 exit;
 
 ### CGI END
@@ -456,97 +475,53 @@ sub buildNavigationButtons{
 	 $tfId = 1;
 	}
 
-	$tbl .=  '<tr class="r'.$tfId.'"><td></td>';
+	$tbl .=  qq!<tr class="r$tfId"><td></td>!;
 
 	if($rs_prev && $rs_prev>0 && $tbl_start>0){
 
-	 $tbl = $tbl . '<td><input type="hidden" value="'.$rs_prev.'"/>
-	 <input type="button" onclick="submitPrev('.$rs_prev.');return false;"
-	  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>';
+	 $tbl = $tbl . qq!<td><input type="hidden" value="$rs_prev"/>
+	 <input type="button" onclick="submitPrev($rs_prev);return false;"
+	  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>!;
 
 	}
 	else{
-                $tbl = $tbl .'<td><i>Top</i></td>';
+                $tbl .= '<td><i>Top</i></td>';
 	}
 
 
-	$tbl = $tbl .'<td colspan="1"><input type="button" onclick="viewAll();return false;" 
-	value="View All"/></td>';
+	$tbl .= '<td colspan="1"><input type="button" onclick="viewAll();return false;" value="View All"/></td>';
 
 	if($is_end_of_rs == 1){
 	  $tbl = $tbl .'<td><i>End</i></td>';
 	}
 	else{
 
-	$tbl = $tbl . '<td><input type="button" onclick="submitNext('.$tbl_cur_id.');return false;" 
-	value="Next &ndash;&rsaquo;&rsaquo;"/></td>';
+	  $tbl .= qq!<td><input type="button" onclick="submitNext($tbl_cur_id);return false;"
+		                      value="Next &ndash;&rsaquo;&rsaquo;"/></td>!;
 
 	}
 
 	$tbl = $tbl .'<td colspan="2"></td></tr>';
 }
 
-sub checkCreateTables(){
+sub getConfiguration{
+		my $st = $_[0]->prepare("SELECT * FROM CONFIG;");
+		         $st->execute(); 
+		while (my @r=$st->fetchrow_array()){
+			
+			switch ($r[1]) {
 
-	$st = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='LOG';");
-	$st->execute();
+				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
+				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
+				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}
+				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
 
-	if(!$st->fetchrow_array()) {
-				my $stmt = qq(
+			}
 
-				CREATE TABLE LOG (
-				  ID_CAT TINY NOT NULL,
-				  DATE DATETIME  NOT NULL,
-				  LOG VCHAR(128) NOT NULL,
-				  AMMOUNT integer
-						);
-							   
-				);
-
-				$rv = $db->do($stmt);
-
-				if($rv < 0) {
-					      print "<p>Error->"& $DBI::errstri &"</p>";
-				} 
-
-				$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
-
-				$st->execute( 3, $today, "DB Created!",0);
-
-				
-	}
-
-	$st = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='CAT';");
-	$st->execute();
-	if(!$st->fetchrow_array()) {
-			        my $stmt = qq(
-
-				CREATE TABLE CAT(
-				  ID INT PRIMARY KEY NOT NULL,
-				  NAME VCHAR(16),
-				  DESCRIPTION VCHAR(64)
-				);
-							   
-				);
-
-				$rv = $db->do($stmt);
-
-				if($rv < 0) {
-					      print "<p>Error->"& $DBI::errstri &"</p>";
-				} 
-
-				$st = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
-
-		$st->execute(1,"Unspecified", "For quick uncategories entries.");
-		$st->execute(3,"File System", "Operating file system short log.");
-		$st->execute(6,"System Log", "Operating system inportant log.");
-		$st->execute(9,"Event", "Event that occured, meeting, historical important.");
-		$st->execute(28,"Personal", "Personal log of historical importants, diary type.");
-		$st->execute(32, "Expense", "Significant yearly expense.");
-		$st->execute(35, "Income", "Significant yearly income.");
-		$st->execute(40, "Work", "Work related entry, worth monitoring.");
-		$st->execute(45, "Food", "Quick reference to recepies, observations.");
-	}
-
+		}
 }
 
+
+sub authenticate{
+	return 0;
+}

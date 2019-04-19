@@ -1,11 +1,15 @@
 #!/usr/bin/perl
-
+#
+# Programed in vim by: Will Budic
+# Open Source License -> https://choosealicense.com/licenses/isc/
+#
 use strict;
 use warnings;
 use Try::Tiny;
 use Switch;
  
 use CGI;
+use CGI::Session '-ip_match';
 use DBI;
 
 use DateTime;
@@ -13,30 +17,40 @@ use DateTime::Format::SQLite;
 use DateTime::Duration;
 use Text::CSV;
 
-my $driver   = "SQLite"; 
-my $database = "../../dbLifeLog/data_log.db";
-my $dsn = "DBI:$driver:dbname=$database";
-my $userid = $ENV{'DB_USER'};
-my $password = $ENV{'DB_PASS'};
-
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
-   or die "<p>Error->"& $DBI::errstri &"</p>";
-
-
 #DEFAULT SETTINGS HERE!
-my $REC_LIMIT = 25;
-my $TIME_ZONE = 'Australia/Sydney';
-#END OF
+our $REC_LIMIT = 25;
+our $TIME_ZONE = 'Australia/Sydney';
+our $PRC_WIDTH = '60';
+#END OF DEFAULT SETTINGS
+
+
+my $q = CGI->new;
+my $session = new CGI::Session(undef, $q);
+
+my $dbname=$session->param('database');
+my $userid=$session->param('alias');
+my $password=$session->param('passw');
+
+### Authenticate session to alias password
+#
+if(!$userid || !$dbname){
+	print $q->redirect('login_ctr.cgi');
+	exit;
+}
+
+my $database = '../../dbLifeLog/'.$dbname;
+my $dsn= "DBI:SQLite:dbname=$database";
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+
 my $rv;
 my $dbs;
 my $today = DateTime->now;
 $today->set_time_zone( $TIME_ZONE );
 
 #####################
-	&checkCreateTablesAndSettings;
+	&getConfiguration;
 #####################
 
-my $q = CGI->new;
 	
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
@@ -208,113 +222,27 @@ catch{
 }
 
 
-sub checkCreateTablesAndSettings{
+sub getConfiguration{
+	try{
+		$dbs = $db->prepare("SELECT * FROM CONFIG;");
+		$dbs->execute();
 
+		while (my @r=$dbs->fetchrow_array()){
+			
+			switch ($r[1]) {
 
-$dbs = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='LOG';");
- $dbs->execute();
-try{
-	if(!$dbs->fetchrow_array()) {
-				my $stmt = qq(
-					CREATE TABLE LOG (
-					  ID_CAT TINY NOT NULL,
-					  DATE DATETIME  NOT NULL,
-					  LOG VCHAR(128) NOT NULL,
-					  AMMOUNT integer
-					);
-				);
+				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
+				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
+				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}
+				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
 
-				$rv = $db->do($stmt);
-
-				if($rv < 0) {
-					      print "<p>Error->"& $DBI::errstri &"</p>";
-				} 
-
-				$dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
-
-				$dbs->execute( 3, $today, "DB Created!",0);
-
-				
-	}
-
-	$dbs = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='CAT';");
-	$dbs->execute();
-	if(!$dbs->fetchrow_array()) {
-			        my $stmt = qq(
-					CREATE TABLE CAT(
-					  ID TINY PRIMARY KEY NOT NULL,
-					  NAME VCHAR(16),
-					  DESCRIPTION VCHAR(64)
-					 );
-				);
-
-				$rv = $db->do($stmt);
-
-				if($rv < 0) {
-					      print "<p>Error->"& $DBI::errstri &"</p>";
-				} 
-
-				$dbs = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
-
-		$dbs->execute(1,"Unspecified", "For quick uncategoriesed entries.");
-		$dbs->execute(3,"File System", "Operating file system short log.");
-		$dbs->execute(6,"System Log", "Operating system important log.");
-		$dbs->execute(9,"Event", "Event that occured, meeting, historical important.");
-		$dbs->execute(28,"Personal", "Personal log of historical importants, diary type.");
-		$dbs->execute(32, "Expense", "Significant yearly expense.");
-		$dbs->execute(35, "Income", "Significant yearly income.");
-		$dbs->execute(40, "Work", "Work related entry, worth monitoring.");
-		$dbs->execute(45, "Food", "Quick reference to recepies, observations.");
-	}
-
-	$dbs = $db->prepare("SELECT name FROM sqlite_master
-	       		      WHERE type='table' AND name='CONFIG';");
-	$dbs->execute();
-	
-	if(!$dbs->fetchrow_array()) {
-
-			        my $stmt = qq(
-
-				CREATE TABLE CONFIG(
-				  ID INT PRIMARY KEY NOT NULL,
-				  NAME VCHAR(16),
-				  VALUE VCHAR(64)
-				);
-							   
-				);
-
-				$rv = $db->do($stmt);
-
-				if($rv < 0) {
-					      print "<p>Error->"& $DBI::errstri &"</p>";
-				} 
-
-		$dbs = $db->prepare('INSERT INTO CONFIG VALUES (?,?)');
-		$dbs->execute("REC_LIMIT", "25");
-		$dbs->execute("TIME_ZONE", "Australia/Sydney");
-
-	}
-
-	$dbs = $db->prepare("SELECT * FROM CONFIG;");
-	$dbs->execute();
-
-	while (my @r=$dbs->fetchrow_array()){
-		
-		switch ($r[1]) {
-
-			case "REC_LIMIT" {$REC_LIMIT=$r[2]}
-			case "TIME_ZONE" {$TIME_ZONE=$r[2]}
-			else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
+			}
 
 		}
-
 	}
-	
-}
-catch{
-	print "<font color=red><b>SERVER ERROR</b></font>:".$_;
-}
-
+	catch{
+		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+	}
 }
 
 
