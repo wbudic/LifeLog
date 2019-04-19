@@ -1,4 +1,9 @@
 #!/usr/bin/perl
+#
+# Programed in vim by: Will Budic
+# Open Source License -> https://choosealicense.com/licenses/isc/
+#
+
 use strict;
 use warnings;
  
@@ -91,7 +96,7 @@ if($rv < 0) {
 my $r_cnt = 0;
 while(my @row = $sth->fetchrow_array()) {
 
-	 my $ct = $hshCats{@row[1]};
+	 my $ct = $hshCats{$row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 
 	 $tbl = $tbl . '<tr class="r1"><td>'. $dt->ymd . "</td>" . 
