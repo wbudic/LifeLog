@@ -15,57 +15,55 @@ use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 use DateTime::Duration;
+use Date::Parse;
+use Time::localtime;
 use Regexp::Common qw /URI/;
-use Crypt::CBC;
-use Crypt::IDEA;
 
+#DEFAULT SETTINGS HERE!
+our $REC_LIMIT   = 25;
+our $TIME_ZONE   = 'Australia/Sydney';
+our $PRC_WIDTH   = '60';
+our $LOG_PATH    = '../../dbLifeLog/';
+our $SESSN_EXPR  = '+2m';
+our $RELEASE_VER = '1.3';
+#END OF SETTINGS
 
-my $q = CGI->new;
-my $session = new CGI::Session(undef, $q);
+my $cgi = CGI->new;
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
 my $sid=$session->id();
-my $dbname=$session->param('database');
-my $userid=$session->param('alias');
+my $dbname  =$session->param('database');
+my $userid  =$session->param('alias');
 my $password=$session->param('passw');
-my $cphr=$session->param('cipher');
+$session->expire('+2m');
 
 
-### Authenticate session to alias password
-#
-if(!$userid || !$dbname){
-	print $q->redirect('login_ctr.cgi');
+if(!$userid||!$dbname){
+	print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
 	exit;
 }
 
-# "../../dbLifeLog/data_log.db";
-#my $database = "/home/will/dev/LifeLog/dbLifeLog/data_log.db";
-my $cipher = new Crypt::CBC({key => $cphr, cipher => 'IDEA'});
 my $database = '../../dbLifeLog/'.$dbname;
 my $dsn= "DBI:SQLite:dbname=$database";
 my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
 
-
-
-#SETTINGS HERE!
-our $REC_LIMIT = 25;
-our $TIME_ZONE = 'Australia/Sydney';
-our $PRC_WIDTH = '60';
-#END OF SETTINGS
+### Authenticate session to alias password
+&authenticate;
 &getConfiguration($db);
 
 my $tbl_rc = 0;
 my $tbl_rc_prev = 0;
 my $tbl_cur_id;
-my $rs_keys = $q->param('keywords');
-my $rs_cat_idx = $q->param('category');
-my $rs_dat_from = $q->param('v_from');
-my $rs_dat_to = $q->param('v_to');
-my $rs_prev = $q->param('rs_prev'); 
-my $rs_cur = $q->param('rs_cur');
+my $rs_keys = $cgi->param('keywords');
+my $rs_cat_idx = $cgi->param('category');
+my $rs_dat_from = $cgi->param('v_from');
+my $rs_dat_to = $cgi->param('v_to');
+my $rs_prev = $cgi->param('rs_prev'); 
+my $rs_cur = $cgi->param('rs_cur');
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
 my $stmE = " ORDER BY DATE DESC;";
 my $stmD = "";
 if(!$rs_dat_to){
-	$rs_dat_to = 'now';
+	  $rs_dat_to = 'now';
 }
 
 if($rs_dat_from && $rs_dat_to){
@@ -73,20 +71,19 @@ if($rs_dat_from && $rs_dat_to){
 }
 
 my $toggle =""; if($rs_keys||$rs_cat_idx||$stmD){$toggle=1;};
-	
-print $q->header(-expires=>"+6os", -charset=>"UTF-8"); 
-print $q->start_html(-title => "Personal Log", 
-       		     			 -script=>{-type => 'text/javascript',-src => 'wsrc/main.js'},
-		     						 -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-		     						 -onload => "loadedBody('".$toggle."');"
-		        );	  
-#print $q->div("session->".$session->header());
-#print $q->div("user:".$userid." passw:".$password);
 
+$session->expire($SESSN_EXPR);
+	
+print $cgi->header(-expires=>"0s", -charset=>"UTF-8"); 
+print $cgi->start_html(-title => "Personal Log", 
+       		     			   -script=>{-type => 'text/javascript',-src => 'wsrc/main.js'},
+		     						   -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+		     						   -onload => "loadedBody('".$toggle."');"
+		        );	  
 my $rv;
 my $st;
 my $today = DateTime->now;
-$today->set_time_zone( $TIME_ZONE );
+   $today->set_time_zone( $TIME_ZONE );
 
 
 my $stmtCat = "SELECT * FROM CAT;";
@@ -161,7 +158,7 @@ else{
 ###############
  #
  # Enable to see main query statement issued!
- #print $q->pre("### -> ".$stmt);
+ #print $cgi->pre("### -> ".$stmt);
 
 
 my $tfId = 0;
@@ -363,10 +360,10 @@ print "<center>";
 	print '<br><div><a href="config.cgi">Configure Log (Careful)</a><a name="bottom"/></div>';
 print "</center>";
 
-print $q->end_html;
+print $cgi->end_html;
 $st->finish;
 $db->disconnect();
-$session->flush();
+undef($session);
 exit;
 
 ### CGI END
@@ -377,14 +374,14 @@ exit;
 sub processSubmit { 
 
 
-	my $date = $q->param('date');
-	my $log = $q->param('log');
-	my $cat = $q->param('cat');
-	my $amm = $q->param('am');
+	my $date = $cgi->param('date');
+	my $log = $cgi->param('log');
+	my $cat = $cgi->param('cat');
+	my $amm = $cgi->param('am');
 
-	my $edit_mode =  $q->param('submit_is_edit');
-	my $view_mode =  $q->param('submit_is_view');
-	my $view_all  =  $q->param('rs_all');
+	my $edit_mode =  $cgi->param('submit_is_edit');
+	my $view_mode =  $cgi->param('submit_is_view');
+	my $view_all  =  $cgi->param('rs_all');
 
 	
 try{
@@ -438,7 +435,7 @@ try{
 		$dtCur = $dtCur - DateTime::Duration->new(days => 1);
 
 		if($dtCur> $dt){
-			print $q->p('<b>Insert is in the past!</b>');
+			print $cgi->p('<b>Insert is in the past!</b>');
 			#Renumerate directly (not proper SQL but faster);
 			$st = $db->prepare('select rowid from LOG ORDER BY DATE;');
 			$st->execute();
@@ -506,7 +503,7 @@ sub buildNavigationButtons{
 
 sub getConfiguration{
 		my $st = $_[0]->prepare("SELECT * FROM CONFIG;");
-		         $st->execute(); 
+		   $st->execute(); 
 		while (my @r=$st->fetchrow_array()){
 			
 			switch ($r[1]) {
@@ -523,5 +520,35 @@ sub getConfiguration{
 
 
 sub authenticate{
-	return 0;
+try  {
+
+	 my	$ct = ctime(stat($database));
+	 if($ct < str2time("20 Apr 2019")){
+		 return;
+	 }
+
+
+	 my $st =$db->prepare("SELECT * FROM AUTH WHERE alias='$userid' and passw='$password';");
+			$st->execute();
+	 if($st->fetchrow_array()){return;}
+	 
+	 print $cgi->header(-expires=>"+0s", -charset=>"UTF-8");    
+   print $cgi->start_html(-title => "Personal Log Login", 
+       		              -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+		                    -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+		         );	  
+	 
+	 print $cgi->center($cgi->div("<b>Access Denied!</b> Invalid password! alias:$userid pass:$password"));
+	 print $cgi->end_html;
+	 
+	$db->disconnect();
+	$session->flush();
+	exit;
+
+} catch{
+					print $cgi->header(-expires=>"+0s", -charset=>"UTF-8"); 
+					print $cgi->p("ERROR:".$_);
+					print $cgi->end_html;
+					exit;
+}
 }
