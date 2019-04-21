@@ -15,15 +15,14 @@ use DateTime;
 use DateTime::Format::SQLite;
 use DateTime::Duration;
 use Text::CSV;
-use Crypt::CBC;
-use Crypt::IDEA;
+
 
 #DEFAULT SETTINGS HERE!
 our $REC_LIMIT   = 25;
 our $TIME_ZONE   = 'Australia/Sydney';
 our $PRC_WIDTH   = '60';
 our $LOG_PATH    = '../../dbLifeLog/';
-our $SESSN_EXPR  = '+2m';
+our $SESSN_EXPR  = '+12m';
 our $RELEASE_VER = '1.3';
 #END OF SETTINGS
 
@@ -40,10 +39,9 @@ my $passw = $cgi->param('passw');
 my $frm;
 
 
-#This is the OS developer release key and cipher, replace on istallation. As it is not secure.
-my $cipher_key = '95d7a85ba891da896d0d87aca6d742d5';
-my $cipher = new Crypt::CBC({key => $cipher_key, cipher => 'IDEA'});
- 
+#This is the OS developer release key, replace on istallation. As it is not secure.
+my $cipher_key = '95d7a85ba891da';
+
 if(&processSubmit==0){
 
   print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);  
@@ -88,14 +86,13 @@ sub processSubmit{
 try{
 	if($alias&&$passw){
  			
-			$passw = $cipher->encrypt_hex($passw);
+			$passw = uc crypt $passw, hex $cipher_key;
 			&checkCreateTables;
 			#ssion = CGI::Session->load();
 			$session->param('alias', $alias);
 			$session->param('passw', $passw);
 			$session->param('database', 'data_'.$alias.'_log.db');	
-			$session->flush();			
-			#print $cgi->redirect('main.cgi'."?CGISESSID=$sid");	
+			$session->flush();						
 			print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");  
 			return 1;
 	}

@@ -502,28 +502,36 @@ sub buildNavigationButtons{
 sub authenticate{
 try  {
 
-	 my	$ct = ctime(stat($database));
-	 if($ct < str2time("20 Apr 2019")){
-		 return;
-	 }
-
-
 	 my $st =$db->prepare("SELECT * FROM AUTH WHERE alias='$userid' and passw='$password';");
 			$st->execute();
 	 if($st->fetchrow_array()){return;}
+
+	 #Check if passw has been wiped for reset?
+	    $st =$db->prepare("SELECT * FROM AUTH WHERE alias='$userid';");
+			$st->execute();	 
+			my @w = $st->fetchrow_array();
+	 if(@w && $w[1]==""){
+		  #Wiped with -> UPDATE AUTH SET passw='' WHERE alias='$userid';
+		 	$st =$db->prepare("UPDATE AUTH SET passw='$password' WHERE alias='$userid';");
+			$st->execute();	 
+		  return;
+	 }
+
 	 
+
 	 print $cgi->header(-expires=>"+0s", -charset=>"UTF-8");    
    print $cgi->start_html(-title => "Personal Log Login", 
-       		              -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		                    -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+       		                -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+		                      -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
 		         );	  
 	 
-	 print $cgi->center($cgi->div("<b>Access Denied!</b> Invalid password! alias:$userid pass:$password"));
+	 print $cgi->center($cgi->div("<b>Access Denied!</b> alias:$userid pass:$password"));
 	 print $cgi->end_html;
 	 
 	$db->disconnect();
 	$session->flush();
 	exit;
+ 
 
 } catch{
 					print $cgi->header(-expires=>"+0s", -charset=>"UTF-8"); 
