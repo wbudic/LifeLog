@@ -18,23 +18,23 @@ use DateTime::Duration;
 use Text::CSV;
 
 #DEFAULT SETTINGS HERE!
-our $REC_LIMIT = 25;
-our $TIME_ZONE = 'Australia/Sydney';
-our $PRC_WIDTH = '60';
-#END OF DEFAULT SETTINGS
+our $REC_LIMIT   = 25;
+our $TIME_ZONE   = 'Australia/Sydney';
+our $PRC_WIDTH   = '60';
+our $LOG_PATH    = '../../dbLifeLog/';
+our $SESSN_EXPR  = '+2m';
+our $RELEASE_VER = '1.3';
+#END OF SETTINGS
 
-
-my $q = CGI->new;
-my $session = new CGI::Session(undef, $q);
-
-my $dbname=$session->param('database');
-my $userid=$session->param('alias');
+my $cgi = CGI->new;
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
+my $sid=$session->id();
+my $dbname  =$session->param('database');
+my $userid  =$session->param('alias');
 my $password=$session->param('passw');
 
-### Authenticate session to alias password
-#
-if(!$userid || !$dbname){
-	print $q->redirect('login_ctr.cgi');
+if(!$userid||!$dbname){
+	print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
 	exit;
 }
 
@@ -45,42 +45,38 @@ my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>
 my $rv;
 my $dbs;
 my $today = DateTime->now;
-$today->set_time_zone( $TIME_ZONE );
+
 
 #####################
 	&getConfiguration;
 #####################
-
+$today->set_time_zone( $TIME_ZONE );
 	
-print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
+print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");    
 
-print $q->start_html(-title => "Personal Log", 
-       		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-#		     -onload => "loadedBody('".$rs_keys."');"
-		        );	  
-
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
+       		           -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+		                 -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+	        );	  
 
 
-my $stmtCat = "SELECT * FROM CAT ORDER BY ID;";
 
+my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 $dbs = $db->prepare( $stmtCat );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
-
 
 ###############
 &processSubmit;
 ###############
-	#
-my $cats = '<table id="ec" class="tbl" name="cats" border="0">
-	    <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
+
+my $tbl = '<table id="ec" class="tbl" name="cats" border="0" width="'.$PRC_WIDTH.'%">
+	          <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
             <tr class="r1"><th>ID</th><th>Category</th><th>Description</th><td></td></tr>
-';
+          ';
 
  while(my @row = $dbs->fetchrow_array()) {
-
 	if($row[0]>0){ 
-	   $cats = $cats. 
+	   $tbl = $tbl. 
 	   '<tr class="r0"><td>'.$row[0].'</td>
             <td><input name="nm'.$row[0].'" type="text" value="'.$row[1].'" size="12"></td>
 	    <td><input name="ds'.$row[0].'" type="text" value="'.$row[2].'" size="64"></td>
@@ -91,34 +87,64 @@ my $cats = '<table id="ec" class="tbl" name="cats" border="0">
 	
 
 my  $frm = qq(
-	 <form id="frm_config" action="config.cgi">).$cats.qq(
-	        <tr class="r1">
+	 <form id="frm_config" action="config.cgi">).$tbl.qq(
+	  <tr class="r1">
 		 <td><input type="text" name="caid" value="" size="3"/></td>
 		 <td><input type="text" name="canm" value="" size="12"/></td>
 		 <td><input type="text" name="cade" value="" size="64"/></td>
 		 <td></td>
 		</tr>
-	        <tr class="r1">
+	  <tr class="r1">
 		 <td colspan="2"><input type="submit" value="Add New Category" onclick="return submitNewCategory()"/></td>
 		 <td colspan="2"><input type="submit" value="Change"/></td>
 		</tr>
 		<tr class="r1">
-		<td colspan="4"><font color="red">WARNING!</font> 
-		Removing and changing categories is permanent! Adding one must have unique ID. 
-		Blanking an category will seek and change LOG records to Unspecified! Also ONLY the category <b>Unspecified</b> You can't CHANGE!<br/>If changing here things? Make a backup! (copy existing db file)</td>
-</table><input type="hidden" name="cchg" value="1"/></form><br/>);
+		  <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font> 
+		   Removing and changing categories is permanent! Adding one must have unique ID. <br>
+		   Blanking an category will seek and change LOG records to Unspecified! <br>
+			 Also ONLY the category <b>Unspecified</b> You can't CHANGE!<br>If changing here things?
+			 Make a backup! (copy existing db file)</div>
+			</td>
+			<td></td>
+		</tr>
+		</table></form><br>);
 	 
+
+$tbl = '<table id="ev" class="tbl" name="confs" border="0" width="'.$PRC_WIDTH.'%">
+	          <tr class="r0"><td colspan="2"><b>* SYSTEM CONFIGURATION *</b></td></tr>
+            <tr class="r1"><th>Variable</th><th>Value</th></tr>
+       ';
+my $stm = 'SELECT NAME, VALUE FROM CONFIG;';
+$dbs = $db->prepare( $stm );
+$rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+
+while(my @row = $dbs->fetchrow_array()) {
+	   $tbl = $tbl. 
+	   '<tr class="r0">
+		    <td>'.$row[0].'</td>
+		    <td><input name="var" type="text" value="'.$row[1].'" size="12"></td>	    
+	    </tr>';
+}
+
+my  $frmVars = qq(
+	 <form id="frm_vars" action="config.cgi">).$tbl.qq(	  
+	  <tr class="r1">		
+		 <td colspan=2 align=right><input type="submit" value="Change"/></td>
+		</tr>		
+		</table></form><br>);
 
 #
 #Page printout from here!
 #
-print "<center>";
-	print "\n<div>\n" . $frm ."\n</div>\n<br/>";
+print '<center>';
+print "<div class='r1'><h2>Log Configuration In -> $dbname</h2></div>";
+	print "\n<div>\n" . $frm ."\n</div>\n<br>";
+	print "\n<div>\n" . $frmVars."\n</div>\n<br>";	
 	print '</br><div><a href="main.cgi">Back to Main Log</a></div>';
-print "</center>";
+print '</center>';
 
 
-print $q->end_html;
+print $cgi->end_html;
 $db->disconnect();
 exit;
 
@@ -126,7 +152,7 @@ exit;
 
 sub processSubmit {
 
-my $change = $q->param("cchg");
+my $change = $cgi->param("cchg");
 my $s;
 my $d;
 
@@ -141,8 +167,8 @@ if ($change == 1){
 	      my $cds = $row[2];
 
 	      
-	      my $pnm  = $q->param('nm'.$cid);
-	      my $pds  = $q->param('ds'.$cid);
+	      my $pnm  = $cgi->param('nm'.$cid);
+	      my $pds  = $cgi->param('ds'.$cid);
 
 	      if($cid!=1 && $pnm ne $cnm || $pds ne $cds){
 		
@@ -179,9 +205,9 @@ if ($change == 1){
 if($change > 1){
 
 	#UNDER DEVELOPMENT!
-	      my $caid  = $q->param('caid');
-	      my $canm  = $q->param('canm');
-	      my $cade  = $q->param('cade');
+	      my $caid  = $cgi->param('caid');
+	      my $canm  = $cgi->param('canm');
+	      my $cade  = $cgi->param('cade');
 	      my $valid = 1;
 
 	while(my @row = $dbs->fetchrow_array()) {
@@ -233,7 +259,8 @@ sub getConfiguration{
 
 				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
 				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
-				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}
+				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}		
+				case "SESSN_EXPR" {$SESSN_EXPR=$r[2]}
 				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
 
 			}

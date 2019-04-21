@@ -1,8 +1,9 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 #
 # Programed in vim by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
+package main;
 use strict;
 use warnings;
 use Try::Tiny; 
@@ -26,9 +27,10 @@ our $SESSN_EXPR  = '+2m';
 our $RELEASE_VER = '1.3';
 #END OF SETTINGS
 
+
 my $cgi = CGI->new;
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
-$session->expire($SESSN_EXPR);
+   $session->expire($SESSN_EXPR);
 my $sid=$session->id();
 my $cookie = $cgi->cookie(CGISESSID => $sid);
 
@@ -45,7 +47,7 @@ my $cipher = new Crypt::CBC({key => $cipher_key, cipher => 'IDEA'});
 if(&processSubmit==0){
 
   print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);  
-  print $cgi->start_html(-title => "Personal Log Login", 
+  print $cgi->start_html(-title => "Personal Log Login", -BGCOLOR=>"#c8fff8",
        		               -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 		                     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
 		    );	
@@ -181,22 +183,22 @@ try{
   if(!$st->fetchrow_array()) {
     my $stmt = qq(
 		CREATE TABLE CONFIG(
- 		    ID INT PRIMARY KEY NOT NULL,
+			  ID TINY PRIMARY KEY NOT NULL,
 				NAME VCHAR(16),
 				VALUE VCHAR(64)
 		);
 		);
 		$rv = $db->do($stmt);
-
-		$st = $db->prepare('INSERT INTO CONFIG VALUES (?,?)');
-		$st->execute(0,"RELEASE_VER",$RELEASE_VER);
-		$st->execute(1,"REC_LIMIT",  $REC_LIMIT);
-		$st->execute(3,"TIME_ZONE",  $TIME_ZONE);
-		$st->execute(5,"PRC_WIDTH",  $PRC_WIDTH);
-		$st->execute(8,"SESSN_EXPR", $SESSN_EXPR);
+ 		populateConfig($db);
+		
 	}
 	else{
 		#TODO Check table and update existing table for subsequent releases with new settings.
+		$st = $db->prepare('SELECT * FROM CONFIG');
+		$st->execute();
+  	if(!$st->fetchrow_array()) {
+ 			 populateConfig($db);
+		}
 	}
 }
  catch{	 	
@@ -212,6 +214,14 @@ sub selSQLTbl{
 return "SELECT name FROM sqlite_master WHERE type='table' AND name='$name';"
 }
 
+sub populateConfig{
+		my  $db = shift;
+		my  $st = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?)');
+				$st->execute(0,"RELEASE_VER",$RELEASE_VER);
+				$st->execute(1,"REC_LIMIT",  $REC_LIMIT);
+				$st->execute(3,"TIME_ZONE",  $TIME_ZONE);
+				$st->execute(5,"PRC_WIDTH",  $PRC_WIDTH);
+				$st->execute(8,"SESSN_EXPR", $SESSN_EXPR);
+}
+
 ### CGI END
-
-

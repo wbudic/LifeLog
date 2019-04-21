@@ -34,8 +34,6 @@ my $sid=$session->id();
 my $dbname  =$session->param('database');
 my $userid  =$session->param('alias');
 my $password=$session->param('passw');
-$session->expire('+2m');
-
 
 if(!$userid||!$dbname){
 	print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
@@ -75,7 +73,7 @@ my $toggle =""; if($rs_keys||$rs_cat_idx||$stmD){$toggle=1;};
 $session->expire($SESSN_EXPR);
 	
 print $cgi->header(-expires=>"0s", -charset=>"UTF-8"); 
-print $cgi->start_html(-title => "Personal Log", 
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
        		     			   -script=>{-type => 'text/javascript',-src => 'wsrc/main.js'},
 		     						   -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
 		     						   -onload => "loadedBody('".$toggle."');"
@@ -501,24 +499,6 @@ sub buildNavigationButtons{
 	$tbl = $tbl .'<td colspan="2"></td></tr>';
 }
 
-sub getConfiguration{
-		my $st = $_[0]->prepare("SELECT * FROM CONFIG;");
-		   $st->execute(); 
-		while (my @r=$st->fetchrow_array()){
-			
-			switch ($r[1]) {
-
-				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
-				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
-				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}
-				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
-
-			}
-
-		}
-}
-
-
 sub authenticate{
 try  {
 
@@ -551,4 +531,22 @@ try  {
 					print $cgi->end_html;
 					exit;
 }
+}
+
+
+sub getConfiguration{
+		my $st = $_[0]->prepare("SELECT * FROM CONFIG;");
+		   $st->execute(); 
+		while (my @r=$st->fetchrow_array()){
+			
+			switch ($r[1]) {
+
+				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
+				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
+				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}
+				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
+
+			}
+
+		}
 }
