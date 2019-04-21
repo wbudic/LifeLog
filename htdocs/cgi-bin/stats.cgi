@@ -29,7 +29,7 @@ if(!$userid||!$dbname){
 
 my $database = '../../dbLifeLog/'.$dbname;
 my $dsn= "DBI:SQLite:dbname=$database";
-my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->". $DBI::errstri ."</p>";
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->". $DBI::errstri ."</p>";
 
 
 
@@ -105,13 +105,13 @@ print '<div style="text-align:left;  border: 1px solid black;"><br/><b>Server In
 print '<div style="text-align:left;"><br/><b>Processes Info</b><br/><br/><pre>' . $processes .'</pre></div>';
 
 print $q->end_html;
-$dbh->disconnect();
+$db->disconnect();
 exit;
 
 sub selectSQL{
 
 
-	my $sth = $dbh->prepare( @_ );
+	my $sth = $db->prepare( @_ );
 	$sth->execute();
 	my @row = $sth->fetchrow_array();
 	$sth->finish;

@@ -21,7 +21,7 @@ my $password = $ENV{'DB_PASS'};
 
 my $q = CGI->new;
 
-my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
    or die "<p>Error->"& $DBI::errstri &"</p>";
 
 my $today = DateTime->now;
@@ -30,7 +30,7 @@ $today->set_time_zone( 'Australia/Sydney' );
 my $stmtCat = "SELECT * FROM CAT;";
 
 
-my $sth = $dbh->prepare( $stmtCat );
+my $sth = $db->prepare( $stmtCat );
 my $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 my %hshCats;
@@ -78,7 +78,7 @@ else{
 
 print $q->end_html;
 
-$dbh->disconnect();
+$db->disconnect();
 
 
 
@@ -86,7 +86,7 @@ sub build{
 
 my $tbl = '<table class="tbl">
 		<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
-$sth = $dbh->prepare( $stm );
+$sth = $db->prepare( $stm );
 $rv = $sth->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 if($rv < 0) {
 	     print "<p>Error->"& $DBI::errstri &"</p>";
