@@ -66,10 +66,21 @@ div {
     text-align: left;
     background-color: #e6ffff;
     vertical-align: top;
-    text-align: left;
     align-self: baseline;
     width: 60%;
     height: auto;
     padding: 2%;
-    margin-bottom: 0px;
+    margin: 0px auto;
+}
+
+div#rz {
+    border: 1px solid black;
+    text-align: left;
+    background-color: #e6ffff;
+    vertical-align: top;
+    align-self: baseline;
+    width: 60%;
+    height: auto;
+    padding: 2%;
+    margin: 0px auto;
 }
