@@ -97,6 +97,9 @@ try{
 			print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");  
 			return 1;
 	}
+	else{
+		&removeOldSessions;
+	}
 return 0;
 }
  catch{	 	
@@ -220,6 +223,20 @@ sub populateConfig{
 				$st->execute(3,"TIME_ZONE",  $TIME_ZONE);
 				$st->execute(5,"PRC_WIDTH",  $PRC_WIDTH);
 				$st->execute(8,"SESSN_EXPR", $SESSN_EXPR);
+}
+
+
+sub removeOldSessions{
+	opendir(DIR, $LOG_PATH);
+	my @files = grep(/cgisess_*/,readdir(DIR));
+	closedir(DIR);
+	my $now = time - (24 * 60 * 60);
+	foreach my $file (@files) {
+		my $mod = (stat("$LOG_PATH/$file"))[9];
+		if($mod<$now){
+		    unlink "$LOG_PATH/$file";
+		}
+	}
 }
 
 ### CGI END
