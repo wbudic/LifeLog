@@ -1,11 +1,15 @@
 #!/usr/bin/perl
-
+#
+# Programed in vim by: Will Budic
+# Open Source License -> https://choosealicense.com/licenses/isc/
+#
 use strict;
 use warnings;
 use Try::Tiny;
 use Switch;
  
 use CGI;
+use CGI::Session '-ip_match';
 use DBI;
 
 use DateTime;
@@ -13,60 +17,69 @@ use DateTime::Format::SQLite;
 use DateTime::Duration;
 use Text::CSV;
 
-my $driver   = "SQLite"; 
-my $database = "../../dbLifeLog/data_log.db";
-my $dsn = "DBI:$driver:dbname=$database";
-my $userid = $ENV{'DB_USER'};
-my $password = $ENV{'DB_PASS'};
-
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
-   or die "<p>Error->"& $DBI::errstri &"</p>";
-
-
 #DEFAULT SETTINGS HERE!
-my $REC_LIMIT = 25;
-my $TIME_ZONE = 'Australia/Sydney';
-#END OF
+our $REC_LIMIT   = 25;
+our $TIME_ZONE   = 'Australia/Sydney';
+our $PRC_WIDTH   = '60';
+our $LOG_PATH    = '../../dbLifeLog/';
+our $SESSN_EXPR  = '+30m';
+our $RELEASE_VER = '1.3';
+#END OF SETTINGS
+
+my $cgi = CGI->new;
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
+my $sid=$session->id();
+my $dbname  =$session->param('database');
+my $userid  =$session->param('alias');
+my $password=$session->param('passw');
+
+if(!$userid||!$dbname){
+	print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+	exit;
+}
+
+my $database = '../../dbLifeLog/'.$dbname;
+my $dsn= "DBI:SQLite:dbname=$database";
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+
 my $rv;
 my $dbs;
 my $today = DateTime->now;
+my $tz = $cgi->param('tz');
+
+
+#####################
+	&getConfiguration;
+#####################
 $today->set_time_zone( $TIME_ZONE );
-
-#####################
-	&checkCreateTablesAndSettings;
-#####################
-
-my $q = CGI->new;
 	
-print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
+print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");    
 
-print $q->start_html(-title => "Personal Log", 
-       		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-#		     -onload => "loadedBody('".$rs_keys."');"
-		        );	  
-
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
+       		           -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+		                 -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+	        );	  
 
 
-my $stmtCat = "SELECT * FROM CAT ORDER BY ID;";
 
+my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 $dbs = $db->prepare( $stmtCat );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
+my $status = "Ready for change!";
 
 ###############
 &processSubmit;
 ###############
-	#
-my $cats = '<table id="ec" class="tbl" name="cats" border="0">
-	    <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
+
+my $tbl = '<table id="ec" class="tbl" name="cats" border="0" width="'.$PRC_WIDTH.'%">
+	          <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
             <tr class="r1"><th>ID</th><th>Category</th><th>Description</th><td></td></tr>
-';
+          ';
 
  while(my @row = $dbs->fetchrow_array()) {
-
 	if($row[0]>0){ 
-	   $cats = $cats. 
+	   $tbl = $tbl. 
 	   '<tr class="r0"><td>'.$row[0].'</td>
             <td><input name="nm'.$row[0].'" type="text" value="'.$row[1].'" size="12"></td>
 	    <td><input name="ds'.$row[0].'" type="text" value="'.$row[2].'" size="64"></td>
@@ -77,62 +90,105 @@ my $cats = '<table id="ec" class="tbl" name="cats" border="0">
 	
 
 my  $frm = qq(
-	 <form id="frm_config" action="config.cgi">).$cats.qq(
-	        <tr class="r1">
+	 <form id="frm_config" action="config.cgi">).$tbl.qq(
+	  <tr class="r1">
 		 <td><input type="text" name="caid" value="" size="3"/></td>
 		 <td><input type="text" name="canm" value="" size="12"/></td>
 		 <td><input type="text" name="cade" value="" size="64"/></td>
 		 <td></td>
 		</tr>
-	        <tr class="r1">
+	  <tr class="r1">
 		 <td colspan="2"><input type="submit" value="Add New Category" onclick="return submitNewCategory()"/></td>
 		 <td colspan="2"><input type="submit" value="Change"/></td>
 		</tr>
 		<tr class="r1">
-		<td colspan="4"><font color="red">WARNING!</font> 
-		Removing and changing categories is permanent! Adding one must have unique ID. 
-		Blanking an category will seek and change LOG records to Unspecified! Also ONLY the category <b>Unspecified</b> You can't CHANGE!<br/>If changing here things? Make a backup! (copy existing db file)</td>
-</table><input type="hidden" name="cchg" value="1"/></form><br/>);
+		  <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font> 
+		   Removing and changing categories is permanent! Adding one must have unique ID. <br>
+		   Blanking an category name will remove and seek change LOG records to Unspecified (id 1)! <br>
+			 Also ONLY the category <b>Unspecified</b> You can't REMOVE!<br>If changing here things?
+			 Make a backup! (copy existing db file)</div>
+			</td>
+			<td></td>
+		</tr>
+		</table><input type="hidden" name="cchg" value="1"/></form><br>);
 	 
+
+$tbl = '<table id="ev" class="tbl" name="confs" border="0" width="'.$PRC_WIDTH.'%">
+	          <tr class="r0"><td colspan="2"><b>* SYSTEM CONFIGURATION *</b></td></tr>
+            <tr class="r1"><th>Variable</th><th>Value</th></tr>
+       ';
+my $stm = 'SELECT * FROM CONFIG;';
+$dbs = $db->prepare( $stm );
+$rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+
+while(my @row = $dbs->fetchrow_array()) {
+	   my $i = $row[0];
+	   my $n = $row[1];
+		 my $v = $row[2];
+		 if($n eq "TIME_ZONE"){
+			 $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
+			 if($tz){
+				 $v = $tz;
+			 }
+			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
+			 
+		 }elsif($n ne "RELEASE_VER"){		 
+			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
+		 }		 
+	   $tbl = $tbl. 
+	   '<tr class="r0">
+		    <td>'.$n.'</td>
+		    <td>'.$v.'</td>	    
+	    </tr>';
+}
+
+my  $frmVars = qq(
+	 <form id="frm_vars" action="config.cgi">).$tbl.qq(	  
+	  <tr class="r1">		
+		 <td colspan=2 align=right><input type="submit" value="Change"/></td>
+		</tr>	
+		<input type="hidden" name="sys" value="1"/>
+		</table></form><br>);
 
 #
 #Page printout from here!
 #
-print "<center>";
-	print "\n<div>\n" . $frm ."\n</div>\n<br/>";
+print '<center>';
+print "<div class='r1'><h2>Log Configuration In -> $dbname</h2></div>";
+	print "\n<div>\n" . $frm ."\n</div>\n<br>";
+	print "\n<div>\n" . $frmVars."\n</div>\n<br>";	
+	print "\n<div>\nSTATUS:" .$status. "\n</div>\n<br>";
 	print '</br><div><a href="main.cgi">Back to Main Log</a></div>';
-print "</center>";
+print '</center>';
 
 
-print $q->end_html;
+print $cgi->end_html;
 $db->disconnect();
 exit;
 
-### CGI END
-
 sub processSubmit {
 
-my $change = $q->param("cchg");
+my $change = $cgi->param("cchg");
+my $chgsys = $cgi->param("sys");
 my $s;
 my $d;
 
 try{
-if ($change == 1){
 
+if ($change == 1){
 
 	while(my @row = $dbs->fetchrow_array()) {
 
 	      my $cid = $row[0];
 	      my $cnm = $row[1];
 	      my $cds = $row[2];
-
 	      
-	      my $pnm  = $q->param('nm'.$cid);
-	      my $pds  = $q->param('ds'.$cid);
+	      my $pnm  = $cgi->param('nm'.$cid);
+	      my $pds  = $cgi->param('ds'.$cid);
 
-	      if($cid!=1 && $pnm ne $cnm || $pds ne $cds){
+	  if($pnm ne $cnm || $pds ne $cds){
 		
-		 if($pnm eq  ""){
+		 if($cid!=1 && $pnm eq  ""){
 
 		   $s = "SELECT rowid, ID_CAT FROM LOG WHERE ID_CAT =".$cid.";";
 		   $d = $db->prepare($s); 
@@ -145,29 +201,28 @@ if ($change == 1){
 		     }
 
 			 #Delete
-                   $s = "DELETE FROM CAT WHERE ID=".$cid.";"; 
+       $s = "DELETE FROM CAT WHERE ID=".$cid.";"; 
 		   $d = $db->prepare($s); 
 		   $d->execute();   
 
 		 }
 		 else{
 			#Update
-                   $s = "UPDATE CAT SET NAME='".$pnm."', DESCRIPTION='".$pds."' WHERE ID=".$cid.";"; 
-		   $d = $db->prepare($s); 
-		   $d->execute();
-	        }
-		 
-	      }
-
+            $s = "UPDATE CAT SET NAME='".$pnm."', DESCRIPTION='".$pds."' WHERE ID=".$cid.";"; 
+		   			$d = $db->prepare($s); 
+		   			$d->execute();
+	        }		 
+	  }
 	}
+	$status = "Upadated Categories!";
 }
 
 if($change > 1){
 
 	#UNDER DEVELOPMENT!
-	      my $caid  = $q->param('caid');
-	      my $canm  = $q->param('canm');
-	      my $cade  = $q->param('cade');
+	      my $caid  = $cgi->param('caid');
+	      my $canm  = $cgi->param('canm');
+	      my $cade  = $cgi->param('cade');
 	      my $valid = 1;
 
 	while(my @row = $dbs->fetchrow_array()) {
@@ -179,19 +234,25 @@ if($change > 1){
 
 	      if($cid==$caid || $cnm eq $canm){
                  $valid = 0;
-		 last;
+		 						last;
 	      }
-        }
+  }
 
 	if($valid){
 	   $d = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
 	   $d->execute($caid,$canm, $cade);
+		 $status = "Added Category $canm!";
 	}
 	else{
-	  print "<center><div><p>
-	         <font color=red>Client Error</font>: ID->".$caid." or -> Category->".$canm.
-		 " is already assigned, these must be unique!</p></div></center>";
+		$status = "ID->".$caid." or -> Category->".$canm." is already assigned, these must be unique!";
+	  print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
 	}
+	
+}
+
+if ($chgsys == 1){
+	  &changeSystemSettings;		
+		$status = "Changed System Settings!";
 }
 
   #Re-select
@@ -208,115 +269,62 @@ catch{
 }
 
 
-sub checkCreateTablesAndSettings{
+sub getConfiguration{
+	try{
+		$dbs = $db->prepare("SELECT * FROM CONFIG;");
+		$dbs->execute();
 
-
-$dbs = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='LOG';");
- $dbs->execute();
-try{
-	if(!$dbs->fetchrow_array()) {
-				my $stmt = qq(
-					CREATE TABLE LOG (
-					  ID_CAT TINY NOT NULL,
-					  DATE DATETIME  NOT NULL,
-					  LOG VCHAR(128) NOT NULL,
-					  AMMOUNT integer
-					);
-				);
-
-				$rv = $db->do($stmt);
-
-				if($rv < 0) {
-					      print "<p>Error->"& $DBI::errstri &"</p>";
-				} 
-
-				$dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
-
-				$dbs->execute( 3, $today, "DB Created!",0);
-
-				
-	}
-
-	$dbs = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='CAT';");
-	$dbs->execute();
-	if(!$dbs->fetchrow_array()) {
-			        my $stmt = qq(
-					CREATE TABLE CAT(
-					  ID TINY PRIMARY KEY NOT NULL,
-					  NAME VCHAR(16),
-					  DESCRIPTION VCHAR(64)
-					 );
-				);
-
-				$rv = $db->do($stmt);
-
-				if($rv < 0) {
-					      print "<p>Error->"& $DBI::errstri &"</p>";
-				} 
-
-				$dbs = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
-
-		$dbs->execute(1,"Unspecified", "For quick uncategoriesed entries.");
-		$dbs->execute(3,"File System", "Operating file system short log.");
-		$dbs->execute(6,"System Log", "Operating system important log.");
-		$dbs->execute(9,"Event", "Event that occured, meeting, historical important.");
-		$dbs->execute(28,"Personal", "Personal log of historical importants, diary type.");
-		$dbs->execute(32, "Expense", "Significant yearly expense.");
-		$dbs->execute(35, "Income", "Significant yearly income.");
-		$dbs->execute(40, "Work", "Work related entry, worth monitoring.");
-		$dbs->execute(45, "Food", "Quick reference to recepies, observations.");
-	}
-
-	$dbs = $db->prepare("SELECT name FROM sqlite_master
-	       		      WHERE type='table' AND name='CONFIG';");
-	$dbs->execute();
-	
-	if(!$dbs->fetchrow_array()) {
-
-			        my $stmt = qq(
-
-				CREATE TABLE CONFIG(
-				  ID INT PRIMARY KEY NOT NULL,
-				  NAME VCHAR(16),
-				  VALUE VCHAR(64)
-				);
-							   
-				);
-
-				$rv = $db->do($stmt);
-
-				if($rv < 0) {
-					      print "<p>Error->"& $DBI::errstri &"</p>";
-				} 
-
-		$dbs = $db->prepare('INSERT INTO CONFIG VALUES (?,?)');
-		$dbs->execute("REC_LIMIT", "25");
-		$dbs->execute("TIME_ZONE", "Australia/Sydney");
-
-	}
-
-	$dbs = $db->prepare("SELECT * FROM CONFIG;");
-	$dbs->execute();
-
-	while (my @r=$dbs->fetchrow_array()){
-		
-		switch ($r[1]) {
-
-			case "REC_LIMIT" {$REC_LIMIT=$r[2]}
-			case "TIME_ZONE" {$TIME_ZONE=$r[2]}
-			else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
+		while (my @r=$dbs->fetchrow_array()){
+			
+			switch ($r[1]) {
+				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
+				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
+				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}		
+				case "SESSN_EXPR" {$SESSN_EXPR=$r[2]}
+				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
+			}
 
 		}
-
 	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+	}
+}
+
+sub changeSystemSettings{
+	try{
+			$dbs = $db->prepare("SELECT * FROM CONFIG;");
+		  $dbs->execute();
+			while (my @r=$dbs->fetchrow_array()){ 
+				my $var = $cgi->param('var'.$r[0]);
+				if($var){					
+					switch ($r[1]) {
+						case "REC_LIMIT" {$REC_LIMIT=$var;  updConfSetting($r[0],$var);}
+						case "TIME_ZONE" {$TIME_ZONE=$var;  updConfSetting($r[0],$var);}
+						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updConfSetting($r[0],$var);}		
+						case "SESSN_EXPR"{$SESSN_EXPR=$var; updConfSetting($r[0],$var);}
+					 }
+				}
+			}
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR->changeSystemSettings</b></font>:".$_;
+	}
+}
+
+sub updConfSetting{
+	my ($id, $val) = @_;
+	my ($s,$d);
+	$s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";"; 
+	try{
 	
+		  $d = $db->prepare($s); 
+		  $d->execute();
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b>->updConfSetting[$s]</font>:".$_;
+	}
 }
-catch{
-	print "<font color=red><b>SERVER ERROR</b></font>:".$_;
-}
-
-}
-
 
 
 

@@ -2,6 +2,16 @@
 
 https://acme.com/software/thttpd/
 
+wget https://acme.com/software/thttpd/thttpd-2.29.tar.gz
+tar -xvzf thttpd-2.29.tar.gz
+cd thttpd-2.29/
+sudo groupadd www
+make
+make install
+
+#rm thttpd-2.29.tar.gz
+#rm -rf thttpd-2.29
+
 Create an mkdir ~/thttpd_dev directory.
 
 Run server using this config file, where {user} is your home login location.
@@ -22,12 +32,23 @@ host=0.0.0.0
 charset=utf-8
 cgipat=**.cgi
 
+After modifying the thttpd.conf
+you'll have to modify the startDevWebServer.sh to reflect your setup before running the script.
 
-#Install cpanm to make installing other modules easier (you'll thank us later). You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
+The full URL to the LifeLog is the following link (if not working try without cgi-bin, and proceed with further installation):
+#
+#
+         http://localhost:8080/cgi-bin/
+#
+#
+
+#Install cpanm to make installing other modules easier (you'll thank us later). 
+You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
 sudo apt install cpanminus
 
 #Install DBI module
 sudo cpanm DBI
+sudo cpanm DBD::SQLite
 
 #Install SQLite
 https://www.sqlite.org/download.html
@@ -39,10 +60,12 @@ sudo cpanm DateTime;
 sudo cpanm DateTime::Format::Human::Duration
 sudo cpanm DateTime::Format::SQLite;
 sudo cpanm Text::CSV;
+sudo cpanm Number::Bytes::Human;
 sudo cpanm CGI::Session;
-sudo cpanm TryCatch;
-sudo cpanm Number/Bytes/Human.pm
-sudo cpanm Regexp::Common
+sudo cpanm Try::Tiny;
+sudo cpanm Number/Bytes/Human.pm;
+sudo cpanm Regexp::Common;
+
 
 
 #Upgrade Instructions
