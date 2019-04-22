@@ -66,6 +66,8 @@ my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 $dbs = $db->prepare( $stmtCat );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
+my $status = "Ready for change!";
+
 ###############
 &processSubmit;
 ###############
@@ -102,8 +104,8 @@ my  $frm = qq(
 		<tr class="r1">
 		  <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font> 
 		   Removing and changing categories is permanent! Adding one must have unique ID. <br>
-		   Blanking an category will seek and change LOG records to Unspecified! <br>
-			 Also ONLY the category <b>Unspecified</b> You can't CHANGE!<br>If changing here things?
+		   Blanking an category name will remove and seek change LOG records to Unspecified (id 1)! <br>
+			 Also ONLY the category <b>Unspecified</b> You can't REMOVE!<br>If changing here things?
 			 Make a backup! (copy existing db file)</div>
 			</td>
 			<td></td>
@@ -155,6 +157,7 @@ print '<center>';
 print "<div class='r1'><h2>Log Configuration In -> $dbname</h2></div>";
 	print "\n<div>\n" . $frm ."\n</div>\n<br>";
 	print "\n<div>\n" . $frmVars."\n</div>\n<br>";	
+	print "\n<div>\nSTATUS:" .$status. "\n</div>\n<br>";
 	print '</br><div><a href="main.cgi">Back to Main Log</a></div>';
 print '</center>';
 
@@ -162,18 +165,6 @@ print '</center>';
 print $cgi->end_html;
 $db->disconnect();
 exit;
-
-#http://localhost:8080/cgi-bin/config.cgi?
-#nm1=Unspecified&ds1=For+quick+uncategories+entries.&
-#nm3=File+System&ds3=Operating+file+system+short+log.&
-#nm6=System+Log&ds6=Operating+system+inportant+log.&nm9=Event
-#&ds9=Event+that+occured%2C+meeting%2C+historical+important.&
-#nm28=Personal&ds28=Personal+log+of+historical+importants%2C+diary+type.&
-#nm32=Expense&ds32=Significant+yearly+expense.&
-#nm35=Income&ds35=Significant+yearly+income.&
-#nm40=Work&ds40=Work+related+entry%2C+worth+monitoring.&nm45=Food&
-#ds45=Quick+reference+to+recepies%2C+observations.&caid=55&
-#canm=check&cade=
 
 sub processSubmit {
 
@@ -186,20 +177,18 @@ try{
 
 if ($change == 1){
 
-
 	while(my @row = $dbs->fetchrow_array()) {
 
 	      my $cid = $row[0];
 	      my $cnm = $row[1];
 	      my $cds = $row[2];
-
 	      
 	      my $pnm  = $cgi->param('nm'.$cid);
 	      my $pds  = $cgi->param('ds'.$cid);
 
-	      if($cid!=1 && $pnm ne $cnm || $pds ne $cds){
+	  if($pnm ne $cnm || $pds ne $cds){
 		
-		 if($pnm eq  ""){
+		 if($cid!=1 && $pnm eq  ""){
 
 		   $s = "SELECT rowid, ID_CAT FROM LOG WHERE ID_CAT =".$cid.";";
 		   $d = $db->prepare($s); 
@@ -212,7 +201,7 @@ if ($change == 1){
 		     }
 
 			 #Delete
-                   $s = "DELETE FROM CAT WHERE ID=".$cid.";"; 
+       $s = "DELETE FROM CAT WHERE ID=".$cid.";"; 
 		   $d = $db->prepare($s); 
 		   $d->execute();   
 
@@ -222,11 +211,10 @@ if ($change == 1){
             $s = "UPDATE CAT SET NAME='".$pnm."', DESCRIPTION='".$pds."' WHERE ID=".$cid.";"; 
 		   			$d = $db->prepare($s); 
 		   			$d->execute();
-	        }
-		 
-	      }
-
+	        }		 
+	  }
 	}
+	$status = "Upadated Categories!";
 }
 
 if($change > 1){
@@ -246,23 +234,25 @@ if($change > 1){
 
 	      if($cid==$caid || $cnm eq $canm){
                  $valid = 0;
-		 last;
+		 						last;
 	      }
-        }
+  }
 
 	if($valid){
 	   $d = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
 	   $d->execute($caid,$canm, $cade);
+		 $status = "Added Category $canm!";
 	}
 	else{
-	  print "<center><div><p>
-	         <font color=red>Client Error</font>: ID->".$caid." or -> Category->".$canm.
-		 " is already assigned, these must be unique!</p></div></center>";
+		$status = "ID->".$caid." or -> Category->".$canm." is already assigned, these must be unique!";
+	  print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
 	}
+	
 }
 
 if ($chgsys == 1){
-	  &changeSystemSettings;
+	  &changeSystemSettings;		
+		$status = "Changed System Settings!";
 }
 
   #Re-select
@@ -287,13 +277,11 @@ sub getConfiguration{
 		while (my @r=$dbs->fetchrow_array()){
 			
 			switch ($r[1]) {
-
 				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
 				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
 				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}		
 				case "SESSN_EXPR" {$SESSN_EXPR=$r[2]}
 				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
-
 			}
 
 		}
@@ -309,18 +297,15 @@ sub changeSystemSettings{
 		  $dbs->execute();
 			while (my @r=$dbs->fetchrow_array()){ 
 				my $var = $cgi->param('var'.$r[0]);
-				if($var){
+				if($var){					
 					switch ($r[1]) {
-
 						case "REC_LIMIT" {$REC_LIMIT=$var;  updConfSetting($r[0],$var);}
 						case "TIME_ZONE" {$TIME_ZONE=$var;  updConfSetting($r[0],$var);}
 						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updConfSetting($r[0],$var);}		
 						case "SESSN_EXPR"{$SESSN_EXPR=$var; updConfSetting($r[0],$var);}
-				
 					 }
 				}
 			}
-
 	}
 	catch{
 		print "<font color=red><b>SERVER ERROR->changeSystemSettings</b></font>:".$_;

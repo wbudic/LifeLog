@@ -148,8 +148,8 @@ try{
 		$st = $db->prepare('INSERT INTO CAT VALUES (?,?,?)'); 
 		$st->execute(1,"Unspecified", "For quick uncategorised entries.");
 		$st->execute(3,"File System", "Operating file system short log.");
-		$st->execute(6,"System Log", "Operating system inportant log.");
-		$st->execute(9,"Event", "Event that occured, meeting, historical important.");
+		$st->execute(6,"System Log", "Operating system important log.");
+		$st->execute(9,"Event", "Event that occured, meeting, historically important.");
 		$st->execute(28,"Personal", "Personal log of historical importants, diary type.");
 		$st->execute(32, "Expense", "Significant yearly expense.");
 		$st->execute(35, "Income", "Significant yearly income.");
