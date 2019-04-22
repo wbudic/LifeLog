@@ -289,7 +289,7 @@ if($rv < 0) {
 	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
 	 <tr><td colspan="3"><br/></td></tr>
 	 <tr>
-	 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" size="16" value=") .$today->ymd.
+	 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" size="18" value=") .$today->ymd.
 	 " ". $today->hms .
 	 qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
  	      &nbsp;<button type="reset">Reset</button>
@@ -480,7 +480,7 @@ sub buildNavigationButtons{
 
 	}
 	else{
-                $tbl .= '<td><i>Top</i></td>';
+         $tbl .= '<td><i>Top</i></td>';
 	}
 
 
