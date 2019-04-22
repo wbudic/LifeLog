@@ -22,7 +22,7 @@ our $REC_LIMIT   = 25;
 our $TIME_ZONE   = 'Australia/Sydney';
 our $PRC_WIDTH   = '60';
 our $LOG_PATH    = '../../dbLifeLog/';
-our $SESSN_EXPR  = '+12m';
+our $SESSN_EXPR  = '+30m';
 our $RELEASE_VER = '1.3';
 #END OF SETTINGS
 
@@ -145,7 +145,7 @@ try{
 		$rv = $db->do($stmt);
 
 		$st = $db->prepare('INSERT INTO CAT VALUES (?,?,?)'); 
-		$st->execute(1,"Unspecified", "For quick uncategories entries.");
+		$st->execute(1,"Unspecified", "For quick uncategorised entries.");
 		$st->execute(3,"File System", "Operating file system short log.");
 		$st->execute(6,"System Log", "Operating system inportant log.");
 		$st->execute(9,"Event", "Event that occured, meeting, historical important.");
