@@ -119,10 +119,19 @@ $dbs = $db->prepare( $stm );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 while(my @row = $dbs->fetchrow_array()) {
+	   my $n = $row[0];
+		 my $v = $row[1];
+		 if($n eq "TIME_ZONE"){
+			 $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
+			 $v = '<input name="var" type="text" value="'.$v.'" size="12">';
+			 
+		 }elsif($n ne "RELEASE_VER"){		 
+			 $v = '<input name="var" type="text" value="'.$v.'" size="12">';
+		 }		 
 	   $tbl = $tbl. 
 	   '<tr class="r0">
-		    <td>'.$row[0].'</td>
-		    <td><input name="var" type="text" value="'.$row[1].'" size="12"></td>	    
+		    <td>'.$n.'</td>
+		    <td>'.$v.'</td>	    
 	    </tr>';
 }
 

@@ -6,25 +6,51 @@
 
 use strict;
 use warnings;
+use Try::Tiny;
+use Switch;
+
  
 use CGI;
+use CGI::Session '-ip_match';
 use DBI;
 
 use DateTime qw();
 use DateTime::Format::SQLite;
 use DateTime::Format::Human::Duration;
 
-my $q = CGI->new;
 
-my $driver   = "SQLite"; 
-my $database = "../../dbLifeLog/data_log.db";
-my $dsn = "DBI:$driver:dbname=$database";
-my $userid = "";
-my $password = "";
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
-   or die "<p>Error->"& $DBI::errstri &"</p>";
+#DEFAULT SETTINGS HERE!
+our $REC_LIMIT   = 25;
+our $TIME_ZONE   = 'Australia/Sydney';
+our $PRC_WIDTH   = '60';
+our $LOG_PATH    = '../../dbLifeLog/';
+our $SESSN_EXPR  = '+2m';
+our $RELEASE_VER = '1.3';
+#END OF SETTINGS
+
+
+#####################
+	&getConfiguration;
+#####################
+
+my $cgi = CGI->new;
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
+my $sid=$session->id();
+my $dbname  =$session->param('database');
+my $userid  =$session->param('alias');
+my $password=$session->param('passw');
+
+if(!$userid||!$dbname){
+	print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+	exit;
+}
+
+my $database = '../../dbLifeLog/'.$dbname;
+my $dsn= "DBI:SQLite:dbname=$database";
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+
 my $today = DateTime->now;
-   $today->set_time_zone( 'Australia/Sydney' );
+   $today->set_time_zone( $TIME_ZONE );
 
 my $stm;
 my $stmtCat = "SELECT * FROM CAT;";
@@ -33,13 +59,6 @@ my $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 my %hshCats;
 my $tbl_rc =0;
-
-
-#SETTINGS HERE!
-our $REC_LIMIT = 25;
-our $TIME_ZONE = 'Australia/Sydney';
-our $PRC_WIDTH = '60';
-#END OF SETTINGS
 
 while(my @row = $st->fetchrow_array()) {
 	$hshCats{$row[0]} = $row[1];
@@ -53,19 +72,19 @@ my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDel
 		<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
 
 
-my $datediff = $q->param("datediff");
-my $confirmed = $q->param('confirmed');
+my $datediff = $cgi->param("datediff");
+my $confirmed = $cgi->param('confirmed');
 if ($datediff){
-	     print $q->header(-expires=>"+6os");    
-	     print $q->start_html(-title => "Date Difference Report", 
+	     print $cgi->header(-expires=>"+6os");    
+	     print $cgi->start_html(-title => "Date Difference Report", 
 			     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 			     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
 
 		);	  
 		&DisplayDateDiffs;
 }elsif (!$confirmed){
-	     print $q->header(-expires=>"+6os");    
-	     print $q->start_html(-title => "Personal Log Record Removal", 
+	     print $cgi->header(-expires=>"+6os");    
+	     print $cgi->start_html(-title => "Personal Log Record Removal", 
 			     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 			     -style =>{-type => 'text/css', -src => 'wsrc/main.css'}
 
@@ -77,7 +96,7 @@ if ($datediff){
 }
 
 
-print $q->end_html;
+print $cgi->end_html;
 $db->disconnect();
 exit;
 
@@ -86,7 +105,7 @@ sub DisplayDateDiffs{
 	    <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
     $stm = 'SELECT DATE, LOG FROM LOG WHERE '; 
-my  @prms = $q->param('chk');
+my  @prms = $cgi->param('chk');
 
 	foreach (@prms){
 		$stm .= "rowid = '" . $_ ."'";
@@ -133,7 +152,7 @@ sub ConfirmedDelition{
 
 	my $stmS = 'DELETE FROM LOG WHERE '; 
 
-	foreach my $prm ($q->param('chk')){
+	foreach my $prm ($cgi->param('chk')){
 		$stm = $stmS . "rowid = '" . $prm ."';";
 	        $st = $db->prepare( $stm );
 		$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
@@ -145,7 +164,7 @@ sub ConfirmedDelition{
 	
 	$st->finish;
 
-	print $q->redirect('main.cgi');
+	print $cgi->redirect('main.cgi');
 
 }
 
@@ -153,7 +172,7 @@ sub NotConfirmed{
 
 #Get prms and build confirm table and check
 my $stm = $stmS ." ";
-	foreach my $prm ($q->param('chk')){
+	foreach my $prm ($cgi->param('chk')){
 		$stm = $stm . "rowid = '" . $prm . "' OR ";
 	}
 #rid=0 hack! ;)
@@ -170,7 +189,7 @@ if($rv < 0) {
 my $r_cnt = 0;
 while(my @row = $st->fetchrow_array()) {
 
-	 my $ct = $hshCats{@row[1]};
+	 my $ct = $hshCats{$row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 
 	 $tbl = $tbl . '<tr class="r1"><td>'. $dt->ymd . "</td>" . 
@@ -200,3 +219,26 @@ print '<center><div>' . $tbl .'</div></center>';
  $st->finish;
 }
 
+sub getConfiguration{
+	try{
+		my $dbs = $db->prepare("SELECT * FROM CONFIG;");
+		$dbs->execute();
+
+		while (my @r=$dbs->fetchrow_array()){
+			
+			switch ($r[1]) {
+
+				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
+				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
+				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}		
+				case "SESSN_EXPR" {$SESSN_EXPR=$r[2]}
+				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
+
+			}
+
+		}
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+	}
+}
