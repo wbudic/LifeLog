@@ -552,6 +552,7 @@ sub getConfiguration{
 				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
 				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
 				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}
+				case "SESSN_EXPR"{$SESSN_EXPR=$r[2]}
 				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
 
 			}
