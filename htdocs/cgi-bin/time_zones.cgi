@@ -13,7 +13,7 @@ use Text::CSV;
 
 my @zones;
 my $zone;
-open my $fh, '<', '/home/will/dev/LifeLog/dbLifeLog/zone.csv' or die "Cannot open: $!";
+open my $fh, '<', '../../dbLifeLog/zone.csv' or die "Cannot open: $!";
 while (my $line = <$fh>) {
   $line =~ s/\s*\z//;
   my @a = split /,/, $line;
