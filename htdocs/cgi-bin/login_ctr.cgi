@@ -63,7 +63,8 @@ if(&processSubmit==0){
 		 <td align="right">Password:</td><td><input type="text" name="passw" value="$passw"/></td><td></td>
 		</tr>
 		<tr class="r1">
-		 <td colspan="3" style="border-left:1px solid black; border-right:1px solid black;"><font color="red">NOTICE!</font> &nbsp;If here the first time? Write down your alias and password, before proceeding. So you can comeback in the future to continue. Only you can know it.
+		 <td colspan="3" style="border-left:1px solid black; border-right:1px solid black;"><font color="red">NOTICE!</font> &nbsp;
+		 Alias will create a new database if it doesn't exist. Note down your password.		 
 		 <input type="hidden" name="CGISESSID" value="$sid"/>
 		 <input type="hidden" name="login" value="1"/></td></tr>
 	  <tr class="r0"><td colspan="2"></td><td><input type="submit" value="Login"/></td></tr>
