@@ -24,7 +24,7 @@ our $REC_LIMIT   = 25;
 our $TIME_ZONE   = 'Australia/Sydney';
 our $PRC_WIDTH   = '60';
 our $LOG_PATH    = '../../dbLifeLog/';
-our $SESSN_EXPR  = '+2m';
+our $SESSN_EXPR  = '+30m';
 our $RELEASE_VER = '1.3';
 #END OF SETTINGS
 
