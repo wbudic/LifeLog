@@ -45,6 +45,7 @@ my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>
 my $rv;
 my $dbs;
 my $today = DateTime->now;
+my $tz = $cgi->param('tz');
 
 
 #####################
@@ -107,26 +108,30 @@ my  $frm = qq(
 			</td>
 			<td></td>
 		</tr>
-		</table></form><br>);
+		</table><input type="hidden" name="cchg" value="1"/></form><br>);
 	 
 
 $tbl = '<table id="ev" class="tbl" name="confs" border="0" width="'.$PRC_WIDTH.'%">
 	          <tr class="r0"><td colspan="2"><b>* SYSTEM CONFIGURATION *</b></td></tr>
             <tr class="r1"><th>Variable</th><th>Value</th></tr>
        ';
-my $stm = 'SELECT NAME, VALUE FROM CONFIG;';
+my $stm = 'SELECT * FROM CONFIG;';
 $dbs = $db->prepare( $stm );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 while(my @row = $dbs->fetchrow_array()) {
-	   my $n = $row[0];
-		 my $v = $row[1];
+	   my $i = $row[0];
+	   my $n = $row[1];
+		 my $v = $row[2];
 		 if($n eq "TIME_ZONE"){
 			 $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
-			 $v = '<input name="var" type="text" value="'.$v.'" size="12">';
+			 if($tz){
+				 $v = $tz;
+			 }
+			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
 			 
 		 }elsif($n ne "RELEASE_VER"){		 
-			 $v = '<input name="var" type="text" value="'.$v.'" size="12">';
+			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
 		 }		 
 	   $tbl = $tbl. 
 	   '<tr class="r0">
@@ -139,7 +144,8 @@ my  $frmVars = qq(
 	 <form id="frm_vars" action="config.cgi">).$tbl.qq(	  
 	  <tr class="r1">		
 		 <td colspan=2 align=right><input type="submit" value="Change"/></td>
-		</tr>		
+		</tr>	
+		<input type="hidden" name="sys" value="1"/>
 		</table></form><br>);
 
 #
@@ -157,15 +163,27 @@ print $cgi->end_html;
 $db->disconnect();
 exit;
 
-### CGI END
+#http://localhost:8080/cgi-bin/config.cgi?
+#nm1=Unspecified&ds1=For+quick+uncategories+entries.&
+#nm3=File+System&ds3=Operating+file+system+short+log.&
+#nm6=System+Log&ds6=Operating+system+inportant+log.&nm9=Event
+#&ds9=Event+that+occured%2C+meeting%2C+historical+important.&
+#nm28=Personal&ds28=Personal+log+of+historical+importants%2C+diary+type.&
+#nm32=Expense&ds32=Significant+yearly+expense.&
+#nm35=Income&ds35=Significant+yearly+income.&
+#nm40=Work&ds40=Work+related+entry%2C+worth+monitoring.&nm45=Food&
+#ds45=Quick+reference+to+recepies%2C+observations.&caid=55&
+#canm=check&cade=
 
 sub processSubmit {
 
 my $change = $cgi->param("cchg");
+my $chgsys = $cgi->param("sys");
 my $s;
 my $d;
 
 try{
+
 if ($change == 1){
 
 
@@ -201,9 +219,9 @@ if ($change == 1){
 		 }
 		 else{
 			#Update
-                   $s = "UPDATE CAT SET NAME='".$pnm."', DESCRIPTION='".$pds."' WHERE ID=".$cid.";"; 
-		   $d = $db->prepare($s); 
-		   $d->execute();
+            $s = "UPDATE CAT SET NAME='".$pnm."', DESCRIPTION='".$pds."' WHERE ID=".$cid.";"; 
+		   			$d = $db->prepare($s); 
+		   			$d->execute();
 	        }
 		 
 	      }
@@ -241,6 +259,10 @@ if($change > 1){
 	         <font color=red>Client Error</font>: ID->".$caid." or -> Category->".$canm.
 		 " is already assigned, these must be unique!</p></div></center>";
 	}
+}
+
+if ($chgsys == 1){
+	  &changeSystemSettings;
 }
 
   #Re-select
@@ -281,6 +303,43 @@ sub getConfiguration{
 	}
 }
 
+sub changeSystemSettings{
+	try{
+			$dbs = $db->prepare("SELECT * FROM CONFIG;");
+		  $dbs->execute();
+			while (my @r=$dbs->fetchrow_array()){ 
+				my $var = $cgi->param('var'.$r[0]);
+				if($var){
+					switch ($r[1]) {
+
+						case "REC_LIMIT" {$REC_LIMIT=$var;  updConfSetting($r[0],$var);}
+						case "TIME_ZONE" {$TIME_ZONE=$var;  updConfSetting($r[0],$var);}
+						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updConfSetting($r[0],$var);}		
+						case "SESSN_EXPR"{$SESSN_EXPR=$var; updConfSetting($r[0],$var);}
+				
+					 }
+				}
+			}
+
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR->changeSystemSettings</b></font>:".$_;
+	}
+}
+
+sub updConfSetting{
+	my ($id, $val) = @_;
+	my ($s,$d);
+	$s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";"; 
+	try{
+	
+		  $d = $db->prepare($s); 
+		  $d->execute();
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b>->updConfSetting[$s]</font>:".$_;
+	}
+}
 
 
 
