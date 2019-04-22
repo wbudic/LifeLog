@@ -64,8 +64,8 @@ print "<h2 class='rz' style='text-align:center;border-bottom: 0px cornflowerblue
 foreach $key (sort keys %countries){   
     $states = $countries{$key}; 
     if( length($states)>0 ){
-        print "<div class='rz' style='border-bottom: 0px cornflowerblue;'><b>$key</b></div>\n";
-        print "<div class='rz'><ul>\n";
+        print "<div class='rz' style='text-align:left;border-bottom: 0px cornflowerblue;'><b>$key</b></div>\n";
+        print "<div class='rz' style='text-align:left;'><ul>\n";
         foreach $entry (sort @{$states}){
             if(!$entry){next}
             foreach $city ($entry){
@@ -79,6 +79,5 @@ foreach $key (sort keys %countries){
 
     }
 }
-
 print "</center>";
 print $cgi->end_html;
