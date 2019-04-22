@@ -1,66 +1,75 @@
-
 p {
-	font-family: Bookman;
-	margin-left: 70px;
-	font-weight: bold;
+    font-family: Bookman;
+    margin-left: 70px;
+    font-weight: bold;
 }
 
-
-table, th, td{
-	font-family: Bookman;
-	border-collapse: collapse;
-	padding: 5px;
-	margin: auto;
+table,
+th,
+td {
+    font-family: Bookman;
+    border-collapse: collapse;
+    padding: 5px;
+    margin: auto;
 }
 
-div{
-	font-family: Bookman;
-	text-align: center;
-	vertical-align: middle;
+div {
+    font-family: Bookman;
+    text-align: center;
+    vertical-align: middle;
 }
 
-#div_srh{
-	text-align: center;
-	vertical-align: middle;
-	display: none;
+#div_srh {
+    text-align: center;
+    vertical-align: middle;
+    display: none;
 }
 
 .tbl {
-	border: 1px solid black;
-	padding-top: 5px;
-	padding-right: 5px;
-	padding-bottom: 5px;
-	padding-left: 5px;
+    border: 1px solid black;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
 }
 
-.r0{
-	background-color: #e6ffff;
-	border: 1px solid black;
+.r0 {
+    background-color: #e6ffff;
+    border: 1px solid black;
 }
 
-.r1{
-	background-color: #ccffff;
+.r1 {
+    background-color: #ccffff;
 }
 
-
-
-.edit{
-	margin: 0;
-	padding 5px;
-	font-size:7pt;
-	border=:0px;
+.edit {
+    margin: 0;
+    padding: 5px;
+    font-size: 7pt;
+    border: 0px;
 }
 
-#al{
-	align-items:left;
-	align:left;
-	align-content:left;
-	text-align:left;
+#al {
+    align-items: left;
+    align-content: left;
+    text-align: left;
 }
 
-.log{
-	text-align:left;
-	word-wrap: break-word;
-	padding-left: 5px;
+.log {
+    text-align: left;
+    word-wrap: break-word;
+    padding-left: 5px;
 }
 
+.rz {
+    border: 1px solid black;
+    text-align: left;
+    background-color: #e6ffff;
+    vertical-align: top;
+    text-align: left;
+    align-self: baseline;
+    width: 60%;
+    height: auto;
+    padding: 2%;
+    margin-bottom: 0px;
+}
