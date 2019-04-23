@@ -110,7 +110,10 @@ $cats = $cats.'</select>';
 my $tbl = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
 <table class="tbl" border="0" width="$PRC_WIDTH%">
 <tr class="r0">
-	<th style="border-right: solid 1px;">Date</th><th style="border-right:solid 1px;">Time</th><th>Log</th><th>#</th><th>Category</th><th>Edit</th>
+	<th style="border-right: solid 1px;">Date</th>
+	<th style="border-right:solid 1px;">Time</th>
+	<th>Log</th><th>#</th>
+	<th>Category</th><th>Edit</th>
 </tr>);
 
 
