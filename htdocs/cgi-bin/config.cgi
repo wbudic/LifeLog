@@ -44,8 +44,16 @@ my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>
 
 my $rv;
 my $dbs;
-my $today = DateTime->now;
-my $tz = $cgi->param('tz');
+my $today  = DateTime->now;
+my $tz     = $cgi->param('tz');
+
+my $csvp    = $cgi->param("csv");
+if($csvp && $csvp<3){
+	 exportLogToCSV($csvp);
+}
+elsif($csvp){
+	exportCategoriesToCSV($csvp);
+}
 
 
 #####################
@@ -53,14 +61,11 @@ my $tz = $cgi->param('tz');
 #####################
 $today->set_time_zone( $TIME_ZONE );
 	
-print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");    
-
+print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
        		           -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 		                 -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-	        );	  
-
-
+	        );
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 $dbs = $db->prepare( $stmtCat );
@@ -155,10 +160,15 @@ my  $frmVars = qq(
 #
 print '<center>';
 print "<div class='r1'><h2>Log Configuration In -> $dbname</h2></div>";
-	print "\n<div>\n" . $frm ."\n</div>\n<br>";
-	print "\n<div>\n" . $frmVars."\n</div>\n<br>";	
-	print "\n<div>\nSTATUS:" .$status. "\n</div>\n<br>";
-	print '</br><div><a href="main.cgi">Back to Main Log</a></div>';
+	print "\n<div>\n" . $frm ."\n</div><br>\n";
+	print "\n<div>\n" . $frmVars."\n</div><br>\n";	
+	print "\n<div>\nSTATUS:" .$status. "\n</div><br>\n";
+	print "<br><div><a href=\"main.cgi\">Back to Main Log</a></div><br><hr>\n";
+	print '<br><div><a href="config.cgi?csv=1">Export Log to CSV</a></div>';
+	print '<br><div><a href="config.cgi?csv=2">View the Log in CSV Format.</a></div>';
+	print '<br><div><a href="config.cgi?csv=3">Export Categories to CSV</a></div>';
+	print '<br><div><a href="config.cgi?csv=4">View the Categories in CSV Format.</a></div>';
+
 print '</center>';
 
 
@@ -317,7 +327,6 @@ sub updConfSetting{
 	my ($s,$d);
 	$s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";"; 
 	try{
-	
 		  $d = $db->prepare($s); 
 		  $d->execute();
 	}
@@ -326,6 +335,80 @@ sub updConfSetting{
 	}
 }
 
+sub exportLogToCSVWorking{
+	try{
+		 
+			my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 		  
+	    $dbs = $db->prepare("SELECT * FROM LOG;");
+		  $dbs->execute();
+			print $cgi->header(-charset=>"UTF-8" -type=>"text/html");
+			print "ID_CAT,DATE,LOG,AMMOUNT\n";
+			while (my $r=$dbs->fetchrow_arrayref()){ 
+						 print $csv->print(*STDOUT, $r)."\n";
+			}
+			$db->disconnect();
+			exit;
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
+	}
+}
 
+sub exportLogToCSV{
+	try{
+		  
+			my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 		  
+	    $dbs = $db->prepare("SELECT * FROM LOG;");
+		  $dbs->execute();
 
+		  if($csvp==2){
+				 print $cgi->header(-charset=>"UTF-8", -type=>"text/html");	
+				 print "<pre>\n";
+			}
+			else{
+				 print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.csv");
+			}
+			
+		  print "ID_CAT,DATE,LOG,AMMOUNT\n";
+			while (my $r=$dbs->fetchrow_arrayref()){ 
+						 print $csv->print(*STDOUT, $r)."\n";
+			}
+			if($csvp && $csvp==1){			
+				 print "\n</pre>\n";
+			}
+			$db->disconnect();
+			exit;
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
+	}
+}
+sub exportCategoriesToCSV{
+	try{
+		  
+			my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 		  
+	    $dbs = $db->prepare("SELECT * FROM CAT;");
+		  $dbs->execute();
 
+		  if($csvp==4){
+				 print $cgi->header(-charset=>"UTF-8", -type=>"text/html");	
+				 print "<pre>\n";
+			}
+			else{
+				 print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.categories.csv");
+			}
+			
+		  print "ID_CAT,DATE,LOG,AMMOUNT\n";
+			while (my $r=$dbs->fetchrow_arrayref()){ 
+						 print $csv->print(*STDOUT, $r)."\n";
+			}
+			if($csvp && $csvp==3){			
+				 print "\n</pre>\n";
+			}
+			$db->disconnect();
+			exit;
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
+	}
+}
