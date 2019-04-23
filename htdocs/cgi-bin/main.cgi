@@ -221,16 +221,15 @@ if($rv < 0) {
 
 
          $tbl .= '<tr class="r'.$tfId.'">
-	          <td id="y'.$id.'" width="10%" style="border-right: solid 1px;">'. $dt->ymd . "</td>\n". 
-		          '<td id="t'.$id.'" width="10%" style="border-right: solid 1px;">' .
-			                                                            $dt->hms . "</td>\n".
+	       <td id="y'.$id.'" width="10%" style="border-right: solid 1px;">'.$dt->ymd."</td>\n". 
+		    '<td id="t'.$id.'" width="10%" style="border-right: solid 1px;">'.$dt->hms."</td>\n".
 			  '<td id="v'.$id.'" width="50%" class="log">' . $log . "</td>\n".
-			  '<td id="a'.$id.'" width="20%">' . $amm ."</td>\n".
+			  '<td id="a'.$id.'" width="10%">' . $amm ."</td>\n".
 			  '<td id="c'.$id.'" width="10%">' . $ct ."</td>\n".
 			  '<td width="10%">
-  			    <input class="edit" type="button" value="Edit" onclick="return edit('.$id.');"/>
+  			  <input class="edit" type="button" value="Edit" onclick="return edit('.$id.');"/>
 			    <input name="chk" type="checkbox" value="'.$id.'"/>
-			  </td>
+			   </td>
 		  </tr>';
 	$tbl_rc += 1;	
 
@@ -344,8 +343,7 @@ if($rs_keys || $rs_cat_idx || $stmD){
 	$srh .= '<tr><td align="left" colspan="3">
 	<button onClick="resetView()">Reset Whole View</button></td></tr>';
 }
-	       
-#$srh .='<tr><td colspan="4"><br></td></tr>
+
 $srh.='</table></form><br>';
 #
 #Page printout from here!
