@@ -419,7 +419,7 @@ sub exportCategoriesToCSV{
 			
 		  #print "ID,NAME,DESCRIPTION\n";
 			while (my $row=$dbs->fetchrow_arrayref()){ 
-						print $csv->print(*STDOUT, $row).;
+						print $csv->print(*STDOUT, $row);
 			}
 			if($csvp==4){			
 				 print "</pre>";

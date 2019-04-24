@@ -1,1 +1,1 @@
-$D = {'_SESSION_ATIME' => 1556089997,'_SESSION_ID' => 'ac5c5da7a235175332d773dbd518bbbb','_SESSION_CTIME' => 1556086450,'_SESSION_ETIME' => 1200,'_SESSION_REMOTE_ADDR' => '127.0.0.1','alias' => 'admin','passw' => '42FAP5H0JUSZM','database' => 'data_admin_log.db'};;$D
+$D = {'_SESSION_CTIME' => 1556086450,'passw' => '42FAP5H0JUSZM','alias' => 'admin','database' => 'data_admin_log.db','_SESSION_ATIME' => 1556090612,'_SESSION_ID' => 'ac5c5da7a235175332d773dbd518bbbb','_SESSION_ETIME' => 1200,'_SESSION_REMOTE_ADDR' => '127.0.0.1'};;$D
