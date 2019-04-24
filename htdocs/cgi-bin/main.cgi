@@ -88,7 +88,7 @@ my $today = DateTime->now;
 my $stmtCat = "SELECT * FROM CAT;";
 my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid DESC, DATE DESC;";
 
-
+ 
 $st = $db->prepare( $stmtCat );
 $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
@@ -237,10 +237,10 @@ while(my @row = $st->fetchrow_array()) {
 	$tbl .= '<tr class="r'.$tfId.'">
 		 <td id="y'.$id.'" width="10%">'.$dt->ymd."</td>\n". 
 		'<td id="t'.$id.'" width="10%" class="tbl">'.$dt->hms."</td>\n".
-		'<td id="v'.$id.'" width="50%"'.$style.'>' . $log . "</td>\n".
+		'<td id="v'.$id.'" '.$style.'>' . $log . "</td>\n".
 		'<td id="a'.$id.'" width="10%" class="tbl">' . $amm ."</td>\n".
 		'<td id="c'.$id.'" width="10%" class="tbl">' . $ct ."</td>\n".
-		'<td width="10%">
+		'<td width="95px;">
 			<input class="edit" type="button" value="Edit" onclick="return edit('.$id.');"/>
 			<input name="chk" type="checkbox" value="'.$id.'"/>
 		</td>
