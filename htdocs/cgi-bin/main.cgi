@@ -230,9 +230,7 @@ while(my @row = $st->fetchrow_array()) {
 	my $style;
 	if($log=~/\\n/){
 		 $style = '" class="log"';
-	}
-	else{
-		$log =~ s/\\n/<br>/gs;
+ 		 $log =~ s/\\n/<br>/gs;
 	}
 
 	
