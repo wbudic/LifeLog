@@ -387,9 +387,9 @@ sub exportLogToCSV{
 				 print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.csv");
 			}
 			
-		  print "ID_CAT,DATE,LOG,AMMOUNT\n";
+		 # print "ID_CAT,DATE,LOG,AMMOUNT\n";
 			while (my $r=$dbs->fetchrow_arrayref()){ 
-						 print $csv->print(*STDOUT, $r);
+						 print $csv->print(*STDOUT, $r)."\n";
 			}
 			if($csvp==1){			
 				 print "</pre>";
@@ -419,7 +419,7 @@ sub exportCategoriesToCSV{
 			
 		  #print "ID,NAME,DESCRIPTION\n";
 			while (my $row=$dbs->fetchrow_arrayref()){ 
-						print $csv->print(*STDOUT, $row);
+						print $csv->print(*STDOUT, $row),"\n";
 			}
 			if($csvp==4){			
 				 print "</pre>";
