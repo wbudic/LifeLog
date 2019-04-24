@@ -10,6 +10,7 @@ use Switch;
  
 use CGI;
 use CGI::Session '-ip_match';
+use CGI::Carp qw ( fatalsToBrowser );
 use DBI;
 
 use DateTime;
@@ -85,7 +86,7 @@ my $today = DateTime->now;
 
 
 my $stmtCat = "SELECT * FROM CAT;";
-my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid DESC, DATE DESC;";
+my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY DATE DESC, rowid DESC;";
 
 
 $st = $db->prepare( $stmtCat );
@@ -110,10 +111,10 @@ $cats = $cats.'</select>';
 my $tbl = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
 <table class="tbl" border="0" width="$PRC_WIDTH%">
 <tr class="r0">
-	<th style="border-right: solid 1px;">Date</th>
-	<th style="border-right:solid 1px;">Time</th>
-	<th>Log</th><th>#</th>
-	<th>Category</th><th>Edit</th>
+	<th class="tbl">Date</th>
+	<th class="tbl">Time</th>
+	<th class="tbl">Log</th><th>#</th>
+	<th class="tbl">Category</th><th>Edit</th>
 </tr>);
 
 
@@ -181,166 +182,179 @@ if($tbl_start>0){
 #
 #Fetch entries!
 #
+
 $st = $db->prepare( $stmt );
 $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 if($rv < 0) {
-	     print "<p>Error->"& $DBI::errstri &"</p>";
+			print "<p>Error->"& $DBI::errstri &"</p>";
 }
- while(my @row = $st->fetchrow_array()) {
+while(my @row = $st->fetchrow_array()) {
 
-	 $id = $row[0];
-	 my $ct = $hshCats{$row[1]};
-	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
-	 my $log = $row[3]; 
-	 my $amm = sprintf "%.2f", $row[4];
-
-	 #Apostrophe in the log value is doubled to avoid SQL errors.
-		    $log =~ s/''/'/g;
-	 #
-	    
-	 if(!$amm){
-		 $amm = "0.00";
-	 }
-         if($tbl_rc_prev == 0){
- 	    $tbl_rc_prev = $id;
-	 }
-	 if($tfId==1){
-		 $tfId = 0;
-	 }else{
-		 $tfId = 1;
-	 }
-
-	 #Replace with a full link an HTTP URI
-	 my @chnks = split(/($re_a_tag)/si , $log) ;  
-  	 foreach my $ch_i ( @chnks ) {
-	     next if $ch_i =~ /$re_a_tag/ ;
-	        $ch_i =~ s/https/http/gsi;
-	        $ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
-	 }	
-	 $log = join('' , @chnks);
-	 #Decode escaped \\n
-	 $log =~ s/\\n/<br>/gs;
+	$id = $row[0];
 	
+	my $ct = $hshCats{$row[1]};
+	my $dt = DateTime::Format::SQLite->parse_datetime($row[2]);
+	my $log = $row[3]; 
+	my $amm = sprintf "%.2f", $row[4];	
 
+	#Apostrophe in the log value is doubled to avoid SQL errors.
+				$log =~ s/''/'/g;
+	#
+	if(!$ct){
+		$ct = $hshCats{1};
+	}
+	if(!$dt){
+		$dt = $today;
+	}		
+	if(!$amm){
+		$amm = "0.00";
+	}
+				if($tbl_rc_prev == 0){
+			$tbl_rc_prev = $id;
+	}
+	if($tfId==1){
+		$tfId = 0;
+	}else{
+		$tfId = 1;
+	}
 
-         $tbl .= '<tr class="r'.$tfId.'">
-	       <td id="y'.$id.'" width="10%" style="border-right: solid 1px;">'.$dt->ymd."</td>\n". 
-		    '<td id="t'.$id.'" width="10%" style="border-right: solid 1px;">'.$dt->hms."</td>\n".
-			  '<td id="v'.$id.'" width="50%" class="log">' . $log . "</td>\n".
-			  '<td id="a'.$id.'" width="10%">' . $amm ."</td>\n".
-			  '<td id="c'.$id.'" width="10%">' . $ct ."</td>\n".
-			  '<td width="10%">
-  			  <input class="edit" type="button" value="Edit" onclick="return edit('.$id.');"/>
-			    <input name="chk" type="checkbox" value="'.$id.'"/>
-			   </td>
-		  </tr>';
-	$tbl_rc += 1;	
+	#Replace with a full link an HTTP URI
+	my @chnks = split(/($re_a_tag)/si , $log) ;  
+		foreach my $ch_i ( @chnks ) {
+			next if $ch_i =~ /$re_a_tag/ ;
+					$ch_i =~ s/https/http/gsi;
+					$ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
+	}	
+	$log = join('' , @chnks);
+	#Decode escaped \\n
+	my $style;
+	if($log=~/\\n/){
+		 $style = '" class="log"';
+	}
+	else{
+		$log =~ s/\\n/<br>/gs;
+	}
+
+	
+	$tbl .= '<tr class="r'.$tfId.'">
+		 <td id="y'.$id.'" width="10%">'.$dt->ymd."</td>\n". 
+		'<td id="t'.$id.'" width="10%" class="tbl">'.$dt->hms."</td>\n".
+		'<td id="v'.$id.'" width="50%"'.$style.'>' . $log . "</td>\n".
+		'<td id="a'.$id.'" width="10%" class="tbl">' . $amm ."</td>\n".
+		'<td id="c'.$id.'" width="10%" class="tbl">' . $ct ."</td>\n".
+		'<td width="10%">
+			<input class="edit" type="button" value="Edit" onclick="return edit('.$id.');"/>
+			<input name="chk" type="checkbox" value="'.$id.'"/>
+		</td>
+	</tr>';
+	$tbl_rc += 1;	  
 
 	if($REC_LIMIT>0 && $tbl_rc==$REC_LIMIT){
 
 		&buildNavigationButtons;
 		last;
 	}
- }
+}
 
- #End of table?
- if($rs_prev && $tbl_rc < $REC_LIMIT){
-	$st = $db->prepare( "SELECT count(*) FROM LOG;" );
-	$st->execute();	
-	my @row = $st->fetchrow_array(); 
-	if($row[0]>$REC_LIMIT){
-	   &buildNavigationButtons(1);
+
+#End of table?
+if($rs_prev && $tbl_rc < $REC_LIMIT){
+$st = $db->prepare( "SELECT count(*) FROM LOG;" );
+$st->execute();	
+my @row = $st->fetchrow_array(); 
+if($row[0]>$REC_LIMIT){
+		&buildNavigationButtons(1);
+}
+}
+
+if($tbl_rc==0){
+	
+	if($stmD){
+			$tbl = $tbl . '<tr><td colspan="5">
+			<b>Search Failed to Retrive any records on select: [<i>'. $stmD .'</i>] !</b></td></tr>';
 	}
- }
+	elsif($rs_keys){
+		my $criter = "";
+		if($rs_cat_idx>0){
+			 $criter = "->Criteria[".$hshCats{$rs_cat_idx}."]";
+		}
+			$tbl = $tbl . '<tr><td colspan="5">
+			<b>Search Failed to Retrive any records on keywords: [<i>'. $rs_keys .'</i>]'.$criter.' !</b></td>
+			</tr>';
+	}
+	else{
+	$tbl = $tbl . '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
+	}
+}
 
- if($tbl_rc==0){
-	 
-    if($stmD){
-       $tbl = $tbl . '<tr><td colspan="5">
-       <b>Search Failed to Retrive any records on select: [<i>'. $stmD .'</i>] !</b></td></tr>';
-    }
-    elsif($rs_keys){
-	    my $criter = "";
-	    if($rs_cat_idx>0){
-		$criter = "->Criteria[".$hshCats{$rs_cat_idx}."]";
-	    }
-       $tbl = $tbl . '<tr><td colspan="5">
-       <b>Search Failed to Retrive any records on keywords: [<i>'. $rs_keys .'</i>]'.$criter.' !</b></td>
-       </tr>';
-   }
-    else{
-	 $tbl = $tbl . '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
-	 }
- }
-
- $tbl .= '<tr class="r0"><td><a href="#top">&#x219F;</a></td><td colspan="5" align="right"> 
- <input type="hidden" name="datediff" id="datediff" value="0"/>
- <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
- <input type="button" value="Select All" onclick="return selectAllLogs()"/>
- <input type="reset" value="Unselect All"/>
- <input type="submit" value="Delete Selected"/>
- </td></tr></form>
+$tbl .= '<tr class="r0"><td><a href="#top">&#x219F;</a></td><td colspan="5" align="right"> 
+<input type="hidden" name="datediff" id="datediff" value="0"/>
+<input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
+<input type="button" value="Select All" onclick="return selectAllLogs()"/>
+<input type="reset" value="Unselect All"/>
+<input type="submit" value="Delete Selected"/>
+</td></tr></form>
 <tr class="r0"><form id="frm_srch" action="main.cgi"><td><b>Keywords:</b></td><td colspan="4" align="left">
 <input name="keywords" type="text" size="60"/></td>
 <td><input type="submit" value="Search"/></form></td></tr>
- </table>';
+</table>';
 
- my $frm = qq(<a name="top"></a>
- <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
-	 <table class="tbl" border="0" width="$PRC_WIDTH%">
-	 <tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
-	 <tr><td colspan="3"><br/></td></tr>
-	 <tr>
-	 <td>Date:</td><td id="al"><input id="ed" type="text" name="date" size="18" value=") .$today->ymd.
-	 " ". $today->hms .
-	 qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
- 	      &nbsp;<button type="reset">Reset</button>
-	      </td>
-	 	<td></td>
-	 </tr>
-		 <tr><td>Log:</td>
-		  <td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
- 		  <td>Category:&nbsp;$cats</td></tr>
-		 <tr><td><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
-		 <td id="al">
-		   <input id="am" name="am" type="number" step="any">
-		   <button id="btn_srch" onclick="toggleSearch(this); return false;"
-		           style="float: right;">Show Search</button>
-		 </td>
-		 <td align="right"><input id="log_submit" type="submit" value="Submit"/>
-		 </td>
-	</tr></table>
-	 <input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
-	 <input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
-	 <input type="hidden" name="rs_all" value="0"/>
-	 <input type="hidden" name="rs_cur" value="0"/>
-	 <input type="hidden" name="rs_prev" value="$tbl_rc_prev"/>
-	 <input type="hidden" name="CGISESSID" value="$sid"/>
-	 </form>
-	 );
+my $frm = qq(<a name="top"></a>
+<form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
+	<table class="tbl" border="0" width="$PRC_WIDTH%">
+	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
+	<tr><td colspan="3"><br/></td></tr>
+	<tr>
+	<td>Date:</td><td id="al"><input id="ed" type="text" name="date" size="18" value=") .$today->ymd.
+	" ". $today->hms .
+	qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
+			&nbsp;<button type="reset">Reset</button>
+			</td>
+	<td></td>
+	</tr>
+		<tr><td>Log:</td>
+		<td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
+		<td>Category:&nbsp;$cats</td></tr>
+		<tr><td><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
+		<td id="al">
+			<input id="am" name="am" type="number" step="any">
+			<button id="btn_srch" onclick="toggleSearch(this); return false;"
+							style="float: right;">Show Search</button>
+		</td>
+		<td align="right"><input id="log_submit" type="submit" value="Submit"/>
+		</td>
+</tr></table>
+	<input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
+	<input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
+	<input type="hidden" name="rs_all" value="0"/>
+	<input type="hidden" name="rs_cur" value="0"/>
+	<input type="hidden" name="rs_prev" value="$tbl_rc_prev"/>
+	<input type="hidden" name="CGISESSID" value="$sid"/>
+	</form>
+	);
 
 
 my  $srh = qq(
-	 <form id="frm_srch" action="main.cgi">
-	 <table class="tbl" border="0" width="$PRC_WIDTH%">
-           <tr class="r0"><td colspan="4"><b>Search/View By</b></td></tr>
-	   );
+	<form id="frm_srch" action="main.cgi">
+	<table class="tbl" border="0" width="$PRC_WIDTH%">
+					<tr class="r0"><td colspan="4"><b>Search/View By</b></td></tr>
+		);
 
 $cats =~ s/selected//g;
 $srh .= qq(<tr><td align="right"><b>View by Category:</b></td><td>.$cats.</td><td></td>
-    <td colspan="1" align="left">
-    <button id="btn_cat" onclick="viewByCategory(this);" style="float:left">View</button>
-    <input id="idx_cat" name="category" type="hidden" value="0"></td></tr>
-    <tr><td align="right"><b>View by Date:</b></td>
-    <td align="left">
-    From:&nbsp;<input name="v_from" type="text" size="16"/></td><td align="left">
-    To:&nbsp;<input name="v_to" type="text" size="16"/>
-    <td align="left"><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
-    </tr>
-    <tr><td align="right"><b>Keywords:</b></td>
-         <td colspan="2" align="left">
-       	 	 <input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/></td>
-         <td align="left"><input type="submit" value="Search" align="left"></td></tr>);
+	<td colspan="1" align="left">
+	<button id="btn_cat" onclick="viewByCategory(this);" style="float:left">View</button>
+	<input id="idx_cat" name="category" type="hidden" value="0"></td></tr>
+	<tr><td align="right"><b>View by Date:</b></td>
+	<td align="left">
+	From:&nbsp;<input name="v_from" type="text" size="16"/></td><td align="left">
+	To:&nbsp;<input name="v_to" type="text" size="16"/>
+	<td align="left"><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
+	</tr>
+	<tr><td align="right"><b>Keywords:</b></td>
+				<td colspan="2" align="left">
+					<input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/></td>
+				<td align="left"><input type="submit" value="Search" align="left"></td></tr>);
 
 if($rs_keys || $rs_cat_idx || $stmD){
 	$srh .= '<tr><td align="left" colspan="3">
@@ -365,8 +379,18 @@ $db->disconnect();
 undef($session);
 exit;
 
-### CGI END
-
+=comm
+sub parseDate{
+	my $date = $_[0];
+try{	
+return DateTime::Format::SQLite->parse_datetime( $date );
+}
+catch{
+  print "<font color=red><b>SERVER ERROR</b></font>date:$date]->".$_;
+}
+return $today;
+}
+=cut
 
 
 
@@ -374,9 +398,9 @@ sub processSubmit {
 
 
 	my $date = $cgi->param('date');
-	my $log = $cgi->param('log');
-	my $cat = $cgi->param('cat');
-	my $amm = $cgi->param('am');
+	my $log  = $cgi->param('log');
+	my $cat  = $cgi->param('cat');
+	my $amm  = $cgi->param('am');
 
 	my $edit_mode =  $cgi->param('submit_is_edit');
 	my $view_mode =  $cgi->param('submit_is_view');
@@ -441,7 +465,6 @@ try{
 			my @row = $st->fetchrow_array();
 			my $cnt = 1;
  			while(my @row = $st->fetchrow_array()) {
-
 			my $st_upd = $db->prepare("UPDATE LOG SET rowid=".$cnt.
 						" WHERE rowid='".$row[0]."';");
 				$st_upd->execute();
