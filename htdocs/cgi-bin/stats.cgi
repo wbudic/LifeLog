@@ -80,6 +80,8 @@ my $hardware_status =`inxi -b -c0;uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;
 $hardware_status =~ s/Memory:/<b>Memory:/g;
 $hardware_status =~ s/Init:/<\/b>Initial:/g;
+$hardware_status =~ s/up\s/<b>Server is up: /g;
+$hardware_status .= '</b>';
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 
 

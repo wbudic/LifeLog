@@ -33,13 +33,27 @@ div {
     padding-left: 5px;
 }
 
+.tbl_rem {
+    border: 1px solid black;
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+    text-align: left;
+}
+
 .r0 {
     background-color: #e6ffff;
     border: 1px solid black;
+    border-right: 1px solid black;
 }
 
 .r1 {
     background-color: #ccffff;
+    border: 1px solid black;
+    border-right: 1px solid black;
 }
 
 .edit {

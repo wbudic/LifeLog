@@ -68,8 +68,8 @@ while(my @row = $st->fetchrow_array()) {
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
 my $stmE = " ORDER BY DATE DESC, rowid DESC;";
 my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
-		<table class="tbl" width="'.$PRC_WIDTH.'%">
-		<tr class="r0"><th>Date</th><th>Time</th><th>Log</th><th>Category</th></tr>';
+		   <table class="tbl_rem" width="'.$PRC_WIDTH.'%">
+		   <tr class="r0"><th class="r0">Date</th> <th class="r0">Time</th><th class="r0">Log</th><th>Category</th></tr>';
 
 
 my $datediff = $cgi->param("datediff");
@@ -123,7 +123,7 @@ my  @prms = $cgi->param('chk');
 		 my $dt = DateTime::Format::SQLite->parse_datetime( $row[0] );
 		 my $dif = dateDiff($dt_prev, $dt);
 		 $tbl .= '<tr class="r1"><td>'. $dt->ymd . '</td> 
-			  </td><td style="text-align:left;">'.$row[1]."</td></tr>".
+			      </td><td style="text-align:left;">'.$row[1]."</td></tr>".
 		          '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';	
 		$dt_prev = $dt;
 	}
@@ -192,9 +192,10 @@ while(my @row = $st->fetchrow_array()) {
 	 my $ct = $hshCats{$row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
 
-	 $tbl = $tbl . '<tr class="r1"><td>'. $dt->ymd . "</td>" . 
-		  "<td>" . $dt->hms . "</td>" . "<td>" . $row[3] . "</td>\n".
-		  "<td>" . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';	
+	 $tbl = $tbl . '<tr class="r1"><td class="r1">'. $dt->ymd . "</td>" . 
+		  '<td class="r1">' . $dt->hms . "</td>" .
+		  '<td class="r1"><b>' . $row[3] . "</b></td>\n".
+		  '<td>' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';	
 	$r_cnt++;
 }
 my $plural = "";
