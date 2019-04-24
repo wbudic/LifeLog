@@ -147,8 +147,8 @@ elsif($rs_cat_idx){
 	      $stmt = $stmS.$stmD. " AND ID_CAT='".$rs_cat_idx."'" .$stmE;
 	}
 	else{
-      	     $stmt = $stmS." ID_CAT='".$rs_cat_idx."'" .$stmE;
-      	}
+      	  $stmt = $stmS." ID_CAT='".$rs_cat_idx."'" .$stmE;
+    }
 }
 else{
       if($stmD){
@@ -227,20 +227,17 @@ while(my @row = $st->fetchrow_array()) {
 	}	
 	$log = join('' , @chnks);
 	#Decode escaped \\n
-	my $style;
-	if($log=~/\\n/){
-		 $style = '" class="log"';
- 		 $log =~ s/\\n/<br>/gs;
-	}
+	$log =~ s/\\n/<br>/gs;
+
 
 	
 	$tbl .= '<tr class="r'.$tfId.'">
 		 <td id="y'.$id.'" width="10%">'.$dt->ymd."</td>\n". 
 		'<td id="t'.$id.'" width="10%" class="tbl">'.$dt->hms."</td>\n".
-		'<td id="v'.$id.'" '.$style.'>' . $log . "</td>\n".
+		'<td id="v'.$id.'" class="log">' . $log . "</td>\n".
 		'<td id="a'.$id.'" width="10%" class="tbl">' . $amm ."</td>\n".
 		'<td id="c'.$id.'" width="10%" class="tbl">' . $ct ."</td>\n".
-		'<td width="95px;">
+		'<td width="110px;">
 			<input class="edit" type="button" value="Edit" onclick="return edit('.$id.');"/>
 			<input name="chk" type="checkbox" value="'.$id.'"/>
 		</td>
@@ -257,12 +254,12 @@ while(my @row = $st->fetchrow_array()) {
 
 #End of table?
 if($rs_prev && $tbl_rc < $REC_LIMIT){
-$st = $db->prepare( "SELECT count(*) FROM LOG;" );
-$st->execute();	
-my @row = $st->fetchrow_array(); 
-if($row[0]>$REC_LIMIT){
-		&buildNavigationButtons(1);
-}
+	$st = $db->prepare( "SELECT count(*) FROM LOG;" );
+	$st->execute();	
+	my @row = $st->fetchrow_array(); 
+	if($row[0]>$REC_LIMIT){
+			&buildNavigationButtons(1);
+	}
 }
 
 if($tbl_rc==0){
@@ -303,17 +300,17 @@ my $frm = qq(<a name="top"></a>
 	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
 	<tr><td colspan="3"><br/></td></tr>
 	<tr>
-	<td>Date:</td><td id="al"><input id="ed" type="text" name="date" size="18" value=") .$today->ymd.
+	<td style="text-align:right">Date:</td><td id="al"><input id="ed" type="text" name="date" size="18" value=") .$today->ymd.
 	" ". $today->hms .
 	qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
 			&nbsp;<button type="reset">Reset</button>
 			</td>
 	<td></td>
 	</tr>
-		<tr><td>Log:</td>
-		<td id="al"><textarea id="el" name="log" rows="2" cols="60"></textarea></td>
+		<tr><td style="text-align:right">Log:</td>
+		<td id="al"><textarea id="el" name="log" rows="2" cols="80"></textarea></td>
 		<td>Category:&nbsp;$cats</td></tr>
-		<tr><td><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
+		<tr><td style="text-align:right"><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
 		<td id="al">
 			<input id="am" name="am" type="number" step="any">
 			<button id="btn_srch" onclick="toggleSearch(this); return false;"
