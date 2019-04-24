@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 #
 # Programed in vim by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
@@ -10,6 +10,7 @@ use Switch;
  
 use CGI;
 use CGI::Session '-ip_match';
+use CGI::Carp qw ( fatalsToBrowser );
 use DBI;
 
 use DateTime;
@@ -26,12 +27,17 @@ our $SESSN_EXPR  = '+30m';
 our $RELEASE_VER = '1.3';
 #END OF SETTINGS
 
+#15mg data post limit
+$CGI::POST_MAX = 1024 * 15000;
+
 my $cgi = CGI->new;
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
 my $sid=$session->id();
 my $dbname  =$session->param('database');
 my $userid  =$session->param('alias');
 my $password=$session->param('passw');
+my  $sys = `uname -n`;
+#my $acumululator="";
 
 if(!$userid||!$dbname){
 	print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
@@ -46,16 +52,24 @@ my $rv;
 my $dbs;
 my $today  = DateTime->now;
 my $tz     = $cgi->param('tz');
+my $csvp   = $cgi->param('csv');
+   
+	 switch ($csvp){
+				case "1" {&exportLogToCSV}
+				case "2" {&exportLogToCSV}
+				case "3" {&exportCategoriesToCSV}
+				case "4" {&exportCategoriesToCSV}				
+	 }
 
-my $csvp    = $cgi->param("csv");
-if($csvp && $csvp<3){
-	 exportLogToCSV($csvp);
-}
-elsif($csvp){
-	exportCategoriesToCSV($csvp);
-}
+	if($cgi->param('data_cat')){
+			&importCatCSV;
+	 }elsif($cgi->param('data_log')){
+			&importLogCSV;
+	 }
 
 
+	  
+		
 #####################
 	&getConfiguration;
 #####################
@@ -79,7 +93,7 @@ my $status = "Ready for change!";
 
 my $tbl = '<table id="ec" class="tbl" name="cats" border="0" width="'.$PRC_WIDTH.'%">
 	          <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
-            <tr class="r1"><th>ID</th><th>Category</th><th>Description</th><td></td></tr>
+            <tr class="r1"><th>ID</th><th>Category</th><th>Description</th></tr>
           ';
 
  while(my @row = $dbs->fetchrow_array()) {
@@ -88,7 +102,7 @@ my $tbl = '<table id="ec" class="tbl" name="cats" border="0" width="'.$PRC_WIDTH
 	   '<tr class="r0"><td>'.$row[0].'</td>
             <td><input name="nm'.$row[0].'" type="text" value="'.$row[1].'" size="12"></td>
 	    <td><input name="ds'.$row[0].'" type="text" value="'.$row[2].'" size="64"></td>
-	    <td></td></tr>';
+	    </tr>';
 	}
  }
 
@@ -99,21 +113,19 @@ my  $frm = qq(
 	  <tr class="r1">
 		 <td><input type="text" name="caid" value="" size="3"/></td>
 		 <td><input type="text" name="canm" value="" size="12"/></td>
-		 <td><input type="text" name="cade" value="" size="64"/></td>
-		 <td></td>
+		 <td><input type="text" name="cade" value="" size="64"/></td>		 
 		</tr>
 	  <tr class="r1">
 		 <td colspan="2"><input type="submit" value="Add New Category" onclick="return submitNewCategory()"/></td>
-		 <td colspan="2"><input type="submit" value="Change"/></td>
+		 <td colspan="1"><input type="submit" value="Change"/></td>
 		</tr>
 		<tr class="r1">
 		  <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font> 
-		   Removing and changing categories is permanent! Adding one must have unique ID. <br>
-		   Blanking an category name will remove and seek change LOG records to Unspecified (id 1)! <br>
+		   Removing and changing categories is permanent!<br>Adding one must have unique ID. <br>
+		   Blanking an category name will remove and seek change LOG <br>records to Unspecified (id 1)! <br>
 			 Also ONLY the category <b>Unspecified</b> You can't REMOVE!<br>If changing here things?
 			 Make a backup! (copy existing db file)</div>
-			</td>
-			<td></td>
+			</td>			
 		</tr>
 		</table><input type="hidden" name="cchg" value="1"/></form><br>);
 	 
@@ -158,16 +170,39 @@ my  $frmVars = qq(
 #
 #Page printout from here!
 #
+my $prc_hdr = $PRC_WIDTH-2;
 print '<center>';
-print "<div class='r1'><h2>Log Configuration In -> $dbname</h2></div>";
-	print "\n<div>\n" . $frm ."\n</div><br>\n";
-	print "\n<div>\n" . $frmVars."\n</div><br>\n";	
-	print "\n<div>\nSTATUS:" .$status. "\n</div><br>\n";
-	print "<br><div><a href=\"main.cgi\">Back to Main Log</a></div><br><hr>\n";
-	print '<br><div><a href="config.cgi?csv=1">Export Log to CSV</a></div>';
-	print '<br><div><a href="config.cgi?csv=2">View the Log in CSV Format.</a></div>';
-	print '<br><div><a href="config.cgi?csv=3">Export Categories to CSV</a></div>';
-	print '<br><div><a href="config.cgi?csv=4">View the Categories in CSV Format.</a></div>';
+print "<div class=\"r1\" style=\"width:$prc_hdr%; padding:12px;margin:5px;\"><b>Log Configuration In -> $dbname</b></div>";
+	print "\n<div>\n" . $frm ."\n</div>\n";
+	print "\n<div >\n" . $frmVars."\n</div>\n";	
+	print "\n<div>\nSTATUS:" .$status. "\n</div>\n";	
+	print qq(
+		      <br><div><a href="main.cgi">Back to Main Log</a></div><br><hr>\n
+
+
+					<table border=0>
+						<tr><td><H3>CSV File Format</H3></td></tr>\n
+						<form action="config.cgi" method="post" enctype="multipart/form-data">\n
+						<tr style="border-left: 1px solid black;"><td>\n
+					 		  <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr>\n
+						<tr style="border-left: 1px solid black;"><td style="text-align:right;">
+							 <input type="submit" name="Submit" value="Submit"/></p></td></tr>\n
+						</form>\n
+						<form action="config.cgi" method="post" enctype="multipart/form-data">\n
+						<tr style="border-top: 1px solid black;border-right: 1px solid black;"><td>\n
+					 		  <b>Import Log</b>: <input type="file" name="data_log" /></td></tr>\n
+						<tr style="border-right: 1px solid black;"><td style="text-align:right;">\n
+							 <input type="submit" name="Submit" value="Submit"/></p></td></tr>\n
+					 	</form>\n
+						 <tr><td style="text-align:right"><H3>To Server -> $sys -> $dbname</H3></td></tr>
+					</table><hr>
+
+
+					<br><div>[<a href="config.cgi?csv=1">Export Log to CSV</a>] &nbsp;
+					 [<a href="config.cgi?csv=2">View the Log in CSV Format</a>]</div>\n					
+					<br><div>[<a href="config.cgi?csv=3">Export Categories to CSV</a>] &nbsp;
+					[<a href="config.cgi?csv=4">View the Categories in CSV Format</a>]</div>\n<hr>
+	);
 
 print '</center>';
 
@@ -205,7 +240,7 @@ if ($change == 1){
 		   $d->execute();
 
 		    while(my @r = $d->fetchrow_array()) {
-		             $s = "UPDATE LOG SET CAT_ID=1 WHERE rowid=".$r[0].";";
+		             $s = "UPDATE LOG SET ID_CAT=1 WHERE rowid=".$r[0].";";
 		             $d = $db->prepare($s); 
 		             $d->execute();
 		     }
@@ -307,12 +342,12 @@ sub changeSystemSettings{
 		  $dbs->execute();
 			while (my @r=$dbs->fetchrow_array()){ 
 				my $var = $cgi->param('var'.$r[0]);
-				if($var){					
+				if(defined $var){					
 					switch ($r[1]) {
-						case "REC_LIMIT" {$REC_LIMIT=$var;  updConfSetting($r[0],$var);}
-						case "TIME_ZONE" {$TIME_ZONE=$var;  updConfSetting($r[0],$var);}
-						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updConfSetting($r[0],$var);}		
-						case "SESSN_EXPR"{$SESSN_EXPR=$var; updConfSetting($r[0],$var);}
+						case "REC_LIMIT" {$REC_LIMIT=$var;  updConfSetting($r[0],$var)}
+						case "TIME_ZONE" {$TIME_ZONE=$var;  updConfSetting($r[0],$var)}
+						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updConfSetting($r[0],$var)}		
+						case "SESSN_EXPR"{$SESSN_EXPR=$var; updConfSetting($r[0],$var)}
 					 }
 				}
 			}
@@ -335,24 +370,7 @@ sub updConfSetting{
 	}
 }
 
-sub exportLogToCSVWorking{
-	try{
-		 
-			my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 		  
-	    $dbs = $db->prepare("SELECT * FROM LOG;");
-		  $dbs->execute();
-			print $cgi->header(-charset=>"UTF-8" -type=>"text/html");
-			print "ID_CAT,DATE,LOG,AMMOUNT\n";
-			while (my $r=$dbs->fetchrow_arrayref()){ 
-						 print $csv->print(*STDOUT, $r)."\n";
-			}
-			$db->disconnect();
-			exit;
-	}
-	catch{
-		print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
-	}
-}
+
 
 sub exportLogToCSV{
 	try{
@@ -371,11 +389,12 @@ sub exportLogToCSV{
 			
 		  print "ID_CAT,DATE,LOG,AMMOUNT\n";
 			while (my $r=$dbs->fetchrow_arrayref()){ 
-						 print $csv->print(*STDOUT, $r)."\n";
+						 print $csv->print(*STDOUT, $r);
 			}
-			if($csvp && $csvp==1){			
-				 print "\n</pre>\n";
+			if($csvp==1){			
+				 print "</pre>";
 			}
+			$dbs->finish();
 			$db->disconnect();
 			exit;
 	}
@@ -387,7 +406,7 @@ sub exportCategoriesToCSV{
 	try{
 		  
 			my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 		  
-	    $dbs = $db->prepare("SELECT * FROM CAT;");
+	    $dbs = $db->prepare("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
 		  $dbs->execute();
 
 		  if($csvp==4){
@@ -398,17 +417,115 @@ sub exportCategoriesToCSV{
 				 print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.categories.csv");
 			}
 			
-		  print "ID_CAT,DATE,LOG,AMMOUNT\n";
-			while (my $r=$dbs->fetchrow_arrayref()){ 
-						 print $csv->print(*STDOUT, $r)."\n";
+		  #print "ID,NAME,DESCRIPTION\n";
+			while (my $row=$dbs->fetchrow_arrayref()){ 
+						print $csv->print(*STDOUT, $row).;
 			}
-			if($csvp && $csvp==3){			
-				 print "\n</pre>\n";
-			}
+			if($csvp==4){			
+				 print "</pre>";
+			}				
+			$dbs->finish();		
 			$db->disconnect();
 			exit;
 	}
 	catch{
 		print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
+	}
+}
+
+
+sub importCatCSV{
+	my $hndl = $cgi->upload("data_cat");
+	my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 	
+  while (my $line = <$hndl>) {
+         chomp $line;
+			   if ($csv->parse($line)) { 
+      		  my @flds   = $csv->fields();
+						updateCATDB(@flds);
+			   }else{
+     			 warn "Data could not be parsed: $line\n";
+  		   }		 
+	}
+}
+
+sub updateCATDB{
+	my @flds = @_;
+	if(@flds>2){
+	try{	
+			my $id   = $flds[0];
+			my $name = $flds[1];
+			my $desc = $flds[2];
+			#$acumululator .= $id."-".$name;
+			
+			#is it existing entry?
+			$dbs = $db->prepare("SELECT ID, NAME, DESCRIPTION FROM CAT WHERE ID = '$id';");
+			$dbs->execute();
+			if(not defined $dbs->fetchrow_array()){
+					$dbs = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
+					$dbs->execute($id, $name, $desc);
+					$dbs->finish;
+			}
+			else{
+				#TODO Update
+			}
+		
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b>->updateCATDB</font>:".$_;
+	}
+	}
+}
+sub importLogCSV{
+	my $hndl = $cgi->upload("data_log");
+	my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 	
+  while (my $line = <$hndl>) {
+         chomp $line;
+			   if ($csv->parse($line)) { 
+      		  my @flds   = $csv->fields();
+						updateLOGDB(@flds);
+			   }else{
+     			 warn "Data could not be parsed: $line\n";
+  		   }		 
+	}	
+	$db->disconnect();
+	print $cgi->redirect('main.cgi');
+	exit;
+}
+sub updateLOGDB{
+	my @flds = @_;
+	if(@flds>3){
+	try{	
+			my $id_cat = $flds[0];
+			my $date   = $flds[1];
+			my $log    = $flds[2];
+			my $amm    = $flds[3];
+			my $pdate = DateTime::Format::SQLite->parse_datetime($date);
+			#Check if valid date log entry?
+			if($id_cat==0||$id_cat==""||!$pdate){
+				return;
+			}
+			#is it existing entry?
+			$dbs = $db->prepare("SELECT ID_CAT, DATE, LOG, AMMOUNT  FROM LOG WHERE date = '$date';");
+			$dbs->execute();
+			if(!$dbs->fetchrow_array()){
+					$dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
+					$dbs->execute( $id_cat, $pdate, $log, $amm);
+			}
+			#Renumerate
+			$dbs = $db->prepare('select rowid from LOG ORDER BY DATE;');
+			$dbs->execute();
+			my @row = $dbs->fetchrow_array();
+			my $cnt = 1;
+ 			while(my @row = $dbs->fetchrow_array()) {
+			my $st_upd = $db->prepare("UPDATE LOG SET rowid=".$cnt.
+			                            " WHERE rowid='".$row[0]."';");
+				$st_upd->execute();
+				$cnt = $cnt + 1;
+			}
+			$dbs->finish;
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
+	}
 	}
 }
