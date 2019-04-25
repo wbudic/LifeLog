@@ -219,6 +219,7 @@ while(my @row = $st->fetchrow_array()) {
 		$tfId = 1;
 	}
 
+
 	if($log =~ /<<IMG</){
 	   my $idx = $-[0]+5;
 	   my $len = index($log, '>', $idx);
