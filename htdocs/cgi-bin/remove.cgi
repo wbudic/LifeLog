@@ -69,7 +69,7 @@ my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
 my $stmE = " ORDER BY DATE DESC, rowid DESC;";
 my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
 		   <table class="tbl_rem" width="'.$PRC_WIDTH.'%">
-		   <tr class="r0"><th class="r0">Date</th> <th class="r0">Time</th><th class="r0">Log</th><th>Category</th></tr>';
+		   <tr class="hdr" style="text-align:left;"><th>Date</th> <th>Time</th><th>Log</th><th>Category</th></tr>';
 
 
 my $datediff = $cgi->param("datediff");
@@ -187,15 +187,21 @@ if($rv < 0) {
 
 
 my $r_cnt = 0;
+my $rs = "r1";
 while(my @row = $st->fetchrow_array()) {
 
 	 my $ct = $hshCats{$row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
-
-	 $tbl = $tbl . '<tr class="r1"><td class="r1">'. $dt->ymd . "</td>" . 
-		  '<td class="r1">' . $dt->hms . "</td>" .
-		  '<td class="r1"><b>' . $row[3] . "</b></td>\n".
-		  '<td>' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';	
+	 $tbl = $tbl . '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" . 
+		  '<td class="'.$rs.'">' . $dt->hms . "</td>" .
+		  '<td class="'.$rs.'" style="font-weight:bold; color:maroon;">' . $row[3] . "</td>\n".
+		  '<td class="'.$rs.'">' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';
+	if($rs eq "r1"){
+	   $rs = "r0";
+	}
+	else{
+		$rs = "r1";
+	}
 	$r_cnt++;
 }
 my $plural = "";
