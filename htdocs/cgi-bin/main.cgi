@@ -75,10 +75,10 @@ $session->expire($SESSN_EXPR);
 	
 print $cgi->header(-expires=>"0s", -charset=>"UTF-8"); 
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
-       		     			   -script=>{-type => 'text/javascript',-src => 'wsrc/main.js'},
-		     						   -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-		     						   -onload => "loadedBody('".$toggle."');"
-		        );	  
+                       -script=>{-type => 'text/javascript',-src => 'wsrc/main.js'},
+                       -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+                       -onload => "loadedBody('".$toggle."');"
+            );	  
 my $rv;
 my $st;
 my $today = DateTime->now;
@@ -110,7 +110,7 @@ $cats = $cats.'</select>';
 
 my $tbl = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
 <table class="tbl" border="0" width="$PRC_WIDTH%">
-<tr class="r0">
+<tr class="hdr">
 	<th class="tbl">Date</th>
 	<th class="tbl">Time</th>
 	<th class="tbl">Log</th><th>#</th>
@@ -182,7 +182,8 @@ if($tbl_start>0){
 #
 #Fetch entries!
 #
-
+my $CID_EVENT = 9;
+my $tags = "";
 $st = $db->prepare( $stmt );
 $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 if($rv < 0) {
@@ -218,31 +219,85 @@ while(my @row = $st->fetchrow_array()) {
 		$tfId = 1;
 	}
 
-	#Replace with a full link an HTTP URI
-	my @chnks = split(/($re_a_tag)/si , $log) ;  
-		foreach my $ch_i ( @chnks ) {
-			next if $ch_i =~ /$re_a_tag/ ;
-					$ch_i =~ s/https/http/gsi;
-					$ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
-	}	
-	$log = join('' , @chnks);
+	if($log =~ /<<IMG</){
+	   my $idx = $-[0]+5;
+	   my $len = index($log, '>', $idx);
+	   my $sub = substr($log,$idx+1,$len-$idx-1);
+	   my $url = qq(<img src="$sub."/>");
+	   	  $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);
+	      $log=~s/<<IMG<(.*?)>/$url/osi;		  
+	}
+	elsif($log =~ /<<FRM</){
+ 	   my $idx = $-[0]+5;
+	   my $len = index($log, '>', $idx);	   
+	   my $sub = substr($log, $idx+1,$len-$idx-1);
+	   my $lnk = $sub;
+	   if($lnk =~ /_frm.png/) {			 
+			my $ext = substr($lnk, index($lnk,'.'));			 
+			   $lnk =~ s/_frm.png/$ext/;
+			if(not -e  "./images/$lnk"){
+				$lnk =~ s/$ext/.jpg/;
+				if(not -e  "./images/$lnk"){
+					$lnk =~ s/.jpg/.gif/;
+				}
+			}
+			$lnk = qq(\n<a href="./images/$lnk" style="border=0;" target="_IMG"><img src="./images/$sub" width="210" height="120" class="tag_FRM"/></a>);
+		}else{
+			#TODO fetch from web locally the original image.
+			$lnk = qq(\n<img src="$lnk" width="210" height="120" class="tag_FRM"/>);
+		}	
+		$tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);	
+	    $log=~s/<<FRM<(.*?)>/$lnk/o;
+	}
+	else{
+			#Replace with a full link an HTTP URI
+			my @chnks = split(/($re_a_tag)/si , $log) ;  
+				foreach my $ch_i ( @chnks ) {
+					next if $ch_i =~ /$re_a_tag/ ;
+							$ch_i =~ s/https/http/gsi;
+							$ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
+			}	
+			$log = join('' , @chnks);
+	}
+
+	while ($log =~ /<<B</){
+	   my $idx = $-[0];
+	   my $len = index($log, '>', $idx)-4;
+	   my $sub =  "<b>".substr($log,$idx+4,$len-$idx)."</b>";
+	      $log=~s/<<B<(.*?)>/$sub/o;	
+	}
+
+
+	while($log =~ /<<TITLE</){
+	   my $idx = $-[0];
+	   my $len = index($log, '>', $idx)-8;
+	   my $sub = "<h3>".substr($log,$idx+8,$len-$idx)."</h3>";
+	      $log=~s/<<TITLE<(.*?)>/$sub/o;	
+	}
+
+
 	#Decode escaped \\n
 	$log =~ s/\\n/<br>/gs;
 
-
-	
-	$tbl .= '<tr class="r'.$tfId.'">
-		 <td id="y'.$id.'" width="10%">'.$dt->ymd."</td>\n". 
-		'<td id="t'.$id.'" width="10%" class="tbl">'.$dt->hms."</td>\n".
-		'<td id="v'.$id.'" class="log">' . $log . "</td>\n".
-		'<td id="a'.$id.'" width="10%" class="tbl">' . $amm ."</td>\n".
-		'<td id="c'.$id.'" width="10%" class="tbl">' . $ct ."</td>\n".
-		'<td width="110px;">
-			<input class="edit" type="button" value="Edit" onclick="return edit('.$id.');"/>
-			<input name="chk" type="checkbox" value="'.$id.'"/>
+	if($CID_EVENT == $row[1]){
+		$log = "<font color='#eb4848' style='font-weight:bold'>$log</font>";
+	}elsif(1 == $row[1]){
+		$log = "<font color='midnightblue' style='font-weight:bold;font-style:italic'>$log</font>";
+	}
+	my $dty=$dt->ymd;
+	my $dth=$dt->hms;
+	$tbl .= qq(<tr class="r$tfId">
+		<td id="y$id" width="10%">$dty</td>
+		<td id="t$id" width="10%" class="tbl">$dth</td>
+		<td id="v$id" class="log">$log</td>
+		<td id="a$id" width="10%" class="tbl">$amm</td>
+		<td id="c$id" width="10%" class="tbl">$ct</td>
+		<td width="110px;">
+			<input class="edit" type="button" value="Edit" onclick="return edit($id);"/>
+			<input name="chk" type="checkbox" value="$id"/>
 		</td>
-	</tr>';
-	$tbl_rc += 1;	  
+	</tr>);
+	$tbl_rc += 1;
 
 	if($REC_LIMIT>0 && $tbl_rc==$REC_LIMIT){
 
@@ -307,7 +362,7 @@ my $frm = qq(<a name="top"></a>
 			</td>
 	<td></td>
 	</tr>
-		<tr><td style="text-align:right">Log:</td>
+	<tr><td style="text-align:right">Log:</td>
 		<td id="al"><textarea id="el" name="log" rows="2" cols="80"></textarea></td>
 		<td>Category:&nbsp;$cats</td></tr>
 		<tr><td style="text-align:right"><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
@@ -317,14 +372,17 @@ my $frm = qq(<a name="top"></a>
 							style="float: right;">Show Search</button>
 		</td>
 		<td align="right"><input id="log_submit" type="submit" value="Submit"/>
-		</td>
-</tr></table>
+		</td>		
+	</tr>
+	<tr><td colspan="3"></td></tr>
+	</table>
 	<input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
 	<input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
 	<input type="hidden" name="rs_all" value="0"/>
 	<input type="hidden" name="rs_cur" value="0"/>
 	<input type="hidden" name="rs_prev" value="$tbl_rc_prev"/>
 	<input type="hidden" name="CGISESSID" value="$sid"/>
+	$tags	
 	</form>
 	);
 
