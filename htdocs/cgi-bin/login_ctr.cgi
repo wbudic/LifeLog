@@ -16,13 +16,14 @@ use DateTime::Format::SQLite;
 use DateTime::Duration;
 use Text::CSV;
 
-
 #DEFAULT SETTINGS HERE!
 our $REC_LIMIT   = 25;
 our $TIME_ZONE   = 'Australia/Sydney';
+our $LANGUAGE	   = 'English';
 our $PRC_WIDTH   = '60';
 our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
+our $DATE_UNI    = '0';
 our $RELEASE_VER = '1.3';
 #END OF SETTINGS
 
@@ -181,28 +182,65 @@ try{
 	$st->execute();
   if(!$st->fetchrow_array()) {
     my $stmt = qq(
-		CREATE TABLE CONFIG(
-			  ID TINY PRIMARY KEY NOT NULL,
-				NAME VCHAR(16),
-				VALUE VCHAR(64)
-		);
+										CREATE TABLE CONFIG(
+												ID TINY PRIMARY KEY NOT NULL,
+												NAME VCHAR(16),
+												VALUE VCHAR(64)
+										);
 		);
 		$rv = $db->do($stmt);
- 		populateConfig($db);
-		
 	}
-	else{
-		#TODO Check table and update existing table for subsequent releases with new settings.
-		$st = $db->prepare('SELECT * FROM CONFIG');
-		$st->execute();
-  	if(!$st->fetchrow_array()) {
- 			 populateConfig($db);
-		}
-	}
+  populateConfig($db);
+	
 }
  catch{	 	
 	  print $cgi->header;
 		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+    print $cgi->end_html;
+		exit;
+ }
+}
+sub populateConfig{
+
+		open(my $fh, '<', './main.cnf' ) or die "Can't open main.cnf: $!";
+		my $db = shift;
+		my ($did,$name, $value);
+
+		my $st = $db->prepare("SELECT count(*) FROM CONFIG;");
+		   $st->execute();
+		my $cnt = $st->fetchrow_array();
+		if($cnt != 0){
+			 return;
+		}
+try{		
+    while (my $line = <$fh>) {
+					chomp $line;				
+					my %hsh = $line =~ m[(\S+)\s*=\s*(\S+)]g;
+					for my $key (keys %hsh) {
+								my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;									
+								
+						for my $id (keys %nash) {
+							    $did = $id;
+								  $name  = $nash{$id};
+								  $value = $hsh{$key};
+						 	 my $st = $db->prepare("SELECT * FROM CONFIG WHERE NAME LIKE '$name';");
+									$st->execute();								
+							 if(!$st->fetchrow_array()){
+									#TODO Check if script id is unique to database? If not script prevails to database entry. 
+									#if user setting from previous release, must be migrated later.
+									$st = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?)');
+									$did = $id;
+									$st->execute($id, $name,$value);                  
+								}
+							}
+					}
+		}      
+    
+    close $fh;	
+ } catch{	 	
+	  close $fh;	
+	  print $cgi->header;
+		print "<font color=red><b>SERVER ERROR</b></font> [$did, $name,$value]:".$_;
     print $cgi->end_html;
 		exit;
  }
@@ -226,16 +264,6 @@ sub insertDefCats{
 		$st->execute(40, "Work", "Work related entry, worth monitoring.");
 		$st->execute(45, "Food", "Quick reference to recepies, observations.");
 		$st->finish();
-}
-
-sub populateConfig{
-		my  $db = shift;
-		my  $st = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?)');
-				$st->execute(0,"RELEASE_VER",$RELEASE_VER);
-				$st->execute(1,"REC_LIMIT",  $REC_LIMIT);
-				$st->execute(3,"TIME_ZONE",  $TIME_ZONE);
-				$st->execute(5,"PRC_WIDTH",  $PRC_WIDTH);
-				$st->execute(8,"SESSN_EXPR", $SESSN_EXPR);
 }
 
 

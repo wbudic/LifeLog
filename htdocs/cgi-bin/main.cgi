@@ -16,6 +16,7 @@ use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 use DateTime::Duration;
+use Date::Language;
 use Date::Parse;
 use Time::localtime;
 use Regexp::Common qw /URI/;
@@ -23,9 +24,11 @@ use Regexp::Common qw /URI/;
 #DEFAULT SETTINGS HERE!
 our $REC_LIMIT   = 25;
 our $TIME_ZONE   = 'Australia/Sydney';
+our $LANGUAGE	   = 'English';
 our $PRC_WIDTH   = '60';
 our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
+our $DATE_UNI    = '0';
 our $RELEASE_VER = '1.3';
 #END OF SETTINGS
 
@@ -81,9 +84,10 @@ print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
             );	  
 my $rv;
 my $st;
+my $lang = Date::Language->new($LANGUAGE);
 my $today = DateTime->now;
    $today->set_time_zone( $TIME_ZONE );
-
+	 
 
 my $stmtCat = "SELECT * FROM CAT;";
 my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid DESC, DATE DESC;";
@@ -107,7 +111,6 @@ my $c_sel = 1;
 
 $cats = $cats.'</select>';
 
-
 my $tbl = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
 <table class="tbl" border="0" width="$PRC_WIDTH%">
 <tr class="hdr">
@@ -116,7 +119,6 @@ my $tbl = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelVali
 	<th class="tbl">Log</th><th>#</th>
 	<th class="tbl">Category</th><th>Edit</th>
 </tr>);
-
 
 if($rs_keys){
 	
@@ -161,8 +163,6 @@ else{
  #
  # Enable to see main query statement issued!
  #print $cgi->pre("### -> ".$stmt);
-
-
 my $tfId = 0;
 my $id = 0;
 my $tbl_start = index $stmt, "<=";
@@ -285,15 +285,22 @@ while(my @row = $st->fetchrow_array()) {
 	}elsif(1 == $row[1]){
 		$log = "<font color='midnightblue' style='font-weight:bold;font-style:italic'>$log</font>";
 	}
-	my $dty=$dt->ymd;
+	
+	my ($dty, $dtf) = $dt->ymd;
 	my $dth=$dt->hms;
+	if($DATE_UNI==1){
+		 $dtf = $dty;
+	}
+	else{
+		 $dtf= $lang->time2str("%d %b %Y", $dt->epoch);
+	}
 	$tbl .= qq(<tr class="r$tfId">
-		<td id="y$id" width="10%">$dty</td>
+		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
 		<td id="t$id" width="10%" class="tbl">$dth</td>
-		<td id="v$id" class="log">$log</td>
+		<td id="v$id" class="log" width="40%">$log</td>
 		<td id="a$id" width="10%" class="tbl">$amm</td>
 		<td id="c$id" width="10%" class="tbl">$ct</td>
-		<td width="110px;">
+		<td width="20%">
 			<input class="edit" type="button" value="Edit" onclick="return edit($id);"/>
 			<input name="chk" type="checkbox" value="$id"/>
 		</td>
@@ -621,19 +628,26 @@ try  {
 
 
 sub getConfiguration{
-		my $st = $_[0]->prepare("SELECT * FROM CONFIG;");
-		   $st->execute(); 
+	my $db = shift;
+	try{
+		$st = $db->prepare("SELECT * FROM CONFIG;");
+		$st->execute();
+
 		while (my @r=$st->fetchrow_array()){
 			
 			switch ($r[1]) {
-
 				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
 				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
-				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}
-				case "SESSN_EXPR"{$SESSN_EXPR=$r[2]}
+				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}		
+				case "SESSN_EXPR" {$SESSN_EXPR=$r[2]}
+				case "DATE_UNI"  {$DATE_UNI=$r[2]}
+				case "LANGUAGE"  {$LANGUAGE=$r[2]}				
 				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
-
 			}
 
 		}
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+	}
 }

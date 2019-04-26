@@ -105,7 +105,7 @@ sub DisplayDateDiffs{
 	    <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
     $stm = 'SELECT DATE, LOG FROM LOG WHERE '; 
-my  @prms = $cgi->param('chk');
+    my  @prms = $cgi->param('chk');
 
 	foreach (@prms){
 		$stm .= "rowid = '" . $_ ."'";
@@ -123,11 +123,10 @@ my  @prms = $cgi->param('chk');
 		 my $dt = DateTime::Format::SQLite->parse_datetime( $row[0] );
 		 my $dif = dateDiff($dt_prev, $dt);
 		 $tbl .= '<tr class="r1"><td>'. $dt->ymd . '</td> 
-			      </td><td style="text-align:left;">'.$row[1]."</td></tr>".
-		          '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';	
+			        </td><td style="text-align:left;">'.$row[1]."</td></tr>".
+		         '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';	
 		$dt_prev = $dt;
 	}
-
     $tbl .= '</table>';
 
 print '<center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</a></div></center>';

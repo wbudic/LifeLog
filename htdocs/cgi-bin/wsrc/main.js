@@ -89,7 +89,7 @@ function edit(row) {
     } else {
         document.getElementById("el").value = ev_v.innerText;
     }
-    document.getElementById("ed").value = ed_v.innerText + " " + et_v.innerText;
+    document.getElementById("ed").value = ed_v.value + " " + et_v.innerText;
     document.getElementById("am").value = ea_v.innerText;
     //Change selected catergory
     for (var i = 0, j = ec.options.length; i < j; ++i) {

@@ -21,9 +21,11 @@ use Text::CSV;
 #DEFAULT SETTINGS HERE!
 our $REC_LIMIT   = 25;
 our $TIME_ZONE   = 'Australia/Sydney';
+our $LANGUAGE	   = 'English';
 our $PRC_WIDTH   = '60';
 our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
+our $DATE_UNI    = '0';
 our $RELEASE_VER = '1.3';
 #END OF SETTINGS
 
@@ -106,8 +108,6 @@ my $tbl = '<table id="ec" class="tbl" name="cats" border="0" width="'.$PRC_WIDTH
 	}
  }
 
-	
-
 my  $frm = qq(
 	 <form id="frm_config" action="config.cgi">).$tbl.qq(
 	  <tr class="r1">
@@ -116,15 +116,15 @@ my  $frm = qq(
 		 <td><input type="text" name="cade" value="" size="64"/></td>		 
 		</tr>
 	  <tr class="r1">
-		 <td colspan="2"><input type="submit" value="Add New Category" onclick="return submitNewCategory()"/></td>
-		 <td colspan="1"><input type="submit" value="Change"/></td>
+		 <td colspan="2"><a href="#bottom">&#x21A1;</a>&nbsp;&nbsp;&nbsp;<input type="submit" value="Add New Category" onclick="return submitNewCategory()"/></td>
+		 <td colspan="1"><b>Log Configuration In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
 		</tr>
 		<tr class="r1">
 		  <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font> 
-		   Removing and changing categories is permanent!<br>Adding one must have unique ID. <br>
-		   Blanking an category name will remove and seek change LOG <br>records to Unspecified (id 1)! <br>
-			 Also ONLY the category <b>Unspecified</b> You can't REMOVE!<br>If changing here things?
-			 Make a backup! (copy existing db file)</div>
+		   Removing or changing categories is permanent! Each category one must have an unique ID. 
+			 Blank a category name to remove it. LOG records will change to the Unspecified (id 1) category! <br>
+			 The category <b>Unspecified</b>, can't be removed!
+			 </div>
 			</td>			
 		</tr>
 		</table><input type="hidden" name="cchg" value="1"/></form><br>);
@@ -143,13 +143,26 @@ while(my @row = $dbs->fetchrow_array()) {
 	   my $n = $row[1];
 		 my $v = $row[2];
 		 if($n eq "TIME_ZONE"){
-			 $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
-			 if($tz){
-				 $v = $tz;
-			 }
-			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
-			 
-		 }elsif($n ne "RELEASE_VER"){		 
+			  $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
+			  if($tz){
+				   $v = $tz;
+			  }
+			  $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';		
+		 }
+		 elsif($n eq "DATE_UNI"){
+			  my($l,$u)=("","");
+				if($v == 0){
+					 $l = "SELECTED"
+				}
+				else{
+			     $u = "SELECTED"
+				}
+        $v = qq(<select id="dumi" name="var$i">
+				         <option value="0" $l>Locale</option>
+								 <option value="1" $u>Universal</option>
+								</select>);
+		 }
+		 elsif($n ne "RELEASE_VER"){		 
 			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
 		 }		 
 	   $tbl = $tbl. 
@@ -171,15 +184,12 @@ my  $frmVars = qq(
 #Page printout from here!
 #
 my $prc_hdr = $PRC_WIDTH-2;
-print '<center>';
-print "<div class=\"r1\" style=\"width:$prc_hdr%; padding:12px;margin:5px;\"><b>Log Configuration In -> $dbname</b></div>";
+  print '<center><a name="top"/>';
 	print "\n<div>\n" . $frm ."\n</div>\n";
 	print "\n<div >\n" . $frmVars."\n</div>\n";	
 	print "\n<div>\nSTATUS:" .$status. "\n</div>\n";	
 	print qq(
 		      <br><div><a href="main.cgi">Back to Main Log</a></div><br><hr>\n
-
-
 					<table border=0>
 						<tr><td><H3>CSV File Format</H3></td></tr>\n
 						<form action="config.cgi" method="post" enctype="multipart/form-data">\n
@@ -198,10 +208,11 @@ print "<div class=\"r1\" style=\"width:$prc_hdr%; padding:12px;margin:5px;\"><b>
 					</table><hr>
 
 
-					<br><div>[<a href="config.cgi?csv=1">Export Log to CSV</a>] &nbsp;
+					<br><div><a href="#top">&#x219F;</a>&nbsp;&nbsp;&nbsp;[<a href="config.cgi?csv=1">Export Log to CSV</a>] &nbsp;
 					 [<a href="config.cgi?csv=2">View the Log in CSV Format</a>]</div>\n					
 					<br><div>[<a href="config.cgi?csv=3">Export Categories to CSV</a>] &nbsp;
-					[<a href="config.cgi?csv=4">View the Categories in CSV Format</a>]</div>\n<hr>
+					[<a href="config.cgi?csv=4">View the Categories in CSV Format</a>]<a name="bottom"/></div>\n					
+					<hr>
 	);
 
 print '</center>';
@@ -314,27 +325,7 @@ catch{
 }
 
 
-sub getConfiguration{
-	try{
-		$dbs = $db->prepare("SELECT * FROM CONFIG;");
-		$dbs->execute();
 
-		while (my @r=$dbs->fetchrow_array()){
-			
-			switch ($r[1]) {
-				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
-				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
-				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}		
-				case "SESSN_EXPR" {$SESSN_EXPR=$r[2]}
-				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
-			}
-
-		}
-	}
-	catch{
-		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
-	}
-}
 
 sub changeSystemSettings{
 	try{
@@ -348,6 +339,8 @@ sub changeSystemSettings{
 						case "TIME_ZONE" {$TIME_ZONE=$var;  updConfSetting($r[0],$var)}
 						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updConfSetting($r[0],$var)}		
 						case "SESSN_EXPR"{$SESSN_EXPR=$var; updConfSetting($r[0],$var)}
+						case "DATE_UNI"  {$DATE_UNI=$var; updConfSetting($r[0],$var)}
+						case "LANGUAGE"  {$LANGUAGE=$var; updConfSetting($r[0],$var)}
 					 }
 				}
 			}
@@ -369,8 +362,6 @@ sub updConfSetting{
 		print "<font color=red><b>SERVER ERROR</b>->updConfSetting[$s]</font>:".$_;
 	}
 }
-
-
 
 sub exportLogToCSV{
 	try{
@@ -402,6 +393,7 @@ sub exportLogToCSV{
 		print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
 	}
 }
+
 sub exportCategoriesToCSV{
 	try{
 		  
@@ -528,4 +520,30 @@ sub updateLOGDB{
 		print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
 	}
 	}
+}
+
+
+sub getConfiguration{
+	try{
+		$dbs = $db->prepare("SELECT * FROM CONFIG;");
+		$dbs->execute();
+
+		while (my @r=$dbs->fetchrow_array()){
+			
+			switch ($r[1]) {
+				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
+				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
+				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}		
+				case "SESSN_EXPR" {$SESSN_EXPR=$r[2]}
+				case "DATE_UNI"  {$DATE_UNI=$r[2]}
+				case "LANGUAGE"  {$LANGUAGE=$r[2]}				
+				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
+			}
+
+		}
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+	}
+
 }
