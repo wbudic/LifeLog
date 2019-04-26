@@ -30,6 +30,7 @@ our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
 our $DATE_UNI    = '0';
 our $RELEASE_VER = '1.3';
+our $AUTHORITY   = 'admin';
 #END OF SETTINGS
 
 my $cgi = CGI->new;
@@ -39,8 +40,11 @@ my $dbname  =$session->param('database');
 my $userid  =$session->param('alias');
 my $password=$session->param('passw');
 
-if(!$userid||!$dbname){
-	print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+if($AUTHORITY){
+	 $userid = $password = $AUTHORITY;
+	 $dbname =  'data_'.$userid.'_log.db';	 
+}elsif(!$userid||!$dbname){
+	 print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
 	exit;
 }
 
@@ -96,8 +100,10 @@ my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid 
 $st = $db->prepare( $stmtCat );
 $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
-my $cats = '<select id="ec" name="cat" onChange="updateSelCategory(this)"><option value="0">---</option>\n';
+my $cats = qq(<select id="ec" name="cat" required onFocus="toggleVisibility('cat_desc')" onBlur="toggleVisibility('cat_desc')" onScroll="helpSelCategory(this)" onChange="updateSelCategory(this)">
+							<option value="0">---</option>\n);
 my %hshCats;
+my %desc = {};
 my $c_sel = 1;
  while(my @row = $st->fetchrow_array()) {
 	if($row[0]==$c_sel){
@@ -107,9 +113,19 @@ my $c_sel = 1;
 		$cats = $cats. '<option value="'.$row[0].'">'.$row[1].'</option>\n';
 	}	
 	$hshCats{$row[0]} = $row[1];
+	$desc{$row[0]} = $row[2];
  }
-
+ 
 $cats = $cats.'</select>';
+
+my $cat_descriptions = "";
+for my $key (keys %desc){
+	   my $kv = $desc{$key};
+		 if($kv ne ".."){
+        $cat_descriptions .= qq(<li id="$key">$kv</li>\n);
+		 }
+}
+
 
 my $tbl = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
 <table class="tbl" border="0" width="$PRC_WIDTH%">
@@ -363,23 +379,25 @@ my $frm = qq(<a name="top"></a>
 	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
 	<tr><td colspan="3"><br/></td></tr>
 	<tr>
-	<td style="text-align:right">Date:</td><td id="al"><input id="ed" type="text" name="date" size="18" value=") .$today->ymd.
+	<td style="text-align:right">Date:</td>
+	<td id="al"style="text-align:top;"><input id="ed" type="text" name="date" size="18" value=") .$today->ymd.
 	" ". $today->hms .
 	qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
 			&nbsp;<button type="reset">Reset</button>
 			</td>
-	<td></td>
+	<td><div id="cat_desc"></div></td>
 	</tr>
 	<tr><td style="text-align:right">Log:</td>
-		<td id="al"><textarea id="el" name="log" rows="2" cols="80"></textarea></td>
-		<td>Category:&nbsp;$cats</td></tr>
+		<td id="al" colspan="2" style="text-align:top;"><textarea id="el" name="log" rows="2" cols="80" style="float:left;"></textarea>
+		&nbsp;&nbsp;&nbsp;Category:&nbsp;$cats</td>	
+	</tr>
 		<tr><td style="text-align:right"><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
 		<td id="al">
-			<input id="am" name="am" type="number" step="any">
-			<button id="btn_srch" onclick="toggleSearch(this); return false;"
-							style="float: right;">Show Search</button>
+			<input id="am" name="am" type="number" step="any">			
 		</td>
-		<td align="right"><input id="log_submit" type="submit" value="Submit"/>
+		<td align="right">			  
+				<div 	style="float: right;"><button id="btn_srch" onclick="toggleSearch(this); return false;">Show Search</button>&nbsp;
+				<input id="log_submit" type="submit" value="Submit"/></div>
 		</td>		
 	</tr>
 	<tr><td colspan="3"></td></tr>
@@ -390,8 +408,7 @@ my $frm = qq(<a name="top"></a>
 	<input type="hidden" name="rs_cur" value="0"/>
 	<input type="hidden" name="rs_prev" value="$tbl_rc_prev"/>
 	<input type="hidden" name="CGISESSID" value="$sid"/>
-	$tags	
-	</form>
+	$tags</form>
 	);
 
 
@@ -432,7 +449,10 @@ print "<center>";
 	print "\n<div>\n" . $tbl ."\n</div>";
 	print '<br><div><a href="stats.cgi">View Statistics</a></div>';
 	print '<br><div><a href="config.cgi">Configure Log (Careful)</a><a name="bottom"/></div>';
-print "</center>";
+print qq(</center>
+        <ul id="cat_lst">
+				$cat_descriptions
+				</ul>);
 
 print $cgi->end_html;
 $st->finish;
@@ -586,6 +606,10 @@ sub buildNavigationButtons{
 
 sub authenticate{
 try  {
+
+	 if($AUTHORITY){
+		  return;
+	 }
 
 	 my $st =$db->prepare("SELECT * FROM AUTH WHERE alias='$userid' and passw='$password';");
 			$st->execute();

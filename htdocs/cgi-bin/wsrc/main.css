@@ -123,3 +123,14 @@ img {
     float: left;
     padding: 0 10px
 }
+
+#cat_desc {
+    position: relative;
+    border: 2px solid rgb(148, 205, 231);
+    padding: 5px;
+    text-align: left;
+}
+
+#cat_lst {
+    visibility: hidden;
+}

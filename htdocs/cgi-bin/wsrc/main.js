@@ -3,6 +3,8 @@
  Open Source License -> https://choosealicense.com/licenses/isc/
 */
 
+var map = new Map();
+
 function loadedBody(toggle) {
     var el = document.getElementById("frm_entry");
     el.log.focus();
@@ -11,6 +13,12 @@ function loadedBody(toggle) {
     }
 
     document.getElementById("log_submit").addEventListener("click", encodeText);
+    var lst = document.getElementById("cat_lst");
+    var children = lst.childNodes;
+
+    for (var i = 0; i < children.length; i++) {
+        map.set(children[i].id, children[i].innerHTML);
+    }
 }
 
 function encodeText(el) {
@@ -174,13 +182,28 @@ function resetView() {
 }
 
 function updateSelCategory(sel) {
-    //disabled as Search View has own dreopdown since v.1.3	 
-    //    var b = document.getElementById("btn_cat");
     var cat = document.getElementById("idx_cat");
     cat.value = sel.options[sel.selectedIndex].value;
-    //    b.innerText = sel.options[sel.selectedIndex].text;
+}
 
-    //    document.getElementById("ctmsg").style.display = "none";    
+function toggleVisibility(target) {
+    var d = document.getElementById(target);
+    if (d.style.display === "none" || d.style.display === "") {
+        d.style.display = "block";
+    } else {
+        d.style.display = "none";
+    }
+}
+
+
+
+function helpSelCategory(sel) {
+    var el = document.getElementById("cat_desc");
+    var desc = map.get(sel.options[sel.selectedIndex].value);
+    if (!desc) {
+        desc = "<font color='red'>Please select a Category!</font>";
+    }
+    el.innerHTML = desc;
 }
 
 function viewByCategory(btn) {
