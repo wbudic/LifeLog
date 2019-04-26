@@ -6,6 +6,38 @@
 use strict;
 use warnings;
 
+
+	open(my $fh, '<', '/home/will/dev/LifeLog/htdocs/cgi-bin/main.cnf' ) or die "Can't open main.cnf: $!";
+	
+    while (my $line = <$fh>) {
+           chomp $line;
+
+			my %hsh = $line =~ m[(\S+)\s*=\s*(\S+)]g;
+		    for my $key (keys %hsh) {
+				my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;				
+				for my $id (keys %nash) {
+					my $name  = $nash{$id};
+					my $value = $hsh{$key};
+					print "[$id]->$name:$value\n";
+				}
+
+				# print $nar[0].'='.$nar[1]."\n";
+			}
+
+
+           
+		  
+    }
+    close $fh;
+
+=comment
+
+		   for my $key (keys %pv) {
+			    my %id = $key =~ m[(\s*)\|(\s*)]g;
+    			
+           }
+
+
 use LWP::UserAgent;
 use File::Basename;
 
@@ -23,7 +55,7 @@ unless($resp->is_success) {
 #my $log ="Kurac palac deci davac. <<FRM<paw_<<B<Agreement> reached.\n";
 my $log =
 "Test <run></run><<IMG<Agreement> reached.<<B<errfrffff>\n";
-
+=cut
 =comment
 	if($log =~ /<<IMG</){
 	   my $idx = $-[0]+5;

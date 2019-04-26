@@ -66,8 +66,6 @@ sudo cpanm Try::Tiny;
 sudo cpanm Number/Bytes/Human.pm;
 sudo cpanm Regexp::Common;
 
-
-
 #Upgrade Instructions
 
 To upgrade to newer version of this software requires data migration.
@@ -103,7 +101,7 @@ Example (data_dev1_2_log.db would be created as the latest version by the CGI cr
 cd /home/{user}/thttpd_dev/dbLifeLog
 sqlite3 data_dev1_2_log.db
 sqlite> .mode csv
-sqlite> .import curren_log.csv LOG;
+sqlite> .import current_log.csv LOG;
 sqlite> select * FROM LOG;
 sqlite>.quit
 
