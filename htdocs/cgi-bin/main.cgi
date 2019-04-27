@@ -105,7 +105,7 @@ my $st;
 my $lang = Date::Language->new($LANGUAGE);
 my $today = DateTime->now;
    $today->set_time_zone( $TIME_ZONE );
-	 
+print "<h1>$IMG_W_H</h1>"; 
 
 my $stmtCat = "SELECT * FROM CAT;";
 my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid DESC, DATE DESC;";

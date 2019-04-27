@@ -27,6 +27,8 @@ our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
 our $DATE_UNI    = '0';
 our $RELEASE_VER = '1.3';
+our $AUTHORITY   = '';
+our $IMG_W_H     = '210x120';
 #END OF SETTINGS
 
 #15mg data post limit
@@ -394,6 +396,8 @@ sub changeSystemSettings{
 						case "SESSN_EXPR"{$SESSN_EXPR=$var; updConfSetting($r[0],$var)}
 						case "DATE_UNI"  {$DATE_UNI=$var; updConfSetting($r[0],$var)}
 						case "LANGUAGE"  {$LANGUAGE=$var; updConfSetting($r[0],$var)}
+						case "AUTHORITY"  {$AUTHORITY=$var; updConfSetting($r[0],$var)}
+						case "IMG_W_H"  {$IMG_W_H=$var; updConfSetting($r[0],$var)}
 					 }
 				}
 			}
