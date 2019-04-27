@@ -1,3 +1,12 @@
+*** LifeLog Requirments ***
+
+ -Web Server (any will do that supports CGI perl execution)
+ -SQLite
+ -Perl Modules
+
+ -- Note - Perl and some modules might take time to install
+           as their fetched and tested for your computer.
+
 #Install tiny thttpd web server.
 
 https://acme.com/software/thttpd/
@@ -127,5 +136,17 @@ vim /etc/init.d/startDevWebServer.sh
 Install as service with:
 sudo update-rc.d startDevWebServer.sh defaults
 
+
+#Developer Notes
+
+##Automate GIT Push
+
+vim your ./LifeLog/.git/conf file to include:
+ [remote "origin"]
+	url = https://{user}:{password}github.com/wbudic/LifeLog.git
+  ...
+Where {user} and {password} are your git login credentials.
+Don't worry, these credentials are not uploaded. And someone must have
+access to your computers login to specifically hack to obtain them.
 
 
