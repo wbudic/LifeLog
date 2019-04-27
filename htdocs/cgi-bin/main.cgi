@@ -235,19 +235,31 @@ while(my @row = $st->fetchrow_array()) {
 		$tfId = 1;
 	}
 
+  my $sub ="";
 
+	#Check for LNK takes precedence here as we also parse plain placed URL's for http protocol later.
+  if($log =~ /<<LNK</){
+ 	   my $idx = $-[0]+5;
+	   my $len = index($log, '>', $idx);	   
+	   $sub = substr($log, $idx+1,$len-$idx-1);
+		 my $url = qq(<a href="$sub" target=_blank>$sub</a>);
+	   	  $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);
+	      $log=~s/<<LNK<(.*?)>/$url/osi;
+  }
+
+	
 	if($log =~ /<<IMG</){
 	   my $idx = $-[0]+5;
 	   my $len = index($log, '>', $idx);
-	   my $sub = substr($log,$idx+1,$len-$idx-1);
-	   my $url = qq(<img src="$sub."/>");
+	   $sub = substr($log,$idx+1,$len-$idx-1);
+	   my $url = qq(<img src="$sub"/>);
 	   	  $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);
 	      $log=~s/<<IMG<(.*?)>/$url/osi;		  
 	}
 	elsif($log =~ /<<FRM</){
  	   my $idx = $-[0]+5;
 	   my $len = index($log, '>', $idx);	   
-	   my $sub = substr($log, $idx+1,$len-$idx-1);
+	   $sub = substr($log, $idx+1,$len-$idx-1);
 	   my $lnk = $sub;
 	   if($lnk =~ /_frm.png/) {			 
 			my $ext = substr($lnk, index($lnk,'.'));			 
@@ -260,20 +272,21 @@ while(my @row = $st->fetchrow_array()) {
 			}
 			$lnk = qq(\n<a href="./images/$lnk" style="border=0;" target="_IMG">
 			<img src="./images/$sub" width="210" height="120" class="tag_FRM"/></a>);
-		}else{
+		  }else{
 			#TODO fetch from web locally the original image.
 			$lnk = qq(\n<img src="$lnk" width="210" height="120" class="tag_FRM"/>);
-		}	
-		$tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);	
+		  }  	
+		  $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);	
 	    $log=~s/<<FRM<(.*?)>/$lnk/o;
 	}
 	
 			#Replace with a full link an HTTP URI
 			my @chnks = split(/($re_a_tag)/si , $log) ;  
-				foreach my $ch_i ( @chnks ) {
-					next if $ch_i =~ /$re_a_tag/ ;
-							$ch_i =~ s/https/http/gsi;
-							$ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
+			foreach my $ch_i ( @chnks ) {
+					next if $ch_i =~ /$re_a_tag/;
+					next if index($ch_i, "<img")>-1;
+					$ch_i =~ s/https/http/gsi;
+					$ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
 			}	
 			$log = join('' , @chnks);
 	
