@@ -84,12 +84,12 @@ my $toggle =""; if($rs_keys||$rs_cat_idx||$stmD){$toggle=1;};
 $session->expire($SESSN_EXPR);
 
 #tag related framed sizing.
-my @arrwh = $IMG_W_H = ~m((\S+)\s*x\$\s*(\S+))gi;
+my @arrwh = split /x/,$IMG_W_H;
 if(@arrwh==2){
 	$imgw = $arrwh[0];
 	$imgh = $arrwh[1];
 }
-else{
+else{#defaults
 	$imgw = 210;
 	$imgh = 120;
 }
