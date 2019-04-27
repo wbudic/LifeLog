@@ -1,11 +1,14 @@
-*** LifeLog Requirments ***
+*** LifeLog Requirements ***
 
  -Web Server (any will do that supports CGI perl execution)
  -SQLite
  -Perl Modules
+ -git (git clone https://github.com/wbudic/LifeLog)
 
  -- Note - Perl and some modules might take time to install
            as their fetched and tested for your computer.
+
+           
 
 #Install tiny thttpd web server.
 
@@ -94,7 +97,7 @@ if doing development. Copy also the /home/{user}/LifeLog/.git to /home/{user}/th
 Access the webserver cgi-bin. http://localhost:8080/cgi-bin/main.cgi
 (this might redirect to login.cgi or config.cgi in the future)
 
-##Install LifeLog Dependetly (not automatic, manual developer way)
+##Install LifeLog Dependably (not automatic, manual developer way)
 cd /home/{user}/ 
 git clone https://github.com/wbudic/LifeLog
 run thttpd with:
@@ -148,5 +151,19 @@ vim your ./LifeLog/.git/conf file to include:
 Where {user} and {password} are your git login credentials.
 Don't worry, these credentials are not uploaded. And someone must have
 access to your computers login to specifically hack to obtain them.
+
+##Troubleshoot Data Problems
+
+To reset factory defaults, for categories and configuration.
+You might need to delete data in some tables.
+Issue either the bellow statements externally.
+
+sqlite3 data_{alias}_log.db "delete from CAT;"
+sqlite3 data_{alias}_log.db "delete from CONFIG;"
+
+Subsequent versions of LifeLog software might require this operation.
+You can export and modify your added categories via an CSV file.
+Making sure the ID first column across all entries has a unique number.
+
 
 

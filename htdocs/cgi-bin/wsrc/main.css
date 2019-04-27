@@ -134,3 +134,9 @@ img {
 #cat_lst {
     visibility: hidden;
 }
+
+#frm_login {
+    # position: absolute;
+    vertical-align: middle;
+    margin: 0;
+}

@@ -6,5 +6,6 @@
 08|$LOG_PATH    = ../../dbLifeLog/
 10|$SESSN_EXPR  = +30m
 12|$DATE_UNI    = 0
-14|$LANGUAGE	 = English
+14|$LANGUAGE	= English
+18|$IMG_W_H     = 210x120
 
