@@ -30,7 +30,7 @@ our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
 our $DATE_UNI    = '0';
 our $RELEASE_VER = '1.3';
-our $AUTHORITY   = 'admin';
+our $AUTHORITY   = '';
 #END OF SETTINGS
 
 my $cgi = CGI->new;
@@ -258,7 +258,8 @@ while(my @row = $st->fetchrow_array()) {
 					$lnk =~ s/.jpg/.gif/;
 				}
 			}
-			$lnk = qq(\n<a href="./images/$lnk" style="border=0;" target="_IMG"><img src="./images/$sub" width="210" height="120" class="tag_FRM"/></a>);
+			$lnk = qq(\n<a href="./images/$lnk" style="border=0;" target="_IMG">
+			<img src="./images/$sub" width="210" height="120" class="tag_FRM"/></a>);
 		}else{
 			#TODO fetch from web locally the original image.
 			$lnk = qq(\n<img src="$lnk" width="210" height="120" class="tag_FRM"/>);
@@ -266,7 +267,7 @@ while(my @row = $st->fetchrow_array()) {
 		$tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);	
 	    $log=~s/<<FRM<(.*?)>/$lnk/o;
 	}
-	else{
+	
 			#Replace with a full link an HTTP URI
 			my @chnks = split(/($re_a_tag)/si , $log) ;  
 				foreach my $ch_i ( @chnks ) {
@@ -275,7 +276,7 @@ while(my @row = $st->fetchrow_array()) {
 							$ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
 			}	
 			$log = join('' , @chnks);
-	}
+	
 
 	while ($log =~ /<<B</){
 	   my $idx = $-[0];

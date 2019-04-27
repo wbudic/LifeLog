@@ -189,8 +189,10 @@ my $prc_hdr = $PRC_WIDTH-2;
 	print "\n<div >\n" . $frmVars."\n</div>\n";	
 	print "\n<div>\nSTATUS:" .$status. "\n</div>\n";	
 	print qq(
-		      <br><div><a href="main.cgi">Back to Main Log</a></div><br><hr>\n
-					<table border=0>
+		      <br><div id="rz" style="text-align:center; position:relative;width:"$PRC_WIDTH%" padding:0px;">
+					<a href="main.cgi"><h2>Back to Main Log</h2></a></div><br><hr>\n
+					
+					<table border="0">
 						<tr><td><H3>CSV File Format</H3></td></tr>\n
 						<form action="config.cgi" method="post" enctype="multipart/form-data">\n
 						<tr style="border-left: 1px solid black;"><td>\n
@@ -205,13 +207,47 @@ my $prc_hdr = $PRC_WIDTH-2;
 							 <input type="submit" name="Submit" value="Submit"/></p></td></tr>\n
 					 	</form>\n
 						 <tr><td style="text-align:right"><H3>To Server -> $sys -> $dbname</H3></td></tr>
-					</table><hr>
-
-
+					</table>
+					</div>
+					
 					<br><div><a href="#top">&#x219F;</a>&nbsp;&nbsp;&nbsp;[<a href="config.cgi?csv=1">Export Log to CSV</a>] &nbsp;
 					 [<a href="config.cgi?csv=2">View the Log in CSV Format</a>]</div>\n					
 					<br><div>[<a href="config.cgi?csv=3">Export Categories to CSV</a>] &nbsp;
-					[<a href="config.cgi?csv=4">View the Categories in CSV Format</a>]<a name="bottom"/></div>\n					
+					[<a href="config.cgi?csv=4">View the Categories in CSV Format</a>]</div>\n
+					<hr>
+
+					<center>
+					<div id="rz" style="text-align:left; position:relative;width:600px;">
+					<h2>E-Tags Specs</h2>					
+					<p>
+					<b>&#60;&#60;B&#60;<i>{Text To Bold}</i><b>&#62;</b>
+					</p>
+					<p>
+					<b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;</b>
+					</p>
+					<p>
+					<b>&#60;&#60;IMG&#60;<i>{url to image}</i><b>&#62;</b>
+					</p>
+					<p>
+						<b>&#60;&#60;FRM&#60;<i>{file name}_frm.png}</i><b>&#62;</b><br><br>
+						*_frm.png images file pairs are located in the ./images folder of the cgi-bin directory.<br>
+						These are manually resized by the user. Next to the original.
+						Otherwise considered as stand alone icons. *_frm.png Image resized to ->  width="210" height="120"
+						<br><i>Example</i>:
+						<pre>
+		../cgi-bin/images/
+			my_cat_simon_frm.png
+			my_cat_simon.jpg															 
+						</pre>In loge entry, place:
+						<pre>
+	&#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;
+	This is my pet, can you hold him for a week while I am on holiday?
+            </pre>
+						<h3>Log Page Particulars</h3>
+						&#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly.
+					</p>
+					</div>
+					</center><a name="bottom"/>
 					<hr>
 	);
 
