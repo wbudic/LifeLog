@@ -31,6 +31,7 @@ our $SESSN_EXPR  = '+30m';
 our $DATE_UNI    = '0';
 our $RELEASE_VER = '1.3';
 our $AUTHORITY   = '';
+our $IMG_W_H     = '210x120';
 #END OF SETTINGS
 
 my $cgi = CGI->new;
@@ -51,6 +52,8 @@ if($AUTHORITY){
 my $database = '../../dbLifeLog/'.$dbname;
 my $dsn= "DBI:SQLite:dbname=$database";
 my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+
+my ($imgw,$imgh);
 
 ### Authenticate session to alias password
 &authenticate;
@@ -79,6 +82,17 @@ if($rs_dat_from && $rs_dat_to){
 my $toggle =""; if($rs_keys||$rs_cat_idx||$stmD){$toggle=1;};
 
 $session->expire($SESSN_EXPR);
+
+#tag related framed sizing.
+my @arrwh = $IMG_W_H = ~m((\S+)\s*x\$\s*(\S+))gi;
+if(@arrwh==2){
+	$imgw = $arrwh[0];
+	$imgh = $arrwh[1];
+}
+else{
+	$imgw = 210;
+	$imgh = 120;
+}
 	
 print $cgi->header(-expires=>"0s", -charset=>"UTF-8"); 
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
@@ -271,10 +285,10 @@ while(my @row = $st->fetchrow_array()) {
 				}
 			}
 			$lnk = qq(\n<a href="./images/$lnk" style="border=0;" target="_IMG">
-			<img src="./images/$sub" width="210" height="120" class="tag_FRM"/></a>);
+			<img src="./images/$sub" width="$imgw" height="$imgh" class="tag_FRM"/></a>);
 		  }else{
 			#TODO fetch from web locally the original image.
-			$lnk = qq(\n<img src="$lnk" width="210" height="120" class="tag_FRM"/>);
+			$lnk = qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 		  }  	
 		  $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);	
 	    $log=~s/<<FRM<(.*?)>/$lnk/o;
@@ -297,8 +311,12 @@ while(my @row = $st->fetchrow_array()) {
 	   my $sub =  "<b>".substr($log,$idx+4,$len-$idx)."</b>";
 	      $log=~s/<<B<(.*?)>/$sub/o;	
 	}
-
-
+	while ($log =~ /<<I</){
+	   my $idx = $-[0];
+	   my $len = index($log, '>', $idx)-4;
+	   my $sub =  "<i>".substr($log,$idx+4,$len-$idx)."</i>";
+	      $log=~s/<<I<(.*?)>/$sub/o;	
+	}
 	while($log =~ /<<TITLE</){
 	   my $idx = $-[0];
 	   my $len = index($log, '>', $idx)-8;
@@ -457,12 +475,14 @@ $srh.='</table></form><br>';
 #
 #Page printout from here!
 #
-print "<center>";
-	print "\n<div>\n" . $frm ."\n</div>\n<br>\n";
-	print '<div id="div_srh">' . $srh .'</div>';
-	print "\n<div>\n" . $tbl ."\n</div>";
-	print '<br><div><a href="stats.cgi">View Statistics</a></div>';
-	print '<br><div><a href="config.cgi">Configure Log (Careful)</a><a name="bottom"/></div>';
+print qq(<center>\n
+	  <div>\n$frm\n</div>\n<br>\n
+	  <div id="div_srh">$srh</div>
+	  <div>\n$tbl\n</div><br>
+	  <div><a href="stats.cgi">View Statistics</a></div><br>
+	  <div><a href="config.cgi">Configure Log</a></div><hr>
+		<div><a href="login_ctr.cgi?logout=bye">LOGOUT</a><a name="bottom"/></div>
+	);
 print qq(</center>
         <ul id="cat_lst">
 				$cat_descriptions
@@ -679,7 +699,8 @@ sub getConfiguration{
 				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}		
 				case "SESSN_EXPR" {$SESSN_EXPR=$r[2]}
 				case "DATE_UNI"  {$DATE_UNI=$r[2]}
-				case "LANGUAGE"  {$LANGUAGE=$r[2]}				
+				case "LANGUAGE"  {$LANGUAGE=$r[2]}
+				case "IMG_W_H"  {$IMG_W_H=$r[2]}
 				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
 			}
 

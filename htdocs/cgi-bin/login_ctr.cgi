@@ -43,14 +43,15 @@ my $frm;
 #This is the OS developer release key, replace on istallation. As it is not secure.
 my $cipher_key = '95d7a85ba891da';
 
+if($cgi->param('logout')){&logout}
+
 if(&processSubmit==0){
 
   print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);  
   print $cgi->start_html(-title => "Personal Log Login", -BGCOLOR=>"#c8fff8",
        		               -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 		                     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-		    );	
-
+		    );	  
 
   $frm = qq(
 	 <form id="frm_login" action="login_ctr.cgi" method="post"><table border="0" width="$PRC_WIDTH%">
@@ -71,9 +72,11 @@ if(&processSubmit==0){
 	  <tr class="r0"><td colspan="2"></td><td><input type="submit" value="Login"/></td></tr>
     </table></form>);
 
-		print "<center>";
-			print "\n<div>\n" . $frm ."\n</div>\n<br/>";
-		print "</center>";	 
+		print qq(<br><br><div id=rz>
+						<center>
+							<h2>Welcome to Life Log</h2><div>$frm</div><br/>
+							<a href="https://github.com/wbudic/LifeLog" target="_blank">Get latest version of this application here!</a><br>
+						</center><div>);
 		print $cgi->end_html;
 
 }
@@ -157,7 +160,6 @@ try{
 		 insertDefCats($db);
 	}
 
-
   $st = $db->prepare(selSQLTbl('AUTH'));
 	$st->execute();
 	if(!$st->fetchrow_array()) {
@@ -191,7 +193,7 @@ try{
 		$rv = $db->do($stmt);
 	}
   populateConfig($db);
-	
+	$db->disconnect();
 }
  catch{	 	
 	  print $cgi->header;
@@ -278,6 +280,30 @@ sub removeOldSessions{
 		    unlink "$LOG_PATH/$file";
 		}
 	}
+}
+
+sub logout{
+
+	$session->delete();
+	$session->flush();
+	print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
+	print $cgi->start_html(-title => "Personal Log Login", -BGCOLOR=>"black", 
+		                     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+		    );	
+	
+	print qq(<font color="white"><center><h2>You have properly loged out of the Life Log Application!</h2>
+	<br>
+	<form action="login_ctr.cgi"><input type="submit" value="No, no, NO! Log me In Again."/></form><br>
+	</br>
+	<iframe width="60%" height="600px" src="https://www.youtube.com/embed/HQ5SEieVbSI?autoplay=1" 
+	  frameborder="0" 
+		allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+	</iframe>
+	</center></font>
+	);	
+
+	print $cgi->end_html;
+	exit;
 }
 
 ### CGI END
