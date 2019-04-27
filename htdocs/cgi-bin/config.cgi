@@ -218,10 +218,17 @@ my $prc_hdr = $PRC_WIDTH-2;
 
 					<center>
 					<div id="rz" style="text-align:left; position:relative;width:600px;">
-					<h2>E-Tags Specs</h2>					
+					<h2>L-Tags Specs</h2>					
+					<p>
+					Life Log Tags are simple markup allowing fancy formatting and functionality 
+					for your logs HTML layout.
+					</p>
 					<p>
 					<b>&#60;&#60;B&#60;<i>{Text To Bold}</i><b>&#62;</b>
 					</p>
+					<p>
+					<b>&#60;&#60;I&#60;<i>{Text To Italic}</i><b>&#62;</b>
+					</p>					
 					<p>
 					<b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;</b>
 					</p>
@@ -237,12 +244,22 @@ my $prc_hdr = $PRC_WIDTH-2;
 						<pre>
 		../cgi-bin/images/
 			my_cat_simon_frm.png
-			my_cat_simon.jpg															 
-						</pre>In loge entry, place:
-						<pre>
-	&#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;
-	This is my pet, can you hold him for a week while I am on holiday?
+			my_cat_simon.jpg	
+
+          In loge entry, place:
+
+	  &#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;
+	  This is my pet, can you hold him for a week while I am on holiday?
             </pre>
+					</p>
+					<p>
+					<b>&#60;&#60;LNK&#60;<i>{url to image}</i><b>&#62;</b><br><br>
+					Explicitly tag an URL in the log entry. 
+					Required if using in log IMG or FRM tags. 
+					Otherwise link appears as plain text.
+					</p>
+					<hr>
+          </p>
 						<h3>Log Page Particulars</h3>
 						&#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly.
 					</p>
