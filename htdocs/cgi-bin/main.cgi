@@ -250,7 +250,7 @@ while(my @row = $st->fetchrow_array()) {
 	}
 
   my $sub ="";
-
+  my $tagged = 0;
 	#Check for LNK takes precedence here as we also parse plain placed URL's for http protocol later.
   if($log =~ /<<LNK</){
  	   my $idx = $-[0]+5;
@@ -258,6 +258,7 @@ while(my @row = $st->fetchrow_array()) {
 	   $sub = substr($log, $idx+1,$len-$idx-1);
 		 my $url = qq(<a href="$sub" target=_blank>$sub</a>);
 	   	  $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);
+				 $tagged = 1;
 	      $log=~s/<<LNK<(.*?)>/$url/osi;
   }
 
@@ -267,7 +268,9 @@ while(my @row = $st->fetchrow_array()) {
 	   my $len = index($log, '>', $idx);
 	   $sub = substr($log,$idx+1,$len-$idx-1);
 	   my $url = qq(<img src="$sub"/>);
+		 if(!$tagged){
 	   	  $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);
+		 }
 	      $log=~s/<<IMG<(.*?)>/$url/osi;		  
 	}
 	elsif($log =~ /<<FRM</){
@@ -290,7 +293,9 @@ while(my @row = $st->fetchrow_array()) {
 			#TODO fetch from web locally the original image.
 			$lnk = qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 		  }  	
-		  $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);	
+			if(!$tagged){
+		      $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);	
+			}
 	    $log=~s/<<FRM<(.*?)>/$lnk/o;
 	}
 	
