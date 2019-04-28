@@ -192,7 +192,8 @@ my $prc_hdr = $PRC_WIDTH-2;
 	print "\n<div>\nSTATUS:" .$status. "\n</div>\n";	
 	print qq(
 		      <br><div id="rz" style="text-align:center; position:relative;width:"$PRC_WIDTH%" padding:0px;">
-					<a href="main.cgi"><h2>Back to Main Log</h2></a></div><br><hr>\n
+					<a href="main.cgi"><h2>Back to Main Log</h2></a><br><br><a href="login_ctr.cgi?logout=bye">LOGOUT</a></div>
+					<br><hr>\n
 					
 					<table border="0">
 						<tr><td><H3>CSV File Format</H3></td></tr>\n
