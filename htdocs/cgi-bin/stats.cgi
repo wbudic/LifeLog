@@ -1,21 +1,38 @@
-#!/usr/bin/perl
-
+#!/usr/bin/perl -w
+#
+# Programed in vim by: Will Budic
+# Open Source License -> https://choosealicense.com/licenses/isc/
+#
 use strict;
 use warnings;
  
-use DBI;
 use CGI;
+use CGI::Session '-ip_match';
+use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 use Number::Bytes::Human qw(format_bytes);
 
-my $driver   = "SQLite"; 
-my $database = "../../dbLifeLog/data_log.db";
-my $dsn = "DBI:$driver:dbname=$database";
-my $userid = "";
-my $password = "";
-my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
-   or die "<p>Error->"& $DBI::errstri &"</p>";
+our $LOG_PATH    = '../../dbLifeLog/';
+
+my $cgi = CGI->new;
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
+my $sid=$session->id();
+my $dbname  =$session->param('database');
+my $userid  =$session->param('alias');
+my $password=$session->param('passw');
+
+if(!$userid||!$dbname){
+	print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+	exit;
+}
+
+my $database = '../../dbLifeLog/'.$dbname;
+my $dsn= "DBI:SQLite:dbname=$database";
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->". $DBI::errstri ."</p>";
+
+
+
 
 my @stat = stat $database;
 
@@ -32,10 +49,10 @@ my $q = CGI->new;
 
 print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
 
-print $q->start_html(-title => "Log Data Stats", 
-       		     -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		     -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-		     -onload => "loadedBody();"
+print $q->start_html(-title => "Log Data Stats", -BGCOLOR=>"#c8fff8",
+       		         -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+		             -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+		             -onload => "loadedBody();"
 		        );	  
 
 
@@ -61,6 +78,10 @@ my $income =  sprintf("%.2f",selectSQL($stm));
 my $revenue = big_money($income - $expense);
 my $hardware_status =`inxi -b -c0;uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;
+$hardware_status =~ s/Memory:/<b>Memory:/g;
+$hardware_status =~ s/Init:/<\/b>Initial:/g;
+$hardware_status =~ s/up\s/<b>Server is up: /g;
+$hardware_status .= '</b>';
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 
 
@@ -88,13 +109,13 @@ print '<div style="text-align:left;  border: 1px solid black;"><br/><b>Server In
 print '<div style="text-align:left;"><br/><b>Processes Info</b><br/><br/><pre>' . $processes .'</pre></div>';
 
 print $q->end_html;
-$dbh->disconnect();
+$db->disconnect();
 exit;
 
 sub selectSQL{
 
 
-	my $sth = $dbh->prepare( @_ );
+	my $sth = $db->prepare( @_ );
 	$sth->execute();
 	my @row = $sth->fetchrow_array();
 	$sth->finish;

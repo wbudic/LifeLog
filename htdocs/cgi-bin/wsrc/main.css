@@ -1,66 +1,142 @@
-
 p {
-	font-family: Bookman;
-	margin-left: 70px;
-	font-weight: bold;
+    font-family: Bookman;
+    margin-left: 70px;
+    font-weight: bold;
 }
 
-
-table, th, td{
-	font-family: Bookman;
-	border-collapse: collapse;
-	padding: 5px;
-	margin: auto;
+table,
+th,
+td {
+    font-family: Bookman;
+    border-collapse: collapse;
+    padding: 5px;
+    margin: auto;
 }
 
-div{
-	font-family: Bookman;
-	text-align: center;
-	vertical-align: middle;
+div {
+    font-family: Bookman;
+    text-align: center;
+    vertical-align: middle;
 }
 
-#div_srh{
-	text-align: center;
-	vertical-align: middle;
-	display: none;
+#div_srh {
+    text-align: center;
+    vertical-align: middle;
+    display: none;
 }
 
 .tbl {
-	border: 1px solid black;
-	padding-top: 5px;
-	padding-right: 5px;
-	padding-bottom: 5px;
-	padding-left: 5px;
+    border: 1px solid black;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+    margin-bottom: 0px;
 }
 
-.r0{
-	background-color: #e6ffff;
-	border: 1px solid black;
+.tbl_rem {
+    border: 1px solid black;
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+    text-align: left;
 }
 
-.r1{
-	background-color: #ccffff;
+.r0 {
+    background-color: #e6ffff;
+    border: 1px solid black;
+    border-right: 1px solid black;
+    vertical-align: top;
 }
 
-
-
-.edit{
-	margin: 0;
-	padding 5px;
-	font-size:7pt;
-	border=:0px;
+.r1 {
+    background-color: #ccffff;
+    border: 1px solid black;
+    border-right: 1px solid black;
+    vertical-align: top;
 }
 
-#al{
-	align-items:left;
-	align:left;
-	align-content:left;
-	text-align:left;
+.hdr {
+    font-style: normal;
+    font-weight: bold;
+    font-size: large;
+    background-color: #98e6e6;
+    border: 1px solid black;
+    border-right: 1px solid black;
+    text-align: center;
 }
 
-.log{
-	text-align:left;
-	word-wrap: break-word;
-	padding-left: 5px;
+.edit {
+    margin: 2px;
+    padding: 2px;
+    font-size: 9pt;
+    color: midnightblue
 }
 
+#al {
+    align-items: left;
+    align-content: left;
+    text-align: left;
+}
+
+.log {
+    text-align: left;
+    word-wrap: break-word;
+    padding-left: 5px;
+}
+
+.rz {
+    border: 1px solid black;
+    text-align: left;
+    background-color: #e6ffff;
+    vertical-align: top;
+    align-self: baseline;
+    width: 60%;
+    height: auto;
+    padding: 2%;
+    margin: 0px auto;
+}
+
+div#rz {
+    border: 1px solid black;
+    text-align: left;
+    background-color: #e6ffff;
+    vertical-align: top;
+    align-self: baseline;
+    width: 60%;
+    height: auto;
+    padding: 2%;
+    margin: 0px auto;
+}
+
+#tag_FRM {
+    border: 2px solid rgb(148, 205, 231);
+    padding: 5px;
+    text-align: right;
+    vertical-align: top;
+}
+
+img {
+    float: left;
+    padding: 0 10px
+}
+
+#cat_desc {
+    position: relative;
+    border: 2px solid rgb(148, 205, 231);
+    padding: 5px;
+    text-align: left;
+}
+
+#cat_lst {
+    visibility: hidden;
+}
+
+#frm_login {
+    # position: absolute;
+    vertical-align: middle;
+    margin: 0;
+}

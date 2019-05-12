@@ -1,6 +1,28 @@
+*** LifeLog Requirements ***
+
+ -Web Server (any will do that supports CGI perl execution)
+ -SQLite
+ -Perl Modules
+ -git (git clone https://github.com/wbudic/LifeLog)
+
+ -- Note - Perl and some modules might take time to install
+           as their fetched and tested for your computer.
+
+           
+
 #Install tiny thttpd web server.
 
 https://acme.com/software/thttpd/
+
+wget https://acme.com/software/thttpd/thttpd-2.29.tar.gz
+tar -xvzf thttpd-2.29.tar.gz
+cd thttpd-2.29/
+sudo groupadd www
+make
+make install
+
+#rm thttpd-2.29.tar.gz
+#rm -rf thttpd-2.29
 
 Create an mkdir ~/thttpd_dev directory.
 
@@ -22,12 +44,23 @@ host=0.0.0.0
 charset=utf-8
 cgipat=**.cgi
 
+After modifying the thttpd.conf
+you'll have to modify the startDevWebServer.sh to reflect your setup before running the script.
 
-#Install cpanm to make installing other modules easier (you'll thank us later). You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
+The full URL to the LifeLog is the following link (if not working try without cgi-bin, and proceed with further installation):
+#
+#
+         http://localhost:8080/cgi-bin/
+#
+#
+
+#Install cpanm to make installing other modules easier (you'll thank us later). 
+You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
 sudo apt install cpanminus
 
 #Install DBI module
 sudo cpanm DBI
+sudo cpanm DBD::SQLite
 
 #Install SQLite
 https://www.sqlite.org/download.html
@@ -39,11 +72,11 @@ sudo cpanm DateTime;
 sudo cpanm DateTime::Format::Human::Duration
 sudo cpanm DateTime::Format::SQLite;
 sudo cpanm Text::CSV;
+sudo cpanm Number::Bytes::Human;
 sudo cpanm CGI::Session;
-sudo cpanm TryCatch;
-sudo cpanm Number/Bytes/Human.pm
-sudo cpanm Regexp::Common
-
+sudo cpanm Try::Tiny;
+sudo cpanm Number/Bytes/Human.pm;
+sudo cpanm Regexp::Common;
 
 #Upgrade Instructions
 
@@ -53,7 +86,7 @@ Before installing newer version scripts, perform an data export.
 cd /home/{user}/thttpd_dev/dbLifeLog
 sqlite3 -csv data_log.db "select * from LOG;" > current_log.csv
 
-##Install LifeLog Independantly
+##Install LifeLog Independently
 cd /home/{user}/ 
 git clone https://github.com/wbudic/LifeLog
 mkdir /home/{user}/thttpd_dev/dbLifeLog
@@ -64,14 +97,14 @@ if doing development. Copy also the /home/{user}/LifeLog/.git to /home/{user}/th
 Access the webserver cgi-bin. http://localhost:8080/cgi-bin/main.cgi
 (this might redirect to login.cgi or config.cgi in the future)
 
-##Install LifeLog Dependatly (not automatic, manual developer way)
+##Install LifeLog Dependably (not automatic, manual developer way)
 cd /home/{user}/ 
 git clone https://github.com/wbudic/LifeLog
 run thttpd with:
 cd LifeLog; ./startDevWebServer.sh
 
 ##Import CSV Exported File
-This requires all CGI working. As it will creat a brand new database for you.
+This requires all CGI working. As it will create a brand new database for you.
 Once created you must import the from above example current_log.csv
 cd /home/{user}/thttpd_dev/dbLifeLog
 see: http://www.sqlitetutorial.net/sqlite-import-csv/
@@ -80,7 +113,7 @@ Example (data_dev1_2_log.db would be created as the latest version by the CGI cr
 cd /home/{user}/thttpd_dev/dbLifeLog
 sqlite3 data_dev1_2_log.db
 sqlite> .mode csv
-sqlite> .import curren_log.csv LOG;
+sqlite> .import current_log.csv LOG;
 sqlite> select * FROM LOG;
 sqlite>.quit
 
@@ -105,6 +138,32 @@ vim /etc/init.d/startDevWebServer.sh
 
 Install as service with:
 sudo update-rc.d startDevWebServer.sh defaults
+
+
+#Developer Notes
+
+##Automate GIT Push
+
+vim your ./LifeLog/.git/conf file to include:
+ [remote "origin"]
+	url = https://{user}:{password}github.com/wbudic/LifeLog.git
+  ...
+Where {user} and {password} are your git login credentials.
+Don't worry, these credentials are not uploaded. And someone must have
+access to your computers login to specifically hack to obtain them.
+
+##Troubleshoot Data Problems
+
+To reset factory defaults, for categories and configuration.
+You might need to delete data in some tables.
+Issue either the bellow statements externally.
+
+sqlite3 data_{alias}_log.db "delete from CAT;"
+sqlite3 data_{alias}_log.db "delete from CONFIG;"
+
+Subsequent versions of LifeLog software might require this operation.
+You can export and modify your added categories via an CSV file.
+Making sure the ID first column across all entries has a unique number.
 
 
 
