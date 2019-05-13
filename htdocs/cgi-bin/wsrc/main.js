@@ -44,12 +44,46 @@ function formValidation() {
 
 }
 
+
 function validDate(dt) {
     if (!Date.parse(dt)) {
         alert("Date -> '" + dt + "' is Invalid can't submit!");
         return false;
     }
-    return true;
+    return validTime(dt.substring(dt.indexOf(" ") + 1));
+}
+
+function validTime(val) {
+    // regular expression to match required time format
+    re = /^(\d{2}):(\d{2}):(\d{2})([ap]m)?$/;
+    var fld = document.getElementById("frm_entry").date;
+    if (val != '') {
+        if (regs = val.match(re)) {
+            // 12-hour value between 1 and 12
+            if (regs[1] < 1 || regs[1] > 23) {
+                alert("Invalid value for hours: " + regs[1]);
+                fld.focus();
+                return false;
+            }
+            // minute value between 0 and 59
+            if (regs[2] > 59) {
+                alert("Invalid value for minutes: " + regs[2]);
+                fld.focus();
+                return false;
+            }
+            // seconds value between 0 and 59
+            if (regs[3] > 59) {
+                alert("Invalid value for seconds: " + regs[2]);
+                fld.focus();
+                return false;
+            }
+        } else {
+            alert("Invalid time format: " + val);
+            fld.focus();
+            return false;
+        }
+        return true;
+    }
 }
 
 function validLog(log) {
