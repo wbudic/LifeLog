@@ -6,22 +6,50 @@
 use strict;
 use warnings;
 
-
-	open(my $fh, '<', '/home/will/dev/LifeLog/htdocs/cgi-bin/main.cnf' ) or die "Can't open main.cnf: $!";
-	
+    my $fh;
+	my $inData = 0;
+	open($fh, '<', '/home/will/dev/LifeLog/htdocs/cgi-bin/main.cnf' ) or die "Can't open main.cnf: $!";
+	my %vars = {};
     while (my $line = <$fh>) {
            chomp $line;
 
-			my %hsh = $line =~ m[(\S+)\s*=\s*(\S+)]g;
-		    for my $key (keys %hsh) {
-				my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;				
-				for my $id (keys %nash) {
-					my $name  = $nash{$id};
-					my $value = $hsh{$key};
-					print "[$id]->$name:$value\n";
-				}
+		    my @tick = split("`",$line);
 
-				# print $nar[0].'='.$nar[1]."\n";
+			if(scalar(@tick)==2){
+				my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
+				if(scalar(%hsh)==1){
+				for my $key (keys %hsh) {
+					my %nash = $key =~ m[(\S+)\s*\|\s*(\S+)]g;
+					if(scalar(%nash)==1){
+						for my $id (keys %nash) {
+							my $name  = $nash{$id};
+							my $value = $hsh{$key};
+							if($vars{$id}){
+								print "4Corrupt Entry -> $line\n";
+							}
+							else{
+							$vars{$id}=$name;
+							print "[$id]->$name:$value -> $tick[1]\n";
+							$inData = 1;
+							}
+						}
+					}
+					else{
+						print "3Corrupt Entry -> $line\n";
+					}
+				}
+				}
+				else{
+					print "2Corrupt Entry -> $line\n";
+				}
+			}
+			elsif($inData && length($line)>0){
+				    if(scalar(@tick)==1){
+						print "Corrupt Entry, no description supplied -> $line\n";
+					}
+					else{	
+						print "1Corrupt Entry -> $line\n";
+					}
 			}
 
 

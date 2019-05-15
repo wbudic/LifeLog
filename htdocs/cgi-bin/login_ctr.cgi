@@ -191,11 +191,14 @@ try{
 										CREATE TABLE CONFIG(
 												ID TINY PRIMARY KEY NOT NULL,
 												NAME VCHAR(16),
-												VALUE VCHAR(64)
+												VALUE VCHAR(28),
+												DESCRIPTION VCHAR(128)
 										);
 		);
 		$rv = $db->do($stmt);
+		$st->finish();
 	}
+	#PRAGMA table_info(CONFIG); <-To check current structure
   populateConfig($db);
 	$db->disconnect();
 }
@@ -210,7 +213,14 @@ sub populateConfig{
 
 		open(my $fh, '<', './main.cnf' ) or die "Can't open main.cnf: $!";
 		my $db = shift;
-		my ($did,$name, $value);
+		my ($did,$name, $value, $desc);
+		my $inData = 0;
+		my $err = "";
+		my %vars = {};
+
+#TODO Check if script id is unique to database? If not script prevails to database entry. 
+#So, if user settings from a previous release, must be migrated later.
+
 
 		my $st = $db->prepare("SELECT count(*) FROM CONFIG;");
 		   $st->execute();
@@ -218,35 +228,59 @@ sub populateConfig{
 		if($cnt != 0){
 			 return;
 		}
-try{		
+try{
+	  $st->finish();
+		my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');		
     while (my $line = <$fh>) {
-					chomp $line;				
-					my %hsh = $line =~ m[(\S+)\s*=\s*(\S+)]g;
-					for my $key (keys %hsh) {
-								my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;									
-								
-						for my $id (keys %nash) {
-							    $did = $id;
-								  $name  = $nash{$id};
-								  $value = $hsh{$key};
-						 	 my $st = $db->prepare("SELECT * FROM CONFIG WHERE NAME LIKE '$name';");
-									$st->execute();								
-							 if(!$st->fetchrow_array()){
-									#TODO Check if script id is unique to database? If not script prevails to database entry. 
-									#if user setting from previous release, must be migrated later.
-									$st = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?)');
-									$did = $id;
-									$st->execute($id, $name,$value);                  
-								}
-							}
+					chomp $line;
+					my @tick = split("`",$line);
+					if(scalar(@tick)==2){
+									my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
+									if(scalar(%hsh)==1){										
+											for my $key (keys %hsh) {
+
+													my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
+													if(scalar(%nash)==1){
+															for my $id (keys %nash) {
+																my $name  = $nash{$id};
+																my $value = $hsh{$key};
+																if($vars{$id}){
+							$err .= "UID{$id} taken by $vars{$id}-> $line\n";
+																}
+																else{
+																			my $st = $db->prepare("SELECT * FROM CONFIG WHERE NAME LIKE '$name';");
+																				$st->execute();
+																				$inData = 1;
+																			if(!$st->fetchrow_array()){
+																					$insert->execute($id,$name,$value,$tick[1]);													
+																			}
+																}
+															}
+													}else{
+							$err .= "Invalid, spec'ed {uid}|{setting}`{description}-> $line\n";
+													}
+
+											}#rof
+									}
+									else{
+							$err .= "Invalid, speced entry -> $line\n";
+									}
+
+					}elsif($inData && length($line)>0){
+				    if(scalar(@tick)==1){
+							 $err .= "Corrupt Entry, no description supplied -> $line\n";
+						}
+						else{	
+						   $err .= "Corrupt Entry -> $line\n";
+						}
 					}
-		}      
-    
-    close $fh;	
+		}    
+		die "Configuration script './main.cnf' [$fh] contains errors." if $err;
+		close $fh;
  } catch{	 	
 	  close $fh;	
 	  print $cgi->header;
-		print "<font color=red><b>SERVER ERROR</b></font> [$did, $name,$value]:".$_;
+		print "<font color=red><b>SERVER ERROR!</b></font><br> ".$_."<br><pre>$err</pre>";
     print $cgi->end_html;
 		exit;
  }
