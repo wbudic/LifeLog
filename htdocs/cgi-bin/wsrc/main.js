@@ -11,8 +11,46 @@ function loadedBody(toggle) {
     if (toggle) {
         toggleSearch(document.getElementById("btn_srch"));
     }
-
-
+    $('#ed').poshytip({
+        content: "Select here date and time of your log.",
+        className: 'tip-yellowsimple',
+        showTimeout: 1,
+        alignTo: 'target',
+        alignX: 'center',
+        alignY: 'bottom',
+        offsetY: 5,
+        allowTipHover: false
+    });
+    $('#ec').poshytip({
+        content: "Select here the category for your log.",
+        className: 'tip-yellowsimple',
+        showTimeout: 1,
+        alignTo: 'target',
+        alignX: 'center',
+        alignY: 'bottom',
+        offsetY: 5,
+        allowTipHover: false
+    });
+    $('#el').poshytip({
+        content: "This is your log entry can't be empty.",
+        className: 'tip-yellowsimple',
+        showOn: 'focus',
+        alignTo: 'target',
+        alignX: 'left',
+        alignY: 'center',
+        offsetX: 5,
+        showTimeout: 100
+    });
+    $('#am').poshytip({
+        content: "Symbolic ammount in your local or preferred currency. Can be left empty.",
+        className: 'tip-yellowsimple',
+        showOn: 'focus',
+        alignTo: 'target',
+        alignX: 'left',
+        alignY: 'center',
+        offsetX: 5,
+        showTimeout: 100
+    });
     $('#ed').datetimepicker({
         dateFormat: 'yy-mm-dd',
         timeFormat: 'HH:mm:ss',
@@ -21,6 +59,8 @@ function loadedBody(toggle) {
         stepSecond: 10,
         firstDay: 1
     });
+
+
 
     $("input[type=submit], input[type=reset], .ui-widget-content, button").button();
 

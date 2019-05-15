@@ -127,8 +127,11 @@ my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid 
 $st = $db->prepare( $stmtCat );
 $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
-my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec" onFocus="toggleVisibility('cat_desc')"
- onBlur="toggleVisibility('cat_desc')" onScroll="helpSelCategory(this)" onChange="updateSelCategory(this)">
+my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec" 
+ onFocus="toggleVisibility('cat_desc')" 
+ onBlur="toggleVisibility('cat_desc')" 
+ onScroll="helpSelCategory(this);updateSelCategory(this)" 
+ onChange="updateSelCategory(this)">
 							<option value="0">---</option>\n);
 
 
@@ -431,7 +434,7 @@ $tbl .= '<tr class="r0"><td><a href="#top">&#x219F;</a></td><td colspan="5" alig
 
 my $frm = qq(<a name="top"></a>
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
-	<table class="tbl" border="1" width="$PRC_WIDTH%">
+	<table class="tbl" border="0" width="$PRC_WIDTH%">
 	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>	
 	<tr>
 	<td style="text-align:right;  vertical-align:top">Date:</td>
@@ -447,7 +450,7 @@ $cats
 	</tr>
 	<tr><td style="text-align:right; vertical-align:top">Log:</td>
 		<td id="al" colspan="2" style="text-align:top;">
-			<textarea id="el" name="log" rows="3" style="float:left; width:99%;" onFocus="toggleVisibility('cat_desc',true)"></textarea>
+			<textarea id="el" name="log" rows="3" style="float:left; width:99%;" onChange="toggleVisibility('cat_desc',true)"></textarea>
 		</td>	
 	</tr>
 		<tr><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Ammount:</td>
