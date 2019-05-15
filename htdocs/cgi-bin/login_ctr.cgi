@@ -16,15 +16,19 @@ use DateTime::Format::SQLite;
 use DateTime::Duration;
 use Text::CSV;
 
+
 #DEFAULT SETTINGS HERE!
 our $REC_LIMIT   = 25;
 our $TIME_ZONE   = 'Australia/Sydney';
 our $LANGUAGE	   = 'English';
-our $PRC_WIDTH   = '60';
+our $PRC_WIDTH   = '70';
 our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
 our $DATE_UNI    = '0';
-our $RELEASE_VER = '1.3';
+our $RELEASE_VER = '1.4';
+our $AUTHORITY   = '';
+our $IMG_W_H     = '210x120';
+our $AUTO_WRD_LMT= 200;
 #END OF SETTINGS
 
 
