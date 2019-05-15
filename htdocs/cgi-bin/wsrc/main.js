@@ -11,6 +11,16 @@ function loadedBody(toggle) {
     if (toggle) {
         toggleSearch(document.getElementById("btn_srch"));
     }
+
+    $('#ed').datetimepicker({
+        dateFormat: 'yy-mm-dd',
+        timeFormat: 'HH:mm:ss',
+        stepHour: 1,
+        stepMinute: 10,
+        stepSecond: 10,
+        firstDay: 1
+    });
+
     $('#ed').poshytip({
         content: "Select here date and time of your log.",
         className: 'tip-yellowsimple',
@@ -51,18 +61,11 @@ function loadedBody(toggle) {
         offsetX: 5,
         showTimeout: 100
     });
-    $('#ed').datetimepicker({
-        dateFormat: 'yy-mm-dd',
-        timeFormat: 'HH:mm:ss',
-        stepHour: 1,
-        stepMinute: 10,
-        stepSecond: 10,
-        firstDay: 1
-    });
 
 
 
-    $("input[type=submit], input[type=reset], .ui-widget-content, button").button();
+
+    $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
 
 
     document.getElementById("log_submit").addEventListener("click", encodeText);
