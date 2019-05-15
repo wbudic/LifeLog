@@ -179,7 +179,7 @@ while(my @row = $dbs->fetchrow_array()) {
 
 
 my  $frmVars = qq(
-	 <form id="frm_vars" action="config.cgi">).$tbl.qq(	  
+	 <form id="frm_vars" action="config.cgi">$tbl
 	  <tr class="r1">		
 		 <td colspan="3" align=right><b>System Settings In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
 		</tr>	
@@ -192,7 +192,7 @@ $tbl = qq(<table id="cnf_fix" class="tbl" border="0" width="$PRC_WIDTH%">
 	          <tr class="r0"><td colspan="2"><b>* DATA FIX *</b></td></tr>
 			 );
 my  $frmDB = qq(
-	 <form id="frm_DB" action="config.cgi">).$tbl.qq(	  
+	 <form id="frm_DB" action="config.cgi">$tbl
 		<tr class="r1" align="left"><th>Extra Action</th><th>Description</th></tr>
 		<tr class="r0" align="left"><td><input type="checkbox" name="reset_cats" value="1"/>Reset Categories</td><td>Wipes Categories for recreation (will initiate logoff).</td></tr>
 		<tr class="r1" align="left"><td><input type="checkbox" name="reset_syst" value="1"/>Reset Settings</td><td>Resets system settings to default values.</td></tr>
@@ -221,31 +221,31 @@ my $prc_hdr = $PRC_WIDTH-2;
 	<div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
 				<a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a></div>		
 			<br><div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
-			<a href="main.cgi"><h3>Back to Main Log</h3></a><br><h3><a href="login_ctr.cgi?logout=bye">LOGOUT</a></h3><br></div>
-			<br><hr>\n
+			<a href="main.cgi"><h3>Back to Main Log</h3></a><h3><a href="login_ctr.cgi?logout=bye">LOGOUT</a></h3></div>
+			<br><hr> 
 			
 			<table border="0">
-				<tr><td><H3>CSV File Format</H3></td></tr>\n
-				<form action="config.cgi" method="post" enctype="multipart/form-data">\n
-				<tr style="border-left: 1px solid black;"><td>\n
-						<b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr>\n
+				<tr><td><H3>CSV File Format</H3></td></tr> 
+				<form action="config.cgi" method="post" enctype="multipart/form-data"> 
+				<tr style="border-left: 1px solid black;"><td> 
+						<b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr> 
 				<tr style="border-left: 1px solid black;"><td style="text-align:right;">
-						<input type="submit" name="Submit" value="Submit"/></p></td></tr>\n
-				</form>\n
-				<form action="config.cgi" method="post" enctype="multipart/form-data">\n
-				<tr style="border-top: 1px solid black;border-right: 1px solid black;"><td>\n
-						<b>Import Log</b>: <input type="file" name="data_log" /></td></tr>\n
-				<tr style="border-right: 1px solid black;"><td style="text-align:right;">\n
-						<input type="submit" name="Submit" value="Submit"/></p></td></tr>\n
-				</form>\n
+						<input type="submit" name="Submit" value="Submit"/></p></td></tr> 
+				</form> 
+				<form action="config.cgi" method="post" enctype="multipart/form-data"> 
+				<tr style="border-top: 1px solid black;border-right: 1px solid black;"><td> 
+						<b>Import Log</b>: <input type="file" name="data_log" /></td></tr> 
+				<tr style="border-right: 1px solid black;"><td style="text-align:right;"> 
+						<input type="submit" name="Submit" value="Submit"/></p></td></tr> 
+				</form> 
 					<tr><td style="text-align:right"><H3>To Server -> $sys -> $dbname</H3></td></tr>
 			</table>
 	</div>
 					
 					<br><div><a href="#top">&#x219F;</a>&nbsp;&nbsp;&nbsp;[<a href="config.cgi?csv=1">Export Log to CSV</a>] &nbsp;
-					 [<a href="config.cgi?csv=2">View the Log in CSV Format</a>]</div>\n					
+					 [<a href="config.cgi?csv=2">View the Log in CSV Format</a>]</div> 					
 					<br><div>[<a href="config.cgi?csv=3">Export Categories to CSV</a>] &nbsp;
-					[<a href="config.cgi?csv=4">View the Categories in CSV Format</a>]</div>\n
+					[<a href="config.cgi?csv=4">View the Categories in CSV Format</a>]</div> 
 					<hr>
 
 					<center>
@@ -278,7 +278,7 @@ my $prc_hdr = $PRC_WIDTH-2;
 			my_cat_simon_frm.png
 			my_cat_simon.jpg	
 
-          In loge entry, place:
+          For log entry, place:
 
 	  &#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;
 	  This is my pet, can you hold him for a week while I am on holiday?
@@ -366,18 +366,18 @@ if($change > 1){
 	      my $cade  = $cgi->param('cade');
 	      my $valid = 1;
 
-	while(my @row = $dbs->fetchrow_array()) {
+				while(my @row = $dbs->fetchrow_array()) {
 
-	      my $cid = $row[0];
-	      my $cnm = $row[1];
-	      my $cds = $row[2];
-	      
+							my $cid = $row[0];
+							my $cnm = $row[1];
+							my $cds = $row[2];
+							
 
-	      if($cid==$caid || $cnm eq $canm){
-                 $valid = 0;
-		 						last;
-	      }
-  }
+							if($cid==$caid || $cnm eq $canm){
+											$valid = 0;
+											last;
+							}
+				}
 
 	if($valid){
 	   $d = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
