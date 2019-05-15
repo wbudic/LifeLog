@@ -3,6 +3,7 @@
 ## Urgent
 * Bug  - 02, Record set paging to previous page not always working. Getting stuck.
 * Bug  - 03, Keyword search not working on words as they are categorized in background.
+* Configuration page to be updated, system variables description field to be implemented.
 * &#10004; Build login_ctrl.cgi login controller alias and password based. Where each alias creates its own database. It server side session based, that unless you logged off keeps the session 24 hr. by default. Alias is therefore to an separate database. If user doesn't know the password, can't get access. Client remote IP address is checked to be on local only network (IP pinged).
 * &#10004; Build config.cgi that creates database and allows editing of configuration. Main cgi redirect or links to it not doing that job no more.
 * &#10004; Create View By Category Button
