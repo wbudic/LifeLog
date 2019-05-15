@@ -29,9 +29,10 @@ our $PRC_WIDTH   = '60';
 our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
 our $DATE_UNI    = '0';
-our $RELEASE_VER = '1.3';
+our $RELEASE_VER = '1.4';
 our $AUTHORITY   = '';
 our $IMG_W_H     = '210x120';
+our $AUTO_WRD_LMT= 200;
 #END OF SETTINGS
 
 my $cgi = CGI->new;
@@ -389,6 +390,54 @@ while(my @row = $st->fetchrow_array()) {
 	}
 }
 
+#Fetch Keywords autocomplete we go by words larger then three.
+#
+$st = $db->prepare( 'select LOG from LOG;' );
+my $aw_cnt = 0;
+my $autows = qq("gas","money","today");
+$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+if($rv < 0) {
+			print "<p>Error->"& $DBI::errstri &"</p>";
+}
+while(my @row = $st->fetchrow_array()) {
+		  my $log = $row[0];
+			#Decode escaped \\n
+			$log =~ s/\\n/\n/gs;
+			$log =~ s/''/'/g;
+			#Replace link to empty string
+			my @words = split(/($re_a_tag)/si , $log) ;  
+			foreach my $ch_i ( @words ) {
+					next if $ch_i =~ /$re_a_tag/;
+					next if index($ch_i, "<img")>-1;
+					$ch_i =~ s/https//gsi;
+					$ch_i =~ s/($RE{URI}{HTTP})//gsi;
+			}	
+			$log = join(' ' , @words);
+			@words = split(' ', $log) ;  
+			foreach my $word (@words)  {
+				  #remove all non alphanumerics
+				  $word =~ s/[^a-zA-Z]//gs;					
+					if(length($word)>2){
+						 $word = lc $word;
+						 #parse for already placed words, instead of using an hash.
+						 my $idx = index($autows, $word,0);
+						 if($idx>0){
+							  my $end = index($autows,'"', $idx);
+							  my $existing = substr($autows, $idx, $end - $idx);
+								next if $word eq $existing;								
+						 }
+						  
+										$autows .= qq(,"$word");
+										if($aw_cnt++>$AUTO_WRD_LMT){
+											last;
+										}
+					}					
+			}		
+
+if($aw_cnt>$AUTO_WRD_LMT){
+						last;
+}
+}
 
 #End of table?
 if($rs_prev && $tbl_rc < $REC_LIMIT){
@@ -428,7 +477,7 @@ $tbl .= '<tr class="r0"><td><a href="#top">&#x219F;</a></td><td colspan="5" alig
 <input type="submit" value="Delete Selected"/>
 </td></tr></form>
 <tr class="r0"><form id="frm_srch" action="main.cgi"><td><b>Keywords:</b></td><td colspan="4" align="left">
-<input name="keywords" type="text" size="60"/></td>
+<input id="rs_keys2" name="keywords" type="text" size="60"/></td>
 <td><input type="submit" value="Search"/></form></td></tr>
 </table>';
 
@@ -506,18 +555,28 @@ $srh.='</table></form><br>';
 #Page printout from here!
 #
 print qq(<center>\n
+		<div id="floating_menu"></div>
 	  <div>\n$frm\n</div>\n<br>\n
 	  <div id="div_srh">$srh</div>
 	  <div>\n$tbl\n</div><br>
-	  <div><a id="a_stats" href="stats.cgi">View Statistics</a></div><br>
-	  <div><a href="config.cgi">Configure Log</a></div><hr>
-		<div><a href="login_ctr.cgi?logout=bye">LOGOUT</a><a name="bottom"/></div>
+	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
+	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
+		<div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"/></div>
 	);
 print qq(</center>
         <ul id="cat_lst">
 				$cat_descriptions
-				</ul>			
-				);
+				</ul>	
+			  <script type="text/javascript">
+					\$( function() {
+						var tags = [$autows];
+						\$( "#rs_keys, #rs_keys2" ).autocomplete({
+							source: tags
+							});
+						});
+				</script>
+						
+		 );
 
 print $cgi->end_html;
 $st->finish;
@@ -725,13 +784,14 @@ sub getConfiguration{
 		while (my @r=$st->fetchrow_array()){
 			
 			switch ($r[1]) {
-				case "REC_LIMIT" {$REC_LIMIT=$r[2]}
-				case "TIME_ZONE" {$TIME_ZONE=$r[2]}
-				case "PRC_WIDTH" {$PRC_WIDTH=$r[2]}		
-				case "SESSN_EXPR" {$SESSN_EXPR=$r[2]}
-				case "DATE_UNI"  {$DATE_UNI=$r[2]}
-				case "LANGUAGE"  {$LANGUAGE=$r[2]}
-				case "IMG_W_H"  {$IMG_W_H=$r[2]}
+				case "REC_LIMIT"    {$REC_LIMIT=$r[2]}
+				case "TIME_ZONE"    {$TIME_ZONE=$r[2]}
+				case "PRC_WIDTH"    {$PRC_WIDTH=$r[2]}		
+				case "SESSN_EXPR"   {$SESSN_EXPR=$r[2]}
+				case "DATE_UNI"     {$DATE_UNI=$r[2]}
+				case "LANGUAGE"     {$LANGUAGE=$r[2]}
+				case "IMG_W_H"      {$IMG_W_H=$r[2]}
+				case "AUTO_WRD_LMT" {$AUTO_WRD_LMT=$r[2]}
 				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
 			}
 
