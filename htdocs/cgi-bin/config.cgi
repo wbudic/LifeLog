@@ -70,10 +70,7 @@ my $csvp   = $cgi->param('csv');
 			&importCatCSV;
 	 }elsif($cgi->param('data_log')){
 			&importLogCSV;
-	 }
-
-
-	  
+	 }  
 		
 #####################
 	&getConfiguration;
@@ -96,9 +93,9 @@ my $status = "Ready for change!";
 &processSubmit;
 ###############
 
-my $tbl = '<table id="ec" class="tbl" name="cats" border="0" width="'.$PRC_WIDTH.'%">
+my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.$PRC_WIDTH.'%">
 	          <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
-            <tr class="r1"><th>ID</th><th>Category</th><th>Description</th></tr>
+            <tr class="r1"><th>ID</th><th>Category</th><th  align="left">Description</th></tr>
           ';
 
  while(my @row = $dbs->fetchrow_array()) {
@@ -106,7 +103,7 @@ my $tbl = '<table id="ec" class="tbl" name="cats" border="0" width="'.$PRC_WIDTH
 	   $tbl = $tbl. 
 	   '<tr class="r0"><td>'.$row[0].'</td>
             <td><input name="nm'.$row[0].'" type="text" value="'.$row[1].'" size="12"></td>
-	    <td><input name="ds'.$row[0].'" type="text" value="'.$row[2].'" size="64"></td>
+            <td align="left"><input name="ds'.$row[0].'" type="text" value="'.$row[2].'" size="64"></td>
 	    </tr>';
 	}
  }
@@ -116,11 +113,11 @@ my  $frm = qq(
 	  <tr class="r1">
 		 <td><input type="text" name="caid" value="" size="3"/></td>
 		 <td><input type="text" name="canm" value="" size="12"/></td>
-		 <td><input type="text" name="cade" value="" size="64"/></td>		 
+		 <td align="left"><input type="text" name="cade" value="" size="64"/></td>		 
 		</tr>
 	  <tr class="r1">
 		 <td colspan="2"><a href="#bottom">&#x21A1;</a>&nbsp;&nbsp;&nbsp;<input type="submit" value="Add New Category" onclick="return submitNewCategory()"/></td>
-		 <td colspan="1"><b>Log Configuration In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
+		 <td colspan="1" align="right"><b>Categories Configuration In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
 		</tr>
 		<tr class="r1">
 		  <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font> 
@@ -133,10 +130,14 @@ my  $frm = qq(
 		</table><input type="hidden" name="cchg" value="1"/></form><br>);
 	 
 
-$tbl = '<table id="ev" class="tbl" name="confs" border="0" width="'.$PRC_WIDTH.'%">
-	          <tr class="r0"><td colspan="2"><b>* SYSTEM CONFIGURATION *</b></td></tr>
-            <tr class="r1"><th>Variable</th><th>Value</th></tr>
-       ';
+$tbl = qq(<table id="cnf_sys" class="tbl" border="1" width="$PRC_WIDTH%">
+	          <tr class="r0"><td colspan="3"><b>* SYSTEM CONFIGURATION *</b></td></tr>
+            <tr class="r1" align="left">
+						    <th width="20%">Variable</th>
+						    <th width="20%">Value</th>
+								<th width="60%">Description</th>
+						</tr>
+       );
 my $stm = 'SELECT * FROM CONFIG;';
 $dbs = $db->prepare( $stm );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
@@ -169,50 +170,77 @@ while(my @row = $dbs->fetchrow_array()) {
 			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
 		 }		 
 	   $tbl = $tbl. 
-	   '<tr class="r0">
+	   '<tr class="r0" align="left">
 		    <td>'.$n.'</td>
-		    <td>'.$v.'</td>	    
+		    <td>'.$v.'</td>
+				<td></td>   
 	    </tr>';
 }
+
 
 my  $frmVars = qq(
 	 <form id="frm_vars" action="config.cgi">).$tbl.qq(	  
 	  <tr class="r1">		
-		 <td colspan=2 align=right><input type="submit" value="Change"/></td>
+		 <td colspan="3" align=right><b>System Settings In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
 		</tr>	
 		<input type="hidden" name="sys" value="1"/>
 		</table></form><br>);
+
+
+
+$tbl = qq(<table id="cnf_fix" class="tbl" border="0" width="$PRC_WIDTH%">
+	          <tr class="r0"><td colspan="2"><b>* DATA FIX *</b></td></tr>
+			 );
+my  $frmDB = qq(
+	 <form id="frm_DB" action="config.cgi">).$tbl.qq(	  
+		<tr class="r1" align="left"><th>Extra Action</th><th>Description</th></tr>
+		<tr class="r0" align="left"><td><input type="checkbox" name="reset_cats" value="1"/>Reset Categories</td><td>Wipes Categories for recreation (will initiate logoff).</td></tr>
+		<tr class="r1" align="left"><td><input type="checkbox" name="reset_syst" value="1"/>Reset Settings</td><td>Resets system settings to default values.</td></tr>
+		<tr class="r0" align="left"><td><input type="checkbox" name="wipe_syst" value="1"/>Wipe Settings</td><td>Wipes system settings for migration  (will initiate logoff).</td></tr>
+		<tr class="r1">		
+		 <td colspan="2" align="right"><b>Data maintenance for -> $dbname</b>&nbsp;<input type="submit" value="Fix"/></td>
+		</tr>			
+		<tr class="r1" align="left">
+		     <td colspan="2">Perform this change/check in the event when experiencing data problems. <br>
+				                 <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
+												  of your changes. Please, export/backup first.</td>
+		</tr>
+		<input type="hidden" name="db_reset" value="1"/>
+		</table></form><br>
+		);
 
 #
 #Page printout from here!
 #
 my $prc_hdr = $PRC_WIDTH-2;
-  print '<center><a name="top"/>';
-	print "\n<div>\n" . $frm ."\n</div>\n";
-	print "\n<div >\n" . $frmVars."\n</div>\n";	
-	print "\n<div>\nSTATUS:" .$status. "\n</div>\n";	
-	print qq(
-		      <br><div id="rz" style="text-align:center; position:relative;width:"$PRC_WIDTH%" padding:0px;">
-					<a href="main.cgi"><h2>Back to Main Log</h2></a><br><br><a href="login_ctr.cgi?logout=bye">LOGOUT</a></div>
-					<br><hr>\n
-					
-					<table border="0">
-						<tr><td><H3>CSV File Format</H3></td></tr>\n
-						<form action="config.cgi" method="post" enctype="multipart/form-data">\n
-						<tr style="border-left: 1px solid black;"><td>\n
-					 		  <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr>\n
-						<tr style="border-left: 1px solid black;"><td style="text-align:right;">
-							 <input type="submit" name="Submit" value="Submit"/></p></td></tr>\n
-						</form>\n
-						<form action="config.cgi" method="post" enctype="multipart/form-data">\n
-						<tr style="border-top: 1px solid black;border-right: 1px solid black;"><td>\n
-					 		  <b>Import Log</b>: <input type="file" name="data_log" /></td></tr>\n
-						<tr style="border-right: 1px solid black;"><td style="text-align:right;">\n
-							 <input type="submit" name="Submit" value="Submit"/></p></td></tr>\n
-					 	</form>\n
-						 <tr><td style="text-align:right"><H3>To Server -> $sys -> $dbname</H3></td></tr>
-					</table>
-					</div>
+  print qq(
+<a name="top"/><center>
+	<div>$frm</div>
+  <div>$frmVars</div>
+	<div>$frmDB</div>
+	<div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
+				<a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a></div>		
+			<br><div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
+			<a href="main.cgi"><h3>Back to Main Log</h3></a><br><h3><a href="login_ctr.cgi?logout=bye">LOGOUT</a></h3><br></div>
+			<br><hr>\n
+			
+			<table border="0">
+				<tr><td><H3>CSV File Format</H3></td></tr>\n
+				<form action="config.cgi" method="post" enctype="multipart/form-data">\n
+				<tr style="border-left: 1px solid black;"><td>\n
+						<b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr>\n
+				<tr style="border-left: 1px solid black;"><td style="text-align:right;">
+						<input type="submit" name="Submit" value="Submit"/></p></td></tr>\n
+				</form>\n
+				<form action="config.cgi" method="post" enctype="multipart/form-data">\n
+				<tr style="border-top: 1px solid black;border-right: 1px solid black;"><td>\n
+						<b>Import Log</b>: <input type="file" name="data_log" /></td></tr>\n
+				<tr style="border-right: 1px solid black;"><td style="text-align:right;">\n
+						<input type="submit" name="Submit" value="Submit"/></p></td></tr>\n
+				</form>\n
+					<tr><td style="text-align:right"><H3>To Server -> $sys -> $dbname</H3></td></tr>
+			</table>
+	</div>
 					
 					<br><div><a href="#top">&#x219F;</a>&nbsp;&nbsp;&nbsp;[<a href="config.cgi?csv=1">Export Log to CSV</a>] &nbsp;
 					 [<a href="config.cgi?csv=2">View the Log in CSV Format</a>]</div>\n					
@@ -268,7 +296,7 @@ my $prc_hdr = $PRC_WIDTH-2;
 						&#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly.
 					</p>
 					</div>
-					</center><a name="bottom"/>
+					</center><a name="bottom"/><a href="#top">&#x219F;</a>
 					<hr>
 	);
 

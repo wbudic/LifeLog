@@ -94,7 +94,6 @@ div {
     background-color: #e6ffff;
     vertical-align: top;
     align-self: baseline;
-    width: 60%;
     height: auto;
     padding: 2%;
     margin: 0px auto;
@@ -106,9 +105,8 @@ div#rz {
     background-color: #e6ffff;
     vertical-align: top;
     align-self: baseline;
-    width: 60%;
     height: auto;
-    padding: 2%;
+    padding: 2px;
     margin: 0px auto;
 }
 
