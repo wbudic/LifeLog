@@ -10,7 +10,9 @@
 * &#10004; Bug, date validation for proper entered time, there is no 24 h.
 
 ## Minor
+* &#10004; JQUERY Integration, UI and autocomplete.
 * &#10004; HTML - Align [Reset View] button in search panel, not so visible.
 * &#10004; Fix CSS spacing.
 * &#10004; Add other categories. i.e. Work, Recurring.
 * &#10004; Add category description column and page, view and editing.
+
