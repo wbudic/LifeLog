@@ -1,0 +1,47 @@
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+    <title>Personal Log</title>
+    <link rel="stylesheet" type="text/css" href="wsrc/main.css" />
+    <link rel="stylesheet" type="text/css" href="wsrc/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="wsrc/jquery-ui.theme.css" />
+
+    <script src="wsrc/jquery.js" type="text/javascript"></script>
+    <script src="wsrc/jquery-ui.js" type="text/javascript"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var ec = $("#ec"); //.selectmenu();
+            //  ec.selectmenu("menuWidget").addClass("overflow");
+            ec.change(function() {
+                //helpSelCategory(this);
+                //updateSelCategory(this);
+                var txt = $("#ec option:selected").text();
+                var el = $("#desc");
+                el.html("<h2>" + txt + "</h2>");
+            });
+        });
+    </script>
+
+</head>
+
+<body bgcolor="#c8fff8" onload="loadedBody('');">
+    <center>
+        <select class="ui-widget-content" id="ec" name="ec">
+            <option value="0">---</option>
+            <option selected value="1">Unspecified</option>
+            <option value="3">File System</option>
+            <option value="6"> Log</option>
+            <option value="9">Event</option>
+       </select>
+        <br><br>
+        <div id="desc" name="desc"></div>
+    </center>
+    <script type="text/javascript">
+        function loadedBody() {
+
+        }
+    </script>
+</body>

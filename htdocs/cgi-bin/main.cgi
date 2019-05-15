@@ -92,14 +92,27 @@ if(@arrwh==2){
 else{#defaults
 	$imgw = 210;
 	$imgh = 120;
-}
-	
+}	
+
+
 print $cgi->header(-expires=>"0s", -charset=>"UTF-8"); 
-print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
-                       -script=>{-type => 'text/javascript',-src => 'wsrc/main.js'},
-                       -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-                       -onload => "loadedBody('".$toggle."');"
-            );	  
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8", -onload => "loadedBody('".$toggle."');",
+                       -style =>[{-type => 'text/css', -src => 'wsrc/main.css'},
+											 					 {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
+											 					 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
+																 {-type => 'text/css', -src => 'wsrc/jquery-ui-timepicker-addon.css'},
+																 {-type => 'text/css', -src => 'wsrc/tip-skyblue/tip-skyblue.css'},
+																 {-type => 'text/css', -src => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'},
+																 ],
+                       -script=>[{-type => 'text/javascript',-src => 'wsrc/main.js'},
+																 {-type => 'text/javascript',-src => 'wsrc/jquery.js'},
+											 					 {-type => 'text/javascript',-src => 'wsrc/jquery-ui.js'},
+																 {-type => 'text/javascript',-src => 'wsrc/jquery-ui-timepicker-addon.js'},
+																 {-type => 'text/javascript',-src => 'wsrc/jquery-ui-sliderAccess.js'},
+																 {-type => 'text/javascript',-src => 'wsrc/jquery.poshytip.js'}
+																 ],
+            );
+	  
 my $rv;
 my $st;
 my $lang = Date::Language->new($LANGUAGE);
@@ -114,8 +127,11 @@ my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid 
 $st = $db->prepare( $stmtCat );
 $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
-my $cats = qq(<select id="ec" name="cat" required onFocus="toggleVisibility('cat_desc')" onBlur="toggleVisibility('cat_desc')" onScroll="helpSelCategory(this)" onChange="updateSelCategory(this)">
+my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec" onFocus="toggleVisibility('cat_desc')"
+ onBlur="toggleVisibility('cat_desc')" onScroll="helpSelCategory(this)" onChange="updateSelCategory(this)">
 							<option value="0">---</option>\n);
+
+
 my %hshCats;
 my %desc = {};
 my $c_sel = 1;
@@ -187,6 +203,9 @@ else{
       	     $stmt = $stmS.$stmD.$stmE;
       }
 }
+
+
+
 ###############
 	&processSubmit;
 ###############
@@ -354,7 +373,7 @@ while(my @row = $st->fetchrow_array()) {
 		<td id="a$id" width="10%" class="tbl">$amm</td>
 		<td id="c$id" width="10%" class="tbl">$ct</td>
 		<td width="20%">
-			<input class="edit" type="button" value="Edit" onclick="return edit($id);"/>
+			<button class="edit" value="Edit" onclick="return edit($id);">Edit</button>
 			<input name="chk" type="checkbox" value="$id"/>
 		</td>
 	</tr>);
@@ -401,7 +420,7 @@ if($tbl_rc==0){
 $tbl .= '<tr class="r0"><td><a href="#top">&#x219F;</a></td><td colspan="5" align="right"> 
 <input type="hidden" name="datediff" id="datediff" value="0"/>
 <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
-<input type="button" value="Select All" onclick="return selectAllLogs()"/>
+<button onclick="return selectAllLogs()">Select All</button>
 <input type="reset" value="Unselect All"/>
 <input type="submit" value="Delete Selected"/>
 </td></tr></form>
@@ -412,23 +431,26 @@ $tbl .= '<tr class="r0"><td><a href="#top">&#x219F;</a></td><td colspan="5" alig
 
 my $frm = qq(<a name="top"></a>
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
-	<table class="tbl" border="0" width="$PRC_WIDTH%">
-	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>
-	<tr><td colspan="3"><br/></td></tr>
+	<table class="tbl" border="1" width="$PRC_WIDTH%">
+	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>	
 	<tr>
-	<td style="text-align:right">Date:</td>
-	<td id="al"style="text-align:top;"><input id="ed" type="text" name="date" size="18" value=") .$today->ymd.
-	" ". $today->hms .
-	qq(">&nbsp;<button type="button" onclick="return setNow();">Now</button>
-			&nbsp;<button type="reset">Reset</button>
+	<td style="text-align:right;  vertical-align:top">Date:</td>
+	<td id="al" colspan="1" style="text-align:top; vertical-align:top"><input id="ed" type="text" name="date" size="18" value=") .$today->ymd.
+	" ".$today->hms.qq(">
+	
+	&nbsp;<button type="button" onclick="return setNow();">Now</button>
+			&nbsp;<button type="reset">Reset</button></td>
+			<td style="text-align:top; vertical-align:top">Category: 
+$cats
+				<br><br><div id="cat_desc" name="cat_desc"></div>
 			</td>
-	<td><div id="cat_desc"></div></td>
 	</tr>
-	<tr><td style="text-align:right">Log:</td>
-		<td id="al" colspan="2" style="text-align:top;"><textarea id="el" name="log" rows="2" cols="80" style="float:left;"></textarea>
-		&nbsp;&nbsp;&nbsp;Category:&nbsp;$cats</td>	
+	<tr><td style="text-align:right; vertical-align:top">Log:</td>
+		<td id="al" colspan="2" style="text-align:top;">
+			<textarea id="el" name="log" rows="3" style="float:left; width:99%;" onFocus="toggleVisibility('cat_desc',true)"></textarea>
+		</td>	
 	</tr>
-		<tr><td style="text-align:right"><a href="#bottom">&#x21A1;</a>&nbsp;Ammount:</td>
+		<tr><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Ammount:</td>
 		<td id="al">
 			<input id="am" name="am" type="number" step="any">			
 		</td>
@@ -456,7 +478,7 @@ my  $srh = qq(
 		);
 
 $cats =~ s/selected//g;
-$srh .= qq(<tr><td align="right"><b>View by Category:</b></td><td>.$cats.</td><td></td>
+$srh .= qq(<tr><td align="right"><b>View by Category:</b></td><td>$cats</td><td></td>
 	<td colspan="1" align="left">
 	<button id="btn_cat" onclick="viewByCategory(this);" style="float:left">View</button>
 	<input id="idx_cat" name="category" type="hidden" value="0"></td></tr>
@@ -484,14 +506,15 @@ print qq(<center>\n
 	  <div>\n$frm\n</div>\n<br>\n
 	  <div id="div_srh">$srh</div>
 	  <div>\n$tbl\n</div><br>
-	  <div><a href="stats.cgi">View Statistics</a></div><br>
+	  <div><a id="a_stats" href="stats.cgi">View Statistics</a></div><br>
 	  <div><a href="config.cgi">Configure Log</a></div><hr>
 		<div><a href="login_ctr.cgi?logout=bye">LOGOUT</a><a name="bottom"/></div>
 	);
 print qq(</center>
         <ul id="cat_lst">
 				$cat_descriptions
-				</ul>);
+				</ul>			
+				);
 
 print $cgi->end_html;
 $st->finish;
@@ -519,7 +542,7 @@ sub processSubmit {
 
 	my $date = $cgi->param('date');
 	my $log  = $cgi->param('log');
-	my $cat  = $cgi->param('cat');
+	my $cat  = $cgi->param('ec');#Used to be cat v.1.3, tag id and name should be kept same.
 	my $amm  = $cgi->param('am');
 
 	my $edit_mode =  $cgi->param('submit_is_edit');

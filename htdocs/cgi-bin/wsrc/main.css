@@ -125,10 +125,14 @@ img {
 }
 
 #cat_desc {
-    position: relative;
-    border: 2px solid rgb(148, 205, 231);
+    position: absolute;
+    border: 2px solid #94cde7;
     padding: 5px;
-    text-align: left;
+    text-align: center;
+    background: #ccffff;
+    margin-top: 20px;
+    width: 280px;
+    text-decoration-style: wavy;
 }
 
 #cat_lst {
@@ -136,7 +140,11 @@ img {
 }
 
 #frm_login {
-    # position: absolute;
     vertical-align: middle;
     margin: 0;
+}
+
+.ui-button,
+.ui-button-text .ui-button {
+    font-size: 12px !important;
 }

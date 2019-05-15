@@ -3,22 +3,39 @@
  Open Source License -> https://choosealicense.com/licenses/isc/
 */
 
-var map = new Map();
+var _MAP = new Map();
 
 function loadedBody(toggle) {
-    var el = document.getElementById("frm_entry");
-    el.log.focus();
+
+
     if (toggle) {
         toggleSearch(document.getElementById("btn_srch"));
     }
 
+
+    $('#ed').datetimepicker({
+        dateFormat: 'yy-mm-dd',
+        timeFormat: 'HH:mm:ss',
+        stepHour: 1,
+        stepMinute: 10,
+        stepSecond: 10,
+        firstDay: 1
+    });
+
+    $("input[type=submit], input[type=reset], .ui-widget-content, button").button();
+
+
     document.getElementById("log_submit").addEventListener("click", encodeText);
+
     var lst = document.getElementById("cat_lst");
     var children = lst.childNodes;
 
     for (var i = 0; i < children.length; i++) {
-        map.set(children[i].id, children[i].innerHTML);
+        _MAP.set(children[i].id, children[i].innerHTML);
     }
+
+
+
 }
 
 function encodeText(el) {
@@ -220,9 +237,9 @@ function updateSelCategory(sel) {
     cat.value = sel.options[sel.selectedIndex].value;
 }
 
-function toggleVisibility(target) {
+function toggleVisibility(target, ensureOff) {
     var d = document.getElementById(target);
-    if (d.style.display === "none" || d.style.display === "") {
+    if (d.style.display === "none" || d.style.display === "" && !ensureOff) {
         d.style.display = "block";
     } else {
         d.style.display = "none";
@@ -233,7 +250,7 @@ function toggleVisibility(target) {
 
 function helpSelCategory(sel) {
     var el = document.getElementById("cat_desc");
-    var desc = map.get(sel.options[sel.selectedIndex].value);
+    var desc = _MAP.get(sel.options[sel.selectedIndex].value);
     if (!desc) {
         desc = "<font color='red'>Please select a Category!</font>";
     }
