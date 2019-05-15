@@ -122,7 +122,7 @@ my $today = DateTime->now;
 
 
 my $stmtCat = "SELECT * FROM CAT;";
-my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY rowid DESC, DATE DESC;";
+my $stmt    = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY DATE DESC, rowid DESC;";
 
  
 $st = $db->prepare( $stmtCat );
