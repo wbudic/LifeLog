@@ -34,7 +34,7 @@ our $AUTO_WRD_LMT= 200;
 
 #15mg data post limit
 $CGI::POST_MAX = 1024 * 15000;
-
+my $LOGOUT = 0;
 my $cgi = CGI->new;
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
 my $sid=$session->id();
@@ -77,11 +77,6 @@ my $csvp   = $cgi->param('csv');
 #####################
 $today->set_time_zone( $TIME_ZONE );
 	
-print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
-print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
-       		           -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		                 -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-	        );
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 $dbs = $db->prepare( $stmtCat );
@@ -92,6 +87,12 @@ my $status = "Ready for change!";
 ###############
 &processSubmit;
 ###############
+
+print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
+       		           -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+		                 -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+	        );
 
 my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.$PRC_WIDTH.'%">
 	          <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
@@ -146,6 +147,7 @@ while(my @row = $dbs->fetchrow_array()) {
 	   my $i = $row[0];
 	   my $n = $row[1];
 		 my $v = $row[2];
+		 my $d = $row[3];
 		 if($n eq "TIME_ZONE"){
 			  $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
 			  if($tz){
@@ -169,12 +171,12 @@ while(my @row = $dbs->fetchrow_array()) {
 		 elsif($n ne "RELEASE_VER"){		 
 			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
 		 }		 
-	   $tbl = $tbl. 
-	   '<tr class="r0" align="left">
-		    <td>'.$n.'</td>
-		    <td>'.$v.'</td>
-				<td></td>   
-	    </tr>';
+	   $tbl = qq($tbl 
+	   <tr class="r0" align="left">
+		    <td>$n</td>
+		    <td>$v</td>
+				<td>$d</td>   
+	    </tr>);
 }
 
 
@@ -194,18 +196,18 @@ $tbl = qq(<table id="cnf_fix" class="tbl" border="0" width="$PRC_WIDTH%">
 my  $frmDB = qq(
 	 <form id="frm_DB" action="config.cgi">$tbl
 		<tr class="r1" align="left"><th>Extra Action</th><th>Description</th></tr>
-		<tr class="r0" align="left"><td><input type="checkbox" name="reset_cats" value="1"/>Reset Categories</td><td>Wipes Categories for recreation (will initiate logoff).</td></tr>
+		<tr class="r0" align="left"><td><input type="checkbox" name="reset_cats" value="1"/>Reset Categories</td><td>Resets Categories to factory values (will initiate logoff).</td></tr>
 		<tr class="r1" align="left"><td><input type="checkbox" name="reset_syst" value="1"/>Reset Settings</td><td>Resets system settings to default values.</td></tr>
-		<tr class="r0" align="left"><td><input type="checkbox" name="wipe_syst" value="1"/>Wipe Settings</td><td>Wipes system settings for migration  (will initiate logoff).</td></tr>
+		<tr class="r0" align="left"><td><input type="checkbox" name="wipe_syst" value="1"/>Wipe Settings</td><td>Resets and wipes system settings for migration  (will initiate logoff).</td></tr>
 		<tr class="r1">		
 		 <td colspan="2" align="right"><b>Data maintenance for -> $dbname</b>&nbsp;<input type="submit" value="Fix"/></td>
 		</tr>			
 		<tr class="r1" align="left">
-		     <td colspan="2">Perform this change/check in the event when experiencing data problems. <br>
+		     <td colspan="2">Perform this change/check in the event of experiencing data problems. Or periodically for data check and maintenance. <br>
 				                 <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
 												  of your changes. Please, export/backup first.</td>
 		</tr>
-		<input type="hidden" name="db_reset" value="1"/>
+		<input type="hidden" name="db_fix" value="1"/>
 		</table></form><br>
 		);
 
@@ -311,8 +313,11 @@ sub processSubmit {
 
 my $change = $cgi->param("cchg");
 my $chgsys = $cgi->param("sys");
+my $chgdb  = $cgi->param("db_fix");
 my $s;
 my $d;
+
+
 
 try{
 
@@ -358,43 +363,48 @@ if ($change == 1){
 	$status = "Upadated Categories!";
 }
 
+
 if($change > 1){
 
-	#UNDER DEVELOPMENT!
-	      my $caid  = $cgi->param('caid');
-	      my $canm  = $cgi->param('canm');
-	      my $cade  = $cgi->param('cade');
-	      my $valid = 1;
+		#UNDER DEVELOPMENT!
+					my $caid  = $cgi->param('caid');
+					my $canm  = $cgi->param('canm');
+					my $cade  = $cgi->param('cade');
+					my $valid = 1;
 
-				while(my @row = $dbs->fetchrow_array()) {
+					while(my @row = $dbs->fetchrow_array()) {
 
-							my $cid = $row[0];
-							my $cnm = $row[1];
-							my $cds = $row[2];
-							
+								my $cid = $row[0];
+								my $cnm = $row[1];
+								my $cds = $row[2];
+								
 
-							if($cid==$caid || $cnm eq $canm){
-											$valid = 0;
-											last;
-							}
-				}
+								if($cid==$caid || $cnm eq $canm){
+												$valid = 0;
+												last;
+								}
+					}
 
-	if($valid){
-	   $d = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
-	   $d->execute($caid,$canm, $cade);
-		 $status = "Added Category $canm!";
-	}
-	else{
-		$status = "ID->".$caid." or -> Category->".$canm." is already assigned, these must be unique!";
-	  print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
-	}
+		if($valid){
+			$d = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
+			$d->execute($caid,$canm, $cade);
+			$status = "Added Category $canm!";
+		}
+		else{
+			$status = "ID->".$caid." or -> Category->".$canm." is already assigned, these must be unique!";
+			print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
+		}
+		$status = "Inserted new category[$canm]";
+		
 	
-}
-
-if ($chgsys == 1){
+}elsif ($chgsys == 1){
 	  &changeSystemSettings;		
 		$status = "Changed System Settings!";
+}elsif($chgdb){	
+	&processDBFix;
+	$status = "Performed Database Fixes!";
 }
+
 
   #Re-select
   $dbs = $db->prepare( $stmtCat );
@@ -409,10 +419,208 @@ catch{
 
 }
 
+sub processDBFix{
+
+	 my $rs_syst = $cgi->param("reset_syst");
+	 my $rs_cats = $cgi->param("reset_cats");
+	 my $wipe_ss = $cgi->param("wipe_syst");
+	 my $issue;
+	 my $date;
+	 my $cntr_upd =0;
+try{
+
+			#Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
+			$dbs = $db->prepare('select rowid, DATE from LOG ORDER BY DATE;');
+			$dbs->execute();
+			my %ids  = ();
+			my @dlts = ();
+			#Hash is unreliable for returnin sequential order of keys so array must do.
+			my @updts = ();
+			my $cntr_del =0;
+			
+			my $existing;
+			
+ 			while(my @row = $dbs->fetchrow_array()) {
+				 			my $existing = $ids{$row[0]};
+							if($existing && $existing eq $row[1]){
+								 $dlts[$cntr_del++] = $row[0];
+							}
+							else{
+								$ids{$row[0]} = $row[1];
+								$updts[$cntr_upd++] = $row[0];
+							}
+			}	
+			
+			foreach my $del (@dlts){
+				$issue = "DELETE FROM LOG WHERE rowid=$del;";
+						#print "$issue\n<br>";
+						my $st_del = $db->prepare($issue);
+						$st_del->execute();
+			}
+
+			#Renumerate!
+			my $cnt = 1;
+			my $st_upd;
+			$dbs = $db->prepare("select rowid from LOG;");
+						 $dbs->execute();
+			while(my @row = $dbs->fetchrow_array()) {
+									if($row[0]>$cntr_upd){
+										$cntr_upd = $row[0];
+									}
+			}
+ 		  foreach my $upd (@updts){
+				 		$date = $ids{$upd};
+
+						#Move existing to end of database rows.
+						$dbs = $db->prepare("select rowid from LOG WHERE $cnt;");
+						$dbs->execute();
+						if($dbs->fetchrow_array()){
+							 $cntr_upd++;
+							 $issue = "UPDATE LOG SET rowid=$cntr_upd WHERE rowid=$cnt;";
+							 $st_upd = $db->prepare($issue);
+							 $st_upd->execute();
+							 $issue = "DELETE FROM LOG WHERE rowid=$cnt;";
+							 $st_upd = $db->prepare($issue);
+							 $st_upd->execute();
+						}
+
+						#Finally set new id!
+						$issue    = "UPDATE LOG SET rowid=$cnt WHERE rowid=$upd;";
+
+						#print "$issue\n<br>";
+						$st_upd = $db->prepare($issue);
+						$st_upd->execute();
+						$cnt = $cnt + 1;
+			}
+			
+			&resetCategories if $rs_cats;
+			&resetSystemConfiguration($db) if $rs_syst;			
+			&wipeSystemConfiguration if $wipe_ss;
+			$issue = "VACUUM;";
+			$db->disconnect();
+			$db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+			$dbs = $db->prepare($issue);
+			$dbs->execute();
 
 
+			if($LOGOUT){
+				 &logout; 
+			}
+			
+			
+			
+}
+catch{	  
+	print qq(<center><div><p><font color=red><b>SERVER ERROR</b></font>:$_</p></div>Statement->$issue for $date Count:$cntr_upd</center>);
 
-sub changeSystemSettings{
+}
+}
+
+sub resetCategories{
+				$dbs = $db->prepare("DELETE FROM CAT;");
+				$dbs->execute();
+				$dbs = $db->prepare("DROP TABLE CAT;");
+				$dbs->execute();
+				$LOGOUT = 1;
+}
+
+sub wipeSystemConfiguration{
+				$dbs = $db->prepare("DELETE FROM CONFIG;");
+				$dbs->execute();
+				$dbs = $db->prepare("DROP TABLE CONFIG;");
+				$dbs->execute();
+				$LOGOUT = 1;
+}
+
+
+sub resetSystemConfiguration {
+
+		open(my $fh, '<', './main.cnf' ) or die "Can't open main.cnf: $!";
+		my $db = shift;
+		my ($did,$name, $value, $desc);
+		my $inData = 0;
+		my $err = "";
+		my %vars = {};
+
+
+		my $st = $db->prepare("SELECT count(*) FROM CONFIG;");
+		   $st->execute();
+		my $cnt = $st->fetchrow_array();
+
+try{
+	  $st->finish();
+		my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
+		my $update = $db->prepare("UPDATE CONFIG SET VALUE=? WHERE ID=?;");
+    while (my $line = <$fh>) {
+					chomp $line;
+					my @tick = split("`",$line);
+					if(scalar(@tick)==2){
+									my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
+									if(scalar(%hsh)==1){										
+											for my $key (keys %hsh) {
+
+													my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
+													if(scalar(%nash)==1){
+															for my $id (keys %nash) {
+																my $name  = $nash{$id};
+																my $value = $hsh{$key};
+																if($vars{$id}){
+							$err .= "UID{$id} taken by $vars{$id}-> $line\n";
+																}
+																else{
+																			my $st = $db->prepare(
+																				"SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG WHERE NAME LIKE '$name';");
+																				$st->execute();
+																				$inData = 1;
+																				my $row = $st->fetchrow_array();
+																			if(!$row){
+																					$insert->execute($id,$name,$value,$tick[1]);
+																			}
+																			else{
+ 																					$update->execute($value,$id);
+																			}
+																}
+															}
+													}else{
+							$err .= "Invalid, spec'ed {uid}|{setting}`{description}-> $line\n";
+													}
+
+											}#rof
+									}
+									else{
+							$err .= "Invalid, speced entry -> $line\n";
+									}
+
+					}elsif($inData && length($line)>0){
+				    if(scalar(@tick)==1){
+							 $err .= "Corrupt Entry, no description supplied -> $line\n";
+						}
+						else{	
+						   $err .= "Corrupt Entry -> $line\n";
+						}
+					}
+		}    
+		#die "Configuration script './main.cnf' [$fh] contains errors." if $err;
+		close $fh;
+		&getConfiguration;
+ } catch{	 	
+	  close $fh;	
+	  print $cgi->header;
+		print "<font color=red><b>SERVER ERROR!</b></font><br> ".$_."<br><pre>$err</pre>";
+    print $cgi->end_html;
+		exit;
+ }
+}
+
+
+sub logout{
+	$session->delete();
+	$session->flush();
+	print $cgi->redirect("login_ctr.cgi");
+	exit;
+}
+
+sub changeSystemSettings {
 	try{
 			$dbs = $db->prepare("SELECT * FROM CONFIG;");
 		  $dbs->execute();
@@ -422,12 +630,12 @@ sub changeSystemSettings{
 					switch ($r[1]) {
 						case "REC_LIMIT" {$REC_LIMIT=$var;  updConfSetting($r[0],$var)}
 						case "TIME_ZONE" {$TIME_ZONE=$var;  updConfSetting($r[0],$var)}
-						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updConfSetting($r[0],$var)}		
+						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updConfSetting($r[0],$var)}
 						case "SESSN_EXPR"{$SESSN_EXPR=$var; updConfSetting($r[0],$var)}
 						case "DATE_UNI"  {$DATE_UNI=$var; updConfSetting($r[0],$var)}
 						case "LANGUAGE"  {$LANGUAGE=$var; updConfSetting($r[0],$var)}
-						case "AUTHORITY"  {$AUTHORITY=$var; updConfSetting($r[0],$var)}
-						case "IMG_W_H"  {$IMG_W_H=$var; updConfSetting($r[0],$var)}
+						case "AUTHORITY" {$AUTHORITY=$var; updConfSetting($r[0],$var)}
+						case "IMG_W_H"   {$IMG_W_H=$var; updConfSetting($r[0],$var)}
 					 }
 				}
 			}
@@ -437,7 +645,7 @@ sub changeSystemSettings{
 	}
 }
 
-sub updConfSetting{
+sub updConfSetting {
 	my ($id, $val) = @_;
 	my ($s,$d);
 	$s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";"; 
@@ -450,7 +658,7 @@ sub updConfSetting{
 	}
 }
 
-sub exportLogToCSV{
+sub exportLogToCSV {
 	try{
 		  
 			my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 		  
@@ -481,7 +689,7 @@ sub exportLogToCSV{
 	}
 }
 
-sub exportCategoriesToCSV{
+sub exportCategoriesToCSV {
 	try{
 		  
 			my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 		  
@@ -513,7 +721,7 @@ sub exportCategoriesToCSV{
 }
 
 
-sub importCatCSV{
+sub importCatCSV {
 	my $hndl = $cgi->upload("data_cat");
 	my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 	
   while (my $line = <$hndl>) {
@@ -527,14 +735,13 @@ sub importCatCSV{
 	}
 }
 
-sub updateCATDB{
+sub updateCATDB {
 	my @flds = @_;
 	if(@flds>2){
 	try{	
 			my $id   = $flds[0];
 			my $name = $flds[1];
 			my $desc = $flds[2];
-			#$acumululator .= $id."-".$name;
 			
 			#is it existing entry?
 			$dbs = $db->prepare("SELECT ID, NAME, DESCRIPTION FROM CAT WHERE ID = '$id';");
@@ -554,7 +761,7 @@ sub updateCATDB{
 	}
 	}
 }
-sub importLogCSV{
+sub importLogCSV {
 	my $hndl = $cgi->upload("data_log");
 	my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 	
   while (my $line = <$hndl>) {
@@ -570,7 +777,7 @@ sub importLogCSV{
 	print $cgi->redirect('main.cgi');
 	exit;
 }
-sub updateLOGDB{
+sub updateLOGDB {
 	my @flds = @_;
 	if(@flds>3){
 	try{	
@@ -610,7 +817,7 @@ sub updateLOGDB{
 }
 
 
-sub getConfiguration{
+sub getConfiguration {
 	try{
 		$dbs = $db->prepare("SELECT * FROM CONFIG;");
 		$dbs->execute();
@@ -626,7 +833,6 @@ sub getConfiguration{
 				case "LANGUAGE"     {$LANGUAGE=$r[2]}
 				case "IMG_W_H"      {$IMG_W_H=$r[2]}
 				case "AUTO_WRD_LMT" {$AUTO_WRD_LMT=$r[2]}
-				else {print "Unknow variable setting: ".$r[1]. " == ". $r[2]}
 			}
 
 		}
