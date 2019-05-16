@@ -42,7 +42,7 @@ function loadedBody(toggle) {
         allowTipHover: false
     });
     $('#el').poshytip({
-        content: "This is your log entry can't be empty.",
+        content: "This is the log entry, can't be left empty.",
         className: 'tip-yellowsimple',
         showOn: 'focus',
         alignTo: 'target',
@@ -77,7 +77,7 @@ function loadedBody(toggle) {
         _MAP.set(children[i].id, children[i].innerHTML);
     }
 
-
+    helpSelCategory($('#ec'));
 
 }
 
@@ -276,28 +276,31 @@ function resetView() {
 }
 
 function updateSelCategory(sel) {
-    var cat = document.getElementById("idx_cat");
-    cat.value = sel.options[sel.selectedIndex].value;
+    if (sel.id == "ec") {
+        var cat = document.getElementById("idx_cat");
+        cat.value = sel.options[sel.selectedIndex].value;
+    }
 }
 
 function toggleVisibility(target, ensureOff) {
-    var d = document.getElementById(target);
-    if (d.style.display === "none" || d.style.display === "" && !ensureOff) {
-        d.style.display = "block";
+    if (!ensureOff) {
+        $(target).toggle();
     } else {
-        d.style.display = "none";
+        $(target).hide();
     }
 }
 
 
 
 function helpSelCategory(sel) {
-    var el = document.getElementById("cat_desc");
+
     var desc = _MAP.get(sel.options[sel.selectedIndex].value);
     if (!desc) {
         desc = "<font color='red'>Please select a Category!</font>";
     }
-    el.innerHTML = desc;
+    document.getElementById("cat_desc").innerHTML = desc;
+    $('#cat_desc').show();
+    $('#cat_desc').fadeOut(5000);
 }
 
 function viewByCategory(btn) {

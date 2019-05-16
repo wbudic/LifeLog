@@ -65,10 +65,12 @@ my $tbl_rc_prev = 0;
 my $tbl_cur_id;
 my $rs_keys = $cgi->param('keywords');
 my $rs_cat_idx = $cgi->param('category');
+my $prm_vc = $cgi->param("vc");
 my $rs_dat_from = $cgi->param('v_from');
 my $rs_dat_to = $cgi->param('v_to');
-my $rs_prev = $cgi->param('rs_prev'); 
+my $rs_prev = $cgi->param('rs_prev');
 my $rs_cur = $cgi->param('rs_cur');
+my $rs_page = $cgi->param('rs_page');
 my $stmS = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
 my $stmE = " ORDER BY DATE DESC;";
 my $stmD = "";
@@ -133,12 +135,13 @@ my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec"
  onBlur="toggleVisibility('cat_desc')" 
  onScroll="helpSelCategory(this);updateSelCategory(this)" 
  onChange="updateSelCategory(this)">
-							<option value="0">---</option>\n);
-
-
+ <option value="0">---</option>\n);
 my %hshCats;
 my %desc = {};
-my $c_sel = 1;
+my $c_sel = 0;
+my $cats_v = $cats;
+$cats_v =~ s/\"ec\"/\"vc\"/g;
+
  while(my @row = $st->fetchrow_array()) {
 	if($row[0]==$c_sel){
 		$cats = $cats. '<option selected value="'.$row[0].'">'.$row[1].'</option>\n';
@@ -146,11 +149,20 @@ my $c_sel = 1;
 	else{	
 		$cats = $cats. '<option value="'.$row[0].'">'.$row[1].'</option>\n';
 	}	
+	if($row[0]==$prm_vc){
+		$cats_v = $cats_v. '<option selected value="'.$row[0].'">'.$row[1].'</option>\n';
+	}
+	else{	
+		$cats_v = $cats_v. '<option value="'.$row[0].'">'.$row[1].'</option>\n';
+	}	
 	$hshCats{$row[0]} = $row[1];
 	$desc{$row[0]} = $row[2];
  }
  
 $cats = $cats.'</select>';
+
+
+
 
 my $cat_descriptions = "";
 for my $key (keys %desc){
@@ -170,9 +182,13 @@ my $tbl = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelVali
 	<th class="tbl">Category</th><th>Edit</th>
 </tr>);
 
+if($prm_vc){#view category form selection
+	$rs_cat_idx = $prm_vc;
+}
+
 if($rs_keys){
 	
-	my @keywords = split / /, $rs_keys;
+	my @keywords = split / /, $rs_keys;	
 	if($rs_cat_idx){
 		$stmS = $stmS ." ID_CAT='".$rs_cat_idx."' AND";
 	}else{
@@ -195,12 +211,12 @@ if($rs_keys){
 }
 elsif($rs_cat_idx){
 
-	if($stmD){
-	      $stmt = $stmS.$stmD. " AND ID_CAT='".$rs_cat_idx."'" .$stmE;
-	}
-	else{
-      	  $stmt = $stmS." ID_CAT='".$rs_cat_idx."'" .$stmE;
-    }
+				if($stmD){
+							$stmt = $stmS.$stmD. " AND ID_CAT='".$rs_cat_idx."'" .$stmE;
+				}
+				else{
+								$stmt = $stmS." ID_CAT='".$rs_cat_idx."'" .$stmE;
+					}
 }
 else{
       if($stmD){
@@ -214,16 +230,16 @@ else{
 	&processSubmit;
 ###############
  #
- # Enable to see main query statement issued!
- #print $cgi->pre("### -> ".$stmt);
+ # Uncomment bellow to see main query statement issued!
+# print $cgi->pre("### -> ".$stmt);
+ #
 my $tfId = 0;
 my $id = 0;
 my $tbl_start = index $stmt, "<=";
 my $re_a_tag = qr/<a\s+.*?>.*<\/a>/si ;
 
 if($tbl_start>0){
-	#check if we are at the beggining of the LOG table?
-	
+	#check if we are at the beggining of the LOG table?	
 	my $stc = $db->prepare('select rowid from LOG order by rowid DESC LIMIT 1;');
 	   $stc->execute();
 	my @row =$stc->fetchrow_array();
@@ -384,12 +400,13 @@ while(my @row = $st->fetchrow_array()) {
 	$tbl_rc += 1;
 
 	if($REC_LIMIT>0 && $tbl_rc==$REC_LIMIT){
-
 		&buildNavigationButtons;
 		last;
 	}
-}
 
+}#while end
+
+##
 #Fetch Keywords autocomplete we go by words larger then three.
 #
 $st = $db->prepare( 'select LOG from LOG;' );
@@ -399,45 +416,7 @@ $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 if($rv < 0) {
 			print "<p>Error->"& $DBI::errstri &"</p>";
 }
-while(my @row = $st->fetchrow_array()) {
-		  my $log = $row[0];
-			#Decode escaped \\n
-			$log =~ s/\\n/\n/gs;
-			$log =~ s/''/'/g;
-			#Replace link to empty string
-			my @words = split(/($re_a_tag)/si , $log) ;  
-			foreach my $ch_i ( @words ) {
-					next if $ch_i =~ /$re_a_tag/;
-					next if index($ch_i, "<img")>-1;
-					$ch_i =~ s/https//gsi;
-					$ch_i =~ s/($RE{URI}{HTTP})//gsi;
-			}	
-			$log = join(' ' , @words);
-			@words = split(' ', $log) ;  
-			foreach my $word (@words)  {
-				  #remove all non alphanumerics
-				  $word =~ s/[^a-zA-Z]//gs;					
-					if(length($word)>2){
-						 $word = lc $word;
-						 #parse for already placed words, instead of using an hash.
-						 my $idx = index($autows, $word,0);
-						 if($idx>0){
-							  my $end = index($autows,'"', $idx);
-							  my $existing = substr($autows, $idx, $end - $idx);
-								next if $word eq $existing;								
-						 }
-						  
-										$autows .= qq(,"$word");
-										if($aw_cnt++>$AUTO_WRD_LMT){
-											last;
-										}
-					}					
-			}		
-
-if($aw_cnt>$AUTO_WRD_LMT){
-						last;
-}
-}
+&fetchAutocomplete;
 
 #End of table?
 if($rs_prev && $tbl_rc < $REC_LIMIT){
@@ -518,6 +497,7 @@ $cats
 	<input type="hidden" name="rs_all" value="0"/>
 	<input type="hidden" name="rs_cur" value="0"/>
 	<input type="hidden" name="rs_prev" value="$tbl_rc_prev"/>
+	<input type="hidden" name="rs_page" value="$rs_page"/>
 	<input type="hidden" name="CGISESSID" value="$sid"/>
 	$tags</form>
 	);
@@ -529,8 +509,8 @@ my  $srh = qq(
 					<tr class="r0"><td colspan="4"><b>Search/View By</b></td></tr>
 		);
 
-$cats =~ s/selected//g;
-$srh .= qq(<tr><td align="right"><b>View by Category:</b></td><td>$cats</td><td></td>
+
+$srh .= qq(<tr><td align="right"><b>View by Category:</b></td><td>$cats_v</td><td></td>
 	<td colspan="1" align="left">
 	<button id="btn_cat" onclick="viewByCategory(this);" style="float:left">View</button>
 	<input id="idx_cat" name="category" type="hidden" value="0"></td></tr>
@@ -630,13 +610,22 @@ try{
 		$REC_LIMIT = 0;
 	}
 
-	if($view_mode && $view_mode == "1"){
+	if($view_mode == "1"){
 
 		if($rs_cur){
-			 $stmt = 'SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG 
-			          where rowid <= "'.$rs_cur.'" ORDER BY DATE DESC;';
-			 return;
-		}
+			
+			if($rs_cur==$rs_prev){#Mid page back button if id ordinal.			   
+				 $rs_cur += $REC_LIMIT;
+				 $rs_prev =$rs_cur;
+				 $rs_page--; 				 
+			}
+			else{
+				$rs_page++;
+			}
+			
+				$stmt = 'SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG where rowid <= "'.$rs_cur.'" ORDER BY DATE DESC;;;'.$rs_page;
+			return;
+	  }
 	}
 
 	if($log && $date && $cat){
@@ -666,8 +655,7 @@ try{
 			print $cgi->p('<b>Insert is in the past!</b>');
 			#Renumerate directly (not proper SQL but faster);
 			$st = $db->prepare('select rowid from LOG ORDER BY DATE;');
-			$st->execute();
-			my @row = $st->fetchrow_array();
+			$st->execute();			
 			my $cnt = 1;
  			while(my @row = $st->fetchrow_array()) {
 			my $st_upd = $db->prepare("UPDATE LOG SET rowid=".$cnt.
@@ -701,7 +689,7 @@ sub buildNavigationButtons{
 
 	$tbl .=  qq!<tr class="r$tfId"><td></td>!;
 
-	if($rs_prev && $rs_prev>0 && $tbl_start>0){
+	if($rs_prev && $rs_prev>0 && $tbl_start>0 && $rs_page>0){
 
 	 $tbl = $tbl . qq!<td><input type="hidden" value="$rs_prev"/>
 	 <input type="button" onclick="submitPrev($rs_prev);return false;"
@@ -774,6 +762,56 @@ try  {
 }
 }
 
+sub fetchAutocomplete{
+  try  {
+
+					while(my @row = $st->fetchrow_array()) {
+								my $log = $row[0];
+								#Decode escaped \\n
+								$log =~ s/\\n/\n/gs;
+								$log =~ s/''/'/g;
+								#Replace link to empty string
+								my @words = split(/($re_a_tag)/si , $log) ;  
+								foreach my $ch_i ( @words ) {
+										next if $ch_i =~ /$re_a_tag/;
+										next if index($ch_i, "<img")>-1;
+										$ch_i =~ s/https//gsi;
+										$ch_i =~ s/($RE{URI}{HTTP})//gsi;
+								}	
+								$log = join(' ' , @words);
+								@words = split(' ', $log) ;  
+								foreach my $word (@words)  {
+										#remove all non alphanumerics
+										$word =~ s/[^a-zA-Z]//gs;					
+										if(length($word)>2){
+											$word = lc $word;
+											#parse for already placed words, instead of using an hash.
+											my $idx = index($autows, $word,0);
+											if($idx>0){
+													my $end = index($autows,'"', $idx);
+													my $existing = substr($autows, $idx, $end - $idx);
+													next if $word eq $existing;								
+											}
+												
+															$autows .= qq(,"$word");
+															if($aw_cnt++>$AUTO_WRD_LMT){
+																last;
+															}
+										}					
+								}		
+
+					if($aw_cnt>$AUTO_WRD_LMT){
+											last;
+					}
+					}
+
+
+
+	}
+	catch{
+		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+	}
+}
 
 sub getConfiguration{
 	my $db = shift;
