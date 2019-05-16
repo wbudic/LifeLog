@@ -5,6 +5,7 @@ thttpd-2.29/
 thttpd-2.29/*
 startDevWebServer.sh
 thttpd.conf
+cgisess_*
 # Compiled source #
 ###################
 *.com
