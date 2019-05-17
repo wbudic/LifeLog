@@ -4,6 +4,7 @@
 */
 
 var _MAP = new Map();
+var MNU_SCROLLING = false;
 
 function loadedBody(toggle) {
 
@@ -56,7 +57,7 @@ function loadedBody(toggle) {
         className: 'tip-yellowsimple',
         showOn: 'focus',
         alignTo: 'target',
-        alignX: 'left',
+        alignX: 'right',
         alignY: 'center',
         offsetX: 5,
         showTimeout: 100
@@ -76,9 +77,39 @@ function loadedBody(toggle) {
     for (var i = 0; i < children.length; i++) {
         _MAP.set(children[i].id, children[i].innerHTML);
     }
+    // $('#ec').hide();
+    // helpSelCategory($('#ec'));
+    $('#ec').show();
 
-    helpSelCategory($('#ec'));
 
+    $(window).scroll(function() {
+        if (!MNU_SCROLLING) {
+            $('#floating_menu').fadeOut(2000, function() {
+                $('#floating_menu').show();
+                MNU_SCROLLING = false;
+            });
+            MNU_SCROLLING = true;
+        }
+    });
+    $("#floating_menu_close").poshytip({
+        className: 'tip-yellowsimple',
+        showOn: 'focus',
+        alignX: 'left',
+        alignY: 'bottom',
+    });
+
+    $("#floating_menu_close").click(function() {
+        //$("#floating_menu").effect("shake", {}, 1000, function() {
+        $("#floating_menu").effect("drop", { direction: "down" }, 1500, function() {
+                $("#floating_menu").hide();
+            })
+            // })
+    });
+}
+
+function showFloatingMenu() {
+    $("#floating_menu").toggle();
+    return false;
 }
 
 function encodeText(el) {
@@ -184,6 +215,7 @@ function edit(row) {
     var ev_v = document.getElementById("v" + row);
     var ea_v = document.getElementById("a" + row);
     var etag = document.getElementById("tag" + row);
+    $("html, body").animate({ scrollTop: 0 }, "slow");
     if (etag) {
         var v = etag.value;
         v = v.replace(/\\n/g, '\n');
@@ -290,7 +322,9 @@ function toggleVisibility(target, ensureOff) {
     }
 }
 
-
+function showCat() {
+    $('#cat_desc').show();
+}
 
 function helpSelCategory(sel) {
 
