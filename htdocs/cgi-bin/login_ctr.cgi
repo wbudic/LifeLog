@@ -231,6 +231,9 @@ try{
 	$st = $db->prepare(selSQLTbl('CONFIG'));
 	$st->execute();
   if(!$st->fetchrow_array()) {
+		#v.1.3 -> v.1.4
+		#alter table CONFIG add DESCRIPTION VCHAR(128);
+
     my $stmt = qq(
 										CREATE TABLE CONFIG(
 												ID TINY PRIMARY KEY NOT NULL,
@@ -312,7 +315,9 @@ $err .= "UID{$id} taken by $vars{$id}-> $line\n";
 																			my $st = $db->prepare("SELECT rowid FROM CONFIG WHERE NAME LIKE '$name';");
 																				$st->execute();
 																				$inData = 1;
-																				$insConfig->execute($id,$name,$value,$tick[1])	if(!$st->fetchrow_array());
+																				if(!$st->fetchrow_array()) {
+																					  $insConfig->execute($id,$name,$value,$tick[1])	if(!$st->fetchrow_array());
+																				}
 																	}
 																}
 														}else{
@@ -328,8 +333,10 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
 															if ( scalar(@pair)==2 ) {												
 																	my $st = $db->prepare("SELECT rowid FROM CONFIG WHERE NAME LIKE '$pair[1]';");
 																		$st->execute();
-																		$inData = 1;																			
-																		$insCat->execute($pair[0],$pair[1],$tick[1]) if(!$st->fetchrow_array());
+																		$inData = 1;
+																		if(!$st->fetchrow_array()) {
+																			$insCat->execute($pair[0],$pair[1],$tick[1]) if(!$st->fetchrow_array());
+																		}
 															}
 															else {
 $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
