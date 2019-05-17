@@ -129,6 +129,8 @@ try{
 	my $st = $db->prepare(selSQLTbl('LOG'));
 		 $st->execute();
 
+	my $changed = 0;
+
 	if(!$st->fetchrow_array()) {
 		my $stmt = qq(
 		CREATE TABLE LOG (
@@ -137,6 +139,7 @@ try{
 			 LOG VCHAR(128) NOT NULL,
 			 AMMOUNT integer
 		);
+		CREATE INDEX idx_log_dates ON LOG (DATE);
 		);
 		$rv = $db->do($stmt);
 		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>";}
@@ -148,30 +151,71 @@ try{
 	$st->execute();
 	if(!$st->fetchrow_array()) {
 		 my $stmt = qq(
-		 CREATE TABLE CAT(
-			 ID TINY PRIMARY KEY NOT NULL,
-			 NAME VCHAR(16),
-			 DESCRIPTION VCHAR(64)
-		 );
+						CREATE TABLE CAT(
+							ID TINY PRIMARY KEY NOT NULL,
+							NAME VCHAR(16),
+							DESCRIPTION VCHAR(64)
+						);
+						CREATE INDEX idx_cat_name ON CAT (NAME);
 		 ); 
 		$rv = $db->do($stmt);
-		insertDefCats($db);
+		$changed = 1;
+		#insertDefCats($db);
 	}
 	#Have cats been wiped out?
 	$st = $db->prepare('SELECT count(ID) FROM CAT;');
 	$st->execute();
 	if($st->fetchrow_array()==0) {
-		 insertDefCats($db);
+		 $changed = 1;
 	}
 
   $st = $db->prepare(selSQLTbl('AUTH'));
 	$st->execute();
 	if(!$st->fetchrow_array()) {
+	#
+	# @TODO
+	# AUTH Action Flags 
+	# 00|DEFAULT`No action idle use.|
+	# 02|CONF_UPD`Configuration file update with db.
+	# 03|EMAIL`Issue email.|
+  # 06|DESTRUCT`Self destruct, remove alias and all data.
+  # 08|CHNG_PASS`Change password.	
+	# 10|CHNG_ALIAS`Change alias.	
+	
     my $stmt = qq(
 		CREATE TABLE AUTH(
-				alias TEXT PRIMARY KEY,
-				passw TEXT				  
+				alias varchar(20) TEXT PRIMARY KEY,
+				passw TEXT,
+				email varchar(44),
+				action TINY,				  
 		) WITHOUT ROWID;
+		CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);
+		); 
+
+
+		$rv = $db->do($stmt);
+		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>"};
+		$st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias' AND passw='$passw';");
+ 		$st->execute();
+		if(!$st->fetchrow_array()) {
+	    $st = $db->prepare('INSERT INTO AUTH VALUES (?,?)');
+	    $st->execute($alias, $passw);
+		}
+	}
+	#
+	#TODO Future table.
+	#
+	$st = $db->prepare(selSQLTbl('NOTES'));
+	$st->execute();
+	if(!$st->fetchrow_array()) {
+    my $stmt = qq(
+																						CREATE VIRTUAL TABLE NOTES USING fts4(
+																								ID INT PRIMARY KEY NOT NULL,
+																								ID_LOG INT,
+																								AUTHOR,
+																								CONTENT TEXT NOT NULL,
+																								compress=zip, uncompress=unzip
+																						);
 		); 
 		$rv = $db->do($stmt);
 		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>"};
@@ -194,12 +238,25 @@ try{
 												VALUE VCHAR(28),
 												DESCRIPTION VCHAR(128)
 										);
+										CREATE INDEX idx_config_name ON CONFIG (NAME);
 		);
 		$rv = $db->do($stmt);
 		$st->finish();
+		$changed = 1;
 	}
-	#PRAGMA table_info(CONFIG); <-To check current structure
-  populateConfig($db);
+	else{
+				#PRAGMA table_info(CONFIG); <-To check current structure
+				#populateConfig($db);
+
+				#Has configuration been wiped out?
+				$st = $db->prepare('SELECT count(ID) FROM CONFIG;');
+				$st->execute();
+				$changed = 1 if($st->fetchrow_array()==0);
+				
+	}
+	#
+	 &populate($db) if $changed;
+	#
 	$db->disconnect();
 }
  catch{	 	
@@ -209,76 +266,90 @@ try{
 		exit;
  }
 }
-sub populateConfig{
 
-		open(my $fh, '<', './main.cnf' ) or die "Can't open main.cnf: $!";
+sub populate {
+
+		
 		my $db = shift;
 		my ($did,$name, $value, $desc);
 		my $inData = 0;
 		my $err = "";
-		my %vars = {};
+		my %vars = ();
+		my @lines;
+		my $table_type = 0;
 
+		open(my $fh, "<:perlio", './main.cnf' ) or die "Can't open main.cnf: $!";
+		read $fh, my $content, -s $fh;
+	  	   @lines  = split '\n', $content;
+	  close $fh;
 #TODO Check if script id is unique to database? If not script prevails to database entry. 
 #So, if user settings from a previous release, must be migrated later.
-
-
-		my $st = $db->prepare("SELECT count(*) FROM CONFIG;");
-		   $st->execute();
-		my $cnt = $st->fetchrow_array();
-		if($cnt != 0){
-			 return;
-		}
 try{
-	  $st->finish();
-		my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');		
-    while (my $line = <$fh>) {
-					chomp $line;
+	  
+		my $insConfig = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
+		my $insCat    = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
+    foreach my $line (@lines) {
+					
 					my @tick = split("`",$line);
-					if(scalar(@tick)==2){
-									my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
-									if(scalar(%hsh)==1){										
-											for my $key (keys %hsh) {
 
-													my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
-													if(scalar(%nash)==1){
-															for my $id (keys %nash) {
-																my $name  = $nash{$id};
-																my $value = $hsh{$key};
-																if($vars{$id}){
-							$err .= "UID{$id} taken by $vars{$id}-> $line\n";
-																}
-																else{
-																			my $st = $db->prepare("SELECT * FROM CONFIG WHERE NAME LIKE '$name';");
+ 					if( index( $line, '<<CONFIG<' ) == 0 ){$table_type = 0; $inData = 0;}
+					if( index( $line, '<<CAT<' ) == 0 )   {$table_type = 1; $inData = 0;}
+					if( index( $line, '<<LOG<' ) == 0 )   {$table_type = 2; $inData = 0;}
+					if( scalar @tick  == 2 ) {
+
+						my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
+									if ( scalar %hsh ) {
+											for my $key ( keys %hsh ) {
+														my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
+														if ( scalar(%nash) ) {
+																for my $id ( keys %nash ) {
+																	my $name  = $nash{$id};
+																	my $value = $hsh{$key};
+																	if($vars{$id}){
+$err .= "UID{$id} taken by $vars{$id}-> $line\n";
+																	}
+																	else{
+																			my $st = $db->prepare("SELECT rowid FROM CONFIG WHERE NAME LIKE '$name';");
 																				$st->execute();
 																				$inData = 1;
-																			if(!$st->fetchrow_array()){
-																					$insert->execute($id,$name,$value,$tick[1]);													
-																			}
+																				$insConfig->execute($id,$name,$value,$tick[1])	if(!$st->fetchrow_array());
+																	}
 																}
+														}else{
+$err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
+														}
+
+												}#rof
+									}
+									elsif($table_type==0){
+														$err .= "Invalid, speced entry -> $line\n";
+									}elsif($table_type==1){
+															my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+)]g;
+															if ( scalar(@pair)==2 ) {												
+																	my $st = $db->prepare("SELECT rowid FROM CONFIG WHERE NAME LIKE '$pair[1]';");
+																		$st->execute();
+																		$inData = 1;																			
+																		$insCat->execute($pair[0],$pair[1],$tick[1]) if(!$st->fetchrow_array());
 															}
-													}else{
-							$err .= "Invalid, spec'ed {uid}|{setting}`{description}-> $line\n";
-													}
-
-											}#rof
-									}
-									else{
-							$err .= "Invalid, speced entry -> $line\n";
-									}
-
+															else {
+$err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
+															}
+									}elsif($table_type==2){
+											#TODO Do we really want this?
+									}											
 					}elsif($inData && length($line)>0){
-				    if(scalar(@tick)==1){
-							 $err .= "Corrupt Entry, no description supplied -> $line\n";
-						}
-						else{	
-						   $err .= "Corrupt Entry -> $line\n";
-						}
+
+										if(scalar(@tick)==1){
+											$err .= "Corrupt Entry, no description supplied -> $line\n";
+										}
+										else{	
+											$err .= "Corrupt Entry -> $line\n";
+										}
+
 					}
 		}    
 		die "Configuration script './main.cnf' [$fh] contains errors." if $err;
-		close $fh;
- } catch{	 	
-	  close $fh;	
+	} catch{	 		
 	  print $cgi->header;
 		print "<font color=red><b>SERVER ERROR!</b></font><br> ".$_."<br><pre>$err</pre>";
     print $cgi->end_html;
@@ -291,7 +362,7 @@ sub selSQLTbl{
 return "SELECT name FROM sqlite_master WHERE type='table' AND name='$name';"
 }
 
-sub insertDefCats{
+sub insertDefCats {
 	  my
 	  $st = $_[0]->prepare('INSERT INTO CAT VALUES (?,?,?)'); 
 		$st->execute(1, "Unspecified", "For quick uncategorised entries.");
@@ -307,7 +378,7 @@ sub insertDefCats{
 }
 
 
-sub removeOldSessions{
+sub removeOldSessions {
 	opendir(DIR, $LOG_PATH);
 	my @files = grep(/cgisess_*/,readdir(DIR));
 	closedir(DIR);
