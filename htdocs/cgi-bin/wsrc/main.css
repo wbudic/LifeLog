@@ -134,13 +134,14 @@ img {
 }
 
 #floating_menu {
-    position: absolute;
-    float: right;
+    position: fixed;
+    float: left;
     margin: 0;
     border: 2px solid #94cde7;
     padding: 5px;
     text-align: center;
     background: #ccffff;
+    margin-left: 92%;
 }
 
 #cat_lst {
