@@ -628,14 +628,15 @@ sub changeSystemSettings {
 				my $var = $cgi->param('var'.$r[0]);
 				if(defined $var){					
 					switch ($r[1]) {
-						case "REC_LIMIT" {$REC_LIMIT=$var;  updConfSetting($r[0],$var)}
-						case "TIME_ZONE" {$TIME_ZONE=$var;  updConfSetting($r[0],$var)}
-						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updConfSetting($r[0],$var)}
-						case "SESSN_EXPR"{$SESSN_EXPR=$var; updConfSetting($r[0],$var)}
-						case "DATE_UNI"  {$DATE_UNI=$var; updConfSetting($r[0],$var)}
-						case "LANGUAGE"  {$LANGUAGE=$var; updConfSetting($r[0],$var)}
-						case "AUTHORITY" {$AUTHORITY=$var; updConfSetting($r[0],$var)}
-						case "IMG_W_H"   {$IMG_W_H=$var; updConfSetting($r[0],$var)}
+						case "REC_LIMIT" {$REC_LIMIT=$var;  updCnf($r[0],$var)}
+						case "TIME_ZONE" {$TIME_ZONE=$var;  updCnf($r[0],$var)}
+						case "PRC_WIDTH" {$PRC_WIDTH=$var;  updCnf($r[0],$var)}
+						case "SESSN_EXPR"{$SESSN_EXPR=$var; updCnf($r[0],$var)}
+						case "DATE_UNI"  {$DATE_UNI=$var; updCnf($r[0],$var)}
+						case "LANGUAGE"  {$LANGUAGE=$var; updCnf($r[0],$var)}
+						case "AUTHORITY" {$AUTHORITY=$var; updCnf($r[0],$var)}
+						case "IMG_W_H"   {$IMG_W_H=$var; updCnf($r[0],$var)}
+						case "AUTO_WRD_LMT"   {$AUTO_WRD_LMT=$var; updCnf($r[0],$var)}
 					 }
 				}
 			}
@@ -645,7 +646,7 @@ sub changeSystemSettings {
 	}
 }
 
-sub updConfSetting {
+sub updCnf {
 	my ($id, $val) = @_;
 	my ($s,$d);
 	$s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";"; 
@@ -654,7 +655,7 @@ sub updConfSetting {
 		  $d->execute();
 	}
 	catch{
-		print "<font color=red><b>SERVER ERROR</b>->updConfSetting[$s]</font>:".$_;
+		print "<font color=red><b>SERVER ERROR</b>->updCnf[$s]</font>:".$_;
 	}
 }
 
