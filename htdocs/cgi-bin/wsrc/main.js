@@ -64,8 +64,6 @@ function loadedBody(toggle) {
     });
 
 
-
-
     $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
 
 
