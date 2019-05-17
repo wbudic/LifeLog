@@ -6,57 +6,77 @@
 use strict;
 use warnings;
 
-    my $fh;
-	my $inData = 0;
-	open($fh, '<', '/home/will/dev/LifeLog/htdocs/cgi-bin/main.cnf' ) or die "Can't open main.cnf: $!";
-	my %vars = {};
-    while (my $line = <$fh>) {
-           chomp $line;
+my $fh;
+my $inData = 0;
+open( $fh, "<:perlio", '/home/will/dev/LifeLog/htdocs/cgi-bin/main.cnf' )
+  or die "Can't open main.cnf: $!";
+read $fh, my $content, -s $fh;
+my @lines     = split '\n', $content;
+my %vars      = ();
+my $table_type = 0;
+foreach my $line (@lines) {
 
-		    my @tick = split("`",$line);
+    #chomp $line;
 
-			if(scalar(@tick)==2){
-				my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
-				if(scalar(%hsh)==1){
-				for my $key (keys %hsh) {
-					my %nash = $key =~ m[(\S+)\s*\|\s*(\S+)]g;
-					if(scalar(%nash)==1){
-						for my $id (keys %nash) {
-							my $name  = $nash{$id};
-							my $value = $hsh{$key};
-							if($vars{$id}){
-								print "4Corrupt Entry -> $line\n";
-							}
-							else{
-							$vars{$id}=$name;
-							print "[$id]->$name:$value -> $tick[1]\n";
-							$inData = 1;
-							}
-						}
-					}
-					else{
-						print "3Corrupt Entry -> $line\n";
-					}
-				}
-				}
-				else{
-					print "2Corrupt Entry -> $line\n";
-				}
+    my @tick = split( "`", $line );
+
+    if( index( $line, '<<CONFIG<' ) == 0 ){$table_type = 0; $inData = 0;}
+	if( index( $line, '<<CAT<' ) == 0 ){$table_type = 1; $inData = 0;}
+    
+
+    if ( scalar @tick  == 2 ) {
+
+        my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
+        if ( scalar %hsh ) {
+            for my $key ( keys %hsh ) {
+                my %nash = $key =~ m[(\S+)\s*\|\s*(\S+)]g;
+                if ( scalar(%nash) ) {
+                    for my $id ( keys %nash ) {
+                        my $name  = $nash{$id};
+                        my $value = $hsh{$key};
+                        if ( $vars{$id} ) {
+                            print "4Corrupt Entry -> $line\n";
+                        }
+                        else {
+                            $vars{$id} = $name;
+                            print "CNF->[$id]->$name:$value -> $tick[1]\n";
+                            $inData = 1;
+                        }
+                    }
+                }
+                else {
+                    print "3Corrupt Entry -> $line\n";
+                }
+            }
+        }
+        else {
+			if($table_type==0){
+            	print "2Corrupt Entry -> $line\n";
 			}
-			elsif($inData && length($line)>0){
-				    if(scalar(@tick)==1){
-						print "Corrupt Entry, no description supplied -> $line\n";
-					}
-					else{	
-						print "1Corrupt Entry -> $line\n";
-					}
+			else{
+				my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+)]g;
+                if ( scalar(@pair)==2 ) {					   
+					my $id  = $pair[0];
+                    my $name = $pair[1];
+					print "CAT-> [$id]->$name [[ $tick[1] ]]\n";         
+                }
+                else {
+                    print "3Corrupt Entry -> $line\n";
+                }
 			}
-
-
-           
-		  
+        }
     }
-    close $fh;
+    elsif ( $inData && length($line) > 0 ) {
+        if ( scalar(@tick) == 1 ) {
+            print "Corrupt Entry, no description supplied -> $line\n";
+        }
+        else {
+            print "1Corrupt Entry -> $line\n";
+        }
+    }
+
+}
+close $fh;
 
 =comment
 
@@ -84,6 +104,7 @@ unless($resp->is_success) {
 my $log =
 "Test <run></run><<IMG<Agreement> reached.<<B<errfrffff>\n";
 =cut
+
 =comment
 	if($log =~ /<<IMG</){
 	   my $idx = $-[0]+5;
