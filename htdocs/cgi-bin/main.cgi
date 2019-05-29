@@ -428,7 +428,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
           $dtf = $dty;
       }
       else {
-          $dtf = $lang->time2str( "%d %b %Y", $dt->epoch );
+          $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, $TIME_ZONE);
       }
       $tbl .= qq(<tr class="r$tfId">
 		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
@@ -583,7 +583,7 @@ $srh .= '</table></form><br>';
 #Page printout from here!
 #
 print qq(<center>\n
-		<div id="floating_menu" title="To close this menu click on its heart.">
+<div id="floating_menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n"></span></a>&nbsp;
 <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s"></span></a>

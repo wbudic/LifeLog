@@ -6,6 +6,7 @@
 * &#10004; Bug  - 02, Record set paging to previous page not always working. Getting stuck.
 >> This occurrs on new records placed in the far past. Complex problem.
 * &#10004; Bug  - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
+* &#10004; Bug  - 04, Local not picked up properly on current date.
 * &#10004; Configuration page to be updated, system variables description field to be implemented.
 * &#10004; Configuration page - data fix section to be implemented.
 * &#10004; Build login_ctrl.cgi login controller alias and password based. Where each alias creates its own database. It server side session based, that unless you logged off keeps the session 24 hr. by default. Alias is therefore to an separate database. If user doesn't know the password, can't get access. Client remote IP address is checked to be on local only network (IP pinged).
