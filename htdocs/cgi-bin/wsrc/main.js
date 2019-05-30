@@ -5,12 +5,13 @@
 
 var _MAP = new Map();
 var MNU_SCROLLING = false;
+var SRCH_VISIBLE = true;
 
 function loadedBody(toggle) {
 
 
     if (toggle) {
-        toggleSearch(document.getElementById("btn_srch"));
+        toggleSearch($("#btn_srch"));
     }
 
     $('#ed').datetimepicker({
@@ -92,9 +93,9 @@ function loadedBody(toggle) {
     });
 
 
-    document.getElementById("log_submit").addEventListener("click", encodeText);
+    $("#log_submit").addEventListener("click", encodeText);
 
-    var lst = document.getElementById("cat_lst");
+    var lst = $("#cat_lst");
     var children = lst.childNodes;
 
     for (var i = 0; i < children.length; i++) {
@@ -111,7 +112,7 @@ function showFloatingMenu() {
 }
 
 function encodeText(el) {
-    var el = document.getElementById("frm_entry");
+    var el = $("#frm_entry");
     var txt = el.log.value;
     txt = txt.replace(/\r\n/g, "\\n");
     txt = txt.replace(/\n/g, "\\n");
@@ -247,6 +248,10 @@ function selectAllLogs() {
     return false;
 }
 
+function deleteSelected() {
+    $("#del_sel").click();
+}
+
 
 function submitNext(tbl_rc) {
 
@@ -287,15 +292,17 @@ function viewAll() {
 }
 
 
-function toggleSearch(btn) {
 
-    var d = document.getElementById("div_srh");
-    if (d.style.display === "none" || d.style.display === "") {
-        d.style.display = "block";
-        btn.innerText = "Hide Search";
+function toggleSearch() {
+    $("html, body").animate({ scrollTop: 0 }, "slow");
+    if (SRCH_VISIBLE) {
+        $("#div_srh").show();
+        $("#btn_srch").text("Hide Search");
+        SRCH_VISIBLE = false;
     } else {
-        d.style.display = "none";
-        btn.innerText = "Show Search";
+        $("#div_srh").hide();
+        $("#btn_srch").text("Show Search");
+        SRCH_VISIBLE = true;
     }
 }
 
