@@ -132,7 +132,7 @@ print qq(<div id="floating_menu" title="To close this menu click on its heart, a
 </div>
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
-<a class="a_" href="config.cgi">Log</a><hr>
+<a class="a_" href="main.cgi">Log</a><hr>
 <br>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>);
