@@ -66,7 +66,7 @@ if(&processSubmit==0){
 		 <td align="right">Alias:</td><td><input type="text" name="alias" value="$alias"/></td><td></td>
 		 </tr>
 	  <tr class="r1" style="border-left:1px solid black; border-right:1px solid black;">
-		 <td align="right">Password:</td><td><input type="text" name="passw" value="$passw"/></td><td></td>
+		 <td align="right">Password:</td><td><input type="password" name="passw" value="$passw"/></td><td></td>
 		</tr>
 		<tr class="r1">
 		 <td colspan="3" style="border-left:1px solid black; border-right:1px solid black;"><font color="red">NOTICE!</font> &nbsp;
