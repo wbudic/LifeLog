@@ -501,7 +501,7 @@ $tbl .=
 <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
 <button onclick="return selectAllLogs()">Select All</button>
 <input type="reset" value="Unselect All"/>
-<input type="submit" value="Delete Selected"/>
+<input id="del_sel" type="submit" value="Delete Selected"/>
 </td></tr></form>
 <tr class="r0"><form id="frm_srch" action="main.cgi"><td><b>Keywords:</b></td><td colspan="4" align="left">
 <input id="rs_keys2" name="keywords" type="text" size="60"/></td>
@@ -535,7 +535,7 @@ $cats
 			<input id="am" name="am" type="number" step="any">			
 		</td>
 		<td align="right">			  
-				<div 	style="float: right;"><button id="btn_srch" onclick="toggleSearch(this); return false;">Show Search</button>&nbsp;
+				<div 	style="float: right;"><button id="btn_srch" onclick="toggleSearch(); return false;">Show Search</button>&nbsp;
 				<input id="log_submit" type="submit" value="Submit"/></div>
 		</td>		
 	</tr>
@@ -583,7 +583,7 @@ $srh .= '</table></form><br>';
 #Page printout from here!
 #
 print qq(<center>\n
-<div id="floating_menu" title="To close this menu click on its heart, and wait.">
+<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n"></span></a>&nbsp;
 <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s"></span></a>
@@ -592,6 +592,8 @@ print qq(<center>\n
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="config.cgi">Config</a><hr>
+<a class="a_" onclick="deleteSelected(); return false;">Delete</a><hr>
+<a class="a_" onclick="toggleSearch(this); return false;">Search</a><hr>
 <br>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>
