@@ -133,7 +133,7 @@ img {
     text-decoration-style: wavy;
 }
 
-#floating_menu {
+#menu {
     position: fixed;
     float: left;
     margin: 0;
