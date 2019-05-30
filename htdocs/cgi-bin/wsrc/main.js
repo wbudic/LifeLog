@@ -67,19 +67,6 @@ function loadedBody(toggle) {
     $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
 
 
-    document.getElementById("log_submit").addEventListener("click", encodeText);
-
-    var lst = document.getElementById("cat_lst");
-    var children = lst.childNodes;
-
-    for (var i = 0; i < children.length; i++) {
-        _MAP.set(children[i].id, children[i].innerHTML);
-    }
-    // $('#ec').hide();
-    // helpSelCategory($('#ec'));
-    $('#ec').show();
-
-
     $(window).scroll(function() {
         if (!MNU_SCROLLING) {
             $('#floating_menu').fadeOut(2000, function() {
@@ -103,6 +90,19 @@ function loadedBody(toggle) {
             })
             // })
     });
+
+
+    document.getElementById("log_submit").addEventListener("click", encodeText);
+
+    var lst = document.getElementById("cat_lst");
+    var children = lst.childNodes;
+
+    for (var i = 0; i < children.length; i++) {
+        _MAP.set(children[i].id, children[i].innerHTML);
+    }
+
+    $('#ec').show();
+
 }
 
 function showFloatingMenu() {

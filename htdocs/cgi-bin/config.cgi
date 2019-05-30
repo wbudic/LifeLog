@@ -32,6 +32,9 @@ our $IMG_W_H     = '210x120';
 our $AUTO_WRD_LMT= 200;
 #END OF SETTINGS
 
+#This is the OS developer release key, replace on istallation. As it is not secure.
+my $cipher_key = '95d7a85ba891da';
+
 #15mg data post limit
 $CGI::POST_MAX = 1024 * 15000;
 my $LOGOUT = 0;
@@ -84,15 +87,55 @@ $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 my $status = "Ready for change!";
 
+print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
+       	-onload  => "loadedBody();",	           
+		    -style   => [
+          { -type => 'text/css', -src => 'wsrc/main.css' },
+          { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
+          { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
+          {
+              -type => 'text/css',
+              -src  => 'wsrc/jquery-ui-timepicker-addon.css'
+          },
+          { -type => 'text/css', -src => 'wsrc/tip-skyblue/tip-skyblue.css' },
+          {
+              -type => 'text/css',
+              -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
+          },
+      ],
+      -script => [
+          { -type => 'text/javascript', -src => 'wsrc/main.js' },
+          { -type => 'text/javascript', -src => 'wsrc/jquery.js' },
+          { -type => 'text/javascript', -src => 'wsrc/jquery-ui.js' },
+          {
+              -type => 'text/javascript',
+              -src  => 'wsrc/jquery-ui-timepicker-addon.js'
+          },
+          {
+              -type => 'text/javascript',
+              -src  => 'wsrc/jquery-ui-sliderAccess.js'
+          },
+          { -type => 'text/javascript', -src => 'wsrc/jquery.poshytip.js' }
+      ],
+	        );
+
 ###############
 &processSubmit;
 ###############
 
-print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
-print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
-       		           -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		                 -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-	        );
+print qq(<div id="floating_menu" title="To close this menu click on its heart, and wait.">
+<div class="hdr" style="marging=0;padding:0px;">
+<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n"></span></a>&nbsp;
+<a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s"></span></a>
+<a id="floating_menu_close" href="#"><span  class="ui-icon ui-icon-heart"></span></a>
+</div>
+<hr>
+<a class="a_" href="stats.cgi">Stats</a><hr>
+<a class="a_" href="config.cgi">Log</a><hr>
+<br>
+<a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
+</div>);
 
 my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.$PRC_WIDTH.'%">
 	          <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
@@ -123,8 +166,8 @@ my  $frm = qq(
 		<tr class="r1">
 		  <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font> 
 		   Removing or changing categories is permanent! Each category one must have an unique ID. 
-			 Blank a category name to remove it. LOG records will change to the Unspecified (id 1) category! <br>
-			 The category <b>Unspecified</b>, can't be removed!
+			 Blank a category name to remove it. LOG records will change to the 
+			 <b>Unspecified</b> (id 1) category! And the category <b>Unspecified</b>, can't be removed!
 			 </div>
 			</td>			
 		</tr>
@@ -210,6 +253,20 @@ my  $frmDB = qq(
 		<input type="hidden" name="db_fix" value="1"/>
 		</table></form><br>
 		);
+$tbl = qq(<table id="cnf_fix" class="tbl" border="1" width="$PRC_WIDTH%">
+	          <tr class="r0"><td colspan="2"><b>* CHANGE PASSWORD *</b></td></tr>
+			 );
+my  $frmPASS = qq(
+	 <form id="frm_PASS" action="config.cgi">$tbl
+		<tr class="r1" align="left"><td style="width:100px">Existing:</td><td><input type="password" name="existing" value="" size="12"/></td></tr>
+		<tr class="r1" align="left"><td>New:</td><td><input type="password" name="new" value="" size="12"/></td></tr>
+		<tr class="r1" align="left"><td>Confirmation:</td><td><input type="password" name="confirm" value="" size="12"/></td></tr>
+		<tr class="r1">		
+		 <td colspan="2" align="right"><b>Password change for -> $userid</b>&nbsp;<input type="submit" value="Change"/></td>
+		</tr>			
+		<input type="hidden" name="pass_change" value="1"/>
+		</table></form><br>
+		);
 
 #
 #Page printout from here!
@@ -220,6 +277,7 @@ my $prc_hdr = $PRC_WIDTH-2;
 	<div>$frm</div>
   <div>$frmVars</div>
 	<div>$frmDB</div>
+	<div>$frmPASS</div>
 	<div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
 				<a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a></div>		
 			<br><div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
@@ -314,14 +372,31 @@ sub processSubmit {
 my $change = $cgi->param("cchg");
 my $chgsys = $cgi->param("sys");
 my $chgdb  = $cgi->param("db_fix");
+my $passch = $cgi->param("pass_change");
 my $s;
 my $d;
 
 
 
 try{
-
-if ($change == 1){
+if($passch){
+	my ($ex,$ne,$cf) = ($cgi->param("existing"),$cgi->param("new"),$cgi->param("confirm"));
+	if($ne ne $cf){
+		 $status = "New password must match confirmation!";
+		 print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
+	}
+	else{
+		if(&confirmExistingPassword($ex)){
+			 &changePassword($ne);
+			 $status = "Password Has Been Changed";
+		}
+		else{
+			$status = "Wrong existing password was entered, are you user by alias: $userid ?";
+			print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
+		}
+	}	
+}
+elsif ($change == 1){
 
 	while(my @row = $dbs->fetchrow_array()) {
 
@@ -416,10 +491,36 @@ catch{
  	   "<font color=red><b>SERVER ERROR</b></font>:".$_. "</p></div></center>";
 
 }
-
 }
 
-sub processDBFix{
+sub confirmExistingPassword {
+		my $pass = $_[0];
+	  my $crypt = encryptPassw($pass);
+		my $sql = "SELECT ALIAS, PASSW from AUTH WHERE ALIAS='$userid' AND PASSW='$crypt';";
+	#		print "<center><div><p><font color=red><b>DEBUG</b></font>:[$pass]<br>$sql</p></div></center>";
+		$dbs = $db->prepare($sql);
+		$dbs->execute();
+		if($dbs->fetchrow_array()){
+			return 1;
+		}
+		return 0;
+}
+sub changePassword {
+	  my $pass = encryptPassw($_[0]);
+		$dbs = $db->prepare("UPDATE AUTH SET PASSW='$pass' WHERE ALIAS='$userid';");
+		$dbs->execute();
+		if($dbs->fetchrow_array()){
+			return 1;
+		}
+		return 0;	
+}
+sub encryptPassw {
+	return uc crypt $_[0], hex $cipher_key;
+}
+
+
+
+sub processDBFix {
 
 	 my $rs_syst = $cgi->param("reset_syst");
 	 my $rs_cats = $cgi->param("reset_cats");
