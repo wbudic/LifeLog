@@ -595,7 +595,7 @@ print qq(<center>\n
 <br>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>
-        </div>
+
 	  <div>\n$frm\n</div>\n<br>\n
 	  <div id="div_srh">$srh</div>
 	  <div>\n$tbl\n</div><br>
