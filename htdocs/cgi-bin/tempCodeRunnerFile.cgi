@@ -6,6 +6,23 @@
 use strict;
 use warnings;
 
+
+
+		open(my $fh, '<', '/home/will/dev/LifeLog/htdocs/cgi-bin/main.cnf' ) or die "Can't open main.cnf: $!";
+		while (my $line = <$fh>) {
+					chomp $line;
+					if(rindex ($line, "<<AUTO_LOGIN<", 0)==0){
+						 my $end = index $line, ">", 14;
+						 my $crest = substr $line, 13, $end - 13;
+                         my @cre = split '/', $crest;
+                         if(@cre &&scalar(@cre)>1){
+                         print @cre;
+                         }
+
+					}
+		}
+       close $fh;
+=Comm
 my $fh;
 my $inData = 0;
 open( $fh, "<:perlio", '/home/will/dev/LifeLog/htdocs/cgi-bin/main.cnf' )
@@ -77,6 +94,7 @@ foreach my $line (@lines) {
 
 }
 close $fh;
+=cut
 
 =comment
 

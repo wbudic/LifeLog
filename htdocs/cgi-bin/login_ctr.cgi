@@ -29,6 +29,7 @@ our $RELEASE_VER = '1.4';
 our $AUTHORITY   = '';
 our $IMG_W_H     = '210x120';
 our $AUTO_WRD_LMT= 200;
+our $AUTO_LOGIN  = 0;
 #END OF SETTINGS
 
 
@@ -93,6 +94,7 @@ exit;
 
 sub processSubmit{
 try{
+	&checkAutologinSet;
 	if($alias&&$passw){
  			
 			$passw = uc crypt $passw, hex $cipher_key;
@@ -101,7 +103,7 @@ try{
 			$session->param('alias', $alias);
 			$session->param('passw', $passw);
 			$session->param('database', 'data_'.$alias.'_log.db');	
-			$session->flush();						
+			$session->flush();
 			print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");  
 			return 1;
 	}
@@ -117,7 +119,37 @@ return 0;
  }
 }
 
-sub checkCreateTables{
+sub checkAutologinSet {
+		#We don't need to slurp as it is expected setting in header.
+		my @cre;
+		open(my $fh, '<', './main.cnf' ) or die "Can't open main.cnf: $!";		
+		while (my $line = <$fh>) {
+					chomp $line;
+					if(rindex ($line, "<<AUTO_LOGIN<", 0)==0){
+						 my $end = index $line, ">", 14;
+						 my $crest = substr $line, 13, $end - 13;
+						 @cre = split '/', $crest;
+						 last;
+					}
+		}
+    close $fh;
+		if(@cre &&scalar(@cre)>1){			
+			 my $database = $LOG_PATH.'data_'.$cre[0].'_log.db';
+			 my $dsn= "DBI:SQLite:dbname=$database";
+			 my $db = DBI->connect($dsn, $cre[0], $cre[1], { RaiseError => 1 }) 
+								or die "<p>Error->"& $DBI::errstri &"</p>";
+					#check if enabled.	
+			 my $st = $db->prepare("SELECT NAME, VALUE FROM CONF WHERE NAME='$AUTO_LOGIN';");
+		 			$st->execute();
+			 my @set = $st->fetchrow_array();
+					if(@set && $set[0]=="1"){
+						 $alias = $cre[0];
+						 $passw = $cre[1];
+					}
+		}
+}
+
+sub checkCreateTables {
 try{
 	my $today = DateTime->now;
 	   $today->set_time_zone( $TIME_ZONE );
@@ -373,7 +405,7 @@ sub insertDefCats {
 	  my
 	  $st = $_[0]->prepare('INSERT INTO CAT VALUES (?,?,?)'); 
 		$st->execute(1, "Unspecified", "For quick uncategorised entries.");
-		$st->execute(3, "File System", "Operating file system short log.");
+		$st->execute(3, "File", "Operating file system short log.");
 		$st->execute(6, "System Log", "Operating system important log.");
 		$st->execute(9, "Event", "Event that occured, meeting, historically important.");
 		$st->execute(28,"Personal", "Personal log of historical importance, diary type.");
