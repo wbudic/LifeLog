@@ -30,6 +30,7 @@ our $RELEASE_VER = '1.4';
 our $AUTHORITY   = '';
 our $IMG_W_H     = '210x120';
 our $AUTO_WRD_LMT= 200;
+our $AUTO_LOGIN  = 0;
 #END OF SETTINGS
 
 #This is the OS developer release key, replace on istallation. As it is not secure.
@@ -209,6 +210,19 @@ while(my @row = $dbs->fetchrow_array()) {
         $v = qq(<select id="dumi" name="var$i">
 				         <option value="0" $l>Locale</option>
 								 <option value="1" $u>Universal</option>
+								</select>);
+		 }
+		 elsif($n eq "AUTO_LOGIN"){
+			  my($l,$u)=("","");
+				if($v == 0){
+					 $l = "SELECTED"
+				}
+				else{
+			     $u = "SELECTED"
+				}
+        $v = qq(<select id="almi" name="var$i">
+				         <option value="0" $l>Disabled</option>
+								 <option value="1" $u>Enabled</option>
 								</select>);
 		 }
 		 elsif($n ne "RELEASE_VER"){		 
@@ -737,7 +751,8 @@ sub changeSystemSettings {
 						case "LANGUAGE"  {$LANGUAGE=$var; updCnf($r[0],$var)}
 						case "AUTHORITY" {$AUTHORITY=$var; updCnf($r[0],$var)}
 						case "IMG_W_H"   {$IMG_W_H=$var; updCnf($r[0],$var)}
-						case "AUTO_WRD_LMT"   {$AUTO_WRD_LMT=$var; updCnf($r[0],$var)}
+						case "AUTO_WRD_LMT"{$AUTO_WRD_LMT=$var; updCnf($r[0],$var)}
+						case "AUTO_LOGIN" {$AUTO_LOGIN=$var; updCnf($r[0],$var)}
 					 }
 				}
 			}
@@ -935,6 +950,7 @@ sub getConfiguration {
 				case "LANGUAGE"     {$LANGUAGE=$r[2]}
 				case "IMG_W_H"      {$IMG_W_H=$r[2]}
 				case "AUTO_WRD_LMT" {$AUTO_WRD_LMT=$r[2]}
+				case "AUTO_LOGIN" 	{$AUTO_LOGIN=$r[2]}
 			}
 
 		}
