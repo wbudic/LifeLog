@@ -120,6 +120,7 @@ return 0;
 }
 
 sub checkAutologinSet {
+try{
 		#We don't need to slurp as it is expected setting in header.
 		my @cre;
 		open(my $fh, '<', './main.cnf' ) or die "Can't open main.cnf: $!";		
@@ -147,6 +148,13 @@ sub checkAutologinSet {
 						 $passw = $cre[1];
 					}
 		}
+}
+ catch{	 	
+	  print $cgi->header;
+		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+    print $cgi->end_html;
+		exit;
+ }
 }
 
 sub checkCreateTables {
