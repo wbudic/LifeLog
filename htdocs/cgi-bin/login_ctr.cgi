@@ -140,7 +140,7 @@ try{
 			 my $db = DBI->connect($dsn, $cre[0], $cre[1], { RaiseError => 1 }) 
 								or die "<p>Error->"& $DBI::errstri &"</p>";
 					#check if enabled.	
-			 my $st = $db->prepare("SELECT NAME, VALUE FROM CONF WHERE NAME='$AUTO_LOGIN';");
+			 my $st = $db->prepare("SELECT NAME, VALUE FROM CONFIG WHERE NAME='$AUTO_LOGIN';");
 		 			$st->execute();
 			 my @set = $st->fetchrow_array();
 					if(@set && $set[0]=="1"){
