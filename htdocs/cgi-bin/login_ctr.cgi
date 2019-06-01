@@ -124,7 +124,7 @@ sub checkAutologinSet {
 try{
 		#We don't need to slurp as it is expected setting in header.
 		my @cre;
-		open(my $fh, '<', './main.cnf' ) or die "Can't open main.cnf: $!";		
+		open(my $fh, '<', $LOG_PATH.'main.cnf' ) or die "Can't open main.cnf: $!";		
 		while (my $line = <$fh>) {
 					chomp $line;
 					if(rindex ($line, "<<AUTO_LOGIN<", 0)==0){
@@ -178,7 +178,7 @@ try{
 			 ID_CAT TINY NOT NULL,
 			 DATE DATETIME  NOT NULL,
 			 LOG VCHAR(128) NOT NULL,
-			 AMMOUNT integer
+			 AMMOUNT INTEGER DEFAULT 0
 		);
 		CREATE INDEX idx_log_dates ON LOG (DATE);
 		);
@@ -322,7 +322,7 @@ sub populate {
 		my @lines;
 		my $table_type = 0;
 
-		open(my $fh, "<:perlio", './main.cnf' ) or die "Can't open main.cnf: $!";
+		open(my $fh, "<:perlio", $LOG_PATH.'main.cnf' ) or die "Can't open main.cnf: $!";
 		read $fh, my $content, -s $fh;
 	  	   @lines  = split '\n', $content;
 	  close $fh;
@@ -396,7 +396,7 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
 
 					}
 		}    
-		die "Configuration script './main.cnf' [$fh] contains errors." if $err;
+		die "Configuration script $LOG_PATH.'main.cnf' [$fh] contains errors." if $err;
 	} catch{	 		
 	  print $cgi->header;
 		print "<font color=red><b>SERVER ERROR!</b></font><br> ".$_."<br><pre>$err</pre>";
