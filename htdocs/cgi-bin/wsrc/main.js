@@ -77,29 +77,28 @@ function loadedBody(toggle) {
             MNU_SCROLLING = true;
         }
     });
-    $("#floating_menu_close").poshytip({
+    $("#menu_close").poshytip({
         className: 'tip-yellowsimple',
         showOn: 'focus',
         alignX: 'left',
         alignY: 'bottom',
     });
 
-    $("#floating_menu_close").click(function() {
-        //$("#floating_menu").effect("shake", {}, 1000, function() {
-        $("#floating_menu").effect("drop", { direction: "down" }, 1500, function() {
-                $("#floating_menu").hide();
+    $("#menu_close").click(function() {
+        $("#menu").effect("shake", {}, 1000, function() {
+        $("#menu").effect("drop", { direction: "down" }, 1500, function() {
+                $("#menu").hide();
             })
-            // })
+             })
     });
 
 
-    $("#log_submit").addEventListener("click", encodeText);
+    $("#log_submit").click(encodeText);
 
-    var lst = $("#cat_lst");
-    var children = lst.childNodes;
 
-    for (var i = 0; i < children.length; i++) {
-        _MAP.set(children[i].id, children[i].innerHTML);
+    var kidz = $("#cat_lst").children();
+    for (var i = 0; i < kidz.length; i++) {
+        _MAP.set(kidz[i].id, kidz[i].innerHTML);
     }
 
     $('#ec').show();
@@ -107,8 +106,12 @@ function loadedBody(toggle) {
 }
 
 function showFloatingMenu() {
-    $("#floating_menu").toggle();
+    $("#menu").show();
+    $("#div_log").toggle();
     return false;
+}
+function hideLog(){
+    $("#div_log").hide(); return false;
 }
 
 function encodeText(el) {

@@ -215,7 +215,7 @@ for my $key ( keys %desc ) {
 my $tbl =
 qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
 <table class="tbl" border="0" width="$PRC_WIDTH%">
-<tr class="hdr">
+<tr class="r0">
 	<th class="tbl">Date</th>
 	<th class="tbl">Time</th>
 	<th class="tbl">Log</th><th>#</th>
@@ -495,7 +495,7 @@ if ( $tbl_rc == 0 ) {
 }
 
 $tbl .=
-'<tr class="r0"><td><a id="floating_menu_close" href="#" onclick="return showFloatingMenu();"><span  class="ui-icon ui-icon-heart"></span></a>
+'<tr class="r0"><td><a id="menu_close" href="#" onclick="return showFloatingMenu();"><span  class="ui-icon ui-icon-heart"></span></a>
 <a href="#top">&#x219F;</a></td><td colspan="5" align="right"> 
 <input type="hidden" name="datediff" id="datediff" value="0"/>
 <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
@@ -511,9 +511,10 @@ $tbl .=
 my $frm = qq(<a name="top"></a>
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
 	<table class="tbl" border="0" width="$PRC_WIDTH%">
-	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b></td></tr>	
+	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b>
+    <a id="log_close" href="#" onclick="return hideLog();"><span  class="ui-icon ui-icon-heart" style="float:right;"></span></td></tr>	
 	<tr>
-	<td style="text-align:right;  vertical-align:top">Date:</td>
+	<td style="text-align:right; vertical-align:top; width:10%;">Date:</td>
 	<td id="al" colspan="1" style="text-align:top; vertical-align:top"><input id="ed" type="text" name="date" size="18" value=")
   . $today->ymd . " "
   . $today->hms . qq(">
@@ -587,7 +588,7 @@ print qq(<center>\n
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n"></span></a>&nbsp;
 <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s"></span></a>
-<a id="floating_menu_close" href="#"><span  class="ui-icon ui-icon-heart"></span></a>
+<a id="menu_close" href="#" onclick="return showFloatingMenu();"><span  class="ui-icon ui-icon-heart"></span></a>
 </div>
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
@@ -598,7 +599,7 @@ print qq(<center>\n
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>
 
-	  <div>\n$frm\n</div>\n<br>\n
+	  <div id="div_log">\n$frm\n</div>\n<br>\n
 	  <div id="div_srh">$srh</div>
 	  <div>\n$tbl\n</div><br>
 	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
