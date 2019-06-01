@@ -53,7 +53,7 @@ if(!$userid||!$dbname){
 	exit;
 }
 
-my $database = '../../dbLifeLog/'.$dbname;
+my $database = $LOG_PATH.$dbname;
 my $dsn= "DBI:SQLite:dbname=$database";
 my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
 
@@ -631,7 +631,7 @@ catch{
 }
 }
 
-sub resetCategories{
+sub resetCategories {
 				$dbs = $db->prepare("DELETE FROM CAT;");
 				$dbs->execute();
 				$dbs = $db->prepare("DROP TABLE CAT;");
@@ -639,7 +639,7 @@ sub resetCategories{
 				$LOGOUT = 1;
 }
 
-sub wipeSystemConfiguration{
+sub wipeSystemConfiguration {
 				$dbs = $db->prepare("DELETE FROM CONFIG;");
 				$dbs->execute();
 				$dbs = $db->prepare("DROP TABLE CONFIG;");
@@ -650,7 +650,7 @@ sub wipeSystemConfiguration{
 
 sub resetSystemConfiguration {
 
-		open(my $fh, '<', './main.cnf' ) or die "Can't open main.cnf: $!";
+		open(my $fh, '<', $LOG_PATH.'main.cnf' ) or die "Can't open main.cnf: $!";
 		my $db = shift;
 		my ($did,$name, $value, $desc);
 		my $inData = 0;
@@ -778,7 +778,7 @@ sub updCnf {
 sub exportLogToCSV {
 	try{
 		  
-			my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 		  
+			my $csv = Text::CSV->new ( { binary => 1, strict => 1 , quote_space=>1, auto_diag => 1, eol => $/} ); 		  
 	    $dbs = $db->prepare("SELECT * FROM LOG;");
 		  $dbs->execute();
 
@@ -809,7 +809,7 @@ sub exportLogToCSV {
 sub exportCategoriesToCSV {
 	try{
 		  
-			my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 		  
+			my $csv = Text::CSV->new ( { binary => 1, strict => 1,eol => $/ } ); 		  
 	    $dbs = $db->prepare("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
 		  $dbs->execute();
 
@@ -840,7 +840,7 @@ sub exportCategoriesToCSV {
 
 sub importCatCSV {
 	my $hndl = $cgi->upload("data_cat");
-	my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 	
+	my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } ); 	
   while (my $line = <$hndl>) {
          chomp $line;
 			   if ($csv->parse($line)) { 
@@ -880,7 +880,7 @@ sub updateCATDB {
 }
 sub importLogCSV {
 	my $hndl = $cgi->upload("data_log");
-	my $csv = Text::CSV->new ( { binary => 1, strict => 1 } ); 	
+	my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } ); 	
   while (my $line = <$hndl>) {
          chomp $line;
 			   if ($csv->parse($line)) { 
