@@ -5,8 +5,15 @@
 #
 use strict;
 use warnings;
+use DBI;
+#DEFAULT SETTINGS HERE!
+our $LOG_PATH    = '/home/will/dev/LifeLog/dbLifeLog/';
 
 
+#END OF SETTINGS
+
+
+my @cre;
 
 		open(my $fh, '<', '/home/will/dev/LifeLog/htdocs/cgi-bin/main.cnf' ) or die "Can't open main.cnf: $!";
 		while (my $line = <$fh>) {
@@ -14,14 +21,34 @@ use warnings;
 					if(rindex ($line, "<<AUTO_LOGIN<", 0)==0){
 						 my $end = index $line, ">", 14;
 						 my $crest = substr $line, 13, $end - 13;
-                         my @cre = split '/', $crest;
+                          @cre = split '/', $crest;
                          if(@cre &&scalar(@cre)>1){
-                         print @cre;
+                         print @cre; last;
                          }
 
 					}
 		}
        close $fh;
+
+       	if(scalar(@cre)>1){			
+
+			 my $database = $LOG_PATH.'data_'.$cre[0].'_log.db';
+			 my $dsn= "DBI:SQLite:dbname=$database";
+			 my $db = DBI->connect($dsn, $cre[0], $cre[1], { RaiseError => 1 }) 
+								or die "<p>Error-></p>";
+					#check if enabled.	
+			 my $st = $db->prepare("SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");
+		 			$st->execute();
+			 my @set = $st->fetchrow_array();
+             print $set[0];
+					if($set[0] eq "0"){
+						my $alias = $cre[0];
+						my $passw = $cre[1];						 
+					}
+                    else{
+                        print "sucks cock!"
+                    }
+		}
 =Comm
 my $fh;
 my $inData = 0;

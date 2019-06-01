@@ -50,6 +50,7 @@ my $cipher_key = '95d7a85ba891da';
 
 if($cgi->param('logout')){&logout}
 
+&checkAutologinSet;
 if(&processSubmit==0){
 
   print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);  
@@ -94,7 +95,7 @@ exit;
 
 sub processSubmit{
 try{
-	&checkAutologinSet;
+
 	if($alias&&$passw){
  			
 			$passw = uc crypt $passw, hex $cipher_key;
@@ -140,12 +141,12 @@ try{
 			 my $db = DBI->connect($dsn, $cre[0], $cre[1], { RaiseError => 1 }) 
 								or die "<p>Error->"& $DBI::errstri &"</p>";
 					#check if enabled.	
-			 my $st = $db->prepare("SELECT NAME, VALUE FROM CONFIG WHERE NAME='$AUTO_LOGIN';");
+			 my $st = $db->prepare("SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");
 		 			$st->execute();
 			 my @set = $st->fetchrow_array();
 					if(@set && $set[0]=="1"){
 						 $alias = $cre[0];
-						 $passw = $cre[1];
+						 $passw = $cre[1];						 
 					}
 		}
 }
