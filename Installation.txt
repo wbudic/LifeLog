@@ -165,5 +165,21 @@ Subsequent versions of LifeLog software might require this operation.
 You can export and modify your added categories via an CSV file.
 Making sure the ID first column across all entries has a unique number.
 
+#Install AUTO_LOGIN
+On a personal network or small network, you might prefere to auto login when browsing to the LifeLog, 
+instead of entering every time user name and password. It makese sense, as you are the only one using it,
+don't need that extra security.
+
+Other scenario is that the LifeLog in an Office Environment is accessed by multiple people.,
+using same alias and password. Don't need to have any extra security as the alias and password is known.
+
+
+Modify, in dbLifeLog/main.cnf
+Look for <<AUTO_LOGIN<>
+And change have your general login credentials. i.e.:
+<<AUTO_LOGIN<admin/password_123>
+
+Then login one last time, and enable AUTO_LOGIN at the configuration page.
+
 
 
