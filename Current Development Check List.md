@@ -1,6 +1,7 @@
 # Current Branch Development Moon-Stable-1.4
 ## Urgent
 *&#10004; Autologin feature, that expires on logout.
+
 *&#10004; Data/Login control updated to read the configuration file.
 >> Configuration file to be updated to carry also categories.
 * &#10004; Configuration page to be updated, system variables description field to be implemented.
