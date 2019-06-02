@@ -32,4 +32,4 @@
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
 * &#10004; Bug - 04, Local not picked up properly on current date.
 
-### Checked (&#10004;) Has been done and submitted to branch.
+### Checked (&#10004;) Are items that have been done and submitted to the branch.

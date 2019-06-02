@@ -588,7 +588,7 @@ print qq(<center>\n
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n"></span></a>&nbsp;
 <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s"></span></a>
-<a id="menu_close" href="#" onclick="return showFloatingMenu();"><span  class="ui-icon ui-icon-heart"></span></a>
+<a id="menu_close" href="#" onclick="return hideLog();"><span  class="ui-icon ui-icon-heart"></span></a>
 </div>
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
