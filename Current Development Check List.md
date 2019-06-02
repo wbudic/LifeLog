@@ -1,4 +1,4 @@
-# Current Branch Development Moon-Stable-1.4
+# Current Branch Development Sun-1.5
 ## Urgent
 *&#10004; Autologin feature, that expires on logout.
 *&#10004; Data/Login control updated to read the configuration file.
