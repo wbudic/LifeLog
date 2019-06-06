@@ -373,8 +373,7 @@ while ( my @row = $st->fetchrow_array() ) {
           }
           else {
               #TODO fetch from web locally the original image.
-              $lnk =
-qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
+              $lnk=qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
           }
           if ( !$tagged ) {
               $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);
@@ -412,7 +411,8 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
       }
 
       #Decode escaped \\n
-      $log =~ s/\\n/<br>/gs;
+      $log =~ s/\r\n/<br>/gs;
+      $log =~ s/\n/<br>/gs;
 
       if ( $CID_EVENT == $row[1] ) {
           $log = "<font color='#eb4848' style='font-weight:bold'>$log</font>";
@@ -654,7 +654,7 @@ sub processSubmit {
 
       try {
 #Apostroph's need to be replaced with doubles  and white space fixed for the SQL.
-          $log =~ s/(?<=\w) ?' ?(?=\w)/''/g;
+          $log =~ s/'/''/g;
 
           if ( $edit_mode && $edit_mode != "0" ) {
 
@@ -697,7 +697,7 @@ sub processSubmit {
                   $stmt =
 'SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG where rowid <= "'
                     . $rs_cur
-                    . '" ORDER BY DATE DESC;;;'
+                    . '" ORDER BY DATE DESC;'
                     . $rs_page;
                   return;
             }
@@ -707,12 +707,7 @@ sub processSubmit {
 
               #check for double entry
               #
-              my $st =
-                $db->prepare( "SELECT DATE,LOG FROM LOG where DATE='"
-                    . $date
-                    . "' AND LOG='"
-                    . $log
-                    . "';" );
+              my $st = $db->prepare( qq(SELECT DATE,LOG FROM LOG where DATE='$date' AND LOG='$log';) );
 
               $st->execute();
               if ( my @row = $st->fetchrow_array() ) {
