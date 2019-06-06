@@ -31,5 +31,6 @@
 >> This occurrs on new records placed in the far past. Complex problem.
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
 * &#10004; Bug - 04, Local not picked up properly on current date.
+* &#10004; Bug - 05, CRLF and apostrophe replacement not working.
 
 ### Checked (&#10004;) Are items that have been done and submitted to the branch.
