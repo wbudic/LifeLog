@@ -86,10 +86,10 @@ function loadedBody(toggle) {
 
     $("#menu_close").click(function() {
         $("#menu").effect("shake", {}, 1000, function() {
-        $("#menu").effect("drop", { direction: "down" }, 1500, function() {
+            $("#menu").effect("drop", { direction: "down" }, 1500, function() {
                 $("#menu").hide();
             })
-             })
+        })
     });
 
 
@@ -110,8 +110,10 @@ function showFloatingMenu() {
     $("#div_log").toggle();
     return false;
 }
-function hideLog(){
-    $("#div_log").hide(); return false;
+
+function hideLog() {
+    $("#div_log").hide();
+    return false;
 }
 
 function encodeText(el) {

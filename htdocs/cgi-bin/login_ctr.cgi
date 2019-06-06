@@ -148,6 +148,7 @@ try{
 						 $alias = $cre[0];
 						 $passw = $cre[1];						 
 					}
+			 $db->disconnect();
 		}
 }
  catch{	 	
@@ -249,15 +250,15 @@ try{
 	$st = $db->prepare(selSQLTbl('NOTES'));
 	$st->execute();
 	if(!$st->fetchrow_array()) {
-    my $stmt = qq(
-																						CREATE VIRTUAL TABLE NOTES USING fts4(
-																								ID INT PRIMARY KEY NOT NULL,
-																								ID_LOG INT,
-																								AUTHOR,
-																								CONTENT TEXT NOT NULL,
-																								compress=zip, uncompress=unzip
-																						);
-		); 
+my $stmt = qq(
+										CREATE VIRTUAL TABLE NOTES USING fts4(
+												ID INT PRIMARY KEY NOT NULL,
+												ID_LOG INT,
+												AUTHOR,
+												CONTENT TEXT NOT NULL,
+												compress=zip, uncompress=unzip
+										);
+); 
 		$rv = $db->do($stmt);
 		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>"};
 		$st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias' AND passw='$passw';");
@@ -332,6 +333,7 @@ try{
 	  
 		my $insConfig = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
 		my $insCat    = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
+						$db->begin_work();
     foreach my $line (@lines) {
 					
 					my @tick = split("`",$line);
@@ -397,10 +399,11 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
 					}
 		}    
 		die "Configuration script $LOG_PATH.'main.cnf' [$fh] contains errors." if $err;
+		$db->commit();
 	} catch{	 		
 	  print $cgi->header;
-		print "<font color=red><b>SERVER ERROR!</b></font><br> ".$_."<br><pre>$err</pre>";
-    print $cgi->end_html;
+	  print "<font color=red><b>SERVER ERROR!</b></font><br> ".$_."<br><pre>$err</pre>";
+	  print $cgi->end_html;
 		exit;
  }
 }
@@ -413,6 +416,7 @@ return "SELECT name FROM sqlite_master WHERE type='table' AND name='$name';"
 sub insertDefCats {
 	  my
 	  $st = $_[0]->prepare('INSERT INTO CAT VALUES (?,?,?)'); 
+	  		$_[0]->begin_work();
 		$st->execute(1, "Unspecified", "For quick uncategorised entries.");
 		$st->execute(3, "File", "Operating file system short log.");
 		$st->execute(6, "System Log", "Operating system important log.");
@@ -422,6 +426,7 @@ sub insertDefCats {
 		$st->execute(35,"Income", "Significant yearly income.");
 		$st->execute(40,"Work", "Work related entry, worth monitoring.");
 		$st->execute(45,"Food", "Quick reference to recepies, observations.");
+		$_[0]->commit();
 		$st->finish();
 }
 
