@@ -1,8 +1,14 @@
 # Current Branch Development Sun-1.5
+##Current
+LifeLog Document using Quill
+- 
+* Separate Page
+* Uses Encryption, Compression extension in SQLite.
+* Provide file attachments.
 ## Urgent
 *&#10004; Autologin feature, that expires on logout.
 *&#10004; Data/Login control updated to read the configuration file.
->> Configuration file to be updated to carry also categories.
+>&#10004; Configuration file to be updated to carry also categories.
 * &#10004; Configuration page to be updated, system variables description field to be implemented.
 * &#10004; Configuration page - data fix section to be implemented.
 * &#10004; Build login_ctrl.cgi login controller alias and password based. Where each alias creates its own database. It server side session based, that unless you logged off keeps the session 24 hr. by default. Alias is therefore to an separate database. If user doesn't know the password, can't get access. Client remote IP address is checked to be on local only network (IP pinged).
@@ -15,7 +21,7 @@
 
 ## Minor
 * Implement File Attachments.
->> Usefull as backup of and direct access of important documents at the day of attachement time.
+> Usefull as backup of and direct access of important documents at the day of attachement time.
 * &#10004; Configuration page - JQuery look and feel implemented.
 * &#10004; Migration for data structural changes to be bettered.
 * &#10004; Floating side menu for links and navigation.
@@ -32,5 +38,7 @@
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
 * &#10004; Bug - 04, Local not picked up properly on current date.
 * &#10004; Bug - 05, CRLF and apostrophe replacement not working.
+***
 
-### Checked (&#10004;) Are items that have been done and submitted to the branch.
+** Checked (&#10004;) Are items that have been done and submitted to the branch.**
+**Project ->**  https://github.com/wbudic/LifeLog/
