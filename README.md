@@ -10,5 +10,7 @@ The main application sources are located in the ../htdocs/cgi-bin directory.
 
 https://www.sqlite.org/index.html database is required to run this web application.
 
+## Important SQLite update arraived, 19-Jun-2019. Full on security patches, on buffer over., Denial of Service attacks. Etc. If placing this application on the internet.
+
 
 ![Sample](VS-on-METABOX-34.png)
