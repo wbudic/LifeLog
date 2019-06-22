@@ -58,7 +58,7 @@ function loadedBody(toggle) {
         className: 'tip-yellowsimple',
         showOn: 'focus',
         alignTo: 'target',
-        alignX: 'right',
+        alignX: 'left',
         alignY: 'center',
         offsetX: 5,
         showTimeout: 100
