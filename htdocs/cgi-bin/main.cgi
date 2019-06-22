@@ -261,7 +261,7 @@ elsif ($rs_cat_idx) {
 else {
       if ($stmD) {
           $stmt = $stmS . $stmD . $stmE;
-    }
+      }
 }
 
 ###############
@@ -280,8 +280,8 @@ if ( $tbl_start > 0 ) {
 
       #check if we are at the beggining of the LOG table?
       my $stc =
-        $db->prepare('select rowid from LOG order by rowid DESC LIMIT 1;');
-      $stc->execute();
+         $db->prepare('select rowid from LOG order by rowid DESC LIMIT 1;');
+         $stc->execute();
       my @row = $stc->fetchrow_array();
       if ( $row[0] == $rs_prev && $rs_cur == $rs_prev ) {
           $tbl_start = -1;
@@ -305,7 +305,7 @@ while ( my @row = $st->fetchrow_array() ) {
       my $ct  = $hshCats{ $row[1] };
       my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
       my $log = $row[3];
-      my $amm = sprintf "%.2f", $row[4];
+      my $amm = camm(sprintf "%.2f", $row[4]);
 
       #Apostrophe in the log value is doubled to avoid SQL errors.
       $log =~ s/''/'/g;
@@ -926,4 +926,11 @@ sub getConfiguration {
       catch {
           print "<font color=red><b>SERVER ERROR</b></font>:" . $_;
     }
+}
+
+sub camm {
+            my $amm = sprintf("%.2f", shift @_);
+            # Add one comma each time through the do-nothing loop
+            1 while $amm =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
+return $amm;
 }
