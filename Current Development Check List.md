@@ -1,5 +1,5 @@
 # Current Branch Development Sun-1.5
-##Current
+## Current
 LifeLog Document using Quill
 - 
 * Separate Page
