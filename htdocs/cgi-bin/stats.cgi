@@ -47,8 +47,7 @@ $today->set_time_zone( $TIME_ZONE );
 
 my $q = CGI->new;
 
-print $q->header(-expires=>"+6os", -charset=>"UTF-8");    
-
+print $q->header(-expires=>"+6os", -charset=>"UTF-8");
 print $q->start_html(-title => "Log Data Stats", -BGCOLOR=>"#c8fff8",
        		         -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 		             -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
@@ -57,8 +56,6 @@ print $q->start_html(-title => "Log Data Stats", -BGCOLOR=>"#c8fff8",
 
 
 my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="4"><b>* PERSONAL LOG DATA STATS *</b></td></tr>';
-
-
 
 my $log_rc = selectSQL('select count(rowid) from LOG;');
 my $stm = "SELECT count(date) from LOG where date>=date('now','start of year');";
@@ -69,12 +66,12 @@ my $id_income  = selectSQL('SELECT ID from CAT where name like "Income";');
 
 $stm = 'SELECT sum(ammount) from LOG where date>=date("now","start of year") 
 		AND ID_CAT = '.$id_expense.';';
-my $expense =  sprintf("%.2f",selectSQL($stm));
+my $expense = big_money(sprintf("%.2f",selectSQL($stm)));
 
 $stm = 'SELECT sum(ammount) from LOG where date>=date("now","start of year") 
 	AND ID_CAT = '.$id_income.';';
 
-my $income =  sprintf("%.2f",selectSQL($stm));
+my $income =  big_money(sprintf("%.2f",selectSQL($stm)));
 my $revenue = big_money($income - $expense);
 my $hardware_status =`inxi -b -c0;uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;
@@ -130,5 +127,12 @@ sub big_money {
   # Put the dollar sign in the right place
   $number =~ s/^(-?)/$1\$/;
 return $number;
+}
+
+sub camm {
+  my $amm = sprintf("%.2f", shift @_);
+ # Add one comma each time through the do-nothing loop
+ 1 while $amm =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
+return $amm;
 }
 ### CGI END
