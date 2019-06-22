@@ -58,8 +58,8 @@ function loadedBody(toggle) {
         className: 'tip-yellowsimple',
         showOn: 'focus',
         alignTo: 'target',
-        alignX: 'left',
-        alignY: 'center',
+        alignX: 'center',
+        alignY: 'bottom',
         offsetX: 5,
         showTimeout: 100
     });
