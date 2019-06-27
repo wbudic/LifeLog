@@ -418,6 +418,7 @@ sub insertDefCats {
 	  $st = $_[0]->prepare('INSERT INTO CAT VALUES (?,?,?)'); 
 	  		$_[0]->begin_work();
 		$st->execute(1, "Unspecified", "For quick uncategorised entries.");
+		$st->execute(2, "Document", "Large Protected RichText document log entry type.");
 		$st->execute(3, "File", "Operating file system short log.");
 		$st->execute(6, "System Log", "Operating system important log.");
 		$st->execute(9, "Event", "Event that occured, meeting, historically important.");

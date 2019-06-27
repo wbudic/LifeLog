@@ -362,10 +362,10 @@ while ( my @row = $st->fetchrow_array() ) {
               my $ext = substr( $lnk, index( $lnk, '.' ) );
               $lnk =~ s/_frm.png/$ext/;
               if ( not -e "./images/$lnk" ) {
-                  $lnk =~ s/$ext/.jpg/;
-                  if ( not -e "./images/$lnk" ) {
-                      $lnk =~ s/.jpg/.gif/;
-                }
+                   $lnk =~ s/$ext/.jpg/;
+                   if ( not -e "./images/$lnk" ) {
+                        $lnk =~ s/.jpg/.gif/;
+                   }
               }
               $lnk =
                 qq(\n<a href="./images/$lnk" style="border=0;" target="_IMG">
@@ -380,6 +380,23 @@ while ( my @row = $st->fetchrow_array() ) {
           }
           $log =~ s/<<FRM<(.*?)>/$lnk/o;
       }
+      elsif ( $log =~ /<<LIST</ ) {
+          my $idx = $-[0];
+          my $len = index( $log, '>', $idx ) - 7;
+          my $lst = substr( $log, $idx + 7, $len - $idx );
+          my $sub = "";        
+          my @arr = split(/\n/, $lst);
+          foreach my $ln (@arr) {
+              $ln =~ s/^\s*//g;
+              $sub .= "<li>$ln</li>" if length($ln)>0;
+          }
+          
+          $log = "<ul>$sub</ul>";
+          #$log =~ s/<<LIST<(.*?)>/$lst/o;
+         # print $lst;
+          
+      }
+
 
       #Replace with a full link an HTTP URI
       my @chnks = split( /($re_a_tag)/si, $log );
@@ -409,7 +426,7 @@ while ( my @row = $st->fetchrow_array() ) {
           my $sub = "<h3>" . substr( $log, $idx + 8, $len - $idx ) . "</h3>";
           $log =~ s/<<TITLE<(.*?)>/$sub/o;
       }
-
+      
       #Decode escaped \\n
       $log =~ s/\r\n/<br>/gs;
       $log =~ s/\n/<br>/gs;
@@ -507,13 +524,20 @@ $tbl .=
 <input id="rs_keys2" name="keywords" type="text" size="60"/></td>
 <td><input type="submit" value="Search"/></form></td></tr>
 </table>';
+my $COLLAPSED_LOG = 's';
+my ($sp1,$sp2);
+$sp1 =   '<span  class="ui-icon ui-icon-heart" style="float:right;"></span>';
+$sp2 = qq(<span  class="ui-icon ui-icon-circle-triangle-$COLLAPSED_LOG" style="float:right;"></span>);
+
 
 my $frm = qq(<a name="top"></a>
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
 	<table class="tbl" border="0" width="$PRC_WIDTH%">
 	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b>
-    <a id="log_close" href="#" onclick="return hideLog();"><span  class="ui-icon ui-icon-heart" style="float:right;"></span></td></tr>	
-	<tr>
+    <a id="log_close" href="#" onclick="return hideLog();">$sp1</a>
+    <a id="log_close" href="#" onclick="return toggleLog();">$sp2</a>    
+    </td></tr>	
+	<tr class="collpsd">
 	<td style="text-align:right; vertical-align:top; width:10%;">Date:</td>
 	<td id="al" colspan="1" style="text-align:top; vertical-align:top"><input id="ed" type="text" name="date" size="18" value=")
   . $today->ymd . " "
@@ -526,12 +550,12 @@ $cats
 				<br><br><div id="cat_desc" name="cat_desc"></div>
 			</td>
 	</tr>
-	<tr><td style="text-align:right; vertical-align:top">Log:</td>
+	<tr class="collpsd"><td style="text-align:right; vertical-align:top">Log:</td>
 		<td id="al" colspan="2" style="text-align:top;">
 			<textarea id="el" name="log" rows="3" style="float:left; width:99%;" onChange="toggleVisibility('cat_desc',true)"></textarea>
 		</td>	
 	</tr>
-		<tr><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Ammount:</td>
+	<tr class="collpsd"><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Ammount:</td>
 		<td id="al">
 			<input id="am" name="am" type="number" step="any">			
 		</td>
@@ -540,7 +564,7 @@ $cats
 				<input id="log_submit" type="submit" value="Submit"/></div>
 		</td>		
 	</tr>
-	<tr><td colspan="3"></td></tr>
+	<tr class="collpsd"><td colspan="3"></td></tr>
 	</table>
 	<input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
 	<input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
@@ -555,28 +579,32 @@ $cats
 my $srh = qq(
 	<form id="frm_srch" action="main.cgi">
 	<table class="tbl" border="0" width="$PRC_WIDTH%">
-					<tr class="r0"><td colspan="4"><b>Search/View By</b></td></tr>
+					<tr class="r0"><td colspan="4"><b>Search/View By</b>
+      <a id="srch_close" href="#" onclick="return hideSrch();">$sp1</a>
+      <a id="srch_close" href="#" onclick="return toggleSrch();">$sp2</a>    
+                    
+                    </td></tr>
 		);
 
 $srh .=
-qq(<tr><td align="right"><b>View by Category:</b></td><td>$cats_v</td><td></td>
-	<td colspan="1" align="left">
-	<button id="btn_cat" onclick="viewByCategory(this);" style="float:left">View</button>
-	<input id="idx_cat" name="category" type="hidden" value="0"></td></tr>
-	<tr><td align="right"><b>View by Date:</b></td>
+qq(<tr class="collpsd"><td align="right"><b>View by Category:</b></td>
+    <td align="left" colspan="2">$cats_v</td><td><button id="btn_cat" onclick="viewByCategory(this);" style="float:left">View</button>
+	<input id="idx_cat" name="category" type="hidden" value="0"></td>
+   </tr>
+   <tr class="collpsd"><td align="right"><b>View by Date:</b></td>
 	<td align="left">
 	From:&nbsp;<input name="v_from" type="text" size="16"/></td><td align="left">
 	To:&nbsp;<input name="v_to" type="text" size="16"/>
 	<td align="left"><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
 	</tr>
-	<tr><td align="right"><b>Keywords:</b></td>
+   <tr class="collpsd"><td align="right"><b>Keywords:</b></td>
 				<td colspan="2" align="left">
 					<input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/></td>
 				<td align="left"><input type="submit" value="Search" align="left"></td></tr>);
 
 if ( $rs_keys || $rs_cat_idx || $stmD ) {
-      $srh .= '<tr><td align="left" colspan="3">
-	<button onClick="resetView()">Reset Whole View</button></td></tr>';
+      $srh .= '<tr class="collpsd"><td align="left" colspan="3"></td>
+	<td><button onClick="resetView()" stule="align:left">Reset Whole View</button></td></tr>';
 }
 
 $srh .= '</table></form><br>';
