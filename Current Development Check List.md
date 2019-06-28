@@ -1,10 +1,15 @@
 # Current Branch Development Sun-1.5
-## Current
+## Current 
 LifeLog Document using Quill
 - 
 * Separate Page
 * Uses Encryption, Compression extension in SQLite.
 * Provide file attachments.
+
+**Log**
+ x Sum selected, income, expense, totals. 
+ x Preserve from to date selections.
+ 
 ## Urgent
 *&#10004; Autologin feature, that expires on logout.
 *&#10004; Data/Login control updated to read the configuration file.
