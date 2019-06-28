@@ -83,7 +83,7 @@ if ( !$rs_dat_to ) {
 }
 
 if ( $rs_dat_from && $rs_dat_to ) {
-     $stmD =qq(" DATE BETWEEN date('$rs_dat_from') AND date('$rs_dat_to') ");
+     $stmD =qq( DATE BETWEEN date('$rs_dat_from') AND date('$rs_dat_to') );
 }
 
 my $toggle = "";
@@ -269,7 +269,7 @@ else {
 ###############
 #
 # Uncomment bellow to see main query statement issued!
-# print $cgi->pre("### -> ".$stmt);
+#print $cgi->pre("### -> ".$stmt);
 #
 my $tfId      = 0;
 my $id        = 0;
