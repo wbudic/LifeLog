@@ -8,18 +8,19 @@ LifeLog Document using Quill
 
 **Log**
  x Sum selected, income, expense, totals. 
+ x Sum on view.
  x Preserve from to date selections.
  
 ## Urgent
 *&#10004; Autologin feature, that expires on logout.
 *&#10004; Data/Login control updated to read the configuration file.
->&#10004; Configuration file to be updated to carry also categories.
+&#10004; Configuration file to be updated to carry also categories.
 * &#10004; Configuration page to be updated, system variables description field to be implemented.
 * &#10004; Configuration page - data fix section to be implemented.
 * &#10004; Build login_ctrl.cgi login controller alias and password based. Where each alias creates its own database. It server side session based, that unless you logged off keeps the session 24 hr. by default. Alias is therefore to an separate database. If user doesn't know the password, can't get access. Client remote IP address is checked to be on local only network (IP pinged).
 * &#10004; Build config.cgi that creates database and allows editing of configuration. Main cgi redirect or links to it not doing that job no more.
 * &#10004; Create View By Category Button
-* >> &#10004; Main page display, has introduced complexity that needs smoothed out.
+* &#10004; Main page display, has introduced complexity that needs smoothed out.
 * &#10004; Implement Record Set operation re-numerating id's if inserting records in the past (rowid renum.).
 * &#10004; Add Date Diff Selected button implementation.
 
