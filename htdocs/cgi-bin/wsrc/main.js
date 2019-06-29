@@ -103,6 +103,21 @@ function loadedBody(toggle) {
 
     $('#ec').show();
 
+
+    var quill = new Quill('#editor-container', {
+        modules: {
+            formula: true,
+            syntax: true,
+            toolbar: '#toolbar-container'
+        },
+        placeholder: 'Compose an epic...',
+        theme: 'snow'
+    });
+
+    $('#tbl_doc').toggle();
+    //  $('#toolbar-container').toggle();
+
+
 }
 
 function showFloatingMenu() {

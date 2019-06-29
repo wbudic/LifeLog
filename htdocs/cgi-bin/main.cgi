@@ -123,6 +123,14 @@ print $cgi->start_html(
               -type => 'text/css',
               -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
           },
+
+          {-type => 'application/atom+xml',
+           -src=>'https://quilljs.com/feed.xml', -title=>"Quill - Your powerful rich text editor"},
+          {-type => 'text/css', -src=>'wsrc/quill/katex.min.css'},
+          {-type => 'text/css', -src=>'wsrc/quill/monokai-sublime.min.css'},
+          {-type => 'text/css', -src=>'wsrc/quill/quill.snow.css'},
+
+
       ],
       -script => [
           { -type => 'text/javascript', -src => 'wsrc/main.js' },
@@ -136,7 +144,12 @@ print $cgi->start_html(
               -type => 'text/javascript',
               -src  => 'wsrc/jquery-ui-sliderAccess.js'
           },
-          { -type => 'text/javascript', -src => 'wsrc/jquery.poshytip.js' }
+          { -type => 'text/javascript', -src => 'wsrc/jquery.poshytip.js' },
+        
+          { -type => 'text/javascript', -src => 'wsrc/quill/katex.min.js'},
+          { -type => 'text/javascript', -src => 'wsrc/quill/highlight.min.js'},
+          { -type => 'text/javascript', -src => 'wsrc/quill/quill.min.js'},
+
       ],
   );
 
@@ -607,7 +620,8 @@ if ( $rs_keys || $rs_cat_idx || $stmD ) {
 	<td><button onClick="resetView()" stule="align:left">Reset Whole View</button></td></tr>';
 }
 
-$srh .= '</table></form><br>';
+$srh .= '</table></form>';
+my $quill = &quill();
 #
 #Page printout from here!
 #
@@ -627,8 +641,9 @@ print qq(<center>\n
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>
 
-	  <div id="div_log">\n$frm\n</div>\n<br>\n
+	  <div id="div_log">\n$frm\n</div>\n
 	  <div id="div_srh">$srh</div>
+      $quill
 	  <div>\n$tbl\n</div><br>
 	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
 	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
@@ -961,4 +976,60 @@ sub camm {
             # Add one comma each time through the do-nothing loop
             1 while $amm =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
 return $amm;
+}
+
+sub quill {
+return qq{
+  
+
+<table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;"><tr><td>
+  <div id="toolbar-container">
+    <span class="ql-formats">
+      <select class="ql-font"></select>
+      <select class="ql-size"></select>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-bold"></button>
+      <button class="ql-italic"></button>
+      <button class="ql-underline"></button>
+      <button class="ql-strike"></button>
+    </span>
+    <span class="ql-formats">
+      <select class="ql-color"></select>
+      <select class="ql-background"></select>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-script" value="sub"></button>
+      <button class="ql-script" value="super"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-header" value="1"></button>
+      <button class="ql-header" value="2"></button>
+      <button class="ql-blockquote"></button>
+      <button class="ql-code-block"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-list" value="ordered"></button>
+      <button class="ql-list" value="bullet"></button>
+      <button class="ql-indent" value="-1"></button>
+      <button class="ql-indent" value="+1"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-direction" value="rtl"></button>
+      <select class="ql-align"></select>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-link"></button>
+      <button class="ql-image"></button>
+      <button class="ql-video"></button>
+      <button class="ql-formula"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-clean"></button>
+    </span>
+  </div>
+  <div id="editor-container"></div>
+  </td></tr></table>
+
+}
 }
