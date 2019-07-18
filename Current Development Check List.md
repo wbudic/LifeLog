@@ -12,6 +12,9 @@ LifeLog Document using Quill
  x Preserve from to date selections.
  
 ## Urgent
+* Fix Interaction jumping edits and creating new entries via now button.
+>Fix some LTAGS not saved as LTags server side.
+
 *&#10004; Autologin feature, that expires on logout.
 *&#10004; Data/Login control updated to read the configuration file.
 &#10004; Configuration file to be updated to carry also categories.
@@ -26,8 +29,12 @@ LifeLog Document using Quill
 
 
 ## Minor
-* Implement File Attachments.
+* Implement RTFDocumentation.
 > Usefull as backup of and direct access of important documents at the day of attachement time.
+* Provide Themes
+* Enable Armour Mode
+> In this mode settings page is disabled. And can be enabled only by System Admin.
+* Provide About button and info.
 * &#10004; Configuration page - JQuery look and feel implemented.
 * &#10004; Migration for data structural changes to be bettered.
 * &#10004; Floating side menu for links and navigation.
