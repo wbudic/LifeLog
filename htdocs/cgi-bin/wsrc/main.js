@@ -7,6 +7,11 @@ var _MAP = new Map();
 var MNU_SCROLLING = false;
 var SRCH_VISIBLE = true;
 
+var QUILL;
+var Delta;
+var RTF_SET = false;
+var CHANGE;
+
 function loadedBody(toggle) {
 
 
@@ -103,19 +108,21 @@ function loadedBody(toggle) {
 
     $('#ec').show();
 
-
-    var quill = new Quill('#editor-container', {
+    $("#RTF").prop("checked", false);
+    // $('#tbl_doc').toggle();
+    // $('#toolbar-container').toggle();
+    QUILL = new Quill('#editor-container', {
         modules: {
             formula: true,
             syntax: true,
             toolbar: '#toolbar-container'
         },
-        placeholder: 'Compose an epic...',
+        placeholder: 'Enter your Document here...',
         theme: 'snow'
     });
-
-    $('#tbl_doc').toggle();
-    //  $('#toolbar-container').toggle();
+    Delta = Quill.import('delta');
+    CHANGE = new Delta();
+    // toggleDocument();
 
 
 }
@@ -316,7 +323,44 @@ function viewAll() {
     return false;
 }
 
+function toggleDocument() {
+    $('#tbl_doc').toggle();
+    $('#toolbar-container').toggle();
+    if (!RTF_SET) {
 
+        CHANGE = new Delta();
+        QUILL.on('text-change', function(delta) {
+            CHANGE = CHANGE.compose(delta);
+        });
+
+        setInterval(function() {
+            if (CHANGE.length() > 0) {
+                console.log('Saving changes', CHANGE);
+                /* 
+                Send partial changes
+                $.post('/your-endpoint', { 
+                  partial: JSON.stringify(change) 
+                });
+              
+                Send entire document
+                $.post('/your-endpoint', { 
+                  doc: JSON.stringify(QUILL.getContents())
+                });
+                */
+                CHANGE = new Delta();
+            }
+        }, 10 * 1000);
+        RTF_SET = true;
+    }
+
+
+}
+
+function saveRTF() {
+    if (RTF_SET) {
+        $.post('json.pl?m=1', { doc: JSON.stringify(QUILL.getContents()) });
+    }
+}
 
 function toggleSearch() {
     $("html, body").animate({ scrollTop: 0 }, "slow");

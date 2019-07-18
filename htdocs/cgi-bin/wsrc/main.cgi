@@ -574,7 +574,7 @@ $cats
 		</td>
 		<td align="right">			  
 				<div style="float: right;"><button id="btn_srch" onclick="toggleSearch(); return false;">Show Search</button>&nbsp;
-				<input id="log_submit" type="submit" onclick="saveRTF();" value="Submit"/></div>
+				<input id="log_submit" type="submit" onclick="saveRTF(); return true;" value="Submit"/></div>
 		</td>		
 	</tr>
 	<tr class="collpsd"><td colspan="3"></td></tr>
@@ -982,8 +982,8 @@ sub quill {
 return qq{
   
 
-<table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;" hidden><tr><td>
-  <div id="toolbar-container" hidden>
+<table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;"><tr><td>
+  <div id="toolbar-container">
     <span class="ql-formats">
       <select class="ql-font"></select>
       <select class="ql-size"></select>

@@ -200,4 +200,12 @@ img {
 
 #editor-container {
     height: 480px;
+    border-top: 1px solid gray;
+    border-right: 1px solid gray;
+    background-color: #e6ffff;
+}
+
+#toolbar-container {
+    background-color: #98e6e6;
+    margin-bottom: 3px;
 }
