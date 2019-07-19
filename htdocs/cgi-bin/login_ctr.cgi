@@ -30,6 +30,7 @@ our $AUTHORITY   = '';
 our $IMG_W_H     = '210x120';
 our $AUTO_WRD_LMT= 200;
 our $AUTO_LOGIN  = 0;
+our $FRAME_SIZE  = 0;
 #END OF SETTINGS
 
 
@@ -202,8 +203,7 @@ try{
 						CREATE INDEX idx_cat_name ON CAT (NAME);
 		 ); 
 		$rv = $db->do($stmt);
-		$changed = 1;
-		#insertDefCats($db);
+		$changed = 1;		
 	}
 	#Have cats been wiped out?
 	$st = $db->prepare('SELECT count(ID) FROM CAT;');
@@ -314,7 +314,6 @@ my $stmt = qq(
 }
 
 sub populate {
-
 		
 		my $db = shift;
 		my ($did,$name, $value, $desc);
@@ -414,24 +413,6 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
 sub selSQLTbl{
 	  my $name = $_[0];
 return "SELECT name FROM sqlite_master WHERE type='table' AND name='$name';"
-}
-
-sub insertDefCats {
-	  my
-	  $st = $_[0]->prepare('INSERT INTO CAT VALUES (?,?,?)'); 
-	  		$_[0]->begin_work();
-		$st->execute(1, "Unspecified", "For quick uncategorised entries.");
-		$st->execute(2, "Document", "Large Protected RichText document log entry type.");
-		$st->execute(3, "File", "Operating file system short log.");
-		$st->execute(6, "System Log", "Operating system important log.");
-		$st->execute(9, "Event", "Event that occured, meeting, historically important.");
-		$st->execute(28,"Personal", "Personal log of historical importance, diary type.");
-		$st->execute(32,"Expense", "Significant yearly expense.");
-		$st->execute(35,"Income", "Significant yearly income.");
-		$st->execute(40,"Work", "Work related entry, worth monitoring.");
-		$st->execute(45,"Food", "Quick reference to recepies, observations.");
-		$_[0]->commit();
-		$st->finish();
 }
 
 

@@ -31,6 +31,7 @@ our $AUTHORITY   = '';
 our $IMG_W_H     = '210x120';
 our $AUTO_WRD_LMT= 200;
 our $AUTO_LOGIN  = 0;
+our $FRAME_SIZE  = 0;
 #END OF SETTINGS
 
 #This is the OS developer release key, replace on istallation. As it is not secure.
@@ -221,13 +222,36 @@ while(my @row = $dbs->fetchrow_array()) {
 			     $u = "SELECTED"
 				}
         $v = qq(<select id="almi" name="var$i">
-				         <option value="0" $l>Disabled</option>
-								 <option value="1" $u>Enabled</option>
-								</select>);
+		           <option value="0" $l>Disabled</option>
+		           <option value="1" $u>Enabled</option>
+		        </select>);
 		 }
-		 elsif($n ne "RELEASE_VER"){		 
+		 elsif($n eq "FRAME_SIZE"){
+			  my($l,$m,$s, $t)=("","");
+				if($v == 0){
+					 $l = "SELECTED"
+				}
+				elsif($v == 1){
+					 $m = "SELECTED"
+				}
+				elsif($v == 2){
+					 $s = "SELECTED"
+				}
+				else{
+			     	 $t = $v;
+				}
+		$v = qq(<select id="almi" name="var$i">
+		           <option value="0" $l>Large</option>
+		           <option value="1" $m>Medium</option>
+				   <option value="2" $s>Small</option>
+				   <option value="3" $t>---</option>
+		        </select>);	
+		}
+		elsif($n ne "RELEASE_VER"){		 
 			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
-		 }		 
+		}
+
+
 	   $tbl = qq($tbl 
 	   <tr class="r0" align="left">
 		    <td>$n</td>
@@ -753,6 +777,7 @@ sub changeSystemSettings {
 						case "IMG_W_H"   {$IMG_W_H=$var; updCnf($r[0],$var)}
 						case "AUTO_WRD_LMT"{$AUTO_WRD_LMT=$var; updCnf($r[0],$var)}
 						case "AUTO_LOGIN" {$AUTO_LOGIN=$var; updCnf($r[0],$var)}
+						case "FRAME_SIZE" {$FRAME_SIZE=$var; updCnf($r[0],$var)}
 					 }
 				}
 			}
@@ -951,6 +976,7 @@ sub getConfiguration {
 				case "IMG_W_H"      {$IMG_W_H=$r[2]}
 				case "AUTO_WRD_LMT" {$AUTO_WRD_LMT=$r[2]}
 				case "AUTO_LOGIN" 	{$AUTO_LOGIN=$r[2]}
+				case "FRAME_SIZE"	{$FRAME_SIZE=$r[2]}
 			}
 
 		}

@@ -19,6 +19,7 @@ use DateTime::Duration;
 use Date::Language;
 use Date::Parse;
 use Time::localtime;
+
 use Regexp::Common qw /URI/;
 
 #DEFAULT SETTINGS HERE!
@@ -32,8 +33,8 @@ our $DATE_UNI     = '0';
 our $RELEASE_VER  = '1.5';
 our $AUTHORITY    = '';
 our $IMG_W_H      = '210x120';
-our $AUTO_WRD_LMT = 200;
-
+our $AUTO_WRD_LMT = 1000;
+our $FRAME_SIZE   = 0;
 #END OF SETTINGS
 
 my $cgi = CGI->new;
@@ -400,7 +401,16 @@ while ( my @row = $st->fetchrow_array() ) {
       #Replace with a full link an HTTP URI
       if($log =~ /<iframe /){
           my $a = q(<iframe width="560" height="315");
-          my $b = q(<iframe width="390" height="215");
+          my $b;
+          switch ( $FRAME_SIZE ) {
+               case "0" { $b = q(width="390" height="215") }
+               case "1" { $b = q(width="280" height="180") }
+               case "2" { $b = q(width="160" height="120") }
+               else{
+                          $b = $FRAME_SIZE;
+               }
+          }
+          $b = "<iframe $b";
           $log =~ s/$a/$b/o;
       }
       else{
@@ -970,6 +980,7 @@ sub getConfiguration {
                   case "LANGUAGE"     { $LANGUAGE     = $r[2] }
                   case "IMG_W_H"      { $IMG_W_H      = $r[2] }
                   case "AUTO_WRD_LMT" { $AUTO_WRD_LMT = $r[2] }
+                  case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2] }
                   else {
                       print "Unknow variable setting: " . $r[1] . " == " . $r[2];
                 }
