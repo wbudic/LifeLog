@@ -5,7 +5,7 @@ This is an Open Source License project -> https://choosealicense.com/licenses/is
 Credential format:<<AUTO_LOGIN <{alias}/{password}> , must be enabled option.
 <<AUTO_LOGIN<>
 <<CONFIG<4>
-00|$RELEASE_VER = 1.3`LifeLog Application Version.
+00|$RELEASE_VER = 1.5`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
 03|$TIME_ZONE   = Australia/Sydney`Time zone of your country.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.
@@ -26,3 +26,6 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , must be enabled option.
 35|Income      `Significant yearly income.
 40|Work        `Work related entry, worth monitoring.
 45|Food        `Quick reference to recipes, observations.
+50|Music       `Music reference of interest. Youtube embbed.
+<<~MIG<>
+LOG<5>|ALTER TABLE LOG ADD RTF BOOL DEFAULT 0;' ver. 1.5
