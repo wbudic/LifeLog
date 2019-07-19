@@ -25,7 +25,7 @@ our $PRC_WIDTH   = '70';
 our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
 our $DATE_UNI    = '0';
-our $RELEASE_VER = '1.4';
+our $RELEASE_VER = '1.5';
 our $AUTHORITY   = '';
 our $IMG_W_H     = '210x120';
 our $AUTO_WRD_LMT= 200;
@@ -178,8 +178,9 @@ try{
 		CREATE TABLE LOG (
 			 ID_CAT TINY NOT NULL,
 			 DATE DATETIME  NOT NULL,
-			 LOG VCHAR(128) NOT NULL,
-			 AMMOUNT INTEGER DEFAULT 0
+			 LOG VCHAR(128) NOT NULL,			 
+			 AMMOUNT INTEGER DEFAULT 0,
+			 RTF BOOL DEFAULT 0
 		);
 		CREATE INDEX idx_log_dates ON LOG (DATE);
 		);
@@ -339,8 +340,10 @@ try{
 					my @tick = split("`",$line);
 
  					if( index( $line, '<<CONFIG<' ) == 0 ){$table_type = 0; $inData = 0;}
-					if( index( $line, '<<CAT<' ) == 0 )   {$table_type = 1; $inData = 0;}
-					if( index( $line, '<<LOG<' ) == 0 )   {$table_type = 2; $inData = 0;}
+					elsif( index( $line, '<<CAT<' ) == 0 )   {$table_type = 1; $inData = 0;}
+					elsif( index( $line, '<<LOG<' ) == 0 )   {$table_type = 2; $inData = 0;}
+					elsif( index( $line, '<<~MIG<>' ) == 0 ) {next;} #Migration is complex main.cnf contains though SQL alter statements.
+
 					if( scalar @tick  == 2 ) {
 
 						my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
@@ -370,7 +373,7 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
 												}#rof
 									}
 									elsif($table_type==0){
-														$err .= "Invalid, speced entry -> $line\n";
+														$err .= "Invalid, spec'd entry -> $line\n";
 									}elsif($table_type==1){
 															my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+)]g;
 															if ( scalar(@pair)==2 ) {												
