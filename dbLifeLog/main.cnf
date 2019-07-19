@@ -16,6 +16,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , must be enabled option.
 18|$IMG_W_H     = 210x120`Default embedded image width.
 20|$AUTO_WRD_LMT= 200`Autocomplete word gathering limit.
 22|$AUTO_LOGIN  = 0`Autologin option, that expires only if login out. Enter Credentials in main.cnf.
+24|$FRAME_SIZE  = 0`Youtube frame size settings, 0 - Large, 1 - Medium, 2- Small.
 <<CAT<3>
 01|Unspecified `For quick uncategorised entries.
 03|File System `Operating file system short log.
