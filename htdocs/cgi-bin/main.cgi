@@ -125,8 +125,8 @@ print $cgi->start_html(
               -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
           },
 
-          {-type => 'application/atom+xml',
-           -src=>'https://quilljs.com/feed.xml', -title=>"Quill - Your powerful rich text editor"},
+        #  {-type => 'application/atom+xml',
+        #   -src=>'https://quilljs.com/feed.xml', -title=>"Quill - Your powerful rich text editor"},
           {-type => 'text/css', -src=>'wsrc/quill/katex.min.css'},
           {-type => 'text/css', -src=>'wsrc/quill/monokai-sublime.min.css'},
           {-type => 'text/css', -src=>'wsrc/quill/quill.snow.css'},
@@ -577,7 +577,7 @@ my $frm = qq(<a name="top"></a>
 	&nbsp;<button type="button" onclick="return setNow();">Now</button>
 			&nbsp;<button type="reset">Reset</button></td>
 			<td style="text-align:top; vertical-align:top">Category: 
-$cats
+    $cats
 				<br><br><div id="cat_desc" name="cat_desc"></div>
 			</td>
 	</tr>
@@ -592,7 +592,7 @@ $cats
 		</td>
 		<td align="right">			  
 				<div style="float: right;"><button id="btn_srch" onclick="toggleSearch(); return false;">Show Search</button>&nbsp;
-				<input id="log_submit" type="submit" onclick="saveRTF();" value="Submit"/></div>
+				<input id="log_submit" type="submit" onclick="saveRTF(0, 'store');" value="Submit"/></div>
 		</td>		
 	</tr>
 	<tr class="collpsd"><td colspan="3"></td></tr>
@@ -1046,10 +1046,7 @@ return qq{
       <button class="ql-image"></button>
       <button class="ql-video"></button>
       <button class="ql-formula"></button>
-    </span>
-    <span class="ql-formats">
-      <button class="ql-clean"></button>
-    </span>    
+    </span>  
   </div>
   <div id="editor-container"></div>
   <div class="save_button">

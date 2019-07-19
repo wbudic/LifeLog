@@ -146,25 +146,23 @@ function hideSrch() {
 }
 
 function encodeText(el) {
-    var el = $("#frm_entry");
-    var txt = el.log.value;
+    var el = $("#frm_entry [name=log]");
+    var txt = el.val();
     txt = txt.replace(/\r\n/g, "\\n");
     txt = txt.replace(/\n/g, "\\n");
-    el.log.value = txt;
+    el.val(txt);
 }
 
 
 function formValidation() {
-
-    var date = document.getElementById("frm_entry").date;
-    var log = document.getElementById("frm_entry").log;
-    var cat = document.getElementById("frm_entry").cat;
-    if (cat.value == 0) {
+    if ($("#ec option:selected").val() == 0) {
         alert("Category -> has not been selected!");
         return false;
     }
+    return validDate($("#frm_entry [name='date']").val()) && validLog($("#frm_entry [name='log']").val());
+}
 
-    return validDate(date.value) && validLog(log.value);
+function formDelValidation() {
 
 }
 
@@ -180,7 +178,7 @@ function validDate(dt) {
 function validTime(val) {
     // regular expression to match required time format
     re = /^(\d{2}):(\d{2}):(\d{2})([ap]m)?$/;
-    var fld = document.getElementById("frm_entry").date;
+    var fld = $("frm_entry").date;
     if (val != '') {
         if (regs = val.match(re)) {
             // 12-hour value between 1 and 12
@@ -222,7 +220,7 @@ function validLog(log) {
 
 function setNow() {
 
-    var date = document.getElementById("frm_entry").date;
+    var date = $("#frm_entry").date;
     var dt = new Date();
     var mm = fix0(dt.getMonth() + 1);
     var dd = fix0(dt.getDate());
@@ -240,24 +238,24 @@ function fix0(v) {
 
 function edit(row) {
 
-    var ec_v = document.getElementById("c" + row).innerText;
-    var ec = document.getElementById("ec");
+    var ec_v = $("#c" + row).innerText;
+    var ec = $("#ec");
 
-    var ed_v = document.getElementById("y" + row);
-    var et_v = document.getElementById("t" + row);
-    var ev_v = document.getElementById("v" + row);
-    var ea_v = document.getElementById("a" + row);
-    var etag = document.getElementById("tag" + row);
+    var ed_v = $("#y" + row);
+    var et_v = $("#t" + row);
+    var ev_v = $("#v" + row);
+    var ea_v = $("#a" + row);
+    var etag = $("#tag" + row);
     $("html, body").animate({ scrollTop: 0 }, "slow");
     if (etag) {
-        var v = etag.value;
+        var v = etag.val();
         v = v.replace(/\\n/g, '\n');
-        document.getElementById("el").value = v;
+        $("#el").val(v);
     } else {
-        document.getElementById("el").value = ev_v.innerText;
+        $("#el").val(ev_v.innerText);
     }
-    document.getElementById("ed").value = ed_v.value + " " + et_v.innerText;
-    document.getElementById("am").value = ea_v.innerText;
+    $("#ed").val(ed_v.value + " " + et_v.innerText);
+    $("#am").val(ea_v.innerText);
     //Change selected category
     for (var i = 0, j = ec.options.length; i < j; ++i) {
         if (ec.options[i].innerHTML === ec_v) {
@@ -265,8 +263,8 @@ function edit(row) {
             break;
         }
     }
-    document.getElementById("submit_is_edit").value = row;
-    document.getElementById("frm_entry").log.focus();
+    $("#submit_is_edit").val(row);
+    $("#frm_entry log").focus();
 
     return false;
 }
@@ -274,7 +272,7 @@ function edit(row) {
 
 
 function selectAllLogs() {
-    var frm = document.getElementById("frm_log");
+    var frm = $("#frm_log");
     var chks = document.getElementsByName("chk");
     for (var i = 0, n = chks.length; i < n; i++) {
         chks[i].checked = true;
@@ -289,7 +287,7 @@ function deleteSelected() {
 
 function submitNext(tbl_rc) {
 
-    var frm = document.getElementById("frm_entry");
+    var frm = $("#frm_entry");
     frm.submit_is_view.value = 1;
     frm.rs_all.value = 0;
     frm.rs_cur.value = tbl_rc;
@@ -301,7 +299,7 @@ function submitNext(tbl_rc) {
 
 function submitPrev(tbl_rc) {
 
-    var frm = document.getElementById("frm_entry");
+    var frm = $("#frm_entry");
     frm.submit_is_view.value = 1;
     frm.rs_all.value = 0;
     frm.rs_cur.value = tbl_rc;
@@ -314,7 +312,7 @@ function submitPrev(tbl_rc) {
 
 function viewAll() {
 
-    var frm = document.getElementById("frm_entry");
+    var frm = $("#frm_entry");
     frm.submit_is_view.value = 1;
     frm.rs_all.value = 1;
     frm.rs_cur.value = 0;
@@ -386,7 +384,7 @@ function resetView() {
 
 function updateSelCategory(sel) {
     if (sel.id == "ec") {
-        var cat = document.getElementById("idx_cat");
+        var cat = $("#idx_cat");
         cat.value = sel.options[sel.selectedIndex].value;
     }
 }
@@ -426,19 +424,19 @@ function showCat() {
 }
 
 function helpSelCategory(sel) {
-
+    var pnl = $("#cat_desc");
     var desc = _MAP.get(sel.options[sel.selectedIndex].value);
     if (!desc) {
         desc = "<font color='red'>Please select a Category!</font>";
     }
-    document.getElementById("cat_desc").innerHTML = desc;
-    $('#cat_desc').show();
-    $('#cat_desc').fadeOut(5000);
+    pnl.html(desc);
+    pnl.show();
+    pnl.fadeOut(5000);
 }
 
 function viewByCategory(btn) {
 
-    document.getElementById("rs_keys").value = "";
+    $("#rs_keys").value = "";
 }
 
 function viewByDate(btn) {
@@ -447,18 +445,26 @@ function viewByDate(btn) {
 
 function submitNewCategory() {
 
-    var frm = document.getElementById("frm_config");
+    var frm = $("#frm_config");
     var cid = frm.caid;
-    frm.cchg.value = cid.value;
+    frm.cchg.vak(cid.value);
     return true;
 }
 
 function dateDiffSelected() {
-    document.getElementById("datediff").value = 1;
+    $("#datediff").value = 1;
     return true;
 }
 
 function saveRTF(id, action) {
     // alert(JSON.stringify(QUILL.getContents()));
-    $.post('json.cgi?action=' + action + '&id=' + id, { doc: JSON.stringify(QUILL.getContents()) });
+    //Dissabled on new log entry. Save and edit, obtains id. For now. @2019-07-20
+    if (id > 0) {
+        $.post('json.cgi?action=' + action + '&id=' + id, { doc: JSON.stringify(QUILL.getContents()) }, saveRTFResult);
+    }
+}
+
+function saveRTFResult(result) {
+    alert("Result->" + result);
+    console.log(result);
 }
