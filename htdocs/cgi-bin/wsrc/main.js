@@ -71,6 +71,8 @@ function loadedBody(toggle) {
 
 
     $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
+    $("#btn_save_doc").button();
+
 
 
     $(window).scroll(function() {
@@ -454,4 +456,9 @@ function submitNewCategory() {
 function dateDiffSelected() {
     document.getElementById("datediff").value = 1;
     return true;
+}
+
+function saveRTF(id, action) {
+    // alert(JSON.stringify(QUILL.getContents()));
+    $.post('json.cgi?action=' + action + '&id=' + id, { doc: JSON.stringify(QUILL.getContents()) });
 }

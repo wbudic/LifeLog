@@ -209,3 +209,8 @@ img {
     background-color: #98e6e6;
     margin-bottom: 3px;
 }
+
+.save_button {
+    margin-top: 3px;
+    float: right;
+}

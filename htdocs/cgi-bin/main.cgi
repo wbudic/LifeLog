@@ -29,7 +29,7 @@ our $PRC_WIDTH    = '60';
 our $LOG_PATH     = '../../dbLifeLog/';
 our $SESSN_EXPR   = '+30m';
 our $DATE_UNI     = '0';
-our $RELEASE_VER  = '1.4';
+our $RELEASE_VER  = '1.5';
 our $AUTHORITY    = '';
 our $IMG_W_H      = '210x120';
 our $AUTO_WRD_LMT = 200;
@@ -62,7 +62,7 @@ my ( $imgw, $imgh );
 
 ### Authenticate session to alias password
 &authenticate;
-&getConfiguration($db );
+&getConfiguration($db);
 
 my $tbl_rc      = 0;
 my $tbl_rc_prev = 0;
@@ -161,7 +161,7 @@ $today->set_time_zone($TIME_ZONE);
 
 my $stmtCat = "SELECT * FROM CAT;";
 my $stmt =
-"SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT FROM LOG ORDER BY DATE DESC, rowid DESC;";
+"SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT, RTF FROM LOG ORDER BY DATE DESC, rowid DESC;";
 
 $st = $db->prepare($stmtCat);
 $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
@@ -319,6 +319,7 @@ while ( my @row = $st->fetchrow_array() ) {
       my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
       my $log = $row[3];
       my $amm = camm(sprintf "%.2f", $row[4]);
+      my $rtf = $row[4];
 
       #Apostrophe in the log value is doubled to avoid SQL errors.
       $log =~ s/''/'/g;
@@ -393,34 +394,25 @@ while ( my @row = $st->fetchrow_array() ) {
           }
           $log =~ s/<<FRM<(.*?)>/$lnk/o;
       }
-      elsif ( $log =~ /<<LIST</ ) {
-          my $idx = $-[0];
-          my $len = index( $log, '>', $idx ) - 7;
-          my $lst = substr( $log, $idx + 7, $len - $idx );
-          my $sub = "";        
-          my @arr = split(/\n/, $lst);
-          foreach my $ln (@arr) {
-              $ln =~ s/^\s*//g;
-              $sub .= "<li>$ln</li>" if length($ln)>0;
-          }
-          
-          $log = "<ul>$sub</ul>";
-          #$log =~ s/<<LIST<(.*?)>/$lst/o;
-         # print $lst;
-          
-      }
+
 
 
       #Replace with a full link an HTTP URI
-      my @chnks = split( /($re_a_tag)/si, $log );
-      foreach my $ch_i (@chnks) {
-          next if $ch_i =~ /$re_a_tag/;
-          next if index( $ch_i, "<img" ) > -1;
-          $ch_i =~ s/https/http/gsi;
-          $ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
+      if($log =~ /<iframe /){
+          my $a = q(<iframe width="560" height="315");
+          my $b = q(<iframe width="390" height="215");
+          $log =~ s/$a/$b/o;
       }
-      $log = join( '', @chnks );
-
+      else{
+            my @chnks = split( /($re_a_tag)/si, $log );
+            foreach my $ch_i (@chnks) {
+                next if $ch_i =~ /$re_a_tag/;
+                next if index( $ch_i, "<img" ) > -1;
+                $ch_i =~ s/https/http/gsi;
+                $ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
+            }
+            $log = join( '', @chnks );
+      }
       while ( $log =~ /<<B</ ) {
           my $idx = $-[0];
           my $len = index( $log, '>', $idx ) - 4;
@@ -438,6 +430,21 @@ while ( my @row = $st->fetchrow_array() ) {
           my $len = index( $log, '>', $idx ) - 8;
           my $sub = "<h3>" . substr( $log, $idx + 8, $len - $idx ) . "</h3>";
           $log =~ s/<<TITLE<(.*?)>/$sub/o;
+      }
+
+      while ( $log =~ /<<LIST</ ) {
+          my $idx = $-[0];
+          my $len = index( $log, '>', $idx ) - 7;
+          my $lst = substr( $log, $idx + 7, $len - $idx );
+          my $sub = "";        
+          my @arr = split(/\n/, $lst);
+          foreach my $ln (@arr) {
+              $ln =~ s/^\s*//g;
+              $sub .= "<li>$ln</li>" if length($ln)>0;
+          }
+          
+          $sub = "<div id='rz'><ul>$sub</ul></div>";
+          $log =~ s/<<LIST<(\w*|\s*)*.*(>+?)/$sub/o;
       }
       
       #Decode escaped \\n
@@ -461,7 +468,8 @@ while ( my @row = $st->fetchrow_array() ) {
           $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, $TIME_ZONE);
       }
       $tbl .= qq(<tr class="r$tfId">
-		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
+		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/>
+                            <input id="r$id" type="hidden" value="$rtf"/></td>
 		<td id="t$id" width="10%" class="tbl">$dth</td>
 		<td id="v$id" class="log" width="40%">$log</td>
 		<td id="a$id" width="10%" class="tbl">$amm</td>
@@ -483,7 +491,7 @@ while ( my @row = $st->fetchrow_array() ) {
 ##
 #Fetch Keywords autocomplete we go by words larger then three.
 #
-$st = $db->prepare('select LOG from LOG;');
+$st = $db->prepare('select LOG from LOG'.$stmE);
 my $aw_cnt = 0;
 my $autowords = qq("gas","money","today");
 $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
@@ -570,7 +578,7 @@ $cats
 	</tr>
 	<tr class="collpsd"><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Ammount:</td>
 		<td id="al">
-			<input id="am" name="am" type="number" step="any">&nbsp;<input id="RTF" type="checkbox" value="0" onclick="return toggleDocument();"> RTF Document</input>
+			<input id="am" name="am" type="number" step="any">&nbsp;<input id="RTF" name="rtf" type="checkbox" onclick="return toggleDocument();"> RTF Document</input>
 		</td>
 		<td align="right">			  
 				<div style="float: right;"><button id="btn_srch" onclick="toggleSearch(); return false;">Show Search</button>&nbsp;
@@ -621,7 +629,7 @@ if ( $rs_keys || $rs_cat_idx || $stmD ) {
 }
 
 $srh .= '</table></form>';
-my $quill = &quill();
+my $quill = &quill($cgi->param('submit_is_edit'));
 #
 #Page printout from here!
 #
@@ -694,6 +702,9 @@ sub processSubmit {
       my $edit_mode = $cgi->param('submit_is_edit');
       my $view_mode = $cgi->param('submit_is_view');
       my $view_all  = $cgi->param('rs_all');
+      my $is_rtf       = $cgi->param('rtf');
+      my $rtf = 0;
+         $rtf = 1 if $is_rtf=="on";
 
       try {
 #Apostroph's need to be replaced with doubles  and white space fixed for the SQL.
@@ -757,8 +768,8 @@ sub processSubmit {
                   return;
               }
 
-              $st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
-              $st->execute( $cat, $date, $log, $amm );
+              $st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?)');             
+              $st->execute( $cat, $date, $log, $amm, $rtf );
               #
               # After Insert renumeration check
               #
@@ -788,7 +799,7 @@ sub processSubmit {
         }
       }
       catch {
-          print "ERROR:" . $_;
+          print "<font color=red><b>ERROR</b></font> -> " . $_;
     }
 }
 
@@ -979,6 +990,7 @@ return $amm;
 }
 
 sub quill {
+    my $log_id = shift;
 return qq{
   
 
@@ -1026,10 +1038,14 @@ return qq{
     </span>
     <span class="ql-formats">
       <button class="ql-clean"></button>
-    </span>
+    </span>    
   </div>
   <div id="editor-container"></div>
+  <div class="save_button">
+  <button id="btn_save_doc" onclick="saveRTF($log_id); return false;">Save</button>
+  </div>
   </td></tr></table>
 
 }
 }
+
