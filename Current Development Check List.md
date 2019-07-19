@@ -30,7 +30,7 @@ LifeLog Document using Quill
 
 ## Minor
 * Implement RTFDocumentation.
-> Usefull as backup of and direct access of important documents at the day of attachement time.
+> Useful as more document style formated details can be added instead of just plain text.
 * Provide Themes
 * Enable Armour Mode
 > In this mode settings page is disabled. And can be enabled only by System Admin.
