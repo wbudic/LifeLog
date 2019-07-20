@@ -268,7 +268,7 @@ function edit(row) {
         $("#el").val(decodeToHTMLText(tag.val()));
 
     } else {
-        $("#el").val(decodeToText(log));
+        $("#el").val(decodeToText(log.text()));
     }
     $("#ed").val(ed_v.val() + " " + et_v.html());
     $("#am").val(ea_v.html());
