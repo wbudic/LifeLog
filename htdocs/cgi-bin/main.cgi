@@ -228,12 +228,12 @@ for my $key ( keys %desc ) {
 
 my $tbl =
 qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
-<table class="tbl" border="0" width="$PRC_WIDTH%">
+<TABLE class="tbl" border="0" width="$PRC_WIDTH%">
 <tr class="r0">
-	<th class="tbl">Date</th>
-	<th class="tbl">Time</th>
-	<th class="tbl">Log</th><th>#</th>
-	<th class="tbl">Category</th><th>Edit</th>
+	<th>Date</th>
+	<th>Time</th>
+	<th>Log</th><th>#</th>
+	<th>Category</th><th>Edit</th>
 </tr>);
 
 if (defined $prm_vc) {    #view category form selection
@@ -346,6 +346,7 @@ while ( my @row = $st->fetchrow_array() ) {
 
       my $sub    = "";
       my $tagged = 0;
+      my $log_orig = $log;
 
 #Check for LNK takes precedence here as we also parse plain placed URL's for http protocol later.
       if ( $log =~ /<<LNK</ ) {
@@ -353,7 +354,6 @@ while ( my @row = $st->fetchrow_array() ) {
           my $len = index( $log, '>', $idx );
           $sub = substr( $log, $idx + 1, $len - $idx - 1 );
           my $url = qq(<a href="$sub" target=_blank>$sub</a>);
-          $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);
           $tagged = 1;
           $log =~ s/<<LNK<(.*?)>/$url/osi;
       }
@@ -363,9 +363,7 @@ while ( my @row = $st->fetchrow_array() ) {
           my $len = index( $log, '>', $idx );
           $sub = substr( $log, $idx + 1, $len - $idx - 1 );
           my $url = qq(<img src="$sub"/>);
-          if ( !$tagged ) {
-              $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);
-          }
+          $tagged = 1;          
           $log =~ s/<<IMG<(.*?)>/$url/osi;
       }
       elsif ( $log =~ /<<FRM</ ) {
@@ -390,10 +388,8 @@ while ( my @row = $st->fetchrow_array() ) {
               #TODO fetch from web locally the original image.
               $lnk=qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
           }
-          if ( !$tagged ) {
-              $tags .= qq(<input id="tag$id" type="hidden" value="$log"/>\n);
-          }
           $log =~ s/<<FRM<(.*?)>/$lnk/o;
+          $tagged = 1;
       }
 
 
@@ -412,6 +408,7 @@ while ( my @row = $st->fetchrow_array() ) {
           }
           $b = "<iframe $b";
           $log =~ s/$a/$b/o;
+          $tagged = 1;
       }
       else{
             my @chnks = split( /($re_a_tag)/si, $log );
@@ -428,18 +425,21 @@ while ( my @row = $st->fetchrow_array() ) {
           my $len = index( $log, '>', $idx ) - 4;
           my $sub = "<b>" . substr( $log, $idx + 4, $len - $idx ) . "</b>";
           $log =~ s/<<B<(.*?)>/$sub/o;
+          $tagged = 1;
       }
       while ( $log =~ /<<I</ ) {
           my $idx = $-[0];
           my $len = index( $log, '>', $idx ) - 4;
           my $sub = "<i>" . substr( $log, $idx + 4, $len - $idx ) . "</i>";
           $log =~ s/<<I<(.*?)>/$sub/o;
+          $tagged = 1;
       }
       while ( $log =~ /<<TITLE</ ) {
           my $idx = $-[0];
           my $len = index( $log, '>', $idx ) - 8;
           my $sub = "<h3>" . substr( $log, $idx + 8, $len - $idx ) . "</h3>";
           $log =~ s/<<TITLE<(.*?)>/$sub/o;
+          $tagged = 1;
       }
 
       while ( $log =~ /<<LIST</ ) {
@@ -455,18 +455,18 @@ while ( my @row = $st->fetchrow_array() ) {
           
           $sub = "<div id='rz'><ul>$sub</ul></div>";
           $log =~ s/<<LIST<(\w*|\s*)*.*(>+?)/$sub/o;
+          $tagged = 1;
       }
       
       #Decode escaped \\n
       $log =~ s/\r\n/<br>/gs;
-      $log =~ s/\n/<br>/gs;
+      $log =~ s/\\n/<br>/gs;
 
       if ( $CID_EVENT == $row[1] ) {
           $log = "<font color='#eb4848' style='font-weight:bold'>$log</font>";
       }
       elsif ( 1 == $row[1] ) {
-          $log =
-"<font color='midnightblue' style='font-weight:bold;font-style:italic'>$log</font>";
+          $log ="<font color='midnightblue' style='font-weight:bold;font-style:italic'>$log</font>";
       }
 
       my ( $dty, $dtf ) = $dt->ymd;
@@ -477,14 +477,26 @@ while ( my @row = $st->fetchrow_array() ) {
       else {
           $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, $TIME_ZONE);
       }
+
+      #Tagged preserve originally stored entry in hidden numbered field.
+      if ( $tagged ) {
+              $log_orig =~ s/</&#60;/g;
+              $log_orig =~ s/>/&#62;/g;
+              $log_orig =~ s/\n/&#10;/g;
+              $log_orig =~ s/\t/&#9;/g;
+              $log_orig =~ s/\"/&#34;/g;
+              $log_orig =~ s/\'/&#39;/g;
+              $tags .= qq(<input type="hidden" id="g$id" value="$log_orig"/>\n);
+      }
+
       $tbl .= qq(<tr class="r$tfId">
-		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/>
-                            <input id="r$id" type="hidden" value="$rtf"/></td>
+		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
 		<td id="t$id" width="10%" class="tbl">$dth</td>
 		<td id="v$id" class="log" width="40%">$log</td>
 		<td id="a$id" width="10%" class="tbl">$amm</td>
 		<td id="c$id" width="10%" class="tbl">$ct</td>
 		<td width="20%">
+        <input id="r$id" type="hidden" value="$rtf"/>
 			<button class="edit" value="Edit" onclick="return edit($id);">Edit</button>
 			<input name="chk" type="checkbox" value="$id"/>
 		</td>
@@ -523,7 +535,7 @@ if ( $rs_prev && $tbl_rc < $REC_LIMIT ) {
 if ( $tbl_rc == 0 ) {
 
       if ($stmD) {
-          $tbl = $tbl . '<tr><td colspan="5">
+          $tbl .= '<tr><td colspan="5">
 			<b>Search Failed to Retrive any records on select: [<i>' . $stmD
             . '</i>] !</b></td></tr>';
       }
@@ -532,29 +544,32 @@ if ( $tbl_rc == 0 ) {
           if ( $rs_cat_idx > 0 ) {
               $criter = "->Criteria[" . $hshCats{$rs_cat_idx} . "]";
           }
-          $tbl = $tbl . qq(<tr><td colspan="5">
+          $tbl .= qq(<tr><td colspan="5">
 			<b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td>
 			</tr>);
       }
       else {
-          $tbl = $tbl
-            . '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
+          $tbl .= '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
     }
 }
 
 $tbl .=
-'<tr class="r0"><td><a id="menu_close" href="#" onclick="return showFloatingMenu();"><span  class="ui-icon ui-icon-heart"></span></a>
-<a href="#top">&#x219F;</a></td><td colspan="5" align="right"> 
-<input type="hidden" name="datediff" id="datediff" value="0"/>
-<input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
-<button onclick="return selectAllLogs()">Select All</button>
-<input type="reset" value="Unselect All"/>
-<input id="del_sel" type="submit" value="Delete Selected"/>
-</td></tr></form>
-<tr class="r0"><form id="frm_srch" action="main.cgi"><td><b>Keywords:</b></td><td colspan="4" align="left">
-<input id="rs_keys2" name="keywords" type="text" size="60"/></td>
-<td><input type="submit" value="Search"/></form></td></tr>
-</table>';
+qq(<tr class="r0"><td><a id="menu_close" href="#" onclick="return showFloatingMenu();"><span  class="ui-icon ui-icon-heart"></span></a>
+<a href="#top">&#x219F;</a></td>
+<td colspan="5" align="right"> 
+    <input type="hidden" name="datediff" id="datediff" value="0"/>
+    <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
+    <button onclick="return selectAllLogs()">Select All</button>
+    <input type="reset" value="Unselect All"/>
+    <input id="del_sel" type="submit" value="Delete Selected"/>
+</td></tr>
+</form>
+<form id="frm_srch" action="main.cgi">
+    <tr class="r0"><td><b>Keywords:</b></td><td colspan="4" align="left">
+    <input id="rs_keys2" name="keywords" type="text" size="60"/></td>
+    <td><input type="submit" value="Search"/></td></tr>
+</form>
+</TABLE>);
 my $COLLAPSED_LOG = 's';
 my ($sp1,$sp2);
 $sp1 =   '<span  class="ui-icon ui-icon-heart" style="float:right;"></span>';
@@ -586,9 +601,9 @@ my $frm = qq(<a name="top"></a>
 			<textarea id="el" name="log" rows="3" style="float:left; width:99%;" onChange="toggleVisibility('cat_desc',true)"></textarea>
 		</td>	
 	</tr>
-	<tr class="collpsd"><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Ammount:</td>
+	<tr class="collpsd"><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Amount:</td>
 		<td id="al">
-			<input id="am" name="am" type="number" step="any">&nbsp;<input id="RTF" name="rtf" type="checkbox" onclick="return toggleDocument();"> RTF Document</input>
+			<input id="am" name="am" type="number" step="any">&nbsp;<input id="RTF" name="rtf" type="checkbox" onclick="return toggleDocument();"/> RTF Document
 		</td>
 		<td align="right">			  
 				<div style="float: right;"><button id="btn_srch" onclick="toggleSearch(); return false;">Show Search</button>&nbsp;
@@ -604,18 +619,20 @@ my $frm = qq(<a name="top"></a>
 	<input type="hidden" name="rs_prev" value="$tbl_rc_prev"/>
 	<input type="hidden" name="rs_page" value="$rs_page"/>
 	<input type="hidden" name="CGISESSID" value="$sid"/>
-	$tags</form>
+	$tags
+    </form>
 	);
 
 my $srh = qq(
 	<form id="frm_srch" action="main.cgi">
 	<table class="tbl" border="0" width="$PRC_WIDTH%">
-					<tr class="r0"><td colspan="4"><b>Search/View By</b>
-      <a id="srch_close" href="#" onclick="return hideSrch();">$sp1</a>
-      <a id="srch_close" href="#" onclick="return toggleSrch();">$sp2</a>    
-                    
-                    </td></tr>
-		);
+	  <tr class="r0">
+        <td colspan="4"><b>Search/View By</b>
+            <a id="srch_close" href="#" onclick="return hideSrch();">$sp1</a>
+            <a id="srch_close" href="#" onclick="return toggleSrch();">$sp2</a>                        
+        </td>
+      </tr>
+);
 
 $srh .=
 qq(<tr class="collpsd"><td align="right"><b>View by Category:</b></td>
@@ -643,8 +660,7 @@ my $quill = &quill($cgi->param('submit_is_edit'));
 #
 #Page printout from here!
 #
-print qq(<center>\n
-<div id="menu" title="To close this menu click on its heart, and wait.">
+print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n"></span></a>&nbsp;
 <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s"></span></a>
@@ -665,12 +681,11 @@ print qq(<center>\n
 	  <div>\n$tbl\n</div><br>
 	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
 	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
-		<div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"/></div>
+	  <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"/></div>
 	);
-print qq(</center>
-        <ul id="cat_lst">
+print qq(<ul id="cat_lst">
 				$cat_descriptions
-				</ul>	
+		 </ul>	
 			  <script type="text/javascript">
 					\$( function() {
 						var tags = [$autowords];
@@ -1050,7 +1065,7 @@ return qq{
   </div>
   <div id="editor-container"></div>
   <div class="save_button">
-  <button id="btn_save_doc" onclick="saveRTF($log_id); return false;">Save</button>
+  <button id="btn_save_doc" onclick="saveRTF($log_id, 'store'); return false;">Save</button>
   </div>
   </td></tr></table>
 
