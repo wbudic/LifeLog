@@ -236,35 +236,54 @@ function fix0(v) {
     return v;
 }
 
+
+function decodeHTML(txt) {
+
+    txt = txt.replace("/&#60;/g", "<");
+    txt = txt.replace("/&#62;/g", ">");
+    txt = txt.replace("/&#9;/g", "\t");
+    txt = txt.replace(/&#10;/g, "\n");
+    txt = txt.replace(/\\n/g, "\n");
+    txt = txt.replace(/&#34;/g, "\"");
+    txt = txt.replace(/&#39;/g, "'");
+    txt = txt.replace(/br\s*[\/]?>/gi, "\n");
+
+    return txt;
+}
+
+function decodeToText(log) {
+
+    if (log.children.length > 0) {
+        log = log.children(0);
+    }
+
+    var txt = log.html();
+    txt = txt.replace(/<br\s*[\/]?>/gi, "\n");
+    return txt;
+}
+
 function edit(row) {
 
-    var ec_v = $("#c" + row).innerText;
-    var ec = $("#ec");
-
-    var ed_v = $("#y" + row);
-    var et_v = $("#t" + row);
-    var ev_v = $("#v" + row);
-    var ea_v = $("#a" + row);
-    var etag = $("#tag" + row);
+    var ed_v = $("#y" + row); //date
+    var et_v = $("#t" + row); //time    
+    var ea_v = $("#a" + row); //amount
+    var tag = $("#g" + row); //orig. tagged log text.
+    var log = $("#v" + row); //log
     $("html, body").animate({ scrollTop: 0 }, "slow");
-    if (etag) {
-        var v = etag.val();
-        v = v.replace(/\\n/g, '\n');
-        $("#el").val(v);
+    if (tag.length) {
+        $("#el").val(decodeHTML(tag.val()));
+
     } else {
-        $("#el").val(ev_v.innerText);
+        $("#el").val(decodeToText(log));
     }
-    $("#ed").val(ed_v.value + " " + et_v.innerText);
-    $("#am").val(ea_v.innerText);
-    //Change selected category
-    for (var i = 0, j = ec.options.length; i < j; ++i) {
-        if (ec.options[i].innerHTML === ec_v) {
-            ec.selectedIndex = i;
-            break;
-        }
-    }
+    $("#ed").val(ed_v.val() + " " + et_v.html());
+    $("#am").val(ea_v.html());
+
+    //Select category
+    var ec_v = $("#c" + row).text();
+    $("#ec option:contains(" + ec_v + ")").prop('selected', true);
     $("#submit_is_edit").val(row);
-    $("#frm_entry log").focus();
+    $("#el").focus();
 
     return false;
 }
