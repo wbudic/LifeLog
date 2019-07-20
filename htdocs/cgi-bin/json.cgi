@@ -44,8 +44,9 @@ my $sid      = $session->id();
 my $dbname   = "";#$session->param('database');
 my $userid   = $session->param('alias');
 my $password = $session->param('passw');
-my $action   = $session->param('action');
-my $lid      = $session->param('id');
+my $action   = $cgi->param('action');
+my $lid      = $cgi->param('id');
+my $doc      = $cgi->param('doc');
 
 if ($AUTHORITY) {
     $userid = $password = $AUTHORITY;
@@ -76,10 +77,11 @@ $today->set_time_zone($TIME_ZONE);
 ###############
 my $json = JSON->new->utf8->space_after->pretty->allow_blessed->encode
      ({date => DateTime::Format::SQLite->format_datetime($today), 
-       origin => "LifeLog.".$RELEASE_VER,
+       response_origin => "LifeLog.".$RELEASE_VER,
        response => "Feature Under Development!",
        alias => $userid,
        log_id => $lid,
+       received => $doc
     });
 
 
