@@ -471,10 +471,10 @@ function dateDiffSelected() {
 
 function saveRTF(id, action) {
     // alert(JSON.stringify(QUILL.getContents()));
-    //Dissabled on new log entry. Save and edit, obtains id. For now. @2019-07-20
-    if (id > 0) {
-        $.post('json.cgi?action=' + action + '&id=' + id, { doc: JSON.stringify(QUILL.getContents()) }, saveRTFResult);
-    }
+    //Disabled on new log entry. Save and edit, obtains id. For now. @2019-07-20
+    //if (id > 0) {
+    $.post('json.cgi?action=' + action + '&id=' + id, { doc: JSON.stringify(QUILL.getContents()) }, saveRTFResult);
+    //}
 }
 
 function saveRTFResult(result) {

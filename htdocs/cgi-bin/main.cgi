@@ -1081,7 +1081,7 @@ return qq{
   </div>
   <div id="editor-container"></div>
   <div class="save_button">
-  <button id="btn_save_doc" onclick="saveRTF($log_id, 'store'); return false;">Save</button>
+  <input type="button" id="btn_save_doc" onclick="saveRTF(0, 'store'); return false;" value="Save"/>
   </div>
   </td></tr></table>
 
