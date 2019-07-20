@@ -237,7 +237,7 @@ function fix0(v) {
 }
 
 
-function decodeHTML(txt) {
+function decodeToHTMLText(txt) {
 
     txt = txt.replace("/&#60;/g", "<");
     txt = txt.replace("/&#62;/g", ">");
@@ -251,13 +251,7 @@ function decodeHTML(txt) {
     return txt;
 }
 
-function decodeToText(log) {
-
-    if (log.children.length > 0) {
-        log = log.children(0);
-    }
-
-    var txt = log.html();
+function decodeToText(txt) {
     txt = txt.replace(/<br\s*[\/]?>/gi, "\n");
     return txt;
 }
@@ -271,7 +265,7 @@ function edit(row) {
     var log = $("#v" + row); //log
     $("html, body").animate({ scrollTop: 0 }, "slow");
     if (tag.length) {
-        $("#el").val(decodeHTML(tag.val()));
+        $("#el").val(decodeToHTMLText(tag.val()));
 
     } else {
         $("#el").val(decodeToText(log));

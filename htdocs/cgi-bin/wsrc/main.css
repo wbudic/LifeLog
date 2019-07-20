@@ -201,7 +201,8 @@ img {
 }
 
 #editor-container {
-    height: 480px;
+    height: 140px;
+    max-height: 480px;
     border-top: 1px solid gray;
     border-right: 1px solid gray;
     background-color: #e6ffff;

@@ -319,7 +319,7 @@ while ( my @row = $st->fetchrow_array() ) {
       my $ct  = $hshCats{ $row[1] };
       my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
       my $log = $row[3];
-      my $amm = camm(sprintf "%.2f", $row[4]);
+      my $am = &cam(sprintf "%.2f", $row[4]);
       my $rtf = $row[4];
 
       #Apostrophe in the log value is doubled to avoid SQL errors.
@@ -331,8 +331,8 @@ while ( my @row = $st->fetchrow_array() ) {
       if ( !$dt ) {
           $dt = $today;
       }
-      if ( !$amm ) {
-          $amm = "0.00";
+      if ( !$am ) {
+          $am = "0.00";
       }
       if ( $tbl_rc_prev == 0 ) {
           $tbl_rc_prev = $id;
@@ -420,6 +420,7 @@ while ( my @row = $st->fetchrow_array() ) {
             }
             $log = join( '', @chnks );
       }
+
       while ( $log =~ /<<B</ ) {
           my $idx = $-[0];
           my $len = index( $log, '>', $idx ) - 4;
@@ -447,10 +448,23 @@ while ( my @row = $st->fetchrow_array() ) {
           my $len = index( $log, '>', $idx ) - 7;
           my $lst = substr( $log, $idx + 7, $len - $idx );
           my $sub = "";        
-          my @arr = split(/\n/, $lst);
+          my @arr = split(/\n|\\n/, $lst);
+          my $ml  = "";
           foreach my $ln (@arr) {
               $ln =~ s/^\s*//g;
-              $sub .= "<li>$ln</li>" if length($ln)>0;
+              if($ln =~ /~$/){
+                  $ln =~ s/~$/<br>/g;
+                  $ml .= $ln.' ';
+              }else{
+                if($ml) {
+                    $ml .= $ln  if length($ln)>0;
+                    $sub .= "<li>$ml</li>\n";
+                    $ml = "";
+                }
+                else{
+                    $sub .= "<li>$ln</li>" if length($ln)>0;
+                }
+              }
           }
           
           $sub = "<div id='rz'><ul>$sub</ul></div>";
@@ -463,10 +477,22 @@ while ( my @row = $st->fetchrow_array() ) {
       $log =~ s/\\n/<br>/gs;
 
       if ( $CID_EVENT == $row[1] ) {
-          $log = "<font color='#eb4848' style='font-weight:bold'>$log</font>";
+          $log = "<font color='#eb4848' style='font-weight:bold'>$log</font>";$tagged = 1;
       }
       elsif ( 1 == $row[1] ) {
-          $log ="<font color='midnightblue' style='font-weight:bold;font-style:italic'>$log</font>";
+          $log ="<font color='midnightblue' style='font-weight:bold;font-style:italic'>$log</font>";$tagged = 1;
+      }
+
+      #Tagged preserve originally stored entry in hidden numbered field.
+      if ( $tagged ) {
+              $log_orig =~ s/</&#60;/g;
+              $log_orig =~ s/>/&#62;/g;
+              $log_orig =~ s/\n/&#10;/g;
+              $log_orig =~ s/\\n/&#10;/g;
+              $log_orig =~ s/\t/&#9;/g;
+              $log_orig =~ s/\"/&#34;/g;
+              $log_orig =~ s/\'/&#39;/g;
+              $tags .= qq(<input type="hidden" id="g$id" value="$log_orig"/>\n);
       }
 
       my ( $dty, $dtf ) = $dt->ymd;
@@ -478,22 +504,12 @@ while ( my @row = $st->fetchrow_array() ) {
           $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, $TIME_ZONE);
       }
 
-      #Tagged preserve originally stored entry in hidden numbered field.
-      if ( $tagged ) {
-              $log_orig =~ s/</&#60;/g;
-              $log_orig =~ s/>/&#62;/g;
-              $log_orig =~ s/\n/&#10;/g;
-              $log_orig =~ s/\t/&#9;/g;
-              $log_orig =~ s/\"/&#34;/g;
-              $log_orig =~ s/\'/&#39;/g;
-              $tags .= qq(<input type="hidden" id="g$id" value="$log_orig"/>\n);
-      }
 
       $tbl .= qq(<tr class="r$tfId">
 		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
 		<td id="t$id" width="10%" class="tbl">$dth</td>
 		<td id="v$id" class="log" width="40%">$log</td>
-		<td id="a$id" width="10%" class="tbl">$amm</td>
+		<td id="a$id" width="10%" class="tbl">$am</td>
 		<td id="c$id" width="10%" class="tbl">$ct</td>
 		<td width="20%">
         <input id="r$id" type="hidden" value="$rtf"/>
@@ -722,7 +738,7 @@ sub processSubmit {
       my $log  = $cgi->param('log');
       my $cat  = $cgi->param('ec')
         ;    #Used to be cat v.1.3, tag id and name should be kept same.
-      my $amm = $cgi->param('am');
+      my $am = $cgi->param('am');
 
       my $edit_mode = $cgi->param('submit_is_edit');
       my $view_mode = $cgi->param('submit_is_view');
@@ -747,7 +763,7 @@ sub processSubmit {
 	       		   LOG='"
                 . $log
                 . "', AMMOUNT='"
-                . $amm
+                . $am
                 . "' WHERE rowid="
                 . $edit_mode . ";";
               my $st = $db->prepare($stm);
@@ -794,7 +810,7 @@ sub processSubmit {
               }
 
               $st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?)');             
-              $st->execute( $cat, $date, $log, $amm, $rtf );
+              $st->execute( $cat, $date, $log, $am, $rtf );
               #
               # After Insert renumeration check
               #
@@ -1008,11 +1024,11 @@ sub getConfiguration {
     }
 }
 
-sub camm {
-            my $amm = sprintf("%.2f", shift @_);
+sub cam {
+            my $am = sprintf("%.2f", shift @_);
             # Add one comma each time through the do-nothing loop
-            1 while $amm =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
-return $amm;
+            1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
+return $am;
 }
 
 sub quill {

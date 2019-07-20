@@ -363,6 +363,9 @@ my $prc_hdr = $PRC_WIDTH-2;
 					<b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;</b>
 					</p>
 					<p>
+					<b>&#60;&#60;LIST&#60;<i>{List of items delimited by new line to terminate item or with '~' otherwise.}</i><b>&#62;</b>
+					</p>
+					<p>
 					<b>&#60;&#60;IMG&#60;<i>{url to image}</i><b>&#62;</b>
 					</p>
 					<p>
