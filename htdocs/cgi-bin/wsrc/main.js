@@ -5,7 +5,7 @@
 
 var _MAP = new Map();
 var MNU_SCROLLING = false;
-var SRCH_VISIBLE = true;
+var SRCH_TOGGLE = true;
 
 var QUILL;
 var Delta;
@@ -129,11 +129,7 @@ function loadedBody(toggle) {
 
 }
 
-function showFloatingMenu() {
-    $("#menu").show();
-    $("#div_log").toggle();
-    return false;
-}
+
 
 function hideLog() {
     $("#div_log").hide();
@@ -377,14 +373,14 @@ function saveRTF() {
 
 function toggleSearch() {
     $("html, body").animate({ scrollTop: 0 }, "slow");
-    if (SRCH_VISIBLE) {
+    if (SRCH_TOGGLE) {
         $("#div_srh").show();
         $("#btn_srch").text("Hide Search");
-        SRCH_VISIBLE = false;
+        SRCH_TOGGLE = false;
     } else {
         $("#div_srh").hide();
         $("#btn_srch").text("Show Search");
-        SRCH_VISIBLE = true;
+        SRCH_TOGGLE = true;
     }
 }
 
@@ -434,6 +430,18 @@ function toggleSrch() {
 
 function showCat() {
     $('#cat_desc').show();
+}
+
+function showAll() {
+    $("#menu").show();
+    $('#cat_desc').show();
+    $("#div_log").show();
+    $("#div_srh").show();
+    _collpsd_toggle = false;
+    _collpsd_toggle2 = false;
+    $("#btn_srch").text("Hide Search");
+    SRCH_TOGGLE = false;
+    return false;
 }
 
 function helpSelCategory(sel) {
