@@ -209,6 +209,7 @@ img {
 }
 
 #toolbar-container {
+    border: 1px solid black;
     background-color: #98e6e6;
     margin-bottom: 3px;
 }

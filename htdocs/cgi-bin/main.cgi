@@ -1059,8 +1059,13 @@ sub quill {
     my $log_id = shift;
 return <<END;
   
-
-<table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;" hidden><tr><td>
+<table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;" hidden>
+	<tr class="r0" style="text-align:center"><td><b>* Document *</b>
+    <a id="log_close" href="#" onclick="return hideDoc();">$sp1</a>
+    <a id="log_close" href="#" onclick="return toggleDoc();">$sp2</a>    
+    </td>
+</tr>
+<tr id="rtf_doc"><td>
   <div id="toolbar-container" hidden>
     <span class="ql-formats">
       <select class="ql-font"></select>

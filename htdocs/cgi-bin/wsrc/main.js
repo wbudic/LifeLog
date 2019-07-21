@@ -12,6 +12,10 @@ var Delta;
 var RTF_SET = false;
 var CHANGE;
 
+var _collpsd_toggle = false;
+var _collpsd_toggle2 = false;
+var _doc_toggle = false;
+
 function loadedBody(toggle) {
 
 
@@ -138,6 +142,11 @@ function hideLog() {
 
 function hideSrch() {
     $("#div_srh").hide();
+    return false;
+}
+
+function hideDoc() {
+    $("#tbl_doc").hide();
     return false;
 }
 
@@ -405,8 +414,16 @@ function toggleVisibility(target, ensureOff) {
         $(target).hide();
     }
 }
-var _collpsd_toggle = false;
-var _collpsd_toggle2 = false;
+
+function toggleDoc() {
+    if (!_collpsd_toggle) {
+        $("#rtf_doc").hide();
+        _doc_toggle = true;
+    } else {
+        $("#rtf_doc").show();
+        _doc_toggle = false;
+    }
+}
 
 function toggleLog() {
     if (!_collpsd_toggle) {
@@ -437,6 +454,8 @@ function showAll() {
     $('#cat_desc').show();
     $("#div_log").show();
     $("#div_srh").show();
+    $("#tbl_doc").show();
+    _doc_toggle = false;
     _collpsd_toggle = false;
     _collpsd_toggle2 = false;
     $("#btn_srch").text("Hide Search");
