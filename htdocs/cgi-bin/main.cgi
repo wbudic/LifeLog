@@ -233,7 +233,8 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 	<th>Date</th>
 	<th>Time</th>
 	<th>Log</th><th>#</th>
-	<th>Category</th><th>Edit</th>
+	<th>Category</th>
+    <th>Edit</th>
 </tr>);
 
 if (defined $prm_vc) {    #view category form selection
@@ -307,6 +308,8 @@ if ( $tbl_start > 0 ) {
 #
 my $CID_EVENT = 9;
 my $tags      = "";
+my $sum       = 0;
+my $exp       = 0;
 $st = $db->prepare($stmt);
 $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
 if ( $rv < 0 ) {
@@ -319,8 +322,13 @@ while ( my @row = $st->fetchrow_array() ) {
       my $ct  = $hshCats{ $row[1] };
       my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
       my $log = $row[3];
-      my $am = &cam(sprintf "%.2f", $row[4]);
-      my $rtf = $row[4];
+      my $am = &cam($row[4]);
+      my $rtf = $row[5];
+      if($ct eq 'Expense'){
+         $exp += $row[4];
+      }else{
+         $sum += $row[4];
+      }
 
       #Apostrophe in the log value is doubled to avoid SQL errors.
       $log =~ s/''/'/g;
@@ -519,12 +527,27 @@ while ( my @row = $st->fetchrow_array() ) {
 	</tr>);
       $tbl_rc += 1;
 
-      if ( $REC_LIMIT > 0 && $tbl_rc == $REC_LIMIT ) {
-          &buildNavigationButtons;
+      if ( $REC_LIMIT > 0 && $tbl_rc == $REC_LIMIT ) {          
           last;
-    }
+      }
 
 }    #while end
+
+if ( $tfId == 1 ) {  $tfId = 0; } else { $tfId = 1; }
+     my $tot = $sum - $exp;
+     $sum = &cam($sum);
+     $exp = &cam($exp);
+     $tot = &cam($tot);
+     $tbl .= qq(<tr class="r$tfId">
+		<td></td>
+		<td></td>
+		<td style="text-align:right"># Total:</td>
+		<td id="summary" colspan="3" style="text-align:left">$sum (<font color="red">$exp</font>) = <b><i>$tot</i></b></td>
+	</tr>);
+
+    if ( $REC_LIMIT > 0 && $tbl_rc == $REC_LIMIT ) {
+        &buildNavigationButtons;       
+    }
 
 ##
 #Fetch Keywords autocomplete we go by words larger then three.
@@ -570,7 +593,7 @@ if ( $tbl_rc == 0 ) {
 }
 
 $tbl .=
-qq(<tr class="r0"><td><a id="menu_close" href="#" onclick="return showFloatingMenu();"><span  class="ui-icon ui-icon-heart"></span></a>
+qq(<tr class="r0"><td>[Show All -> <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart"></span>]</a>
 <a href="#top">&#x219F;</a></td>
 <td colspan="5" align="right"> 
     <input type="hidden" name="datediff" id="datediff" value="0"/>
@@ -687,6 +710,7 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <a class="a_" href="config.cgi">Config</a><hr>
 <a class="a_" onclick="deleteSelected(); return false;">Delete</a><hr>
 <a class="a_" onclick="toggleSearch(this); return false;">Search</a><hr>
+<a class="a_" onclick="showAll(); return false;">Show All <span  class="ui-icon ui-icon-heart"></a><hr>
 <br>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>
@@ -1033,7 +1057,7 @@ return $am;
 
 sub quill {
     my $log_id = shift;
-return qq{
+return <<END;
   
 
 <table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;" hidden><tr><td>
@@ -1084,7 +1108,6 @@ return qq{
   <input type="button" id="btn_save_doc" onclick="saveRTF(0, 'store'); return false;" value="Save"/>
   </div>
   </td></tr></table>
-
-}
+END
 }
 
