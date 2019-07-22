@@ -28,5 +28,5 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , must be enabled option.
 40|Work        `Work related entry, worth monitoring.
 45|Food        `Quick reference to recipes, observations.
 50|Music       `Music reference of interest. Youtube embbed.
-<<~MIG<>
+<<MIG<>
 LOG<5>|ALTER TABLE LOG ADD RTF BOOL DEFAULT 0;' ver. 1.5

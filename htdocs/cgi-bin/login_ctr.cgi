@@ -335,7 +335,8 @@ try{
 		my $insCat    = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
 						$db->begin_work();
     foreach my $line (@lines) {
-					
+		
+					last if ($line =~ /<MIG<>/);
 					my @tick = split("`",$line);
 
  					if( index( $line, '<<CONFIG<' ) == 0 ){$table_type = 0; $inData = 0;}
@@ -400,7 +401,7 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
 
 					}
 		}    
-		die "Configuration script $LOG_PATH.'main.cnf' [$fh] contains errors." if $err;
+		die "Configuration script $LOG_PATH/main.cnf [$fh] contains errors." if $err;
 		$db->commit();
 	} catch{	 		
 	  print $cgi->header;
