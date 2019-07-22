@@ -940,8 +940,6 @@ sub authenticate {
               $st->execute();
               return;
           }
-42FAP5H0JUSZM
-UPDATE AUTH SET passw='42KANME0KVGI.' where  alias='admin';
 
           print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
           print $cgi->start_html(
