@@ -290,7 +290,6 @@ function edit(row) {
 
 
 function selectAllLogs() {
-    var frm = $("#frm_log");
     var chks = document.getElementsByName("chk");
     for (var i = 0, n = chks.length; i < n; i++) {
         chks[i].checked = true;
@@ -305,7 +304,7 @@ function deleteSelected() {
 
 function submitNext(tbl_rc) {
 
-    var frm = $("#frm_entry");
+    var frm = document.getElementById("frm_entry");
     frm.submit_is_view.value = 1;
     frm.rs_all.value = 0;
     frm.rs_cur.value = tbl_rc;
@@ -317,7 +316,7 @@ function submitNext(tbl_rc) {
 
 function submitPrev(tbl_rc) {
 
-    var frm = $("#frm_entry");
+    var frm = document.getElementById("frm_entry");
     frm.submit_is_view.value = 1;
     frm.rs_all.value = 0;
     frm.rs_cur.value = tbl_rc;
@@ -330,7 +329,7 @@ function submitPrev(tbl_rc) {
 
 function viewAll() {
 
-    var frm = $("#frm_entry");
+    var frm = document.getElementById("frm_entry");
     frm.submit_is_view.value = 1;
     frm.rs_all.value = 1;
     frm.rs_cur.value = 0;
