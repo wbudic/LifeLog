@@ -117,19 +117,20 @@ function loadedBody(toggle) {
     $("#RTF").prop("checked", false);
     // $('#tbl_doc').toggle();
     // $('#toolbar-container').toggle();
-    QUILL = new Quill('#editor-container', {
-        modules: {
-            formula: true,
-            syntax: true,
-            toolbar: '#toolbar-container'
-        },
-        placeholder: 'Enter your Document here...',
-        theme: 'snow'
-    });
-    Delta = Quill.import('delta');
-    CHANGE = new Delta();
-    // toggleDocument();
-
+    if ($('#editor-container').length) {
+        QUILL = new Quill('#editor-container', {
+            modules: {
+                formula: true,
+                syntax: true,
+                toolbar: '#toolbar-container'
+            },
+            placeholder: 'Enter your Document here...',
+            theme: 'snow'
+        });
+        Delta = Quill.import('delta');
+        CHANGE = new Delta();
+        // toggleDocument();
+    }
 
 }
 
@@ -484,14 +485,14 @@ function viewByDate(btn) {
 
 function submitNewCategory() {
 
-    var frm = $("#frm_config");
+    var frm = document.getElementById("frm_config");
     var cid = frm.caid;
-    frm.cchg.vak(cid.value);
+    frm.cchg.value = cid.value;
     return true;
 }
 
 function dateDiffSelected() {
-    $("#datediff").value = 1;
+    document.getElementById("datediff").value = 1;
     return true;
 }
 
