@@ -35,6 +35,7 @@ our $AUTHORITY    = '';
 our $IMG_W_H      = '210x120';
 our $AUTO_WRD_LMT = 1000;
 our $FRAME_SIZE   = 0;
+our $RTF_SIZE   = 0;
 #END OF SETTINGS
 
 my $cgi = CGI->new;
@@ -593,10 +594,11 @@ if ( $tbl_rc == 0 ) {
 }
 
 $tbl .=
-qq(<tr class="r0"><td>[Show All -> <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart"></span>]</a>
+qq(<tr class="r0"><td colspan="2">[Show All -> <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart"></span></a>]
 <a href="#top">&#x219F;</a></td>
-<td colspan="5" align="right"> 
+<td colspan="4" align="right"> 
     <input type="hidden" name="datediff" id="datediff" value="0"/>
+    <input type="submit" value="Sum Selected" onclick="return sumSelected()"/>&nbsp;
     <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
     <button onclick="return selectAllLogs()">Select All</button>
     <input type="reset" value="Unselect All"/>
@@ -1036,6 +1038,7 @@ sub getConfiguration {
                   case "IMG_W_H"      { $IMG_W_H      = $r[2] }
                   case "AUTO_WRD_LMT" { $AUTO_WRD_LMT = $r[2] }
                   case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2] }
+                  case "RTF_SIZE"     { $RTF_SIZE     = $r[2] }
                   else {
                       print "Unknow variable setting: " . $r[1] . " == " . $r[2];
                 }
@@ -1057,6 +1060,18 @@ return $am;
 
 sub quill {
     my $log_id = shift;
+my $h;
+switch ( $RTF_SIZE ) {
+    case "0" { $h = q(height:420px;) }
+    case "1" { $h = q(height:260px;) }
+    case "2" { $h = q(height:140px;) }
+    else{
+               $h = $RTF_SIZE;
+    }
+}
+
+
+
 return <<END;
   
 <table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;" hidden>
@@ -1108,7 +1123,7 @@ return <<END;
       <button class="ql-formula"></button>
     </span>  
   </div>
-  <div id="editor-container"></div>
+  <div id="editor-container" style="$h"></div>
   <div class="save_button">
   <input type="button" id="btn_save_doc" onclick="saveRTF(0, 'store'); return false;" value="Save"/>
   </div>

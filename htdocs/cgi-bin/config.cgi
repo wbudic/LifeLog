@@ -32,6 +32,7 @@ our $IMG_W_H     = '210x120';
 our $AUTO_WRD_LMT= 200;
 our $AUTO_LOGIN  = 0;
 our $FRAME_SIZE  = 0;
+our $RTF_SIZE  = 0;
 #END OF SETTINGS
 
 #This is the OS developer release key, replace on istallation. As it is not secure.
@@ -184,7 +185,7 @@ $tbl = qq(<table id="cnf_sys" class="tbl" border="1" width="$PRC_WIDTH%">
 								<th width="60%">Description</th>
 						</tr>
        );
-my $stm = 'SELECT * FROM CONFIG;';
+my $stm = 'SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG;';
 $dbs = $db->prepare( $stm );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
@@ -239,13 +240,35 @@ while(my @row = $dbs->fetchrow_array()) {
 				}
 				else{
 			     	 $t = $v;
-				}
-		$v = qq(<select id="almi" name="var$i">
+				}		
+		$v = qq(<select id="frms" name="var$i">
 		           <option value="0" $l>Large</option>
 		           <option value="1" $m>Medium</option>
 				   <option value="2" $s>Small</option>
 				   <option value="3" $t>---</option>
 		        </select>);	
+		}
+		elsif($n eq "RTF_SIZE"){
+				my($l,$m,$s, $t)=("","");
+				if($v == 0){
+					 $l = "SELECTED"
+				}
+				elsif($v == 1){
+					 $m = "SELECTED"
+				}
+				elsif($v == 2){
+					 $s = "SELECTED"
+				}
+				else{
+			     	 $t = $v;
+				}		
+		$v = qq(<select id="rtfs" name="var$i">
+		           <option value="0" $l>Large</option>
+		           <option value="1" $m>Medium</option>
+				   <option value="2" $s>Small</option>
+				   <option value="3" $t>---</option>
+		        </select>);	
+
 		}
 		elsif($n ne "RELEASE_VER"){		 
 			 $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
@@ -762,10 +785,17 @@ sub logout{
 	exit;
 }
 
+CREATE TABLE CONFIG(
+												ID TINY PRIMARY KEY NOT NULL,
+												NAME VCHAR(16),
+												VALUE VCHAR(28),
+												DESCRIPTION VCHAR(128)
+										);
+
 sub changeSystemSettings {
 	try{
-			$dbs = $db->prepare("SELECT * FROM CONFIG;");
-		  $dbs->execute();
+			$dbs = $db->prepare("SELECT ID, NAME FROM CONFIG;");
+		    $dbs->execute();
 			while (my @r=$dbs->fetchrow_array()){ 
 				my $var = $cgi->param('var'.$r[0]);
 				if(defined $var){					
@@ -781,6 +811,7 @@ sub changeSystemSettings {
 						case "AUTO_WRD_LMT"{$AUTO_WRD_LMT=$var; updCnf($r[0],$var)}
 						case "AUTO_LOGIN" {$AUTO_LOGIN=$var; updCnf($r[0],$var)}
 						case "FRAME_SIZE" {$FRAME_SIZE=$var; updCnf($r[0],$var)}
+						case "RTF_SIZE"   {$RTF_SIZE=$var; updCnf($r[0],$var)}
 					 }
 				}
 			}
@@ -980,6 +1011,7 @@ sub getConfiguration {
 				case "AUTO_WRD_LMT" {$AUTO_WRD_LMT=$r[2]}
 				case "AUTO_LOGIN" 	{$AUTO_LOGIN=$r[2]}
 				case "FRAME_SIZE"	{$FRAME_SIZE=$r[2]}
+				case "RTF_SIZE"		{$RTF_SIZE=$r[2]}
 			}
 
 		}

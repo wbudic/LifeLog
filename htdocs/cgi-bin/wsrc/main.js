@@ -495,6 +495,25 @@ function dateDiffSelected() {
     return true;
 }
 
+function sumSelected() {
+    var chks = document.getElementsByName("chk");
+    var sum = 0;
+    for (var i = 0, n = chks.length; i < n; i++) {
+        if (chks[i].checked) {
+            var par = chks[i].parentNode.parentNode.childNodes;
+            for (var j = 0, nn = par.length; j < nn; j++) {
+                var el = par[j];
+                if (el.id && el.id.indexOf('a', 0) == 0) {
+                    sum = sum + Number(el.innerHTML);
+                    break;
+                }
+            }
+        }
+    }
+    $("#summary").html(sum.toFixed(2));
+    return false;
+}
+
 function saveRTF(id, action) {
     // alert(JSON.stringify(QUILL.getContents()));
     //Disabled on new log entry. Save and edit, obtains id. For now. @2019-07-20
