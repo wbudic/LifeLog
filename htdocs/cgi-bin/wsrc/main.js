@@ -226,7 +226,7 @@ function validLog(log) {
 
 function setNow() {
 
-    var date = $("#frm_entry").date;
+    var date = document.getElementById("frm_entry").date;
     var dt = new Date();
     var mm = fix0(dt.getMonth() + 1);
     var dd = fix0(dt.getDate());
@@ -519,11 +519,13 @@ function saveRTF(id, action) {
     // alert(JSON.stringify(QUILL.getContents()));
     //Disabled on new log entry. Save and edit, obtains id. For now. @2019-07-20
     //if (id > 0) {
-    $.post('json.cgi?action=' + action + '&id=' + id, { doc: JSON.stringify(QUILL.getContents()) }, saveRTFResult);
+    $.post('json.cgi', {action:action, id:id, doc: JSON.stringify(QUILL.getContents()) }, saveRTFResult);
     //}
 }
 
 function saveRTFResult(result) {
-    alert("Result->" + result);
-    console.log(result);
+    //alert("Result->" + result);
+    console.log("Result->" + result);
+    var obj = JSON.parse(result);
+    alert(obj.response);
 }

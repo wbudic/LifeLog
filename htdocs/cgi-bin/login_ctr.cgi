@@ -251,40 +251,34 @@ try{
 	$st = $db->prepare(selSQLTbl('NOTES'));
 	$st->execute();
 	if(!$st->fetchrow_array()) {
-my $stmt = qq(
-										CREATE VIRTUAL TABLE NOTES USING fts4(
-												ID INT PRIMARY KEY NOT NULL,
-												ID_LOG INT,
-												AUTHOR,
-												CONTENT TEXT NOT NULL,
-												compress=zip, uncompress=unzip
-										);
-); 
+		my $stmt = qq(
+			CREATE TABLE NOTES (LID PRIMARY KEY NOT NULL, DOC TEXT);
+		); 
 		$rv = $db->do($stmt);
 		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>"};
-		$st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias' AND passw='$passw';");
- 		$st->execute();
-		if(!$st->fetchrow_array()) {
-	    $st = $db->prepare('INSERT INTO AUTH VALUES (?,?)');
-	    $st->execute($alias, $passw);
-		}
 	}
 
+	$st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias' AND passw='$passw';");
+	$st->execute();
+	if(!$st->fetchrow_array()) {
+		$st = $db->prepare('INSERT INTO AUTH VALUES (?,?)');
+		$st->execute($alias, $passw);
+	}
  
 	$st = $db->prepare(selSQLTbl('CONFIG'));
 	$st->execute();
-  if(!$st->fetchrow_array()) {
+    if(!$st->fetchrow_array()) {
 		#v.1.3 -> v.1.4
 		#alter table CONFIG add DESCRIPTION VCHAR(128);
 
     my $stmt = qq(
-										CREATE TABLE CONFIG(
-												ID TINY PRIMARY KEY NOT NULL,
-												NAME VCHAR(16),
-												VALUE VCHAR(28),
-												DESCRIPTION VCHAR(128)
-										);
-										CREATE INDEX idx_config_name ON CONFIG (NAME);
+					CREATE TABLE CONFIG(
+							ID TINY PRIMARY KEY NOT NULL,
+							NAME VCHAR(16),
+							VALUE VCHAR(28),
+							DESCRIPTION VCHAR(128)
+					);
+					CREATE INDEX idx_config_name ON CONFIG (NAME);
 		);
 		$rv = $db->do($stmt);
 		$st->finish();

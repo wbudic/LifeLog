@@ -15,12 +15,16 @@ use DBI;
 
 use DateTime;
 use DateTime::Format::SQLite;
+use DateTime::Format::Strptime;
 use DateTime::Duration;
 use Date::Language;
 use Date::Parse;
 use Time::localtime;
 use Regexp::Common qw /URI/;
 use JSON;
+use IO::Compress::Gzip qw(gzip $GzipError);
+use Compress::Zlib;
+
 
 #DEFAULT SETTINGS HERE!
 our $REC_LIMIT    = 25;
@@ -41,26 +45,26 @@ my $cgi = CGI->new;
 my $session =
   new CGI::Session( "driver:File", $cgi, { Directory => $LOG_PATH } );
 my $sid      = $session->id();
-my $dbname   = "";#$session->param('database');
+my $dbname   = $session->param('database');
 my $userid   = $session->param('alias');
 my $password = $session->param('passw');
 my $action   = $cgi->param('action');
 my $lid      = $cgi->param('id');
 my $doc      = $cgi->param('doc');
+my $error    = "";
 
 if ($AUTHORITY) {
     $userid = $password = $AUTHORITY;
     $dbname = 'data_' . $userid . '_log.db';
 }
 elsif ( !$userid || !$dbname ) {
-   # print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
-  #  exit;
+   print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+   exit;
 }
 
 my $database = '../../dbLifeLog/' . $dbname;
 my $dsn      = "DBI:SQLite:dbname=$database";
-my $db;
-#$db      = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } );
+my $db = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } );
 
 ### Authenticate session to alias password
 #&authenticate;
@@ -70,19 +74,24 @@ my $lang  = Date::Language->new($LANGUAGE);
 my $today = DateTime->now;
 $today->set_time_zone($TIME_ZONE);
 
+my $strp = DateTime::Format::Strptime->new(
+    pattern   => '%F %T',
+    locale    => 'en_AU',
+    time_zone => $TIME_ZONE,
+    on_error  => 'croak',
+);
 
+my ($response, $json) = 'Feature Under Development!';
 
 ###############
-#&processSubmit;
+&processSubmit;
 ###############
-my $json = JSON->new->utf8->space_after->pretty->allow_blessed->encode
-     ({date => DateTime::Format::SQLite->format_datetime($today), 
-       response_origin => "LifeLog.".$RELEASE_VER,
-       response => "Feature Under Development!",
-       alias => $userid,
-       log_id => $lid,
-       received => $doc
-    });
+if($action eq 'load' && !$error){    
+      $json = $response;    
+}
+else{
+   &defaultJSON;
+}
 
 
 print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
@@ -93,14 +102,54 @@ undef($session);
 exit;
 
 
+sub defaultJSON{
+     $json = JSON->new->utf8->space_after->pretty->allow_blessed->encode
+     ({date => $strp->format_datetime($today), 
+       response_origin => "LifeLog.".$RELEASE_VER,
+       response => $response,
+       alias => $userid,
+       log_id => $lid,
+       database=>$database, action => $action, error=>$error
+       #received => $doc       
+   });   
+}
+
 sub processSubmit {
 
      # my $date = $cgi->param('date');
-    
+     my $st;
+  
       try {
+        if($action eq 'store'){
+    
+           my $zip = compress($doc,Z_BEST_COMPRESSION);
+           $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = '$lid';"); 
+           $st -> execute();
+           if($st->fetchrow_array() eq undef) {
+               $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");               
+               $st->execute($lid, $zip);
+               $response = "Stored Document (id:$lid)!";
+           }
+           else{
+               $st = $db->prepare("UPDATE NOTES SET DOC = ? WHERE LID = '$lid';");
+               $st->execute($zip);
+               $response = "Updated Document (id:$lid)!";
+           }
+
+        }
+        elsif($action eq 'load'){
+           $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '$lid';"); 
+           $st -> execute();
+           $doc = ($st->fetchrow_array())[0];
+           $response = uncompress($doc);
+        }
+        else{
+            $error = "Your action ($action) sux's a lot!";
+        }
+
       }
       catch {
-          print "ERROR:" . $_;
+          $error = ":LID[$lid]-> ".$_;
     }
 }
 

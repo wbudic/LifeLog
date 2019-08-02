@@ -35,7 +35,8 @@ our $AUTHORITY    = '';
 our $IMG_W_H      = '210x120';
 our $AUTO_WRD_LMT = 1000;
 our $FRAME_SIZE   = 0;
-our $RTF_SIZE   = 0;
+our $RTF_SIZE     = 0;
+our $THEME        = 'Standard';
 #END OF SETTINGS
 
 my $cgi = CGI->new;
@@ -104,13 +105,18 @@ else {    #defaults
       $imgh = 120;
 }
 
+my $bgcol = '#c8fff8';
+if($THEME eq 'Sun'){
+   $bgcol =  '#D4AF37';
+}
+
 print $cgi->header(
       -expires => "0s",
       -charset => "UTF-8"
   );
 print $cgi->start_html(
       -title   => "Personal Log",
-      -BGCOLOR => "#c8fff8",
+      -BGCOLOR => $bgcol,
       -onload  => "loadedBody('" . $toggle . "');",
       -style   => [
           { -type => 'text/css', -src => 'wsrc/main.css' },
