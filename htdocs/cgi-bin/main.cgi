@@ -81,16 +81,27 @@ my $rs_page     = $cgi->param('rs_page');
 my $stmS        = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
 my $stmE        = " ORDER BY DATE DESC;";
 my $stmD        = "";
-if ( !$rs_dat_to ) {
-      $rs_dat_to = 'now';
+my $sm_reset_all;
+
+
+my $lang  = Date::Language->new($LANGUAGE);
+my $today = DateTime->now;
+$today->set_time_zone($TIME_ZONE);
+
+
+
+if ( !$rs_dat_to && $rs_dat_from ) {
+      my $dur = $today;
+      $dur->add(months => 1);
+      $rs_dat_to = DateTime::Format::SQLite->parse_datetime( $dur );
 }
 
 if ( $rs_dat_from && $rs_dat_to ) {
      $stmD =qq( DATE BETWEEN date('$rs_dat_from') AND date('$rs_dat_to') );
 }
-
+#Toggle if search deployed.
 my $toggle = "";
-if ( $rs_keys || $rs_cat_idx || $stmD ) { $toggle = 1; }
+if ( $rs_keys || $rs_cat_idx || $stmD || $prm_vc > 0) { $toggle = 1; }
 
 $session->expire($SESSN_EXPR);
 
@@ -163,10 +174,6 @@ print $cgi->start_html(
 
 my $rv;
 my $st;
-my $lang  = Date::Language->new($LANGUAGE);
-my $today = DateTime->now;
-$today->set_time_zone($TIME_ZONE);
-
 my $stmtCat = "SELECT * FROM CAT;";
 my $stmt =
 "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT, RTF FROM LOG ORDER BY DATE DESC, rowid DESC;";
@@ -188,42 +195,22 @@ $cats_v =~ s/\"ec\"/\"vc\"/g;
 
 while ( my @row = $st->fetchrow_array() ) {
       if ( $row[0] == $c_sel ) {
-          $cats =
-              $cats
-            . '<option selected value="'
-            . $row[0] . '">'
-            . $row[1]
-            . '</option>\n';
+          $cats .= '<option selected value="'. $row[0] . '">'. $row[1]. '</option>\n';
       }
       else {
-          $cats =
-              $cats
-            . '<option value="'
-            . $row[0] . '">'
-            . $row[1]
-            . '</option>\n';
+          $cats .= '<option value="'. $row[0] . '">'. $row[1]. '</option>\n';
       }
       if ( $row[0] == $prm_vc ) {
-          $cats_v =
-              $cats_v
-            . '<option selected value="'
-            . $row[0] . '">'
-            . $row[1]
-            . '</option>\n';
+          $cats_v .= '<option selected value="'. $row[0] . '">'. $row[1]. '</option>\n';
       }
       else {
-          $cats_v =
-              $cats_v
-            . '<option value="'
-            . $row[0] . '">'
-            . $row[1]
-            . '</option>\n';
+          $cats_v .= '<option value="'. $row[0] . '">'. $row[1]. '</option>\n';
       }
       $hshCats{ $row[0] } = $row[1];
       $desc{ $row[0] }    = $row[2];
 }
 
-$cats = $cats . '</select>';
+$cats .= '</select>';
 
 my $cat_descriptions = "";
 for my $key ( keys %desc ) {
@@ -245,10 +232,10 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 </tr>);
 
 if (defined $prm_vc) {    #view category form selection
-      $rs_cat_idx = $prm_vc;
+    $rs_cat_idx = $prm_vc;
 }
 
-if ($rs_keys) {
+if ($rs_keys && $rs_keys ne '*') {
 
       my @keywords = split / /, $rs_keys;
       if ($rs_cat_idx) {
@@ -331,6 +318,7 @@ while ( my @row = $st->fetchrow_array() ) {
       my $log = $row[3];
       my $am = &cam($row[4]);
       my $rtf = $row[5];
+
       if($ct eq 'Expense'){
          $exp += $row[4];
       }else{
@@ -519,6 +507,9 @@ while ( my @row = $st->fetchrow_array() ) {
           $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, $TIME_ZONE);
       }
 
+      if($rtf > 0){
+         $log .= qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">Show Document</button>);
+      }
 
       $tbl .= qq(<tr class="r$tfId">
 		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
@@ -600,7 +591,7 @@ if ( $tbl_rc == 0 ) {
 }
 
 $tbl .=
-qq(<tr class="r0"><td colspan="2">[Show All -> <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart"></span></a>]
+qq(<tr class="r0"><td colspan="2">[Show Again The Hidden By -> <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart"></span></a>]
 <a href="#top">&#x219F;</a></td>
 <td colspan="4" align="right"> 
     <input type="hidden" name="datediff" id="datediff" value="0"/>
@@ -617,10 +608,10 @@ qq(<tr class="r0"><td colspan="2">[Show All -> <a id="menu_close" href="#" oncli
     <td><input type="submit" value="Search"/></td></tr>
 </form>
 </TABLE>);
-my $COLLAPSED_LOG = 's';
+
 my ($sp1,$sp2);
 $sp1 =   '<span  class="ui-icon ui-icon-heart" style="float:right;"></span>';
-$sp2 = qq(<span  class="ui-icon ui-icon-circle-triangle-$COLLAPSED_LOG" style="float:right;"></span>);
+$sp2 = qq(<span  class="ui-icon ui-icon-circle-triangle-s" style="float:right;"></span>);
 
 
 my $frm = qq(<a name="top"></a>
@@ -654,7 +645,7 @@ my $frm = qq(<a name="top"></a>
 		</td>
 		<td align="right">			  
 				<div style="float: right;"><button id="btn_srch" onclick="toggleSearch(); return false;">Show Search</button>&nbsp;
-				<input id="log_submit" type="submit" onclick="saveRTF(0, 'store');" value="Submit"/></div>
+				<input id="log_submit" type="submit" onclick="saveRTF(-1, 'store');" value="Submit"/></div>
 		</td>		
 	</tr>
 	<tr class="collpsd"><td colspan="3"></td></tr>
@@ -688,8 +679,8 @@ qq(<tr class="collpsd"><td align="right"><b>View by Category:</b></td>
    </tr>
    <tr class="collpsd"><td align="right"><b>View by Date:</b></td>
 	<td align="left">
-	From:&nbsp;<input name="v_from" type="text" size="16"/></td><td align="left">
-	To:&nbsp;<input name="v_to" type="text" size="16"/>
+	From:&nbsp;<input name="v_from" type="text" size="16" value="$rs_dat_from"/></td><td align="left">
+	To:&nbsp;<input name="v_to" type="text" size="16" value="$rs_dat_to"/>
 	<td align="left"><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
 	</tr>
    <tr class="collpsd"><td align="right"><b>Keywords:</b></td>
@@ -697,16 +688,20 @@ qq(<tr class="collpsd"><td align="right"><b>View by Category:</b></td>
 					<input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/></td>
 				<td align="left"><input type="submit" value="Search" align="left"></td></tr>);
 
-if ( $rs_keys || $rs_cat_idx || $stmD ) {
+
+if ( ($rs_keys && $rs_keys ne '*') || $rs_cat_idx || $stmD ) {
+      $sm_reset_all = '<a class="a_" onclick="resetView();">Reset View</a><hr>';
       $srh .= '<tr class="collpsd"><td align="left" colspan="3"></td>
-	<td><button onClick="resetView()" stule="align:left">Reset Whole View</button></td></tr>';
+	<td align="left"><button onClick="resetView()">Reset Whole View</button></td></tr>';
 }
 
 $srh .= '</table></form>';
 my $quill = &quill($cgi->param('submit_is_edit'));
+
 #
 #Page printout from here!
 #
+
 print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n"></span></a>&nbsp;
@@ -719,6 +714,7 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <a class="a_" onclick="deleteSelected(); return false;">Delete</a><hr>
 <a class="a_" onclick="toggleSearch(this); return false;">Search</a><hr>
 <a class="a_" onclick="showAll(); return false;">Show All <span  class="ui-icon ui-icon-heart"></a><hr>
+$sm_reset_all
 <br>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>
@@ -775,7 +771,7 @@ sub processSubmit {
       my $edit_mode = $cgi->param('submit_is_edit');
       my $view_mode = $cgi->param('submit_is_view');
       my $view_all  = $cgi->param('rs_all');
-      my $is_rtf       = $cgi->param('rtf');
+      my $is_rtf    = $cgi->param('rtf');
       my $rtf = 0;
          $rtf = 1 if $is_rtf=="on";
 
@@ -796,6 +792,8 @@ sub processSubmit {
                 . $log
                 . "', AMMOUNT='"
                 . $am
+                . "', RTF='"
+                . $rtf
                 . "' WHERE rowid="
                 . $edit_mode . ";";
               my $st = $db->prepare($stm);
@@ -822,7 +820,7 @@ sub processSubmit {
                   }
 
                   $stmt =
-'SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG where rowid <= "'
+'SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT, RTF from LOG where rowid <= "'
                     . $rs_cur
                     . '" ORDER BY DATE DESC;'
                     . $rs_page;

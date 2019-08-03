@@ -14,7 +14,7 @@ var CHANGE;
 
 var _collpsd_toggle = false;
 var _collpsd_toggle2 = false;
-var _doc_toggle = false;
+
 
 function loadedBody(toggle) {
 
@@ -269,6 +269,15 @@ function edit(row) {
     var ea_v = $("#a" + row); //amount
     var tag = $("#g" + row); //orig. tagged log text.
     var log = $("#v" + row); //log
+    var rtf = $("#r" + row); //RTF doc
+    var isRTF = (rtf.val()>0?true:false);
+    if(!isRTF){
+            $('#rtf_doc').hide();
+            $('#tbl_doc').hide();
+            $('#toolbar-container').hide();
+    }
+
+
     $("html, body").animate({ scrollTop: 0 }, "slow");
     if (tag.length) {
         $("#el").val(decodeToHTMLText(tag.val()));
@@ -278,6 +287,11 @@ function edit(row) {
     }
     $("#ed").val(ed_v.val() + " " + et_v.html());
     $("#am").val(ea_v.html());
+    $("#RTF").prop('checked', isRTF);
+
+    if(isRTF){
+        loadRTF(false, row);
+    }
 
     //Select category
     var ec_v = $("#c" + row).text();
@@ -287,7 +301,6 @@ function edit(row) {
 
     return false;
 }
-
 
 
 function selectAllLogs() {
@@ -374,11 +387,6 @@ function toggleDocument() {
 
 }
 
-function saveRTF() {
-    if (RTF_SET) {
-        $.post('json.pl?m=1', { doc: JSON.stringify(QUILL.getContents()) });
-    }
-}
 
 function toggleSearch() {
     $("html, body").animate({ scrollTop: 0 }, "slow");
@@ -394,10 +402,11 @@ function toggleSearch() {
 }
 
 function resetView() {
-    var f = $("#frm_srch");
-    f.keywords.value = "";
-    $("#idx_cat").value(0);
+    $("#frm_srch input").val("");    
+    $("#idx_cat").val(0);
     $('#vc>option[value="0"]').prop('selected', true);
+
+    $("#frm_srch").submit();
 }
 
 function updateSelCategory(sel) {
@@ -416,13 +425,7 @@ function toggleVisibility(target, ensureOff) {
 }
 
 function toggleDoc() {
-    if (!_collpsd_toggle) {
-        $("#rtf_doc").hide();
-        _doc_toggle = true;
-    } else {
-        $("#rtf_doc").show();
-        _doc_toggle = false;
-    }
+    $("#rtf_doc").toggle();
 }
 
 function toggleLog() {
@@ -455,7 +458,6 @@ function showAll() {
     $("#div_log").show();
     $("#div_srh").show();
     $("#tbl_doc").show();
-    _doc_toggle = false;
     _collpsd_toggle = false;
     _collpsd_toggle2 = false;
     $("#btn_srch").text("Hide Search");
@@ -517,10 +519,12 @@ function sumSelected() {
 
 function saveRTF(id, action) {
     // alert(JSON.stringify(QUILL.getContents()));
-    //Disabled on new log entry. Save and edit, obtains id. For now. @2019-07-20
-    //if (id > 0) {
-    $.post('json.cgi', {action:action, id:id, doc: JSON.stringify(QUILL.getContents()) }, saveRTFResult);
-    //}
+    
+    if (id == -1) {
+        id = $("#submit_is_edit").val(); 
+    }
+    $.post('json.cgi', {action:'store', id:id, doc: JSON.stringify(QUILL.getContents()) }, saveRTFResult);
+    
 }
 
 function saveRTFResult(result) {
@@ -528,4 +532,26 @@ function saveRTFResult(result) {
     console.log("Result->" + result);
     var obj = JSON.parse(result);
     alert(obj.response);
+}
+
+function loadRTF(showFullPage, id){ 
+    $.post('json.cgi', {action:'load', id:id}, loadRTFResult);
+    if(showFullPage){
+        //show under entry the document
+    }
+
+    //var json = "[{'insert': 'Loading Document...', 'attributes': { 'bold': true }}, {'insert': '\n'}]";    
+    QUILL.setText('Loading Document...\n');
+    $("#rtf_doc").show();
+    $('#tbl_doc').show();
+    $('#toolbar-container').show();
+    
+    return false;
+}
+
+function loadRTFResult(result) {
+    console.log("Result->" + result);
+    var obj = JSON.parse(result);
+    QUILL.setContents(obj);
+    //alert(obj.response);
 }
