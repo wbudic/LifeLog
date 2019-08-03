@@ -248,7 +248,7 @@ try{
 	#
 	# Scratch FTS4 implementation if present.
 	#
-	$st = $db->prepare(selSQLTbl('NOTES'));
+	$st = $db->prepare(selSQLTbl('NOTES_content'));
 	$st->execute();
 	if($st->fetchrow_array()) {
 		$rv = $db->do('DROP TABLE NOTES;');
