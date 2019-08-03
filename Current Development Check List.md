@@ -1,22 +1,34 @@
-# Current Branch Development Sun-1.5
-## Current 
-LifeLog Document using Quill
-- 
-* Separate Page
-* Uses Encryption, Compression extension in SQLite.
-* Provide file attachments.
+# Branch Development LifeLog in Perl - Sun Stage v. 1.5
 
-**Log**
- x Sum selected, income, expense, totals. 
- x Sum on view.
- x Preserve from to date selections.
+*This page lists current development and issuses being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
+
+##LifeLog 
+
+*&#10004; Implement RTF Documents.
+> Useful as more document style formated details can be added instead of just plain text.
+
+*&#10004; Preserve Search view selections. After edits and submit.
+> *&#10004; Preserve from to date selections.
+> *&#10004; Date View not working on Local entered date format.
+
+*&#10004; Sum selected, income, expense, totals. 
+*&#10004; Sum on view.
+
+##LifeLog RTF Documents using Quill Javascript RTF API
+
+*&#10004; Separate JSON service page.
+> &#10004; Uses Encryption RTF Documents,
+>* Provide for file attachments. 
+
  
-## Urgent
-* Fix Interaction jumping edits and creating new entries via now button.
->Fix some LTAGS not saved as LTags server side.
+## URGENT FIXES AND KNOWN ISSUES
+* View by Date - search not showing at some instances up to current month entries.
 
-*&#10004; Autologin feature, that expires on logout.
-*&#10004; Data/Login control updated to read the configuration file.
+&#10004; Fix Interaction jumping edits and creating new entries via now button.
+>&#10004;  Fix some LTAGS not saved as LTags server side.
+
+&#10004; Autologin feature, that expires on logout.
+&#10004; Data/Login control updated to read the configuration file.
 &#10004; Configuration file to be updated to carry also categories.
 * &#10004; Configuration page to be updated, system variables description field to be implemented.
 * &#10004; Configuration page - data fix section to be implemented.
@@ -28,10 +40,10 @@ LifeLog Document using Quill
 * &#10004; Add Date Diff Selected button implementation.
 
 
-## Minor
-* Implement RTFDocumentation.
-> Useful as more document style formated details can be added instead of just plain text.
+## New Features of Minor Relevance
 * Provide Themes
+* Enable sticky log entries
+* Enable file attachment to log entries.
 * Enable Armour Mode
 > In this mode settings page is disabled. And can be enabled only by System Admin.
 * Provide About button and info.
