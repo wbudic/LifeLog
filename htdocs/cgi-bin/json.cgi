@@ -52,13 +52,22 @@ my $action   = $cgi->param('action');
 my $lid      = $cgi->param('id');
 my $doc      = $cgi->param('doc');
 my $error    = "";
+my ($response, $json) = 'Session Expired';
+
+my $lang  = Date::Language->new($LANGUAGE);
+my $today = DateTime->now;
+$today->set_time_zone($TIME_ZONE);
 
 if ($AUTHORITY) {
     $userid = $password = $AUTHORITY;
     $dbname = 'data_' . $userid . '_log.db';
 }
-elsif ( !$userid || !$dbname ) {
-   print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+elsif ( !$userid || !$dbname ) {   
+
+    &defaultJSON;
+    print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
+    print $json;
+
    exit;
 }
 
@@ -70,10 +79,6 @@ my $db = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } );
 #&authenticate;
 
 
-my $lang  = Date::Language->new($LANGUAGE);
-my $today = DateTime->now;
-$today->set_time_zone($TIME_ZONE);
-
 my $strp = DateTime::Format::Strptime->new(
     pattern   => '%F %T',
     locale    => 'en_AU',
@@ -81,7 +86,6 @@ my $strp = DateTime::Format::Strptime->new(
     on_error  => 'croak',
 );
 
-my ($response, $json) = 'Feature Under Development!';
 
 ###############
 &processSubmit;
@@ -97,7 +101,7 @@ else{
 print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
 print $json;
 
-#$db->disconnect();
+$db->disconnect();
 undef($session);
 exit;
 
@@ -140,7 +144,13 @@ sub processSubmit {
         elsif($action eq 'load'){
            $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '$lid';"); 
            $st -> execute();
-           $doc = ($st->fetchrow_array())[0];
+           my @arr = $st->fetchrow_array();
+           if(!@arr){
+               $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';"); 
+               $st -> execute();
+               @arr = $st->fetchrow_array();
+           }
+           $doc = $arr[0];
            $response = uncompress($doc);
         }
         else{
