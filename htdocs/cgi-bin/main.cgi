@@ -773,7 +773,8 @@ sub processSubmit {
       my $view_all  = $cgi->param('rs_all');
       my $is_rtf    = $cgi->param('rtf');
       my $rtf = 0;
-         $rtf = 1 if $is_rtf=="on";
+         $rtf = 1 if $is_rtf eq 'on';
+       
 
       try {
 #Apostroph's need to be replaced with doubles  and white space fixed for the SQL.
