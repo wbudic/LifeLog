@@ -32,3 +32,4 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , must be enabled option.
 50|Music       `Music reference of interest. Youtube embbed.
 <<MIG<>
 LOG<5>|ALTER TABLE LOG ADD RTF BOOL DEFAULT 0;' ver. 1.5
+NOTES|DROP TABLE NOTES;' ver. 1.5 fts4 virtual tables have been scratched as they require special SQLite compilation.
