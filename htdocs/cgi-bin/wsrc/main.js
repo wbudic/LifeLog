@@ -258,6 +258,7 @@ function decodeToHTMLText(txt) {
 }
 
 function decodeToText(txt) {
+    txt = txt.replace(/`RTF$/, "");
     txt = txt.replace(/<br\s*[\/]?>/gi, "\n");
     return txt;
 }

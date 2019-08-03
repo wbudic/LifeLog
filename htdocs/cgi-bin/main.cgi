@@ -508,7 +508,7 @@ while ( my @row = $st->fetchrow_array() ) {
       }
 
       if($rtf > 0){
-         $log .= qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">Show Document</button>);
+         $log .= qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">`RTF</button>);
       }
 
       $tbl .= qq(<tr class="r$tfId">
