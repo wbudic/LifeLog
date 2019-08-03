@@ -282,11 +282,14 @@ function edit(row) {
     if (tag.length) {
         $("#el").val(decodeToHTMLText(tag.val()));
 
-    } else {
+    } else {    
         $("#el").val(decodeToText(log.text()));
-    }
-    $("#ed").val(ed_v.val() + " " + et_v.html());
-    $("#am").val(ea_v.html());
+    }      
+        
+    $("#ed").val(ed_v.val() + " " + et_v.html()); //Time field
+    var val = ea_v.html();
+    val = val.replace(/\,/g,"");
+    $("#am").val(val); //Amount field, fix 04-08-2019 HTML input doesn't accept formated string.
     $("#RTF").prop('checked', isRTF);
 
     if(isRTF){
