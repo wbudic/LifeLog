@@ -154,9 +154,9 @@ try{
 }
  catch{	 	
 	  print $cgi->header;
-		print "<font color=red><b>SERVER ERROR</b></font>:".$_;
-    print $cgi->end_html;
-		exit;
+	  print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+	  print $cgi->end_html;
+	  exit;
  }
 }
 
@@ -246,7 +246,16 @@ try{
 		}
 	}
 	#
-	#TODO Future table.
+	# Scratch FTS4 implementation if present.
+	#
+	$st = $db->prepare(selSQLTbl('NOTES'));
+	$st->execute();
+	if($st->fetchrow_array()) {
+		$rv = $db->do('DROP TABLE NOTES;');
+		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>"};
+	}
+	#
+	# New Implementation as of 1.5, cross SQLite Database compatible.
 	#
 	$st = $db->prepare(selSQLTbl('NOTES'));
 	$st->execute();
