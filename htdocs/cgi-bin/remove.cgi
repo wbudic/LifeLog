@@ -53,7 +53,7 @@ my $today = DateTime->now;
    $today->set_time_zone( $TIME_ZONE );
 
 my $stm;
-my $stmtCat = "SELECT * FROM CAT;";
+my $stmtCat = "SELECT ID, NAME FROM CAT;";
 my $st = $db->prepare( $stmtCat );
 my $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
@@ -152,11 +152,15 @@ sub ConfirmedDelition{
 	my $stmS = 'DELETE FROM LOG WHERE '; 
 
 	foreach my $prm ($cgi->param('chk')){
-		$stm = $stmS . "rowid = '" . $prm ."';";
-	        $st = $db->prepare( $stm );
+		$stm = qq(DELETE FROM LOG WHERE rowid = '$prm';);
+	    $st = $db->prepare( $stm );
 		$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 		if($rv < 0) {
 		     print "<p>Error->"& $DBI::errstri &"</p>";
+		}
+		else{
+			$stm = qq(DELETE FROM NOTES WHERE LID = '$prm';);
+			$rv = $st->execute();
 		}
 	}
 	
@@ -191,6 +195,7 @@ while(my @row = $st->fetchrow_array()) {
 
 	 my $ct = $hshCats{$row[1]};
 	 my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
+	 
 	 $tbl = $tbl . '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" . 
 		  '<td class="'.$rs.'">' . $dt->hms . "</td>" .
 		  '<td class="'.$rs.'" style="font-weight:bold; color:maroon;">' . $row[3] . "</td>\n".

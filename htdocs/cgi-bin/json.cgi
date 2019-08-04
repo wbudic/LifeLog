@@ -91,7 +91,7 @@ my $strp = DateTime::Format::Strptime->new(
 &processSubmit;
 ###############
 if($action eq 'load' && !$error){    
-      $json = $response;    
+   $json = $response;    
 }
 else{
    &defaultJSON;
