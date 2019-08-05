@@ -172,7 +172,7 @@ print $cgi->start_html(
 
 my $rv;
 my $st;
-my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT;";
+my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
 my $stmt =
 "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT, RTF FROM LOG ORDER BY DATE DESC, rowid DESC;";
 
@@ -860,10 +860,10 @@ return $today;
             #What happened? We must check and delete, regardles. As data is renumerated and shuffled from perl in database. :(
                       $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = '$lid[0]';");
                       $st->execute();  
-                      if($st->fetchrow_array()){
-                          print qq(<p>Warning deleted (possible old) NOTES.LID -> lid:$lid[0]</p>);
+                      if($st->fetchrow_array()){                          
                           $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$lid[0]';");
                           $st->execute();  
+                          print qq(<p>Warning deleted (possible old) NOTES.LID[$lid[0]] -> lid:$lid[0]</p>);
                       }
                       $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);"); 
                      # 

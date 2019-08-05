@@ -91,6 +91,12 @@ $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 my $status = "Ready for change!";
 
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
+
+###############
+&processSubmit;
+###############
+
+
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
        	-onload  => "loadedBody();",	           
 		    -style   => [
@@ -123,9 +129,7 @@ print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
       ],
 	        );
 
-###############
-&processSubmit;
-###############
+
 
 print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
@@ -682,19 +686,19 @@ catch{
 }
 
 sub resetCategories {
-				$dbs = $db->prepare("DELETE FROM CAT;");
-				$dbs->execute();
-				$dbs = $db->prepare("DROP TABLE CAT;");
-				$dbs->execute();
-				$LOGOUT = 1;
+	$dbs = $db->prepare("DELETE FROM CAT;");
+	$dbs->execute();
+	$dbs = $db->prepare("DROP TABLE CAT;");
+	$dbs->execute();
+	$LOGOUT = 1;
 }
 
 sub wipeSystemConfiguration {
-				$dbs = $db->prepare("DELETE FROM CONFIG;");
-				$dbs->execute();
-				$dbs = $db->prepare("DROP TABLE CONFIG;");
-				$dbs->execute();
-				$LOGOUT = 1;
+	$dbs = $db->prepare("DELETE FROM CONFIG;");
+	$dbs->execute();
+	$dbs = $db->prepare("DROP TABLE CONFIG;");
+	$dbs->execute();
+	$LOGOUT = 1;
 }
 
 
