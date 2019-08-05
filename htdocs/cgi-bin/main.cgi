@@ -510,8 +510,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         }
 
         if ( $rtf > 0 ) {
-            $log .=
-qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">`RTF</button>);
+            $log .= qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">`RTF</button>);
         }
 
         $tbl .= qq(<tr class="r$tfId">
@@ -524,8 +523,17 @@ qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">`RTF</button>);
         <input id="r$id" type="hidden" value="$rtf"/>
 			<button class="edit" value="Edit" onclick="return edit($id);">Edit</button>
 			<input name="chk" type="checkbox" value="$id"/>
-		</td>
-	</tr>);
+		</td></tr>);
+        
+        if ( $rtf > 0 ) {
+             $tbl .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
+                         <td colspan="6">
+                          <div id="q-scroll$id" style="height:auto; max-height:480px; padding: 10px; background:#fffafa; overflow-y: auto;">
+                            <div id="q-container$id"></div>
+                          </div>
+                        </td></tr>);
+        }
+
         $tbl_rc += 1;
 
         if ( $REC_LIMIT > 0 && $tbl_rc == $REC_LIMIT ) {
@@ -593,8 +601,10 @@ qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">`RTF</button>);
         }
     }
 
-    $tbl .=
-qq(<tr class="r0"><td colspan="2">[Show Again The Hidden By -> <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart"></span></a>]
+    $tbl .= <<_TXT;
+<tr class="r0"><td colspan="2">Show All Again -&#62; 
+<a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;></span></a>
+
 <a href="#top">&#x219F;</a></td>
 <td colspan="4" align="right"> 
     <input type="hidden" name="datediff" id="datediff" value="0"/>
@@ -610,12 +620,13 @@ qq(<tr class="r0"><td colspan="2">[Show Again The Hidden By -> <a id="menu_close
     <input id="rs_keys2" name="keywords" type="text" size="60"/></td>
     <td><input type="submit" value="Search"/></td></tr>
 </form>
-</TABLE>);
+</TABLE>
+_TXT
 
-    my ( $sp1, $sp2 );
-    $sp1 = '<span  class="ui-icon ui-icon-heart" style="float:right;"></span>';
-    $sp2 =
-qq(<span  class="ui-icon ui-icon-circle-triangle-s" style="float:right;"></span>);
+    my ( $sp1, $sp2, $sp3 );    
+    $sp1 = '<span  class="ui-icon ui-icon-heart"></span>';
+    $sp2 = '<span  class="ui-icon ui-icon-circle-triangle-s"></span>';
+    $sp3 = '<span  class="ui-icon ui-icon-arrow-4-diag"></span>';
 
     my $frm = qq(<a name="top"></a>
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
@@ -630,7 +641,7 @@ qq(<span  class="ui-icon ui-icon-circle-triangle-s" style="float:right;"></span>
       . $today->ymd . " " . $today->hms . qq(">
 	
 	&nbsp;<button type="button" onclick="return setNow();">Now</button>
-			&nbsp;<button type="reset">Reset</button></td>
+			&nbsp;<button type="reset"  onclick="setNow();resetDoc(); return true;">Reset</button></td>
 			<td style="text-align:top; vertical-align:top">Category: 
     $cats
 				<br><br><div id="cat_desc" name="cat_desc"></div>
@@ -643,11 +654,11 @@ qq(<span  class="ui-icon ui-icon-circle-triangle-s" style="float:right;"></span>
 	</tr>
 	<tr class="collpsd"><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Amount:</td>
 		<td id="al">
-			<input id="am" name="am" type="number" step="any">&nbsp;<input id="RTF" name="rtf" type="checkbox" onclick="return toggleDocument();"/> RTF Document
+			<input id="am" name="am" type="number" step="any">&nbsp;<input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> RTF Document
 		</td>
 		<td align="right">			  
 				<div style="float: right;"><button id="btn_srch" onclick="toggleSearch(); return false;">Show Search</button>&nbsp;
-				<input id="log_submit" type="submit" onclick="saveRTF(-1, 'store');" value="Submit"/></div>
+				<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/></div>
 		</td>		
 	</tr>
 	<tr class="collpsd"><td colspan="3"></td></tr>
@@ -707,9 +718,10 @@ qq(<span  class="ui-icon ui-icon-circle-triangle-s" style="float:right;"></span>
     print
 qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
-<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n"></span></a>&nbsp;
-<a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s"></span></a>
-<a id="menu_close" href="#" onclick="return hideLog();"><span  class="ui-icon ui-icon-heart"></span></a>
+
+<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
+<a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
+<a id="menu_close" href="#" onclick="return hideLog();"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 </div>
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
@@ -1090,9 +1102,10 @@ sub quill{
 
 return <<___STR;
 <table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;" hidden>
-	<tr class="r0" style="text-align:center"><td><b>* Document *</b>
+	<tr class="r0" style="text-align:center"><td><b>* Document *</b>    
     <a id="log_close" href="#" onclick="return hideDoc();">$sp1</a>
-    <a id="log_close" href="#" onclick="return toggleDoc();">$sp2</a>    
+    <a id="log_close" href="#" onclick="return toggleDoc();">$sp2</a>
+    <a id="log_close" href="#" onclick="return resizeDoc();">$sp3</a>
     </td>
 </tr>
 <tr id="rtf_doc"><td>
@@ -1137,6 +1150,11 @@ return <<___STR;
       <button class="ql-video"></button>
       <button class="ql-formula"></button>
     </span>  
+    <span class="ql-formats">        
+        <button class="ql-formats" id="pbck_lighter" onClick="editorBackgroundLighter();">Lighter&nbsp;&nbsp;</button>
+        <button class="ql-formats" id="pbck_neutral" onClick="editorBackgroundReset();">&nbsp;Reset&nbsp;</button>
+        <button id="pbck_darker" onClick="editorBackgroundDarker();">&nbsp;&nbsp;Darker</button>        
+    </span>
   </div>
   <div id="editor-container" style="$height"></div>
   <div class="save_button">

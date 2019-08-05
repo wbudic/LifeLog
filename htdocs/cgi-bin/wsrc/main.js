@@ -232,6 +232,7 @@ function setNow() {
     var dd = fix0(dt.getDate());
     date.value = dt.getFullYear() + "-" + mm + "-" + dd + " " +
         fix0(dt.getHours()) + ":" + fix0(dt.getMinutes()) + ":" + fix0(dt.getSeconds());
+    toggleDoc(true);
     return false;
 }
 
@@ -358,9 +359,26 @@ function viewAll() {
     return false;
 }
 
-function toggleDocument() {
-    $('#tbl_doc').toggle();
-    $('#toolbar-container').toggle();
+
+function toggleDoc(whole) {
+
+    
+    if(whole){
+        if($("#RTF").prop('checked')){
+            $("#rtf_doc").show();
+            $('#tbl_doc').show();
+            $('#toolbar-container').show();
+        }
+        else{
+            $("#rtf_doc").hide();
+            $('#tbl_doc').hide();
+            $('#toolbar-container').hide();
+        }
+    }
+    else{
+        $("#rtf_doc").toggle();
+    }
+
     if (!RTF_SET) {
 
         CHANGE = new Delta();
@@ -389,6 +407,27 @@ function toggleDocument() {
     }
 
 
+}
+
+var RTF_DOC_RESIZED = false;
+var RTF_DOC_ORIG;
+function resizeDoc() {
+    var css = $("#editor-container").prop('style');
+    if(RTF_DOC_RESIZED){
+        RTF_DOC_RESIZED = false;
+        css.height = RTF_DOC_ORIG;
+    }
+    else{
+        RTF_DOC_RESIZED = true;
+        RTF_DOC_ORIG = css.height;
+        css.height = '480px';
+    }
+    
+}
+function resetDoc(){
+    if (RTF_SET) {
+        QUILL.setText("");
+    }
 }
 
 
@@ -428,9 +467,7 @@ function toggleVisibility(target, ensureOff) {
     }
 }
 
-function toggleDoc() {
-    $("#rtf_doc").toggle();
-}
+
 
 function toggleLog() {
     if (!_collpsd_toggle) {
@@ -521,31 +558,88 @@ function sumSelected() {
     return false;
 }
 
+var RTF_SUBMIT = false;
+
 function saveRTF(id, action) {
     // alert(JSON.stringify(QUILL.getContents()));
-    
-    if (id == -1) {
+    var is_submit = (id==-1);
+    if (id < 1) {
         id = $("#submit_is_edit").val(); 
     }
-    $.post('json.cgi', {action:'store', id:id, doc: JSON.stringify(QUILL.getContents()) }, saveRTFResult);
-    
+    if(is_submit && !$("#RTF").prop('checked')){
+        return true;//we submit normal log entry
+    }
+    RTF_SUBMIT = true;
+    $.post('json.cgi', {action:'store', id:id, doc: JSON.stringify(QUILL.getContents())}, saveRTFResult);
+    if(is_submit){
+        //we must wait before submitting actual form!
+        $("#idx_cat").value = "SAVING DOCUMENT...";
+        $("#idx_cat").show();        
+        setTimeout(delayedSubmit, 200);
+    }
+    return false;    
+}
+
+function delayedSubmit(){
+    if(RTF_SUBMIT){
+        setTimeout(delayedSubmit, 200);
+        return;
+    }
+    $("#frm_entry").submit();
 }
 
 function saveRTFResult(result) {
     //alert("Result->" + result);
     console.log("Result->" + result);
     var obj = JSON.parse(result);
-    alert(obj.response);
+    alert(obj.response);    
+    if(obj.log_id>0){
+        //update under log display
+        if($("#q-rtf"+obj.log_id).is(":visible")){
+            loadRTF(true, obj.log_id);
+        }
+    }
+    RTF_SUBMIT = false;
 }
 
-function loadRTF(showFullPage, id){ 
-    $.post('json.cgi', {action:'load', id:id}, loadRTFResult);
-    if(showFullPage){
-        //show under entry the document
-    }
+function loadRTF(under, id){ 
+    
+    //show under log entry the document
+    if(under){
+        
 
+        if($("#q-rtf"+id).is(":visible")){
+            $("#q-rtf"+id).hide();
+            return false;
+        }
+
+        
+        var quill = new Quill('#q-container'+id, {
+            /*
+            modules: {
+              toolbar: [
+                [{ header: [1, 2, false] }],
+                ['bold', 'italic', 'underline'],
+                ['image', 'code-block']
+              ]
+            },*/
+            scrollingContainer: '#q-scroll'+id, 
+            placeholder: 'Loading Document...',
+            readOnly: true,
+            //theme: 'bubble'
+          });
+          $.post('json.cgi', {action:'load', id:id}, function (result){
+                var json = JSON.parse(result);
+                 console.log("Panel load result->" + result.toString());                 
+                 quill.setContents(json.content);
+          });
+          $("#q-rtf"+id).show();
+        return false;
+    }
+    
     //var json = "[{'insert': 'Loading Document...', 'attributes': { 'bold': true }}, {'insert': '\n'}]";    
     QUILL.setText('Loading Document...\n');
+    $.post('json.cgi', {action:'load', id:id}, loadRTFResult);
     $("#rtf_doc").show();
     $('#tbl_doc').show();
     $('#toolbar-container').show();
@@ -555,7 +649,17 @@ function loadRTF(showFullPage, id){
 
 function loadRTFResult(result) {
     console.log("Result->" + result);
-    var obj = JSON.parse(result);
-    QUILL.setContents(obj);
+    var json = JSON.parse(result);
+    QUILL.setContents(json.content);
     //alert(obj.response);
+}
+
+function editorBackgroundLighter(){
+    alert("Sorry, Feature Under Development!");
+}
+function editorBackgroundReset(){
+    alert("Sorry, Feature Under Development!");
+}
+function editorBackgroundDarker(){
+    alert("Sorry, Feature Under Development!");
 }

@@ -194,6 +194,9 @@ img {
 .ui-menu .ui-menu-item a.ui-state-active {
     margin: -1px;
 }
+.ui-icon{
+    float:right;
+}
 
 #standalone-container {
     margin-top: 5px;
