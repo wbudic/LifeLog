@@ -846,7 +846,7 @@ return $today;
                    
                    #Not reliable commented out.
                    #my $gzero = $db->last_insert_id();#//$db->prepare('SELECT last_insert_rowid();');
-                   $st = $db->prepare('SELECT LID FROM LOG ORDER BY LID DESC LIMIT 1;'); 
+                   $st = $db->prepare('SELECT rowid FROM LOG ORDER BY rowid DESC LIMIT 1;'); 
                    $st -> execute(); 
                    my @lid = $st->fetchrow_array();
                    $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';"); 
