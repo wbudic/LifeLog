@@ -155,13 +155,14 @@ sub ConfirmedDelition{
 		$stm = qq(DELETE FROM LOG WHERE rowid = '$prm';);
 	    $st = $db->prepare( $stm );
 		$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+		$stm = qq(DELETE FROM NOTES WHERE LID = '$prm';);
+		$rv = $st->execute();
+
 		if($rv < 0) {
 		     print "<p>Error->"& $DBI::errstri &"</p>";
+			 exit;
 		}
-		else{
-			$stm = qq(DELETE FROM NOTES WHERE LID = '$prm';);
-			$rv = $st->execute();
-		}
+		
 	}
 	
 	

@@ -844,17 +844,29 @@ return $today;
                 $st->execute( $cat, $date, $log, $am, $rtf );
                 if($rtf){ #Update 0 ground NOTES entry to just inserted log.
                    
-                   #Not reliable commented out.
+                   #last_insert_id() -> Not reliable commented out.
                    #my $gzero = $db->last_insert_id();#//$db->prepare('SELECT last_insert_rowid();');
+                   $st->finish();
                    $st = $db->prepare('SELECT rowid FROM LOG ORDER BY rowid DESC LIMIT 1;'); 
                    $st -> execute(); 
                    my @lid = $st->fetchrow_array();
                    $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';"); 
                    $st -> execute();                   
                    my @gzero = $st->fetchrow_array();
+                   
 
                    if(scalar @lid > 0 && scalar @gzero > 0){
-                      $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");               
+            #By Notes.LID contraint, there should NOT be an already existing log rowid entry just submitted in the Notes table! 
+            #What happened? We must check and delete, regardles. As data is renumerated and shuffled from perl in database. :(
+                      $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = '$lid[0]';");
+                      $st->execute();  
+                      if($st->fetchrow_array()){
+                          print qq(<p>Warning deleted (possible old) NOTES.LID -> lid:$lid[0]</p>);
+                          $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$lid[0]';");
+                          $st->execute();  
+                      }
+                      $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);"); 
+                     # 
                       $st->execute($lid[0], $gzero[0]);
                    }
                    
@@ -871,21 +883,25 @@ return $today;
                     print $cgi->p('<b>Insert is in the past!</b>');
 
                     #Renumerate directly (not proper SQL but faster);
-                    $st =
-                      $db->prepare('select rowid, RTF from LOG ORDER BY DATE;');
+                    $st = $db->prepare('select rowid, RTF from LOG ORDER BY DATE;');
                     $st->execute();
                     my $cnt = 1;
                     while ( my @row = $st->fetchrow_array() ) {
                         my $st_upd = $db->prepare(qq(UPDATE LOG SET rowid='$cnt' WHERE rowid='$row[0]';));
                         $st_upd->execute();
                         $cnt = $cnt + 1;
-
                         if ( $row[1] > 0 ) {
-                            my $st_del = $db->prepare(
-                                qq(DELETE FROM NOTES WHERE LID='$row[0]';));
-                            $st_del->execute();
-
+                            my $st_del = $db->prepare(qq(SELECT DOC FROM NOTES WHERE LID='$row[0]';));
+                            my @doc = $st_del->execute();
+                            if(scalar @doc>0){
+                               my $st_del = $db->prepare(qq(DELETE FROM NOTES WHERE LID='$row[0]';));
+                               #   print qq(<p>delnid:$row[0]</p>);
+                               $st_del->execute();
+                               $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");                                                   
+                               $st->execute($cnt, $doc[0]);
+                            }
                         }
+
                     }
 
                 }
