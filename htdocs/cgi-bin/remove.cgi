@@ -149,13 +149,12 @@ return "<b>".$d->ymd."</b> ".$d->hms;
 
 sub ConfirmedDelition{
 
-	my $stmS = 'DELETE FROM LOG WHERE '; 
 
 	foreach my $prm ($cgi->param('chk')){
-		$stm = qq(DELETE FROM LOG WHERE rowid = '$prm';);
-	    $st = $db->prepare( $stm );
+		
+	    $st = $db->prepare("DELETE FROM LOG WHERE rowid = '$prm';");
 		$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
-		$stm = qq(DELETE FROM NOTES WHERE LID = '$prm';);
+		$st = $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$prm';");
 		$rv = $st->execute();
 
 		if($rv < 0) {
