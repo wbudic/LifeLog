@@ -90,13 +90,8 @@ my $strp = DateTime::Format::Strptime->new(
 ###############
 &processSubmit;
 ###############
-if($action eq 'load' && !$error){    
-   $json = $response;    
-}
-else{
-   &defaultJSON;
-}
 
+&defaultJSON;
 
 print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
 print $json;
@@ -106,15 +101,20 @@ undef($session);
 exit;
 
 
-sub defaultJSON{
+sub defaultJSON(){
+
+     my $content = $response; 
+     if($action eq 'load' && !$error){
+         $content = JSON->new->utf8->allow_nonref->decode($response);
+         $response = "Loaded Document!";
+     }
      $json = JSON->new->utf8->space_after->pretty->allow_blessed->encode
      ({date => $strp->format_datetime($today), 
-       response_origin => "LifeLog.".$RELEASE_VER,
-       response => $response,
-       alias => $userid,
-       log_id => $lid,
-       database=>$database, action => $action, error=>$error
-       #received => $doc       
+       response_origin => "LifeLog.".$RELEASE_VER,       
+       alias => $userid, log_id => $lid, database=>$database, action => $action, error=>$error,
+       response=>$response,
+       content=>$content,
+       #received => $doc     
    });   
 }
 
