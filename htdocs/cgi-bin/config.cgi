@@ -129,9 +129,9 @@ print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
 
 print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
-<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n"></span></a>&nbsp;
-<a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s"></span></a>
-<a id="floating_menu_close" href="#"><span  class="ui-icon ui-icon-heart"></span></a>
+<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
+<a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
+<a id="floating_menu_close" href="#"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 </div>
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
