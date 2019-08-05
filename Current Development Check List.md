@@ -4,7 +4,7 @@
 
 ##LifeLog 
 
-* Cross page used System settings to be stored in session. As these are  known even before logon.
+* Some System settings to be stored in session. As these are  known even before logon.
 > i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
 * Checkbox for type of log amount (Mark as Expense). Default is income. Asset is neither, income or expense.
 
