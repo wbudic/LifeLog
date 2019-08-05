@@ -63,7 +63,7 @@
 ## Bugs
 * &#10004; Bug - 01, date validation for proper entered time, there is no 24 h.
 * &#10004; Bug - 02, Record set paging to previous page not always working. Getting stuck.
->> This occurrs on new records placed in the far past. Complex problem.
+>> This occurs on new records placed in the far past. Complex problem.
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
 * &#10004; Bug - 04, Local not picked up properly on current date.
 * &#10004; Bug - 05, CRLF and apostrophe replacement not working.
