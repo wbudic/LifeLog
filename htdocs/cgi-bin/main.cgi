@@ -844,15 +844,18 @@ return $today;
                 $st->execute( $cat, $date, $log, $am, $rtf );
                 if($rtf){ #Update 0 ground NOTES entry to just inserted log.
                    
-                   my $gzero = $db->last_insert_id();#//$db->prepare('SELECT last_insert_rowid();');
-                   
-                   my @inID = $st->fetchrow_array();
-                   $st = $db->prepare("SELECT LID, DOC FROM NOTES WHERE LID = '0';"); 
+                   #Not reliable commented out.
+                   #my $gzero = $db->last_insert_id();#//$db->prepare('SELECT last_insert_rowid();');
+                   $st = $db->prepare('SELECT LID FROM LOG ORDER BY LID DESC LIMIT 1;'); 
+                   $st -> execute(); 
+                   my @lid = $st->fetchrow_array();
+                   $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';"); 
                    $st -> execute();                   
-                   
-                   if(scalar @inID > 0 && $gzero){
+                   my @gzero = $st->fetchrow_array();
+
+                   if(scalar @lid > 0 && scalar @gzero > 0){
                       $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");               
-                      $st->execute($gzero, $inID[2]);
+                      $st->execute($lid[0], $gzero[0]);
                    }
                    
                 }
