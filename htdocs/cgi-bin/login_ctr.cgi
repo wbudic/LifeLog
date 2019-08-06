@@ -188,8 +188,8 @@ try{
 		$rv = $db->do($stmt);
 		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>";}
 		
-		$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
-		$st->execute( 3, $today, "DB Created!",0);
+		$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?)');
+		$st->execute( 3, $today, "DB Created!",0,0);
   }
 	$st = $db->prepare(selSQLTbl('CAT'));
 	$st->execute();
@@ -212,7 +212,7 @@ try{
 		 $changed = 1;
 	}
 
-  $st = $db->prepare(selSQLTbl('AUTH'));
+    $st = $db->prepare(selSQLTbl('AUTH'));
 	$st->execute();
 	if(!$st->fetchrow_array()) {
 	#
@@ -227,10 +227,10 @@ try{
 	
     my $stmt = qq(
 		CREATE TABLE AUTH(
-				alias varchar(20) TEXT PRIMARY KEY,
+				alias varchar(20) PRIMARY KEY,
 				passw TEXT,
 				email varchar(44),
-				action TINY,				  
+				action TINY			  
 		) WITHOUT ROWID;
 		CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);
 		); 
@@ -238,12 +238,7 @@ try{
 
 		$rv = $db->do($stmt);
 		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>"};
-		$st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias' AND passw='$passw';");
- 		$st->execute();
-		if(!$st->fetchrow_array()) {
-	    $st = $db->prepare('INSERT INTO AUTH VALUES (?,?)');
-	    $st->execute($alias, $passw);
-		}
+
 	}
 	#
 	# Scratch FTS4 implementation if present.
@@ -269,9 +264,10 @@ try{
 
 	$st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias' AND passw='$passw';");
 	$st->execute();
-	if(!$st->fetchrow_array()) {
-		$st = $db->prepare('INSERT INTO AUTH VALUES (?,?)');
-		$st->execute($alias, $passw);
+	my @res = $st->fetchrow_array();
+	if(scalar @res == 0) {
+		$st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?)');
+		$st->execute($alias, $passw,"",0);
 	}
  
 	$st = $db->prepare(selSQLTbl('CONFIG'));
