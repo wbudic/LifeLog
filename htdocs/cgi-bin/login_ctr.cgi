@@ -190,7 +190,7 @@ try{
 		
 		$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?)');
 		$st->execute( 3, $today, "DB Created!",0,0);
-  }
+  	}
 	$st = $db->prepare(selSQLTbl('CAT'));
 	$st->execute();
 	if(!$st->fetchrow_array()) {
@@ -277,17 +277,18 @@ try{
 		#alter table CONFIG add DESCRIPTION VCHAR(128);
 
     my $stmt = qq(
-					CREATE TABLE CONFIG(
-							ID TINY PRIMARY KEY NOT NULL,
-							NAME VCHAR(16),
-							VALUE VCHAR(28),
-							DESCRIPTION VCHAR(128)
-					);
-					CREATE INDEX idx_config_name ON CONFIG (NAME);
-		);
+						CREATE TABLE CONFIG(
+								ID TINY PRIMARY KEY NOT NULL,
+								NAME VCHAR(16),
+								VALUE VCHAR(28),
+								DESCRIPTION VCHAR(128)
+						);
+						CREATE INDEX idx_config_name ON CONFIG (NAME);
+				);
 		$rv = $db->do($stmt);
 		$st->finish();
 		$changed = 1;
+
 	}
 	else{
 				#PRAGMA table_info(CONFIG); <-To check current structure
