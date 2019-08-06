@@ -7,13 +7,15 @@ var _MAP = new Map();
 var MNU_SCROLLING = false;
 var SRCH_TOGGLE = true;
 
-var QUILL;
+var QUILL, QUILL_PNL;
 var Delta;
 var RTF_SET = false;
 var CHANGE;
 
 var _collpsd_toggle = false;
 var _collpsd_toggle2 = false;
+
+var DEF_BACKGROUND = 'white';
 
 
 function loadedBody(toggle) {
@@ -132,8 +134,12 @@ function loadedBody(toggle) {
         // toggleDocument();
     }
 
-}
 
+    DEF_BACKGROUND = RGBToHex($('#editor-container').css('background-color'));
+    $("#fldBG").val(DEF_BACKGROUND);
+
+
+}
 
 
 function hideLog() {
@@ -232,7 +238,8 @@ function setNow() {
     var dd = fix0(dt.getDate());
     date.value = dt.getFullYear() + "-" + mm + "-" + dd + " " +
         fix0(dt.getHours()) + ":" + fix0(dt.getMinutes()) + ":" + fix0(dt.getSeconds());
-    toggleDoc(true);
+    $("#submit_is_edit").val("0");
+    toggleDoc(true);    
     return false;
 }
 
@@ -426,8 +433,10 @@ function resizeDoc() {
 }
 function resetDoc(){
     if (RTF_SET) {
-        QUILL.setText("");
+        QUILL.setText("");     
     }
+    $("#submit_is_edit").val("0");
+    toggleDoc(true);
 }
 
 
@@ -507,11 +516,16 @@ function showAll() {
 }
 
 function helpSelCategory(sel) {
-    var pnl = $("#cat_desc");
+    
     var desc = _MAP.get(sel.options[sel.selectedIndex].value);
     if (!desc) {
         desc = "<font color='red'>Please select a Category!</font>";
     }
+    display(desc);
+}
+
+function display(desc){
+    var pnl = $("#cat_desc");
     pnl.html(desc);
     pnl.show();
     pnl.fadeOut(5000);
@@ -570,7 +584,8 @@ function saveRTF(id, action) {
         return true;//we submit normal log entry
     }
     RTF_SUBMIT = true;
-    $.post('json.cgi', {action:'store', id:id, doc: JSON.stringify(QUILL.getContents())}, saveRTFResult);
+    var bg = $("#fldBG").val();
+    $.post('json.cgi', {action:'store', id:id, bg:bg, doc: JSON.stringify(QUILL.getContents())}, saveRTFResult);
     if(is_submit){
         //we must wait before submitting actual form!
         $("#idx_cat").value = "SAVING DOCUMENT...";
@@ -592,7 +607,9 @@ function saveRTFResult(result) {
     //alert("Result->" + result);
     console.log("Result->" + result);
     var obj = JSON.parse(result);
-    alert(obj.response);    
+    //alert(obj.response);  
+    $("html, body").animate({ scrollTop: 0 }, "fast");  
+    display(obj.response);
     if(obj.log_id>0){
         //update under log display
         if($("#q-rtf"+obj.log_id).is(":visible")){
@@ -614,7 +631,7 @@ function loadRTF(under, id){
         }
 
         
-        var quill = new Quill('#q-container'+id, {
+        QUILL_PNL = new Quill('#q-container'+id, {
             /*
             modules: {
               toolbar: [
@@ -627,12 +644,9 @@ function loadRTF(under, id){
             placeholder: 'Loading Document...',
             readOnly: true,
             //theme: 'bubble'
-          });
-          $.post('json.cgi', {action:'load', id:id}, function (result){
-                var json = JSON.parse(result);
-                 console.log("Panel load result->" + result.toString());                 
-                 quill.setContents(json.content);
-          });
+          });         
+
+          $.post('json.cgi', {action:'load', id:id}, loadRTFPnlResult);
           $("#q-rtf"+id).show();
         return false;
     }
@@ -647,19 +661,58 @@ function loadRTF(under, id){
     return false;
 }
 
-function loadRTFResult(result) {
-    console.log("Result->" + result);
-    var json = JSON.parse(result);
-    QUILL.setContents(json.content);
+function loadRTFPnlResult(content, result, prms) {
+    loadRTFResult(content, result, prms, QUILL_PNL);
+}
+
+function loadRTFResult(content, result, prms, quill) {
+    console.log("Result->" + content);
+    var json = JSON.parse(content);
+    if(!quill)quill=QUILL;
+
+    $('#fldbg').val(json.content.bg);
+       quill.setContents(json.content.doc);
+    if(quill===QUILL){
+        $("#fldBG").val(json.content.bg);
+        editorBackground(false);
+    }
+    else{
+        var id = json.content.lid;
+        var css = $("#q-scroll"+id).prop('style'); 
+        css.backgroundColor = json.content.bg
+    }
     //alert(obj.response);
 }
 
-function editorBackgroundLighter(){
-    alert("Sorry, Feature Under Development!");
+ 
+
+
+function editorBackground(reset){    
+    var css = $("#editor-container").prop('style');    
+    if(reset){
+        css.backgroundColor = DEF_BACKGROUND;
+        $("#fldBG").val(DEF_BACKGROUND);
+    }
+    else{css.backgroundColor = $("#fldBG").val();}
 }
-function editorBackgroundReset(){
-    alert("Sorry, Feature Under Development!");
-}
-function editorBackgroundDarker(){
-    alert("Sorry, Feature Under Development!");
+
+
+function RGBToHex(rgb) {
+    // Choose correct separator
+    let sep = rgb.indexOf(",") > -1 ? "," : " ";
+    // Turn "rgb(r,g,b)" into [r,g,b]
+    rgb = rgb.substr(4).split(")")[0].split(sep);
+  
+    let r = (+rgb[0]).toString(16),
+        g = (+rgb[1]).toString(16),
+        b = (+rgb[2]).toString(16);
+  
+    if (r.length == 1)
+      r = "0" + r;
+    if (g.length == 1)
+      g = "0" + g;
+    if (b.length == 1)
+      b = "0" + b;
+  
+    return "#" + r + g + b;
 }
