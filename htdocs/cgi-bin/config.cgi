@@ -90,13 +90,12 @@ $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 my $status = "Ready for change!";
 
-print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
 
 ###############
 &processSubmit;
 ###############
 
-
+print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
        	-onload  => "loadedBody();",	           
 		    -style   => [
@@ -601,23 +600,23 @@ try{
 			#Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
 			$dbs = $db->prepare('select rowid, DATE from LOG ORDER BY DATE;');
 			$dbs->execute();
-			my %ids  = ();
+			my %dates  = ();
 			my @dlts = ();
-			#Hash is unreliable for returnin sequential order of keys so array must do.
+			#Hash is unreliable for returning sequential order of keys so array must do.
 			my @updts = ();
 			my $cntr_del =0;
 			
 			my $existing;
 			
  			while(my @row = $dbs->fetchrow_array()) {
-				 			my $existing = $ids{$row[0]};
-							if($existing && $existing eq $row[1]){
-								 $dlts[$cntr_del++] = $row[0];
-							}
-							else{
-								$ids{$row[0]} = $row[1];
-								$updts[$cntr_upd++] = $row[0];
-							}
+		  		my $existing = $dates{$row[0]};
+		  		if($existing && $existing eq $row[1]){
+		  			$dlts[$cntr_del++] = $row[0];
+		  		}
+		  		else{
+					$dates{$row[0]} = $row[1];
+					$updts[$cntr_upd++] = $row[0];
+		  		}
 			}	
 			
 			foreach my $del (@dlts){
@@ -630,37 +629,56 @@ try{
 			#Renumerate!
 			my $cnt = 1;
 			my $st_upd;
-			$dbs = $db->prepare("select rowid from LOG;");
-						 $dbs->execute();
+			$dbs = $db->prepare("select count(rowid) from LOG;");
+				   $dbs->execute();
+			my @row = $dbs->fetchrow_array();
+			$cntr_upd =$row[0];
+			# while(my @row = $dbs->fetchrow_array()) {
+			# 		if($row[0]>$cntr_upd){
+			# 			$cntr_upd = $row[0];
+			# 		}
+			# }
+			$dbs = $db->prepare("select rowid, RTF from LOG order by DATE;");
+				   $dbs->execute();
 			while(my @row = $dbs->fetchrow_array()) {
-									if($row[0]>$cntr_upd){
-										$cntr_upd = $row[0];
-									}
+				$issue    = "UPDATE LOG SET rowid=$cnt WHERE rowid=$row[0];";
+				$st_upd = $db->prepare($issue);
+				$st_upd->execute();
+				if($row[1]){#RTF
+					my $st = $db->prepare("SELECT LID FROM NOTES WHERE LID='$row[0]';");
+                    my @doc = $st->execute();
+                    if(scalar @doc>0){
+						my $st = $db->prepare("UPDATE NOTES SET LID = $cnt WHERE LID='$row[0]';");
+						$st->execute();
+					}
+				}				
+				$cnt++;
 			}
- 		  foreach my $upd (@updts){
-				 		$date = $ids{$upd};
 
-						#Move existing to end of database rows.
-						$dbs = $db->prepare("select rowid from LOG WHERE $cnt;");
-						$dbs->execute();
-						if($dbs->fetchrow_array()){
-							 $cntr_upd++;
-							 $issue = "UPDATE LOG SET rowid=$cntr_upd WHERE rowid=$cnt;";
-							 $st_upd = $db->prepare($issue);
-							 $st_upd->execute();
-							 $issue = "DELETE FROM LOG WHERE rowid=$cnt;";
-							 $st_upd = $db->prepare($issue);
-							 $st_upd->execute();
-						}
+			# foreach my $upd (@updts){
+			# 	 		$date = $dates{$upd};
 
-						#Finally set new id!
-						$issue    = "UPDATE LOG SET rowid=$cnt WHERE rowid=$upd;";
+			# 			#Move existing to end of database rows.
+			# 			$dbs = $db->prepare("select rowid from LOG WHERE rowid=$cnt;");
+			# 			$dbs->execute();
+			# 			if($dbs->fetchrow_array()){							 
+			# 				 $issue = "UPDATE LOG SET rowid=$cntr_upd WHERE rowid=$cnt;";
+			# 				 $st_upd = $db->prepare($issue);
+			# 				 $st_upd->execute();
+			# 				 $issue = "DELETE FROM LOG WHERE rowid=$cnt;";
+			# 				 $st_upd = $db->prepare($issue);
+			# 				 $st_upd->execute();
+			# 				 $cntr_upd++;
+			# 			}
 
-						#print "$issue\n<br>";
-						$st_upd = $db->prepare($issue);
-						$st_upd->execute();
-						$cnt = $cnt + 1;
-			}
+			# 			#Finally set new id!
+			# 			$issue    = "UPDATE LOG SET rowid=$cnt WHERE rowid=$upd;";
+
+			# 			#print "$issue\n<br>";
+			# 			$st_upd = $db->prepare($issue);
+			# 			$st_upd->execute();
+			# 			$cnt = $cnt + 1;
+			# }
 			
 			&resetCategories if $rs_cats;
 			&resetSystemConfiguration($db) if $rs_syst;			
@@ -789,12 +807,6 @@ sub logout{
 	exit;
 }
 
-CREATE TABLE CONFIG(
-												ID TINY PRIMARY KEY NOT NULL,
-												NAME VCHAR(16),
-												VALUE VCHAR(28),
-												DESCRIPTION VCHAR(128)
-										);
 
 sub changeSystemSettings {
 	try{
