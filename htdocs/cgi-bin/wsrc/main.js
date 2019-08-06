@@ -19,10 +19,10 @@ var DEF_BACKGROUND = 'white';
 function loadedBody(toggle) {
 
 
-    if (toggle) {
-        toggleSearch($("#btn_srch"));
-    }
 
+    if (toggle) {
+        this.toggle("#div_srh", false);
+    }
     $('#ed').datetimepicker({
         dateFormat: 'yy-mm-dd',
         timeFormat: 'HH:mm:ss',
