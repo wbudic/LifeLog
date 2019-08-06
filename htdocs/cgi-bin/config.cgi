@@ -40,7 +40,7 @@ my $cipher_key = '95d7a85ba891da';
 
 #15mg data post limit
 $CGI::POST_MAX = 1024 * 15000;
-my $LOGOUT = 0;
+my ($LOGOUT,$ERROR) = (0,"");
 my $cgi = CGI->new;
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
 my $sid=$session->id();
@@ -85,15 +85,12 @@ $today->set_time_zone( $TIME_ZONE );
 	
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
-$dbs = $db->prepare( $stmtCat );
-$rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
-
 my $status = "Ready for change!";
-
 
 ###############
 &processSubmit;
 ###############
+
 
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
@@ -129,7 +126,6 @@ print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
 	        );
 
 
-
 print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
@@ -143,12 +139,16 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>);
 
+&error if $ERROR;
+
+
+
 my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.$PRC_WIDTH.'%">
 	          <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
             <tr class="r1"><th>ID</th><th>Category</th><th  align="left">Description</th></tr>
           ';
-
- while(my @row = $dbs->fetchrow_array()) {
+$dbs = dbExecute($stmtCat);
+while(my @row = $dbs->fetchrow_array()) {
 	if($row[0]>0){ 
 	   $tbl = $tbl. 
 	   '<tr class="r0"><td>'.$row[0].'</td>
@@ -193,8 +193,8 @@ $dbs = $db->prepare( $stm );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 while(my @row = $dbs->fetchrow_array()) {
-	   my $i = $row[0];
-	   my $n = $row[1];
+		 my $i = $row[0];
+		 my $n = $row[1];
 		 my $v = $row[2];
 		 my $d = $row[3];
 		 if($n eq "TIME_ZONE"){
@@ -300,19 +300,22 @@ my  $frmVars = qq(
 $tbl = qq(<table id="cnf_fix" class="tbl" border="0" width="$PRC_WIDTH%">
 	          <tr class="r0"><td colspan="2"><b>* DATA FIX *</b></td></tr>
 			 );
+my $cats = &cats;			 
 my  $frmDB = qq(
 	 <form id="frm_DB" action="config.cgi">$tbl
 		<tr class="r1" align="left"><th>Extra Action</th><th>Description</th></tr>
-		<tr class="r0" align="left"><td><input type="checkbox" name="reset_cats" value="1"/>Reset Categories</td><td>Resets Categories to factory values (will initiate logoff).</td></tr>
-		<tr class="r1" align="left"><td><input type="checkbox" name="reset_syst" value="1"/>Reset Settings</td><td>Resets system settings to default values.</td></tr>
-		<tr class="r0" align="left"><td><input type="checkbox" name="wipe_syst" value="1"/>Wipe Settings</td><td>Resets and wipes system settings for migration  (will initiate logoff).</td></tr>
+		<tr class="r0" align="left"><td><input type="checkbox" name="reset_cats"/>Reset Categories</td><td>Resets Categories to factory values (will initiate logoff).</td></tr>
+		<tr class="r1" align="left"><td><input type="checkbox" name="reset_syst"/>Reset Settings</td><td>Resets system settings to default values.</td></tr>
+		<tr class="r0" align="left"><td><input type="checkbox" name="wipe_syst"/>Wipe Settings</td><td>Resets and wipes system settings for migration  (will initiate logoff).</td></tr>
+		<tr class="r1" align="left"><td><input type="checkbox" name="del_by_cats"/>Delete by Category <font color=red>*UD</font><br>$cats</td><td>Selects and displays by category logs to delete.</td></tr>
+		<tr class="r0" align="left"><td><input type="checkbox" name="del_from"/>Delete from Date <font color=red>*UD</font><br><input id="fldFrom" size/></td><td>Selects and displays from a date to into deep past logs to delete..</td></tr>
 		<tr class="r1">		
 		 <td colspan="2" align="right"><b>Data maintenance for -> $dbname</b>&nbsp;<input type="submit" value="Fix"/></td>
 		</tr>			
 		<tr class="r1" align="left">
 		     <td colspan="2">Perform this change/check in the event of experiencing data problems. Or periodically for data check and maintenance. <br>
 				                 <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
-												  of your changes. Please, export/backup first.</td>
+												  of your changes. Please, export/backup first.<br><font color=red>*UD</font> - Under Development, not working!</td>
 		</tr>
 		<input type="hidden" name="db_fix" value="1"/>
 		</table></form><br>
@@ -331,6 +334,7 @@ my  $frmPASS = qq(
 		<input type="hidden" name="pass_change" value="1"/>
 		</table></form><br>
 		);
+
 
 #
 #Page printout from here!
@@ -373,7 +377,7 @@ my $prc_hdr = $PRC_WIDTH-2;
 					<hr>
 
 					<center>
-					<div id="rz" style="text-align:left; position:relative;width:600px;">
+					<div id="rz" style="text-align:left; position:relative;width:640px; padding:10px;">
 					<h2>L-Tags Specs</h2>					
 					<p>
 					Life Log Tags are simple markup allowing fancy formatting and functionality 
@@ -432,20 +436,23 @@ print '</center>';
 
 print $cgi->end_html;
 $db->disconnect();
+
 exit;
 
 sub processSubmit {
 
 my $change = $cgi->param("cchg");
 my $chgsys = $cgi->param("sys");
-my $chgdb  = $cgi->param("db_fix");
+my $chdbfix  = $cgi->param("db_fix");
 my $passch = $cgi->param("pass_change");
 my $s;
 my $d;
 
-
-
 try{
+
+$dbs = $db->prepare( $stmtCat );
+$rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+	
 if($passch){
 	my ($ex,$ne,$cf) = ($cgi->param("existing"),$cgi->param("new"),$cgi->param("confirm"));
 	if($ne ne $cf){
@@ -483,24 +490,23 @@ elsif ($change == 1){
 		   $d->execute();
 
 		    while(my @r = $d->fetchrow_array()) {
-		             $s = "UPDATE LOG SET ID_CAT=1 WHERE rowid=".$r[0].";";
+		             $s = "  LOG SET ID_CAT=1 WHERE rowid=".$r[0].";";
 		             $d = $db->prepare($s); 
 		             $d->execute();
 		     }
 
-			 #Delete
-       $s = "DELETE FROM CAT WHERE ID=".$cid.";"; 
-		   $d = $db->prepare($s); 
-		   $d->execute();   
+			#Delete
+		    $s = "DELETE FROM CAT WHERE ID=".$cid.";"; 
+		    $d = $db->prepare($s); 
+		    $d->execute();   
 
-		 }
-		 else{
+		}else{
 			#Update
-            $s = "UPDATE CAT SET NAME='".$pnm."', DESCRIPTION='".$pds."' WHERE ID=".$cid.";"; 
-		   			$d = $db->prepare($s); 
-		   			$d->execute();
-	        }		 
-	  }
+		    $s = "UPDATE CAT SET NAME='".$pnm."', DESCRIPTION='".$pds."' WHERE ID=".$cid.";"; 
+		   	$d = $db->prepare($s); 
+		   	$d->execute();
+		}		 
+	  } 
 	}
 	$status = "Upadated Categories!";
 }
@@ -516,15 +522,15 @@ if($change > 1){
 
 					while(my @row = $dbs->fetchrow_array()) {
 
-								my $cid = $row[0];
-								my $cnm = $row[1];
-								my $cds = $row[2];
-								
+						my $cid = $row[0];
+						my $cnm = $row[1];
+						my $cds = $row[2];
+						
 
-								if($cid==$caid || $cnm eq $canm){
-												$valid = 0;
-												last;
-								}
+						if($cid==$caid || $cnm eq $canm){
+										$valid = 0;
+										last;
+						}
 					}
 
 		if($valid){
@@ -534,29 +540,23 @@ if($change > 1){
 		}
 		else{
 			$status = "ID->".$caid." or -> Category->".$canm." is already assigned, these must be unique!";
-			print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
+			die "<div><p><font color=red>Client Error</font>: $status</p></div>";
 		}
 		$status = "Inserted new category[$canm]";
 		
 	
 }elsif ($chgsys == 1){
-	  &changeSystemSettings;		
-		$status = "Changed System Settings!";
-}elsif($chgdb){	
+	&changeSystemSettings;		
+	$status = "Changed System Settings!";
+}elsif($chdbfix){		
 	&processDBFix;
 	$status = "Performed Database Fixes!";
 }
 
 
-  #Re-select
-  $dbs = $db->prepare( $stmtCat );
-  $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
-
 }
 catch{	  
-	print "<center><div><p>".
- 	   "<font color=red><b>SERVER ERROR</b></font>:".$_. "</p></div></center>";
-
+	$ERROR = qq(<p><font color=red><b>SERVER ERROR</b></font> -> $_</p>);
 }
 }
 
@@ -597,125 +597,95 @@ sub processDBFix {
 	 my $cntr_upd =0;
 try{
 
-			#Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
-			$dbs = $db->prepare('select rowid, DATE from LOG ORDER BY DATE;');
-			$dbs->execute();
-			my %dates  = ();
-			my @dlts = ();
-			#Hash is unreliable for returning sequential order of keys so array must do.
-			my @updts = ();
-			my $cntr_del =0;
-			
-			my $existing;
-			
- 			while(my @row = $dbs->fetchrow_array()) {
-		  		my $existing = $dates{$row[0]};
-		  		if($existing && $existing eq $row[1]){
-		  			$dlts[$cntr_del++] = $row[0];
-		  		}
-		  		else{
-					$dates{$row[0]} = $row[1];
-					$updts[$cntr_upd++] = $row[0];
-		  		}
-			}	
-			
-			foreach my $del (@dlts){
-				$issue = "DELETE FROM LOG WHERE rowid=$del;";
-						#print "$issue\n<br>";
-						my $st_del = $db->prepare($issue);
-						$st_del->execute();
+	
+		my %dates  = ();
+		my @dlts = ();
+		#Hash is unreliable for returning sequential order of keys so array must do.
+		my @updts = ();
+		my $cntr_del =0;		
+		my $existing;
+		my @row;
+		
+		$db->do('BEGIN TRANSACTION;');
+		#Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
+		$dbs = dbExecute('select rowid, DATE from LOG ORDER BY DATE;');			
+		while(my @row = $dbs->fetchrow_array()) {
+			my $existing = $dates{$row[0]};
+			if($existing && $existing eq $row[1]){
+				$dlts[$cntr_del++] = $row[0];
 			}
-
-			#Renumerate!
-			my $cnt = 1;
-			my $st_upd;
-			$dbs = $db->prepare("select count(rowid) from LOG;");
-				   $dbs->execute();
-			my @row = $dbs->fetchrow_array();
-			$cntr_upd =$row[0];
-			# while(my @row = $dbs->fetchrow_array()) {
-			# 		if($row[0]>$cntr_upd){
-			# 			$cntr_upd = $row[0];
-			# 		}
-			# }
-			$dbs = $db->prepare("select rowid, RTF from LOG order by DATE;");
-				   $dbs->execute();
-			while(my @row = $dbs->fetchrow_array()) {
-				$issue    = "UPDATE LOG SET rowid=$cnt WHERE rowid=$row[0];";
-				$st_upd = $db->prepare($issue);
-				$st_upd->execute();
-				if($row[1]){#RTF
-					my $st = $db->prepare("SELECT LID FROM NOTES WHERE LID='$row[0]';");
-                    my @doc = $st->execute();
-                    if(scalar @doc>0){
-						my $st = $db->prepare("UPDATE NOTES SET LID = $cnt WHERE LID='$row[0]';");
-						$st->execute();
-					}
-				}				
-				$cnt++;
+			else{
+				$dates{$row[0]} = $row[1];
+				$updts[$cntr_upd++] = $row[0];
 			}
+		}	
 
-			# foreach my $upd (@updts){
-			# 	 		$date = $dates{$upd};
+		foreach my $del (@dlts){
+			$issue = "DELETE FROM LOG WHERE rowid=$del;";
+					#print "$issue\n<br>";
+					my $st_del = $db->prepare($issue);
+					$st_del->execute();
+		}
 
-			# 			#Move existing to end of database rows.
-			# 			$dbs = $db->prepare("select rowid from LOG WHERE rowid=$cnt;");
-			# 			$dbs->execute();
-			# 			if($dbs->fetchrow_array()){							 
-			# 				 $issue = "UPDATE LOG SET rowid=$cntr_upd WHERE rowid=$cnt;";
-			# 				 $st_upd = $db->prepare($issue);
-			# 				 $st_upd->execute();
-			# 				 $issue = "DELETE FROM LOG WHERE rowid=$cnt;";
-			# 				 $st_upd = $db->prepare($issue);
-			# 				 $st_upd->execute();
-			# 				 $cntr_upd++;
-			# 			}
+		#Renumerate!
+		my $cnt = 1;
+		my $st_upd;
+		$dbs = dbExecute("select count(rowid) from LOG;");		
+		@row = $dbs->fetchrow_array();
+		$cntr_upd =$row[0];
+		
+		
+		$dbs = dbExecute("select rowid, RTF from LOG order by DATE;");		
+		while(@row = $dbs->fetchrow_array()) {
+			$issue    = "UPDATE LOG SET rowid=$cnt WHERE rowid=$row[0];";
+			$st_upd = $db->prepare($issue);
+			$st_upd->execute();
+			if($row[1]){#RTF				
+				my @doc = dbExecute("SELECT LID FROM NOTES WHERE LID='$row[0]';");
+				if(scalar @doc>0){
+						  dbExecute("UPDATE NOTES SET LID = $cnt WHERE LID='$row[0]';");					
+				}
+			}				
+			$cnt++;
+		}			
+		# Delete Orphaned Notes entries.			
+		$dbs = dbExecute("SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON 
+										NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");			
+		while(my @row = $dbs->fetchrow_array()) {				
+			$db->do("DELETE FROM NOTES WHERE LID=$row[0];");
+		}
 
-			# 			#Finally set new id!
-			# 			$issue    = "UPDATE LOG SET rowid=$cnt WHERE rowid=$upd;";
+					
+		&resetCategories if $rs_cats;
+		&resetSystemConfiguration($db) if $rs_syst;			
+		&wipeSystemConfiguration if $wipe_ss;
 
-			# 			#print "$issue\n<br>";
-			# 			$st_upd = $db->prepare($issue);
-			# 			$st_upd->execute();
-			# 			$cnt = $cnt + 1;
-			# }
-			
-			&resetCategories if $rs_cats;
-			&resetSystemConfiguration($db) if $rs_syst;			
-			&wipeSystemConfiguration if $wipe_ss;
-			$issue = "VACUUM;";
-			$db->disconnect();
-			$db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
-			$dbs = $db->prepare($issue);
-			$dbs->execute();
+		$db->do('COMMIT;');
+		$db->disconnect();
+		$db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+		$dbs = $db->do("VACUUM;");
 
-
-			if($LOGOUT){
-				 &logout; 
-			}
-			
+		if($LOGOUT){
+				&logout; 
+		}		
 			
 			
 }
-catch{	  
-	print qq(<center><div><p><font color=red><b>SERVER ERROR</b></font>:$_</p></div>Statement->$issue for $date Count:$cntr_upd</center>);
-
+catch{	
+	$db->do('ROLLBACK;');
+	die qq(@&processDBFix error:$_ with statement->$issue for $date update counter:$cntr_upd);	
 }
 }
 
 sub resetCategories {
-	$dbs = $db->prepare("DELETE FROM CAT;");
-	$dbs->execute();
-	$dbs = $db->prepare("DROP TABLE CAT;");
-	$dbs->execute();
+	$db->do("DELETE FROM CAT;");
+	$db->do("DROP TABLE CAT;");
 	$LOGOUT = 1;
 }
 
 sub wipeSystemConfiguration {
-	$dbs = $db->prepare("DELETE FROM CONFIG;");
-	$dbs->execute();
-	$dbs = $db->prepare("DROP TABLE CONFIG;");
-	$dbs->execute();
+	$db->do("DELETE FROM CONFIG;");
+	$db->do("DROP TABLE CONFIG;");
 	$LOGOUT = 1;
 }
 
@@ -729,15 +699,11 @@ sub resetSystemConfiguration {
 		my $err = "";
 		my %vars = {};
 
-
-		my $st = $db->prepare("SELECT count(*) FROM CONFIG;");
-		   $st->execute();
-		my $cnt = $st->fetchrow_array();
-
 try{
-	  $st->finish();
+	  	
 		my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
 		my $update = $db->prepare("UPDATE CONFIG SET VALUE=? WHERE ID=?;");
+		$dbs->finish();
     while (my $line = <$fh>) {
 					chomp $line;
 					my @tick = split("`",$line);
@@ -755,17 +721,16 @@ try{
 							$err .= "UID{$id} taken by $vars{$id}-> $line\n";
 																}
 																else{
-																			my $st = $db->prepare(
-																				"SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG WHERE NAME LIKE '$name';");
-																				$st->execute();
-																				$inData = 1;
-																				my $row = $st->fetchrow_array();
-																			if(!$row){
-																					$insert->execute($id,$name,$value,$tick[1]);
-																			}
-																			else{
- 																					$update->execute($value,$id);
-																			}
+																	$dbs = dbExecute(
+																		"SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG WHERE NAME LIKE '$name';");
+																	$inData = 1;
+																	my @row = $dbs->fetchrow_array();
+																	if(scalar @row == 0){
+																			$insert->execute($id,$name,$value,$tick[1]);
+																	}
+																	else{
+																			$update->execute($value,$id);
+																	}
 																}
 															}
 													}else{
@@ -810,8 +775,7 @@ sub logout{
 
 sub changeSystemSettings {
 	try{
-			$dbs = $db->prepare("SELECT ID, NAME FROM CONFIG;");
-		    $dbs->execute();
+			$dbs = dbExecute("SELECT ID, NAME FROM CONFIG;");
 			while (my @r=$dbs->fetchrow_array()){ 
 				my $var = $cgi->param('var'.$r[0]);
 				if(defined $var){					
@@ -842,8 +806,7 @@ sub updCnf {
 	my ($s,$d);
 	$s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";"; 
 	try{
-		  $d = $db->prepare($s); 
-		  $d->execute();
+		  dbExecute($s); 
 	}
 	catch{
 		print "<font color=red><b>SERVER ERROR</b>->updCnf[$s]</font>:".$_;
@@ -853,11 +816,9 @@ sub updCnf {
 sub exportLogToCSV {
 	try{
 		  
-			my $csv = Text::CSV->new ( { binary => 1, strict => 1 , quote_space=>1, auto_diag => 1, eol => $/} ); 		  
-	    $dbs = $db->prepare("SELECT * FROM LOG;");
-		  $dbs->execute();
-
-		  if($csvp==2){
+		my $csv = Text::CSV->new ( { binary => 1, strict => 1 , quote_space=>1, auto_diag => 1, eol => $/} ); 		  
+	    $dbs = dbExecute("SELECT * FROM LOG;");
+		if($csvp==2){
 				 print $cgi->header(-charset=>"UTF-8", -type=>"text/html");	
 				 print "<pre>\n";
 			}
@@ -884,28 +845,26 @@ sub exportLogToCSV {
 sub exportCategoriesToCSV {
 	try{
 		  
-			my $csv = Text::CSV->new ( { binary => 1, strict => 1,eol => $/ } ); 		  
-	    $dbs = $db->prepare("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
-		  $dbs->execute();
-
-		  if($csvp==4){
+		my $csv = Text::CSV->new ( { binary => 1, strict => 1,eol => $/ } );
+	    $dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
+		if($csvp==4){
 				 print $cgi->header(-charset=>"UTF-8", -type=>"text/html");	
 				 print "<pre>\n";
-			}
-			else{
-				 print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.categories.csv");
-			}
+		}
+		else{
+		 print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.categories.csv");
+		}
 			
-		  #print "ID,NAME,DESCRIPTION\n";
-			while (my $row=$dbs->fetchrow_arrayref()){ 
-						print $csv->print(*STDOUT, $row),"\n";
-			}
-			if($csvp==4){			
-				 print "</pre>";
-			}				
-			$dbs->finish();		
-			$db->disconnect();
-			exit;
+		#print "ID,NAME,DESCRIPTION\n";
+		while (my $row=$dbs->fetchrow_arrayref()){ 
+				print $csv->print(*STDOUT, $row),"\n";
+		}
+		if($csvp==4){			
+			 print "</pre>";
+		}				
+		$dbs->finish();		
+		$db->disconnect();
+		exit;
 	}
 	catch{
 		print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
@@ -916,14 +875,14 @@ sub exportCategoriesToCSV {
 sub importCatCSV {
 	my $hndl = $cgi->upload("data_cat");
 	my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } ); 	
-  while (my $line = <$hndl>) {
-         chomp $line;
-			   if ($csv->parse($line)) { 
-      		  my @flds   = $csv->fields();
-						updateCATDB(@flds);
-			   }else{
-     			 warn "Data could not be parsed: $line\n";
-  		   }		 
+	while (my $line = <$hndl>) {
+		chomp $line;
+		if ($csv->parse($line)) { 
+      		my @flds   = $csv->fields();
+			updateCATDB(@flds);
+		}else{
+     		 warn "Data could not be parsed: $line\n";
+  		}		 
 	}
 }
 
@@ -936,8 +895,7 @@ sub updateCATDB {
 			my $desc = $flds[2];
 			
 			#is it existing entry?
-			$dbs = $db->prepare("SELECT ID, NAME, DESCRIPTION FROM CAT WHERE ID = '$id';");
-			$dbs->execute();
+			$dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT WHERE ID = '$id';");			
 			if(not defined $dbs->fetchrow_array()){
 					$dbs = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
 					$dbs->execute($id, $name, $desc);
@@ -956,19 +914,20 @@ sub updateCATDB {
 sub importLogCSV {
 	my $hndl = $cgi->upload("data_log");
 	my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } ); 	
-  while (my $line = <$hndl>) {
-         chomp $line;
-			   if ($csv->parse($line)) { 
-      		  my @flds   = $csv->fields();
-						updateLOGDB(@flds);
-			   }else{
-     			 warn "Data could not be parsed: $line\n";
-  		   }		 
+	while (my $line = <$hndl>) {
+			chomp $line;
+			if ($csv->parse($line)) { 
+      			my @flds   = $csv->fields();
+				updateLOGDB(@flds);
+			}else{
+					 warn "Data could not be parsed: $line\n";
+			} 
 	}	
 	$db->disconnect();
 	print $cgi->redirect('main.cgi');
 	exit;
 }
+
 sub updateLOGDB {
 	my @flds = @_;
 	if(@flds>3){
@@ -1011,9 +970,7 @@ sub updateLOGDB {
 
 sub getConfiguration {
 	try{
-		$dbs = $db->prepare("SELECT * FROM CONFIG;");
-		$dbs->execute();
-
+		$dbs = dbExecute("SELECT * FROM CONFIG;");
 		while (my @r=$dbs->fetchrow_array()){
 			
 			switch ($r[1]) {
@@ -1029,7 +986,6 @@ sub getConfiguration {
 				case "FRAME_SIZE"	{$FRAME_SIZE=$r[2]}
 				case "RTF_SIZE"		{$RTF_SIZE=$r[2]}
 			}
-
 		}
 	}
 	catch{
@@ -1038,3 +994,35 @@ sub getConfiguration {
 
 }
 
+sub cats{
+
+		my $cats = qq(<select id="cats" name="cats"><option value="0">---</option>\n);
+		$dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
+		while ( my @row = $dbs->fetchrow_array() ) {
+				$cats .= qq(<option value="$row[0]">$row[1]</option>\n);
+		}
+		$cats .= '</select>';
+
+	return $cats;
+}
+
+sub dbExecute{
+	my $ret	= $db->prepare(shift);
+	   $ret->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
+	return $ret;
+}
+
+sub error{
+	my $url = $cgi->url();
+	print qq(<h2>Sorry Encountered Errors</h2><p>Page -> $url</p><p>$ERROR</p>);
+	print qq(<h3>CGI Parameters</h3>);
+	print "<ol>\n";
+	foreach ($cgi->param){
+		print '<li>'.$_.'=='. $cgi->param($_).'</li>';
+	}
+	print "</ol>\n";
+	print "<a href=$cgi>Return to -> $url</a>";
+	print $cgi->end_html;
+	$db->disconnect();
+	exit;
+}
