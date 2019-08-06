@@ -5,15 +5,13 @@
 
 var _MAP = new Map();
 var MNU_SCROLLING = false;
-var SRCH_TOGGLE = true;
 
 var QUILL, QUILL_PNL;
 var Delta;
 var RTF_SET = false;
 var CHANGE;
 
-var _collpsd_toggle = false;
-var _collpsd_toggle2 = false;
+var _show_all = true;
 
 var DEF_BACKGROUND = 'white';
 
@@ -141,21 +139,6 @@ function loadedBody(toggle) {
 
 }
 
-
-function hideLog() {
-    $("#div_log").hide();
-    return false;
-}
-
-function hideSrch() {
-    $("#div_srh").hide();
-    return false;
-}
-
-function hideDoc() {
-    $("#tbl_doc").hide();
-    return false;
-}
 
 function encodeText(el) {
     var el = $("#frm_entry [name=log]");
@@ -325,6 +308,7 @@ function selectAllLogs() {
 
 function deleteSelected() {
     $("#del_sel").click();
+    return false;
 }
 
 
@@ -365,6 +349,59 @@ function viewAll() {
 
     return false;
 }
+
+
+
+var RTF_DOC_RESIZED = false;
+var RTF_DOC_ORIG;
+function resizeDoc() {
+    var css = $("#editor-container").prop('style');
+    if(RTF_DOC_RESIZED){
+        RTF_DOC_RESIZED = false;
+        css.height = RTF_DOC_ORIG;
+    }
+    else{
+        RTF_DOC_RESIZED = true;
+        RTF_DOC_ORIG = css.height;
+        css.height = '480px';
+    }
+    
+}
+function resetDoc(){
+    if (RTF_SET) {
+        QUILL.setText("");     
+    }
+    $("#submit_is_edit").val("0");
+    toggleDoc(true);
+}
+
+
+
+function resetView() {
+    $("#frm_srch input").val("");    
+    $("#idx_cat").val(0);
+    $('#vc>option[value="0"]').prop('selected', true);
+
+    $("#frm_srch").submit();
+}
+
+function updateSelCategory(sel) {
+    if (sel.id == "ec") {
+        var cat = $("#idx_cat");
+        cat.value = sel.options[sel.selectedIndex].value;
+    }
+}
+
+function toggleVisibility(target, ensureOff) {
+    if (!ensureOff) {
+        $(target).toggle();
+    } else {
+        $(target).hide();
+    }
+}
+
+
+
 
 
 function toggleDoc(whole) {
@@ -416,102 +453,64 @@ function toggleDoc(whole) {
 
 }
 
-var RTF_DOC_RESIZED = false;
-var RTF_DOC_ORIG;
-function resizeDoc() {
-    var css = $("#editor-container").prop('style');
-    if(RTF_DOC_RESIZED){
-        RTF_DOC_RESIZED = false;
-        css.height = RTF_DOC_ORIG;
+
+function hide(id) {
+    $(id).hide();
+    return false;
+}
+
+function show(id) {
+    $(id).show();
+    return false;
+}
+
+function toggle(id, mtoggle) {
+   //Menu button untoggle it up first. Complex interaction situation.
+    if(mtoggle){        
+        if(!$(id+" .collpsd").is(":visible")){
+            $(id+" .collpsd").show();
+            $(id).show();
+        }
+        else{
+            $(id).toggle();
+        }         
+        
     }
-    else{
-        RTF_DOC_RESIZED = true;
-        RTF_DOC_ORIG = css.height;
-        css.height = '480px';
+    else{    
+        $(id).toggle();
     }
     
-}
-function resetDoc(){
-    if (RTF_SET) {
-        QUILL.setText("");     
-    }
-    $("#submit_is_edit").val("0");
-    toggleDoc(true);
+    $("html, body").animate({ scrollTop: 0 }, "fast");
+    return false;
 }
 
-
-function toggleSearch() {
-    $("html, body").animate({ scrollTop: 0 }, "slow");
-    if (SRCH_TOGGLE) {
-        $("#div_srh").show();
-        $("#btn_srch").text("Hide Search");
-        SRCH_TOGGLE = false;
-    } else {
-        $("#div_srh").hide();
-        $("#btn_srch").text("Show Search");
-        SRCH_TOGGLE = true;
-    }
-}
-
-function resetView() {
-    $("#frm_srch input").val("");    
-    $("#idx_cat").val(0);
-    $('#vc>option[value="0"]').prop('selected', true);
-
-    $("#frm_srch").submit();
-}
-
-function updateSelCategory(sel) {
-    if (sel.id == "ec") {
-        var cat = $("#idx_cat");
-        cat.value = sel.options[sel.selectedIndex].value;
-    }
-}
-
-function toggleVisibility(target, ensureOff) {
-    if (!ensureOff) {
-        $(target).toggle();
-    } else {
-        $(target).hide();
-    }
-}
-
-
-
-function toggleLog() {
-    if (!_collpsd_toggle) {
-        $("#div_log .collpsd").hide();
-        _collpsd_toggle = true;
-    } else {
-        $("#div_log .collpsd").show();
-        _collpsd_toggle = false;
-    }
-}
-
-function toggleSrch() {
-    if (!_collpsd_toggle2) {
-        $("#div_srh .collpsd").hide();
-        _collpsd_toggle2 = true;
-    } else {
-        $("#div_srh .collpsd").show();
-        _collpsd_toggle2 = false;
-    }
-}
-
-function showCat() {
-    $('#cat_desc').show();
-}
 
 function showAll() {
-    $("#menu").show();
-    $('#cat_desc').show();
-    $("#div_log").show();
-    $("#div_srh").show();
-    $("#tbl_doc").show();
-    _collpsd_toggle = false;
-    _collpsd_toggle2 = false;
-    $("#btn_srch").text("Hide Search");
-    SRCH_TOGGLE = false;
+
+   show("#menu");
+
+   if(_show_all){
+        $("#lnk_show_all").text("Hide All");
+        show('#cat_desc');
+        show("#div_log");
+        show("#div_srh");
+        show("#tbl_hlp");
+        show("#tbl_doc");
+        _show_all = false;
+   }
+   else{
+        $("#lnk_show_all").text("Show All");
+        hide('#cat_desc');
+        hide("#div_log");
+        hide("#div_srh");
+        hide("#tbl_hlp");
+        hide("#tbl_doc");
+        _show_all = true;
+   }
+   
+
+   $("html, body").animate({ scrollTop: 0 }, "fast");
+
     return false;
 }
 
@@ -608,7 +607,7 @@ function saveRTFResult(result) {
     console.log("Result->" + result);
     var obj = JSON.parse(result);
     //alert(obj.response);  
-    $("html, body").animate({ scrollTop: 0 }, "fast");  
+    $("html, body").animate({ scrollTop: 0 }, "fast");
     display(obj.response);
     if(obj.log_id>0){
         //update under log display

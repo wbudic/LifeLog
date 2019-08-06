@@ -181,7 +181,7 @@ $st = $db->prepare($stmtCat);
 $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
 
 my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec" 
- onFocus="showCat();" 
+ onFocus="show('#cat_desc');" 
  onBlur="helpSelCategory(this);" 
  onScroll="helpSelCategory(this);updateSelCategory(this)" 
  onChange="updateSelCategory(this)">
@@ -633,8 +633,8 @@ _TXT
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
 	<table class="tbl" border="0" width="$PRC_WIDTH%">
 	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b>
-    <a id="log_close" href="#" onclick="return hideLog();">$sp1</a>
-    <a id="log_close" href="#" onclick="return toggleLog();">$sp2</a>    
+    <a id="log_close" href="#" onclick="return hide('#div_log');">$sp1</a>
+    <a id="log_close" href="#" onclick="return toggle('#div_log .collpsd');">$sp2</a>    
     </td></tr>	
 	<tr class="collpsd">
 	<td style="text-align:right; vertical-align:top; width:10%;">Date:</td>
@@ -657,8 +657,7 @@ _TXT
 		<td id="al">
 			<input id="am" name="am" type="number" step="any">&nbsp;<input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> RTF Document
 		</td>
-		<td align="right">			  
-				<div style="float: right;"><button id="btn_srch" onclick="toggleSearch(); return false;">Show Search</button>&nbsp;
+		<td align="right">
 				<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/></div>
 		</td>		
 	</tr>
@@ -680,8 +679,8 @@ _TXT
 	<table class="tbl" border="0" width="$PRC_WIDTH%">
 	  <tr class="r0">
         <td colspan="4"><b>Search/View By</b>
-            <a id="srch_close" href="#" onclick="return hideSrch();">$sp1</a>
-            <a id="srch_close" href="#" onclick="return toggleSrch();">$sp2</a>                        
+            <a id="srch_close" href="#" onclick="return hide('#div_srh');">$sp1</a>
+            <a id="srch_close" href="#" onclick="return toggle('#div_srh .collpsd');">$sp2</a>                        
         </td>
       </tr>
 );
@@ -711,6 +710,7 @@ _TXT
 
     $srh .= '</table></form>';
     my $quill = &quill( $cgi->param('submit_is_edit') );
+    my $help = &help;
 
     #
     #Page printout from here!
@@ -725,19 +725,21 @@ qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <a id="menu_close" href="#" onclick="return hideLog();"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 </div>
 <hr>
+<a class="a_" onclick="return toggle('#div_log',true);">Log</a><hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="config.cgi">Config</a><hr>
-<a class="a_" onclick="deleteSelected(); return false;">Delete</a><hr>
-<a class="a_" onclick="toggleSearch(this); return false;">Search</a><hr>
-<a class="a_" onclick="showAll(); return false;">Show All <span  class="ui-icon ui-icon-heart"></a><hr>
+<a class="a_" onclick="return deleteSelected();">Delete</a><hr>
+<a class="a_" onclick="return toggle('#div_srh',true);">Search</a><hr>
+<a class="a_" onclick="return toggle('#tbl_hlp',true);">Help</a><hr>
+<a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></a><hr>
 $sm_reset_all
 <br>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>
-
-	  <div id="div_log">\n$frm\n</div>\n
+	  <div id="div_log">$frm</div>\n
 	  <div id="div_srh">$srh</div>
       $quill
+      <div id="div_hlp">$help</div>
 	  <div>\n$tbl\n</div><br>
 	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
 	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
@@ -1088,9 +1090,7 @@ sub authenticate {
                     case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2] }
                     case "RTF_SIZE"     { $RTF_SIZE     = $r[2] }
                     else {
-                        print "Unknow variable setting: "
-                          . $r[1] . " == "
-                          . $r[2];
+                        print "Unknow variable setting: " . $r[1] . " == " . $r[2];
                     }
                 }
 
@@ -1124,8 +1124,8 @@ sub quill{
 return <<___STR;
 <table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;" hidden>
 	<tr class="r0" style="text-align:center"><td><b>* Document *</b>    
-    <a id="log_close" href="#" onclick="return hideDoc();">$sp1</a>
-    <a id="log_close" href="#" onclick="return toggleDoc();">$sp2</a>
+    <a id="log_close" href="#" onclick="return hide('#tbl_doc');">$sp1</a>
+    <a id="log_close" href="#" onclick="return toggleDoc(false);">$sp2</a>
     <a id="log_close" href="#" onclick="return resizeDoc();">$sp3</a>
     </td>
 </tr>
@@ -1183,4 +1183,66 @@ return <<___STR;
   </td></tr></table>  
 ___STR
 
+}
+
+sub help{
+return <<___STR;
+<table id="tbl_hlp" class="tbl" border="0" width="$PRC_WIDTH%" hidden>
+	<tr class="r0"><td colspan="3"><b>* HELP *</b>
+    <a id="a_close" href="#" onclick="return hide('#tbl_hlp');">$sp1</a>
+    <a id="a_toggle" href="#" onclick="return toggle('#tbl_hlp .collpsd');">$sp2</a>    
+    </td></tr>
+<tr class="collpsd"><td>
+<div id="rz" style="text-align:left; padding:10px;">
+    <h2>L-Tags Specs</h2>					
+    <p>
+    Life Log Tags are simple markup allowing fancy formatting and functionality 
+    for your logs HTML layout.
+    </p>
+    <p>
+    <b>&#60;&#60;B&#60;<i>{Text To Bold}</i><b>&#62;</b>
+    </p>
+    <p>
+    <b>&#60;&#60;I&#60;<i>{Text To Italic}</i><b>&#62;</b>
+    </p>					
+    <p>
+    <b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;</b>
+    </p>
+    <p>
+    <b>&#60;&#60;LIST&#60;<i>{List of items delimited by new line to terminate item or with '~' otherwise.}</i><b>&#62;</b>
+    </p>
+    <p>
+    <b>&#60;&#60;IMG&#60;<i>{url to image}</i><b>&#62;</b>
+    </p>
+    <p>
+        <b>&#60;&#60;FRM&#60;<i>{file name}_frm.png}</i><b>&#62;</b><br><br>
+        *_frm.png images file pairs are located in the ./images folder of the cgi-bin directory.<br>
+        These are manually resized by the user. Next to the original.
+        Otherwise considered as stand alone icons. *_frm.png Image resized to ->  width="210" height="120"
+        <br><i>Example</i>:
+						<pre>
+		../cgi-bin/images/
+			my_cat_simon_frm.png
+			my_cat_simon.jpg	
+
+          For log entry, place:
+
+	  &#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;
+	  This is my pet, can you hold him for a week while I am on holiday?
+            </pre>
+					</p>
+					<p>
+					<b>&#60;&#60;LNK&#60;<i>{url to image}</i><b>&#62;</b><br><br>
+					Explicitly tag an URL in the log entry. 
+					Required if using in log IMG or FRM tags. 
+					Otherwise link appears as plain text.
+					</p>
+					<hr>
+          </p>
+						<h3>Log Page Particulars</h3>
+						&#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly.
+					</p>
+</div>
+</td></tr></table>
+___STR
 }
