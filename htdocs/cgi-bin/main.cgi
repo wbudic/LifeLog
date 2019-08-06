@@ -166,6 +166,7 @@ print $cgi->start_html(
         { -type => 'text/javascript', -src => 'wsrc/quill/katex.min.js' },
         { -type => 'text/javascript', -src => 'wsrc/quill/highlight.min.js' },
         { -type => 'text/javascript', -src => 'wsrc/quill/quill.min.js' },
+        { -type => 'text/javascript', -src => 'wsrc/jscolor.js' },
 
     ],
 );
@@ -842,7 +843,7 @@ return $today;
 
                 $st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?)');
                 $st->execute( $cat, $date, $log, $am, $rtf );
-                if($rtf){ #Update 0 ground NOTES entry to just inserted log.
+                if($rtf){ #Update 0 ground NOTES entry to the just inserted log.
                    
                    #last_insert_id() -> Not reliable commented out.
                    #my $gzero = $db->last_insert_id();#//$db->prepare('SELECT last_insert_rowid();');
@@ -868,7 +869,12 @@ return $today;
                       $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);"); 
                      # 
                       $st->execute($lid[0], $gzero[0]);
+
+                       #Flatten ground zero                   
+                       $st = $db->prepare("UPDATE NOTES SET DOC='' WHERE LID = 0;");
+                       $st->execute();   
                    }
+
                    
                 }
                 #
@@ -959,28 +965,25 @@ qq!<td><input type="button" onclick="submitNext($tbl_cur_id);return false;"
         $tbl = $tbl . '<td colspan="2"></td></tr>';
     }
 
-    sub authenticate {
+sub authenticate {
         try {
 
             if ($AUTHORITY) {
                 return;
             }
 
-            my $st = $db->prepare(
-"SELECT * FROM AUTH WHERE alias='$userid' and passw='$password';"
-            );
+            my $st = $db->prepare( "SELECT alias FROM AUTH WHERE alias='$userid' and passw='$password';");
             $st->execute();
-            if ( $st->fetchrow_array() ) { return; }
+            my @c = $st->fetchrow_array(); 
+            if (@c && $c[0] eq $userid ) { return; }
 
             #Check if passw has been wiped for reset?
             $st = $db->prepare("SELECT * FROM AUTH WHERE alias='$userid';");
             $st->execute();
-            my @w = $st->fetchrow_array();
-            if ( @w && $w[1] == "" ) {
-
+            @c = $st->fetchrow_array(); 
+            if ( @c && $c[1] == "" ) {
                 #Wiped with -> UPDATE AUTH SET passw='' WHERE alias='$userid';
-                $st = $db->prepare(
-                    "UPDATE AUTH SET passw='$password' WHERE alias='$userid';");
+                $st = $db->prepare("UPDATE AUTH SET passw='$password' WHERE alias='$userid';");
                 $st->execute();
                 return;
             }
@@ -994,7 +997,7 @@ qq!<td><input type="button" onclick="submitNext($tbl_cur_id);return false;"
             );
 
             print $cgi->center(
-                $cgi->div("<b>Access Denied!</b> alias:$userid pass:$password")
+                $cgi->div("<b>Access Denied!</b> alias:$userid pass:$password SQL->SELECT * FROM AUTH WHERE alias='$userid' and passw='$password'; ")
             );
             print $cgi->end_html;
 
@@ -1009,7 +1012,7 @@ qq!<td><input type="button" onclick="submitNext($tbl_cur_id);return false;"
             print $cgi->end_html;
             exit;
         }
-    }
+}
 
     sub fetchAutocomplete {
         try {
@@ -1100,7 +1103,6 @@ qq!<td><input type="button" onclick="submitNext($tbl_cur_id);return false;"
 
     sub cam {
         my $am = sprintf( "%.2f", shift @_ );
-
         # Add one comma each time through the do-nothing loop
         1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
         return $am;
@@ -1169,17 +1171,16 @@ return <<___STR;
       <button class="ql-video"></button>
       <button class="ql-formula"></button>
     </span>  
-    <span class="ql-formats">        
-        <button class="ql-formats" id="pbck_lighter" onClick="editorBackgroundLighter();">Lighter&nbsp;&nbsp;</button>
-        <button class="ql-formats" id="pbck_neutral" onClick="editorBackgroundReset();">&nbsp;Reset&nbsp;</button>
-        <button id="pbck_darker" onClick="editorBackgroundDarker();">&nbsp;&nbsp;Darker</button>        
-    </span>
+    <span class="ql-formats" style="float:right; border:1px;">        
+        Background <input id="fldBG" type="field" class="jscolor {onFineChange:'editorBackground(false)',closable:true,closeText:'Close',hash:true}" size="10" value="000000"/>
+        <button onClick="editorBackground(true);" style="float:right; border:1px;">&nbsp;&nbsp;Reset</button>
+    </span>    
   </div>
   <div id="editor-container" style="$height"></div>
   <div class="save_button">
   <input type="button" id="btn_save_doc" onclick="saveRTF(0, 'store'); return false;"); value="Save"/>
   </div>
-  </td></tr></table>
+  </td></tr></table>  
 ___STR
 
 }
