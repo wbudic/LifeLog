@@ -51,6 +51,7 @@ my $password = $session->param('passw');
 my $action   = $cgi->param('action');
 my $lid      = $cgi->param('id');
 my $doc      = $cgi->param('doc');
+my $bg       = $cgi->param('bg');
 my $error    = "";
 my ($response, $json) = 'Session Expired';
 
@@ -103,17 +104,16 @@ exit;
 
 sub defaultJSON(){
 
-     my $content = $response; 
+     my $content = ""; 
      if($action eq 'load' && !$error){
-         $content = JSON->new->utf8->allow_nonref->decode($response);
-         $response = "Loaded Document!";
+         $content = JSON->new->utf8->decode($doc);         
      }
      $json = JSON->new->utf8->space_after->pretty->allow_blessed->encode
      ({date => $strp->format_datetime($today), 
        response_origin => "LifeLog.".$RELEASE_VER,       
        alias => $userid, log_id => $lid, database=>$database, action => $action, error=>$error,
-       response=>$response,
-       content=>$content,
+       response=>$response,       
+       content=>$content
        #received => $doc     
    });   
 }
@@ -125,8 +125,13 @@ sub processSubmit {
   
       try {
         if($action eq 'store'){
-    
-           my $zip = compress($doc,Z_BEST_COMPRESSION);
+
+$doc = qq({
+"lid":"$lid",
+"bg":"$bg",           
+"doc":$doc
+});
+           my $zip = compress($doc, Z_BEST_COMPRESSION);
            $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = '$lid';"); 
            $st -> execute();
            if($st->fetchrow_array() eq undef) {
@@ -151,7 +156,12 @@ sub processSubmit {
                @arr = $st->fetchrow_array();
            }
            $doc = $arr[0];
-           $response = uncompress($doc);
+           $doc = uncompress($doc);
+        #    print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
+        #    print($doc);
+        #    exit;
+           $response = "Loaded Document!";
+
         }
         else{
             $error = "Your action ($action) sux's a lot!";
