@@ -68,9 +68,9 @@ my ( $imgw, $imgh );
 &authenticate;
 &getConfiguration($db);
 
-my $tbl_rc      = 0;
-my $tbl_rc_prev = 0;
-my $tbl_cur_id;
+my $log_rc      = 0;
+my $log_rc_prev = 0;
+my $log_cur_id;
 my $rs_keys     = $cgi->param('keywords');
 my $rs_cat_idx  = $cgi->param('category');
 my $prm_vc      = $cgi->param("vc");
@@ -79,7 +79,7 @@ my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
 my $rs_cur      = $cgi->param('rs_cur');
 my $rs_page     = $cgi->param('rs_page');
-my $stmS        = "SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT from LOG WHERE";
+my $stmS        = "SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF from LOG WHERE";
 my $stmE        = " ORDER BY DATE DESC;";
 my $stmD        = "";
 my $sm_reset_all;
@@ -174,11 +174,10 @@ print $cgi->start_html(
 my $rv;
 my $st;
 my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $stmt =
-"SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT, RTF FROM LOG ORDER BY DATE DESC, rowid DESC;";
+my $stmt ="SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF FROM LOG ORDER BY DATE DESC, rowid DESC;";
 
 $st = $db->prepare($stmtCat);
-$rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
+$rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
 
 my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec" 
  onFocus="show('#cat_desc');" 
@@ -190,8 +189,8 @@ my %hshCats;
 my %hshDesc = {};
 my $c_sel   = 1;
 my $cats_v  = $cats;
+my $cat_descriptions = "";
 $cats_v =~ s/\"ec\"/\"vc\"/g;
-
 while ( my @row = $st->fetchrow_array() ) {
     if ( $row[0] == $c_sel ) {
         $cats .= qq(<option selected value="$row[0]">$row[1]</option>\n);
@@ -210,15 +209,15 @@ while ( my @row = $st->fetchrow_array() ) {
 }
 
 $cats .= '</select>';
+$cats_v .= '</select>';
 
-my $cat_descs = "";
 for my $key ( keys %hshDesc ) {
     my $kv = $hshDesc{$key};
     if ( $kv ne ".." ) {
-        $cat_descs .= qq(<li id="$key">$kv</li>\n);
+        $cat_descriptions .= qq(<li id="$key">$kv</li>\n);
     }
 }
-my $tbl =
+my $log_output =
 qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
 <TABLE class="tbl" border="0" width="$PRC_WIDTH%">
 <tr class="r0">
@@ -280,10 +279,10 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     #
     my $tfId      = 0;
     my $id        = 0;
-    my $tbl_start = index $stmt, "<=";
+    my $log_start = index $stmt, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
 
-    if ( $tbl_start > 0 ) {
+    if ( $log_start > 0 ) {
 
         #check if we are at the beggining of the LOG table?
         my $stc =
@@ -291,7 +290,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
         $stc->execute();
         my @row = $stc->fetchrow_array();
         if ( $row[0] == $rs_prev && $rs_cur == $rs_prev ) {
-            $tbl_start = -1;
+            $log_start = -1;
         }
         $stc->finish();
     }
@@ -302,6 +301,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     my $tags      = "";
     my $sum       = 0;
     my $exp       = 0;
+    my $ass       = 0;
     $st = $db->prepare($stmt);
     $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
     if ( $rv < 0 ) {
@@ -309,21 +309,25 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     }
     while ( my @row = $st->fetchrow_array() ) {
 
-        $id = $row[0];
+        $id = $row[0];# rowid
 
-        my $ct  = $hshCats{ $row[1] };
+        my $ct  = $hshCats{$row[1]}; #ID_CAT
         my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
         my $log = $row[3];
-        my $am  = &cam( $row[4] );
-        my $rtf = $row[5];
+        my $am  = $row[4];
+        my $af  = $row[5]; #AFLAG -> Asset as 0, Income as 1, Expense as 2
+        my $rtf = $row[6]; #RTF has document true or false
 
-        if ( $ct eq 'Expense' ) {
-            $exp += $row[4];
+        if ( $af == 1 ) { #AFLAG Income
+            $sum += $am;
         }
-        else {
-            $sum += $row[4];
+        elsif ( $af == 2 ) {            
+            $exp -= $am;
         }
-
+        else{
+            $ass += $am;
+        }
+        $am =  &cam($am);
         #Apostrophe in the log value is doubled to avoid SQL errors.
         $log =~ s/''/'/g;
         #
@@ -336,8 +340,8 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
         if ( !$am ) {
             $am = "0.00";
         }
-        if ( $tbl_rc_prev == 0 ) {
-            $tbl_rc_prev = $id;
+        if ( $log_rc_prev == 0 ) {
+            $log_rc_prev = $id;
         }
         if ( $tfId == 1 ) {
             $tfId = 0;
@@ -514,7 +518,11 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
             $log .= qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">`RTF</button>);
         }
 
-        $tbl .= qq(<tr class="r$tfId">
+        if($af==2){
+           $am = qq(<font color="maroon">$am</font>);
+        }
+
+        $log_output .= qq(<tr class="r$tfId">
 		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
 		<td id="t$id" width="10%" class="tbl">$dth</td>
 		<td id="v$id" class="log" width="40%">$log</td>
@@ -527,7 +535,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 		</td></tr>);
         
         if ( $rtf > 0 ) {
-             $tbl .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
+             $log_output .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
                          <td colspan="6">
                           <div id="q-scroll$id" style="height:auto; max-height:480px; padding: 10px; background:#fffafa; overflow-y: auto;">
                             <div id="q-container$id"></div>
@@ -535,9 +543,9 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
                         </td></tr>);
         }
 
-        $tbl_rc += 1;
+        $log_rc += 1;
 
-        if ( $REC_LIMIT > 0 && $tbl_rc == $REC_LIMIT ) {
+        if ( $REC_LIMIT > 0 && $log_rc == $REC_LIMIT ) {
             last;
         }
 
@@ -545,18 +553,20 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 
     if   ( $tfId == 1 ) { $tfId = 0; }
     else                { $tfId = 1; }
-    my $tot = $sum - $exp;
+    my ($tot,$tas);
+    $tot = $sum - $exp;
     $sum = &cam($sum);
     $exp = &cam($exp);
+    $tas = &cam($ass);
     $tot = &cam($tot);
-    $tbl .= qq(<tr class="r$tfId">
+    
+    $log_output .= qq(<tr class="r$tfId">
 		<td></td>
 		<td></td>
-		<td style="text-align:right"># Total:</td>
-		<td id="summary" colspan="3" style="text-align:left">$sum (<font color="red">$exp</font>) = <b><i>$tot</i></b></td>
+		<td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets[$tas] Gross[<b><i>$tot</i></b> &lt;-- $sum (<font color="red">$exp</font>)]</td>
 	</tr>);
 
-    if ( $REC_LIMIT > 0 && $tbl_rc == $REC_LIMIT ) {
+    if ( $REC_LIMIT > 0 && $log_rc == $REC_LIMIT ) {
         &buildNavigationButtons;
     }
 
@@ -573,7 +583,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
     &fetchAutocomplete;
 
     #End of table?
-    if ( $rs_prev && $tbl_rc < $REC_LIMIT ) {
+    if ( $rs_prev && $log_rc < $REC_LIMIT ) {
         $st = $db->prepare("SELECT count(*) FROM LOG;");
         $st->execute();
         my @row = $st->fetchrow_array();
@@ -582,10 +592,10 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         }
     }
 
-    if ( $tbl_rc == 0 ) {
+    if ( $log_rc == 0 ) {
 
         if ($stmD) {
-            $tbl .= qq(<tr><td colspan="5">
+            $log_output .= qq(<tr><td colspan="5">
 			<b>Search Failed to Retrive any records on select: [<i>$stmD</i>] !</b></td></tr>');
         }
         elsif ($rs_keys) {
@@ -593,16 +603,16 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
             if ( $rs_cat_idx > 0 ) {
                 $criter = "->Criteria[" . $hshCats{$rs_cat_idx} . "]";
             }
-            $tbl .= qq(<tr><td colspan="5">
+            $log_output .= qq(<tr><td colspan="5">
 			<b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td></tr>);
         }
         else {
-            $tbl .=
+            $log_output .=
 '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
         }
     }
 
-    $tbl .= <<_TXT;
+    $log_output .= <<_TXT;
 <tr class="r0"><td colspan="2">Show All Again -&#62; 
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;></span></a>
 
@@ -655,7 +665,14 @@ _TXT
 	</tr>
 	<tr class="collpsd"><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Amount:</td>
 		<td id="al">
-			<input id="am" name="am" type="number" step="any">&nbsp;<input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> RTF Document
+			<input id="am" name="am" type="number" step="any">&nbsp;
+            Marks as: 
+            <select id="amf" name="amf">
+                <option value="0" selected>Asset</option>
+                <option value="1">Income</option>
+                <option value="2">Expense</option>
+            </select>&nbsp;
+            <input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> RTF Document
 		</td>
 		<td align="right">
 				<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/></div>
@@ -667,7 +684,7 @@ _TXT
 	<input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
 	<input type="hidden" name="rs_all" value="0"/>
 	<input type="hidden" name="rs_cur" value="0"/>
-	<input type="hidden" name="rs_prev" value="$tbl_rc_prev"/>
+	<input type="hidden" name="rs_prev" value="$log_rc_prev"/>
 	<input type="hidden" name="rs_page" value="$rs_page"/>
 	<input type="hidden" name="CGISESSID" value="$sid"/>
 	$tags
@@ -678,7 +695,7 @@ _TXT
 	<form id="frm_srch" action="main.cgi">
 	<table class="tbl" border="0" width="$PRC_WIDTH%">
 	  <tr class="r0">
-        <td colspan="4"><b>Search/View By</b>
+        <td colspan="2"><b>Search/View By</b>
             <a id="srch_close" href="#" onclick="return hide('#div_srh');">$sp1</a>
             <a id="srch_close" href="#" onclick="return toggle('#div_srh .collpsd');">$sp2</a>                        
         </td>
@@ -686,37 +703,47 @@ _TXT
 );
 
     $srh .=
-      qq(<tr class="collpsd"><td align="right"><b>View by Category:</b></td>
-    <td align="left" colspan="2">$cats_v</td><td><button id="btn_cat" onclick="viewByCategory(this);" style="float:left">View</button>
-	<input id="idx_cat" name="category" type="hidden" value="0"></td>
+      qq(
+    <tr class="collpsd">
+     <td align="right"><b>View by Category:</b></td>
+     <td align="left">
+        $cats_v &nbsp;&nbsp;
+        <button id="btn_cat" onclick="viewByCategory(this);">View</button>
+        <input id="idx_cat" name="category" type="hidden" value="0"/>
+     </td>
    </tr>
-   <tr class="collpsd"><td align="right"><b>View by Date:</b></td>
+   <tr class="collpsd">
+    <td align="right"><b>View by Date:</b></td>
 	<td align="left">
-	From:&nbsp;<input name="v_from" type="text" size="16" value="$rs_dat_from"/></td><td align="left">
-	To:&nbsp;<input name="v_to" type="text" size="16" value="$rs_dat_to"/>
-	<td align="left"><button id="btn_dat" onclick="viewByDate(this);">View</button></td>
+        From:&nbsp;<input name="v_from" type="text" size="16" value="$rs_dat_from"/>&nbsp;&nbsp;
+        To:&nbsp;<input name="v_to" type="text" size="16" value="$rs_dat_to"/>
+        &nbsp;&nbsp;<button id="btn_dat" onclick="viewByDate(this);">View</button>
+    </td>
 	</tr>
-   <tr class="collpsd"><td align="right"><b>Keywords:</b></td>
-				<td colspan="2" align="left">
-					<input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/></td>
-				<td align="left"><input type="submit" value="Search" align="left"></td></tr>);
+   <tr class="collpsd">
+    <td align="right"><b>Keywords:</b></td>
+	<td align="left">
+		<input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/>
+		&nbsp;&nbsp;<input type="submit" value="Search" align="left">
+    </td></tr>);
 
     if ( ( $rs_keys && $rs_keys ne '*' ) || $rs_cat_idx || $stmD ) {
         $sm_reset_all =
           '<a class="a_" onclick="resetView();">Reset View</a><hr>';
-        $srh .= '<tr class="collpsd"><td align="left" colspan="3"></td>
-	<td align="left"><button onClick="resetView()">Reset Whole View</button></td></tr>';
+
+        $srh .= '<tr class="collpsd"><td align="center" colspan="2">
+        <button onClick="resetView()">Reset Whole View</button></td></tr>';
     }
 
     $srh .= '</table></form>';
     my $quill = &quill( $cgi->param('submit_is_edit') );
     my $help = &help;
 
-    #
-    #Page printout from here!
-    #
+  ################################
+ #   Page printout from here!   #
+################################
 
-    print
+print
 qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 
@@ -740,14 +767,14 @@ $sm_reset_all
 	  <div id="div_srh">$srh</div>
       $quill
       <div id="div_hlp">$help</div>
-	  <div>\n$tbl\n</div><br>
+	  <div>\n$log_output\n</div><br>
 	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
 	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
 	  <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"/></div>
 	);
     print qq(
 <ul id="cat_lst">
-	$cat_descs
+	$cat_descriptions
 </ul>	
 			  <script type="text/javascript">
 					\$( function() {
@@ -786,6 +813,7 @@ return $today;
         my $cat  = $cgi->param('ec')
           ;    #Used to be cat v.1.3, tag id and name should be kept same.
         my $am = $cgi->param('am');
+        my $af = $cgi->param('amf');
 
         my $edit_mode = $cgi->param('submit_is_edit');
         my $view_mode = $cgi->param('submit_is_view');
@@ -802,8 +830,7 @@ return $today;
 
                 #Update
 
-                my $stm = qq( UPDATE LOG SET 
-                                ID_CAT='$cat', DATE='$date', LOG='$log', AMMOUNT='$am', RTF='$rtf' 
+                my $stm = qq( UPDATE LOG SET ID_CAT='$cat', DATE='$date', LOG='$log', AMOUNT='$am', AFLAG = '$af', RTF='$rtf'
                               WHERE rowid="$edit_mode";);
                 my $st = $db->prepare($stm);
                 $st->execute();
@@ -827,7 +854,7 @@ return $today;
                     else {
                         $rs_page++;
                     }
-                    $stmt = qq(SELECT rowid, ID_CAT, DATE, LOG, AMMOUNT, RTF from LOG where rowid <= '$rs_cur' ORDER BY DATE DESC;);
+                    $stmt = qq(SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF from LOG where rowid <= '$rs_cur' ORDER BY DATE DESC;);
                     return;
                 }
             }
@@ -843,8 +870,8 @@ return $today;
                     return;
                 }
 
-                $st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?)');
-                $st->execute( $cat, $date, $log, $am, $rtf );
+                $st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?)');
+                $st->execute( $cat, $date, $log, $am, $af, $rtf );
                 if($rtf){ #Update 0 ground NOTES entry to the just inserted log.
                    
                    #last_insert_id() -> Not reliable commented out.
@@ -924,11 +951,11 @@ return $today;
 
         my $is_end_of_rs = shift;
 
-        if ( !$tbl_cur_id ) {
+        if ( !$log_cur_id ) {
 
         #Following is a quick hack as previous id as current minus one might not
         #coincide in the database table!
-            $tbl_cur_id = $id - 1;
+            $log_cur_id = $id - 1;
         }
         if ( $tfId == 1 ) {
             $tfId = 0;
@@ -937,34 +964,34 @@ return $today;
             $tfId = 1;
         }
 
-        $tbl .= qq!<tr class="r$tfId"><td></td>!;
+        $log_output .= qq!<tr class="r$tfId"><td></td>!;
 
-        if ( $rs_prev && $rs_prev > 0 && $tbl_start > 0 && $rs_page > 0 ) {
+        if ( $rs_prev && $rs_prev > 0 && $log_start > 0 && $rs_page > 0 ) {
 
-            $tbl = $tbl . qq!<td><input type="hidden" value="$rs_prev"/>
+            $log_output = $log_output . qq!<td><input type="hidden" value="$rs_prev"/>
 	 <input type="button" onclick="submitPrev($rs_prev);return false;"
 	  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>!;
 
         }
         else {
-            $tbl .= '<td><i>Top</i></td>';
+            $log_output .= '<td><i>Top</i></td>';
         }
 
-        $tbl .=
+        $log_output .=
 '<td colspan="1"><input type="button" onclick="viewAll();return false;" value="View All"/></td>';
 
         if ( $is_end_of_rs == 1 ) {
-            $tbl = $tbl . '<td><i>End</i></td>';
+            $log_output = $log_output . '<td><i>End</i></td>';
         }
         else {
 
-            $tbl .=
-qq!<td><input type="button" onclick="submitNext($tbl_cur_id);return false;"
+            $log_output .=
+qq!<td><input type="button" onclick="submitNext($log_cur_id);return false;"
 		                      value="Next &ndash;&rsaquo;&rsaquo;"/></td>!;
 
         }
 
-        $tbl = $tbl . '<td colspan="2"></td></tr>';
+        $log_output = $log_output . '<td colspan="2"></td></tr>';
     }
 
 sub authenticate {

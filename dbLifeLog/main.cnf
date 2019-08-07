@@ -34,5 +34,44 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , must be enabled option.
 55|Cars        `Car(s) related entry.
 60|Online      `Online purchases (ebay, or received/ordered from online source).
 <<MIG<>
-LOG<5>|ALTER TABLE LOG ADD RTF BOOL DEFAULT 0;' ver. 1.5
 NOTES|DROP TABLE NOTES;' ver. 1.5 fts4 virtual tables have been scratched as they require special SQLite compilation.
+LOG<5>|Run Query ' ver. 1.5
+
+//ALTER TABLE LOG RENAME AMMOUNT TO AMOUNT;
+
+CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;
+DROP TABLE LOG;
+//CREATE TABLE LOG ( ID_CAT TINY NOT NULL, DATE   DATETIME    NOT NULL, LOG    VCHAR (128) NOT NULL,  AMOUNT INTEGER,  AFLAG TINY DEFAULT 0, RTF BOOL DEFAULT 0);
+CREATE TABLE LOG (
+    ID_CAT TINY        NOT NULL,
+    DATE   DATETIME    NOT NULL,
+    LOG    VCHAR (128) NOT NULL,
+    AMOUNT INTEGER,
+    AFLAG TINY DEFAULT 0,
+    RTF BOOL DEFAULT 0
+);
+
+INSERT INTO LOG (
+                    ID_CAT,
+                    DATE,
+                    LOG,
+                    AMOUNT
+                )
+                SELECT ID_CAT,
+                       DATE,
+                       LOG,
+                       AMMOUNT
+                  FROM life_log_temp_table;
+
+DROP TABLE life_log_temp_table;
+PRAGMA foreign_keys = 1;
+
+%INCOME_ID% = SELECT ID FROM CAT WHERE CAT.NAME LIKE 'Income';
+%EXPENSE_ID% = SELECT ID FROM CAT WHERE CAT.NAME LIKE 'Income';
+
+
+
+UPDATE LOG SET AFLAG=1 WHERE ID_CAT=%INCOME_ID%;
+UPDATE LOG SET AFLAG=2 WHERE ID_CAT=%EXPENSE_ID%;
+
+

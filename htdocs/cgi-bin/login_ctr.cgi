@@ -180,7 +180,8 @@ try{
 			 ID_CAT TINY NOT NULL,
 			 DATE DATETIME  NOT NULL,
 			 LOG VCHAR(128) NOT NULL,			 
-			 AMMOUNT INTEGER DEFAULT 0,
+			 AMOUNT INTEGER DEFAULT 0,
+			 AFLAG TINY DEFAULT 0,
 			 RTF BOOL DEFAULT 0
 		);
 		CREATE INDEX idx_log_dates ON LOG (DATE);
@@ -188,8 +189,8 @@ try{
 		$rv = $db->do($stmt);
 		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>";}
 		
-		$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?)');
-		$st->execute( 3, $today, "DB Created!",0,0);
+		$st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?)');
+		$st->execute( 3, $today, "DB Created!",0,0,0);
   	}
 	$st = $db->prepare(selSQLTbl('CAT'));
 	$st->execute();

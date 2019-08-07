@@ -27,11 +27,10 @@ if(!$userid||!$dbname){
 	exit;
 }
 
-my $database = '../../dbLifeLog/'.$dbname;
-my $dsn= "DBI:SQLite:dbname=$database";
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->". $DBI::errstri ."</p>";
 
-
+my $database = '../../dbLifeLog/' . $dbname;
+my $dsn      = "DBI:SQLite:dbname=$database";
+my $db       = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } ) or die "<p>Error->" & $DBI::errstri & "</p>";
 
 
 my @stat = stat $database;
@@ -51,28 +50,28 @@ print $q->header(-expires=>"+6os", -charset=>"UTF-8");
 print $q->start_html(-title => "Log Data Stats", -BGCOLOR=>"#c8fff8",
        		         -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
 		             -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-		             -onload => "loadedBody();"
+		             -onload => ""
 		        );	  
 
 
-my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="4"><b>* PERSONAL LOG DATA STATS *</b></td></tr>';
+my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="5"><b>* Personal Log Data Statistics *</b></td></tr>';
 
 my $log_rc = selectSQL('select count(rowid) from LOG;');
-my $stm = "SELECT count(date) from LOG where date>=date('now','start of year');";
-my $log_this_year_rc = selectSQL($stm);
+my ($stm1,$stm2) = "SELECT count(date) from LOG where date>=date('now','start of year');";
+my $log_this_year_rc = selectSQL($stm1);
+my $notes_rc = selectSQL('select count(LID) from NOTES where DOC is not null;');
 
-my $id_expense = selectSQL('SELECT ID from CAT where name like "Expense";');
-my $id_income  = selectSQL('SELECT ID from CAT where name like "Income";');
+#my $id_expense = selectSQL('SELECT ID from CAT where name like "Expense";');
+#my $id_income  = selectSQL('SELECT ID from CAT where name like "Income";');
 
-$stm = 'SELECT sum(ammount) from LOG where date>=date("now","start of year") 
-		AND ID_CAT = '.$id_expense.';';
-my $expense = big_money(sprintf("%.2f",selectSQL($stm)));
+#INCOME
+$stm1 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 1;';
+#EXPENSE
+$stm2 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 2;';
 
-$stm = 'SELECT sum(ammount) from LOG where date>=date("now","start of year") 
-	AND ID_CAT = '.$id_income.';';
-
-my $income =  big_money(sprintf("%.2f",selectSQL($stm)));
-my $revenue = big_money($income - $expense);
+my $expense = big_money(sprintf("%.2f",selectSQL($stm1)));
+my $income =  big_money(sprintf("%.2f",selectSQL($stm2)));
+my $gross = big_money($income - $expense);
 my $hardware_status =`inxi -b -c0;uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;
 $hardware_status =~ s/Memory:/<b>Memory:/g;
@@ -85,25 +84,24 @@ my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; prin
 my  $processes = `$prc | sort -u -r -`;
 #Strip kernel 0 processes reported
 $processes =~ s/\s*0.00.*//gd;
+my $year =$today->year();
  
-$tbl = $tbl . '<tr class="r1"><td>Number of Records:</td><td>'.
- 		$log_rc.'</td></tr>
-		<tr class="r0"><td>No. of Records This Year:</td><td>'.
- 		$log_this_year_rc.'</td></tr>
-		<tr class="r0"><td># Sum of Expenses For Year '.$today->year().
-		'</td><td>'.$expense.'</td></tr>
-		<tr class="r0"><td># Sum of Income For Year '.$today->year().
-		'</td><td>'.$income.'</td></tr>
-		<tr class="r0"><td>Revenue For Year '.$today->year().
-		'</td><td>'.$revenue.'</td></tr>
-		<tr class="r1"><td>'.$database.'</td><td>'.
- 		 (uc format_bytes($stat[7], bs => 1000)).'</td></tr>
+$tbl .=qq(	<tr class="r1"><td>Number of Records:</td><td>$log_rc</td></tr>
+			<tr class="r0"><td>No. of Records This Year:</td><td>$log_this_year_rc</td></tr>
+			<tr class="r1"><td>No. of RTF Documents:</td><td>$notes_rc</td></tr>
+			<tr class="r0"><td># Sum of Expenses For Year $year</td><td>$expense</td></tr>
+			<tr class="r0"><td># Sum of Income For Year $year</td><td>$income</td></tr>
+			<tr class="r0"><td>Gross For Year $year</td><td>$gross</td></tr>
+			<tr class="r1"><td>$database</td><td>).(uc format_bytes($stat[7], bs => 1000)).q(</td></tr>			
+</table>);
 
-</table>';
-
-print '<div style="float:left; padding:10px;">' . $tbl .'</div>';
-print '<div style="text-align:left;  border: 1px solid black;"><br/><b>Server Info</b><br/><br/>' . $hardware_status .'</div><br>';
-print '<div style="text-align:left;"><br/><b>Processes Info</b><br/><br/><pre>' . $processes .'</pre></div>';
+print qq(<div style="text-align:left; border: 1px solid black; padding:5px;"><h2>Your Life Log Server Statistics</h2><hr>
+	<span style="text-align:left; float:left; padding:15px;">$tbl<br><br><br><br></span>
+	<span style="text-align:left; margin:1px;  padding-right:15px; float:none;"><b>Server Info</b><hr><br>
+	$hardware_status</span></div>
+<div class="tbl" style="text-align:left; border: 0px; padding:5px; float:none;">
+<b>Server Side Processes</b><hr>
+<pre style="text-align:left;">$processes </pre><div>);
 
 print $q->end_html;
 $db->disconnect();

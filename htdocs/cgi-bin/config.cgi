@@ -826,7 +826,7 @@ sub exportLogToCSV {
 				 print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.csv");
 			}
 			
-		 # print "ID_CAT,DATE,LOG,AMMOUNT\n";
+		 # print "ID_CAT,DATE,LOG,AMOUNT, AFLAG\n";
 			while (my $r=$dbs->fetchrow_arrayref()){ 
 						 print $csv->print(*STDOUT, $r)."\n";
 			}
@@ -935,18 +935,20 @@ sub updateLOGDB {
 			my $id_cat = $flds[0];
 			my $date   = $flds[1];
 			my $log    = $flds[2];
-			my $amm    = $flds[3];
+			my $amv    = $flds[3];
+			my $amf    = $flds[4];
+			my $rtf    = $flds[5];
 			my $pdate = DateTime::Format::SQLite->parse_datetime($date);
 			#Check if valid date log entry?
 			if($id_cat==0||$id_cat==""||!$pdate){
 				return;
 			}
 			#is it existing entry?
-			$dbs = $db->prepare("SELECT ID_CAT, DATE, LOG, AMMOUNT  FROM LOG WHERE date = '$date';");
+			$dbs = $db->prepare("SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF  FROM LOG WHERE date = '$date';");
 			$dbs->execute();
 			if(!$dbs->fetchrow_array()){
-					$dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?)');
-					$dbs->execute( $id_cat, $pdate, $log, $amm);
+					$dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?)');
+					$dbs->execute( $id_cat, $pdate, $log, $amv, $amf, $rtf);
 			}
 			#Renumerate
 			$dbs = $db->prepare('select rowid from LOG ORDER BY DATE;');

@@ -52,13 +52,14 @@ my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>
 my $today = DateTime->now;
    $today->set_time_zone( $TIME_ZONE );
 
+my %hshCats ={};
+my $tbl_rc =0;
 my $stm;
 my $stmtCat = "SELECT ID, NAME FROM CAT;";
 my $st = $db->prepare( $stmtCat );
 my $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
-my %hshCats;
-my $tbl_rc =0;
+
 
 while(my @row = $st->fetchrow_array()) {
 	$hshCats{$row[0]} = $row[1];
@@ -105,11 +106,11 @@ sub DisplayDateDiffs{
 	    <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
     $stm = 'SELECT DATE, LOG FROM LOG WHERE '; 
-    my  @prms = $cgi->param('chk');
+    my  @ids = $cgi->param('chk');
 
-	foreach (@prms){
+	foreach (@ids){
 		$stm .= "rowid = '" . $_ ."'";
-		if(  \$_ != \$prms[-1]  ) {
+		if(  \$_ != \$ids[-1]  ) {
 			$stm = $stm." OR ";
 		}
 	}
@@ -150,11 +151,11 @@ return "<b>".$d->ymd."</b> ".$d->hms;
 sub ConfirmedDelition{
 
 
-	foreach my $prm ($cgi->param('chk')){
+	foreach my $id ($cgi->param('chk')){
 		
-	    $st = $db->prepare("DELETE FROM LOG WHERE rowid = '$prm';");
+	    $st = $db->prepare("DELETE FROM LOG WHERE rowid = '$id';");
 		$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
-		$st = $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$prm';");
+		$st = $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$id';");
 		$rv = $st->execute();
 
 		if($rv < 0) {
@@ -173,21 +174,19 @@ sub ConfirmedDelition{
 
 sub NotConfirmed{
 
-#Get prms and build confirm table and check
+#Get ids and build confirm table and check
 my $stm = $stmS ." ";
-	foreach my $prm ($cgi->param('chk')){
-		$stm = $stm . "rowid = '" . $prm . "' OR ";
+	foreach my $id ($cgi->param('chk')){
+		$stm = $stm . "rowid = '" . $id . "' OR ";
 	}
-#rid=0 hack! ;)
+#OR end to rid=0 hack! ;)
 	$stm = $stm . "rowid = '0' " . $stmE;
-
 #
 $st = $db->prepare( $stm );
-$rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+$rv = $st->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
 if($rv < 0) {
 	     print "<p>Error->"& $DBI::errstri &"</p>";
 }
-
 
 my $r_cnt = 0;
 my $rs = "r1";
