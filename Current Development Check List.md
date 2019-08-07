@@ -2,11 +2,15 @@
 
 *This page lists current development and issuses being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
+This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
+
 ##LifeLog 
 
 * Some System settings to be stored in session. As these are  known even before logon.
 > i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
-* Checkbox for type of log amount (Mark as Expense). Default is income. Asset is neither, income or expense.
+
+*&#10004; Dropdown for type of log amount (Mark as Expense). Default is Asset. Asset is neither, income or expense.
+
 
 *&#10004; Implement RTF Documents.
 > Useful as more document style formated details can be added instead of just plain text.
@@ -21,16 +25,19 @@
 ##LifeLog RTF Documents using Quill Javascript RTF API
 
 *&#10004; Separate JSON service page.
-> &#10004; Uses Encryption RTF Documents,
->* Deletion of log, deletes the document.
 >* Provide for file attachments. 
+> &#10004; Display in log, read only RTF on click of button.
+> &#10004; Uses compressed RTF Documents in a Notes tabe.
+>&#10004; Deletion of log, deletes the document.
 
  
 ## URGENT FIXES AND KNOWN ISSUES
+&#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 &#10004; View by Date - search not showing current month entries.
 
 &#10004; Fix Interaction jumping edits and creating new entries via now button.
 >&#10004;  Fix some LTAGS not saved as LTags server side.
+
 &#10004; Autologin feature, that expires on logout.
 &#10004; Data/Login control updated to read the configuration file.
 &#10004; Configuration file to be updated to carry also categories.
