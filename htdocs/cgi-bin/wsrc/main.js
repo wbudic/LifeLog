@@ -1,5 +1,5 @@
 /*
- Programed in vim by: Will Budic
+ Programed by: Will Budic
  Open Source License -> https://choosealicense.com/licenses/isc/
 */
 
@@ -14,6 +14,9 @@ var CHANGE;
 var _show_all = true;
 
 var DEF_BACKGROUND = 'white';
+
+var RTF_DOC_RESIZED = false;
+var RTF_DOC_ORIG;
 
 
 function loadedBody(toggle) {
@@ -32,6 +35,15 @@ function loadedBody(toggle) {
         firstDay: 1
     });
 
+    $('#srh_date_from').datepicker({
+        dateFormat: 'yy-mm-dd',
+        firstDay: 1
+    });
+
+    $('#srh_date_to').datepicker({
+        dateFormat: 'yy-mm-dd',
+        firstDay: 1
+    });
     $('#ed').poshytip({
         content: "Select here date and time of your log.",
         className: 'tip-yellowsimple',
@@ -136,11 +148,30 @@ function loadedBody(toggle) {
     DEF_BACKGROUND = RGBToHex($('#editor-container').css('background-color'));
     $("#fldBG").val(DEF_BACKGROUND);
 
+   // $( function() {        
+        var amf = $( "#amf" );//Amount Field Type dropdown        
+        var ec = $( "#ec" );  //Category dropdown 
+                        
+        $( amf ).selectmenu({style: "dropdown", width:120, 
+          change: function( event, data ) {
+            var evv =ec.val();
+            if(ec.val()<2||evv==32||evv==35||data.item.value == 0){
+                var sel = null;
+                if(data.item.label == "Income"){ sel = 35; }
+                else if(data.item.label == "Expense"){sel = 32; }
+                else if(data.item.value == 0 && (evv == 35||evv==32)){sel = 1; }
+                if(sel){
+                    ec.val(sel);
+                    ec.selectmenu("refresh");
+                }
+            }
+          }});
+    
 
 }
 
 
-function encodeText(el) {
+function encodeText(el){
     var el = $("#frm_entry [name=log]");
     var txt = el.val();
     txt = txt.replace(/\r\n/g, "\\n");
@@ -350,10 +381,6 @@ function viewAll() {
     return false;
 }
 
-
-
-var RTF_DOC_RESIZED = false;
-var RTF_DOC_ORIG;
 function resizeDoc() {
     var css = $("#editor-container").prop('style');
     if(RTF_DOC_RESIZED){
@@ -698,20 +725,17 @@ function editorBackground(reset){
 
 function RGBToHex(rgb) {
     // Choose correct separator
-    let sep = rgb.indexOf(",") > -1 ? "," : " ";
+    var sep = rgb.indexOf(",") > -1 ? "," : " ";
     // Turn "rgb(r,g,b)" into [r,g,b]
     rgb = rgb.substr(4).split(")")[0].split(sep);
   
-    let r = (+rgb[0]).toString(16),
+    var r = (+rgb[0]).toString(16),
         g = (+rgb[1]).toString(16),
         b = (+rgb[2]).toString(16);
   
-    if (r.length == 1)
-      r = "0" + r;
-    if (g.length == 1)
-      g = "0" + g;
-    if (b.length == 1)
-      b = "0" + b;
+    if (r.length == 1)  r = "0" + r;
+    if (g.length == 1)  g = "0" + g;
+    if (b.length == 1)  b = "0" + b;
   
     return "#" + r + g + b;
 }

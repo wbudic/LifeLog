@@ -715,8 +715,8 @@ _TXT
    <tr class="collpsd">
     <td align="right"><b>View by Date:</b></td>
 	<td align="left">
-        From:&nbsp;<input name="v_from" type="text" size="16" value="$rs_dat_from"/>&nbsp;&nbsp;
-        To:&nbsp;<input name="v_to" type="text" size="16" value="$rs_dat_to"/>
+        From:&nbsp;<input id="srh_date_from" name="v_from" type="text" size="16" value="$rs_dat_from"/>&nbsp;&nbsp;
+        To:&nbsp;<input id="srh_date_to" name="v_to" type="text" size="16" value="$rs_dat_to"/>
         &nbsp;&nbsp;<button id="btn_dat" onclick="viewByDate(this);">View</button>
     </td>
 	</tr>

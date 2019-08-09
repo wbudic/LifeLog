@@ -173,7 +173,7 @@ my  $frm = qq(
 		  <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font> 
 		   Removing or changing categories is permanent! Each category one must have an unique ID. 
 			 Blank a category name to remove it. LOG records will change to the 
-			 <b>Unspecified</b> (id 1) category! And the category <b>Unspecified</b>, can't be removed!
+			 <b>Unspecified</b> (id 1) category! And the categories <b>Unspecified</b>, <b>Income</b> and <b>Expense</b>  can't be removed!
 			 </div>
 			</td>			
 		</tr>
@@ -483,7 +483,7 @@ elsif ($change == 1){
 
 	  if($pnm ne $cnm || $pds ne $cds){
 		
-		 if($cid!=1 && $pnm eq  ""){
+		 if( ($cid!=1 && $cid!=32 && $cid!=35) && $pnm eq  ""){
 
 		   $s = "SELECT rowid, ID_CAT FROM LOG WHERE ID_CAT =".$cid.";";
 		   $d = $db->prepare($s); 
@@ -1001,6 +1001,7 @@ sub cats{
 		my $cats = qq(<select id="cats" name="cats"><option value="0">---</option>\n);
 		$dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
 		while ( my @row = $dbs->fetchrow_array() ) {
+
 				$cats .= qq(<option value="$row[0]">$row[1]</option>\n);
 		}
 		$cats .= '</select>';
