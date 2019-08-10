@@ -263,11 +263,11 @@ try{
 		if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>"};
 	}
 
-	$st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias' AND passw='$passw';");
+	$st = $db->prepare("SELECT ALIAS, PASSW, EMAIL, ACTION FROM AUTH WHERE alias='$alias' AND passw='$passw';");
 	$st->execute();
 	my @res = $st->fetchrow_array();
 	if(scalar @res == 0) {
-		$st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?)');
+		$st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?);');
 		$st->execute($alias, $passw,"",0);
 	}
  
