@@ -1,7 +1,7 @@
 p {
     font-family: Bookman;
     margin-left: 70px;
-    font-weight: bold;
+    font-weight: bold;    
 }
 
 table,
@@ -11,14 +11,12 @@ td {
     border-collapse: collapse;
     padding: 5px;
     margin: auto;
-    color: white;
 }
 
 div {
     font-family: Bookman;
     text-align: center;
-    vertical-align: middle;
-    color: white;
+    vertical-align: middle;    
 }
 
 #div_srh {
@@ -39,6 +37,7 @@ th,
     padding-left: 5px;
     margin-bottom: 0px;
     margin-top: 5px;
+    color: #d8d8d8;
 }
 
 .tbl_rem {
@@ -98,18 +97,20 @@ th,
 .rz {
     border: 1px solid white;
     text-align: left;
-    background-color: #363531 
+    background-color: #363531;
+    color: #cfcfe6;
     vertical-align: top;
     align-self: baseline;
-    height: auto;
-    padding: 2%;
+    height: auto;    
     margin: 0px auto;
+    padding:10px;
 }
 
 div#rz {
     border: 1px solid white;
     text-align: left;
-    background-color: #e6ffff;
+    background-color:#363531;
+    color:#f3f0e6;
     vertical-align: top;
     align-self: baseline;
     height: auto;
@@ -135,6 +136,7 @@ img {
     padding: 5px;
     text-align: center;
     background: #0f0f0f;
+    color: #d8d8d8;
     margin-top: 15px;
     width: 280px;
     text-decoration-style: wavy;
