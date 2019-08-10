@@ -51,14 +51,14 @@ th,
 }
 
 .r0 {
-    background-color: #e6ffff;
+    background-color: #FFDF00;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
 }
 
 .r1 {
-    background-color: #ccffff;
+    background-color: #CFB53B;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
@@ -68,7 +68,7 @@ th,
     font-style: normal;
     font-weight: bold;
     font-size: large;
-    background-color: #98e6e6;
+    background-color: #D4AF37;
     border: 1px solid black;
     border-right: 1px solid black;
     text-align: center;
@@ -96,8 +96,7 @@ th,
 .rz {
     border: 1px solid black;
     text-align: left;
-    background-color: #e6ffff;
-    vertical-align: top;
+    background-color: #D4AF37 vertical-align: top;
     align-self: baseline;
     height: auto;
     padding: 2%;
@@ -129,10 +128,10 @@ img {
 
 #cat_desc {
     position: absolute;
-    border: 2px solid #94cde7;
+    border: 2px solid black;
     padding: 5px;
     text-align: center;
-    background: #ccffff;
+    background: #D4AF37;
     margin-top: 15px;
     width: 280px;
     text-decoration-style: wavy;
@@ -142,10 +141,10 @@ img {
     position: fixed;
     float: left;
     margin: 0;
-    border: 2px solid #94cde7;
+    border: 1px solid black;
     padding: 5px;
     text-align: center;
-    background: #ccffff;
+    background: #D4AF37;
     margin-left: 90%;
 }
 
@@ -194,6 +193,7 @@ img {
 .ui-menu .ui-menu-item a.ui-state-active {
     margin: -1px;
 }
+
 .ui-icon{
     float:right;
 }
@@ -208,12 +208,12 @@ img {
     max-height: 480px;
     border-top: 1px solid gray;
     border-right: 1px solid gray;
-    background-color: #e6ffff;
+    background-color: #D4AF37;
 }
 
 #toolbar-container {
     border: 1px solid black;
-    background-color: #98e6e6;
+    background-color: #D4AF37;
     margin-bottom: 3px;
 }
 
@@ -222,23 +222,6 @@ img {
     float: right;
 }
 
-#btnRTF {
-    float: right;
-}
-
 .midnight{
     color:midnightblue;
-}
-
-
-a:link {
-    color:#5b06fa;
-}
-a:visited {
-color: #065bfa;
-}
-
-a:hover {
-    color: #2d7081;
-    font-style: oblique;
 }

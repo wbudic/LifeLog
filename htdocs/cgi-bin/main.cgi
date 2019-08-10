@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Programed in vim by: Will Budic
+# Programed in by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 use strict;
@@ -37,6 +37,7 @@ our $AUTO_WRD_LMT = 1000;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
 our $THEME        = 'Standard';
+our $TH_CSS       = 'main.css';
 
 #END OF SETTINGS
 
@@ -115,21 +116,26 @@ else {    #defaults
     $imgh = 120;
 }
 
-my $bgcol = '#c8fff8';
-if ( $THEME eq 'Sun' ) {
-    $bgcol = '#D4AF37';
-}
+my $BGCOL = '#c8fff8';
+    if ( $THEME eq 'Sun' ) {
+        $BGCOL = '#D4AF37';
+        $TH_CSS = "main_sun.css";
+    }elsif ($THEME eq 'Moon'){
+        $TH_CSS = "main_moon.css";
+        $BGCOL = '#000000';
 
-print $cgi->header(
-    -expires => "0s",
-    -charset => "UTF-8"
-);
+    }elsif ($THEME eq 'Earth'){
+        $TH_CSS = "main_earth.css";
+        $BGCOL = 'green';
+    }
+
+print $cgi->header(-expires => "0s", -charset => "UTF-8");
 print $cgi->start_html(
     -title   => "Personal Log",
-    -BGCOLOR => $bgcol,
+    -BGCOLOR => $BGCOL,
     -onload  => "loadedBody('" . $toggle . "');",
     -style   => [
-        { -type => 'text/css', -src => 'wsrc/main.css' },
+        { -type => 'text/css', -src => "wsrc/$TH_CSS" },
         { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
         { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
         {
@@ -489,7 +495,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         }
         elsif ( 1 == $row[1] ) {
             $log =
-"<font color='midnightblue' style='font-weight:bold;font-style:italic'>$log</font>";
+"<font class='midnight' style='font-weight:bold;font-style:italic'>$log</font>";
             $tagged = 1;
         }
 
@@ -1097,7 +1103,7 @@ sub authenticate {
         }
     }
 
-    sub getConfiguration {
+    sub getConfiguration{
         my $db = shift;
         try {
             $st = $db->prepare("SELECT * FROM CONFIG;");
@@ -1106,6 +1112,7 @@ sub authenticate {
             while ( my @r = $st->fetchrow_array() ) {
 
                 switch ( $r[1] ) {
+                    case "$RELEASE_VER" { $RELEASE_VER  = $r[2] }
                     case "REC_LIMIT"    { $REC_LIMIT    = $r[2] }
                     case "TIME_ZONE"    { $TIME_ZONE    = $r[2] }
                     case "PRC_WIDTH"    { $PRC_WIDTH    = $r[2] }
@@ -1116,6 +1123,7 @@ sub authenticate {
                     case "AUTO_WRD_LMT" { $AUTO_WRD_LMT = $r[2] }
                     case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2] }
                     case "RTF_SIZE"     { $RTF_SIZE     = $r[2] }
+                    case "THEME"        { $THEME        = $r[2] }
                     else {
                         print "Unknow variable setting: " . $r[1] . " == " . $r[2];
                     }
