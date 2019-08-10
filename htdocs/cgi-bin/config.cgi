@@ -109,7 +109,7 @@ my $BGCOL = '#c8fff8';
 
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"$BGCOL",
-           -onload  => "loadedBody();",	           
+           -onload  => "loadedBody(false);",	           
             -style   => [
           { -type => 'text/css', -src => "wsrc/$TH_CSS" },
           { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
@@ -139,13 +139,12 @@ print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"$BGCOL",
           { -type => 'text/javascript', -src => 'wsrc/jquery.poshytip.js' }
       ],
             );
-
-
+ if ($ERROR){&error;}else{
 print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
 <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
-<a id="floating_menu_close" href="#"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
+<a id="menu_close" href="#" onclick="return hide('menu_close');"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 </div>
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
@@ -153,8 +152,8 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <br>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>);
+}
 
-&error if $ERROR;
 
 
 
@@ -373,7 +372,7 @@ my  $frmPASS = qq(
 #
 my $prc_hdr = $PRC_WIDTH-2;
   print qq(
-<a name="top"/><center>
+<a name="top"></a><center>
     <div>$frm</div>
   <div>$frmVars</div>
     <div>$frmDB</div>
@@ -390,13 +389,13 @@ my $prc_hdr = $PRC_WIDTH-2;
                 <tr style="border-left: 1px solid black;"><td> 
                         <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr> 
                 <tr style="border-left: 1px solid black;"><td style="text-align:right;">
-                        <input type="submit" name="Submit" value="Submit"/></p></td></tr> 
+                        <input type="submit" name="Submit" value="Submit"/></td></tr> 
                 </form> 
                 <form action="config.cgi" method="post" enctype="multipart/form-data"> 
                 <tr style="border-top: 1px solid black;border-right: 1px solid black;"><td> 
                         <b>Import Log</b>: <input type="file" name="data_log" /></td></tr> 
                 <tr style="border-right: 1px solid black;"><td style="text-align:right;"> 
-                        <input type="submit" name="Submit" value="Submit"/></p></td></tr> 
+                        <input type="submit" name="Submit" value="Submit"/></td></tr> 
                 </form> 
                     <tr><td style="text-align:right"><H3>To Server -> $sys -> $dbname</H3></td></tr>
             </table>
@@ -459,7 +458,7 @@ my $prc_hdr = $PRC_WIDTH-2;
                         &#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly.
                     </p>
                     </div>
-                    </center><a name="bottom"/><a href="#top">&#x219F;</a>
+                    </center><a name="bottom"></a><a href="#top">&#x219F;</a>
                     <hr>
     );
 
@@ -546,35 +545,35 @@ elsif ($change == 1){
 
 if($change > 1){
 
-        #UNDER DEVELOPMENT!
-                    my $caid  = $cgi->param('caid');
-                    my $canm  = $cgi->param('canm');
-                    my $cade  = $cgi->param('cade');
-                    my $valid = 1;
 
-                    while(my @row = $dbs->fetchrow_array()) {
+    my $caid  = $cgi->param('caid');
+    my $canm  = $cgi->param('canm');
+    my $cade  = $cgi->param('cade');
+    my $valid = 1;
 
-                        my $cid = $row[0];
-                        my $cnm = $row[1];
-                        my $cds = $row[2];
-                        
+    while(my @row = $dbs->fetchrow_array()) {
 
-                        if($cid==$caid || $cnm eq $canm){
-                                        $valid = 0;
-                                        last;
-                        }
-                    }
+        my $cid = $row[0];
+        my $cnm = $row[1];
+        my $cds = $row[2];
+        
 
-        if($valid){
-            $d = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
-            $d->execute($caid,$canm, $cade);
-            $status = "Added Category $canm!";
+        if($cid==$caid || $cnm eq $canm){
+                        $valid = 0;
+                        last;
         }
-        else{
-            $status = "ID->".$caid." or -> Category->".$canm." is already assigned, these must be unique!";
-            die "<div><p><font color=red>Client Error</font>: $status</p></div>";
-        }
-        $status = "Inserted new category[$canm]";
+    }
+
+    if($valid){
+        $d = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
+        $d->execute($caid,$canm, $cade);
+        $status = "Added Category $canm!";
+    }
+    else{
+        $status = "ID->".$caid." or -> Category->".$canm." is already assigned, these must be unique!";
+        die "<div><p><font color=red>Client Error</font>: $status</p></div>";
+    }
+    $status = "Inserted new category[$canm]";
         
     
 }elsif ($chgsys == 1){
@@ -640,7 +639,7 @@ try{
         
         $db->do('BEGIN TRANSACTION;');
         #Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
-        $dbs = dbExecute('select rowid, DATE from LOG ORDER BY DATE;');			
+        $dbs = dbExecute('SELECT rowid, DATE FROM LOG ORDER BY DATE;');			
         while(my @row = $dbs->fetchrow_array()) {
             my $existing = $dates{$row[0]};
             if($existing && $existing eq $row[1]){
@@ -659,33 +658,28 @@ try{
                     $st_del->execute();
         }
 
-        #Renumerate!
-        my $cnt = 1;
-        my $st_upd;
-        $dbs = dbExecute("select count(rowid) from LOG;");		
-        @row = $dbs->fetchrow_array();
-        $cntr_upd =$row[0];
-        
-        
-        $dbs = dbExecute("select rowid, RTF from LOG order by DATE;");		
-        while(@row = $dbs->fetchrow_array()) {
-            $issue    = "UPDATE LOG SET rowid=$cnt WHERE rowid=$row[0];";
-            $st_upd = $db->prepare($issue);
-            $st_upd->execute();
-            if($row[1]){#RTF				
-                my @doc = dbExecute("SELECT LID FROM NOTES WHERE LID='$row[0]';");
-                if(scalar @doc>0){
-                          dbExecute("UPDATE NOTES SET LID = $cnt WHERE LID='$row[0]';");					
-                }
-            }				
-            $cnt++;
-        }			
+        #Renumerate Log!
+        $dbs = dbExecute("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
+        $dbs = dbExecute('SELECT rowid, DATE FROM LOG ORDER BY DATE;');	        
         # Delete Orphaned Notes entries.			
         $dbs = dbExecute("SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON 
                                         NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");			
         while(my @row = $dbs->fetchrow_array()) {				
             $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
         }
+        $dbs = dbExecute('DROP TABLE LOG;');
+        $dbs = dbExecute(qq(CREATE TABLE LOG (
+                                ID_CAT TINY        NOT NULL,
+                                DATE   DATETIME    NOT NULL,
+                                LOG    VCHAR (128) NOT NULL,
+                                AMOUNT INTEGER,
+                                AFLAG TINY DEFAULT 0,
+                                RTF BOOL DEFAULT 0);));
+
+        $dbs = dbExecute('INSERT INTO LOG (ID_CAT,DATE,LOG,AMOUNT,AFLAG, RTF)
+                                      SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF 
+                                      FROM life_log_temp_table ORDER by DATE;');
+        $dbs = dbExecute('DROP TABLE life_log_temp_table;');
 
                     
         &resetCategories if $rs_cats;

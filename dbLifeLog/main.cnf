@@ -60,7 +60,7 @@ INSERT INTO LOG (
                 SELECT ID_CAT,
                        DATE,
                        LOG,
-                       AMMOUNT
+                       AMOUNT
                   FROM life_log_temp_table;
 
 DROP TABLE life_log_temp_table;
