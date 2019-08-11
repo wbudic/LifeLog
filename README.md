@@ -1,5 +1,7 @@
 # LifeLog
 
+Latest 1.5 ver. is in dev. Branch. Not release ready. This week.
+
 Web Application that keeps an everyday CGI accessible log of database entries of various categories.
 Preferably on an small inexpensive server connected to your local network.
 
