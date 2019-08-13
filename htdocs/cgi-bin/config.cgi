@@ -33,8 +33,9 @@ our $AUTO_WRD_LMT = 200;
 our $AUTO_LOGIN   = 0;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
-our $THEME        = 0;
-our $TH_CSS       = 'main.css';
+my $THEME        = 0;
+my $TH_CSS       = 'main.css';
+my $BGCOL = '#c8fff8';
 #END OF SETTINGS
 
 #This is the OS developer release key, replace on istallation. As it is not secure.
@@ -94,18 +95,11 @@ my $status = "Ready for change!";
 &processSubmit;
 ###############
 
-my $BGCOL = '#c8fff8';
-    if ( $THEME eq 'Sun' ) {
-        $BGCOL = '#D4AF37';
-        $TH_CSS = "main_sun.css";
-    }elsif ($THEME eq 'Moon'){
-        $TH_CSS = "main_moon.css";
-        $BGCOL = '#000000';
 
-    }elsif ($THEME eq 'Earth'){
-        $TH_CSS = "main_earth.css";
-        $BGCOL = 'green';
-    }
+&getTheme;
+
+ $session->param("theme",$TH_CSS);
+ $session->param("bgcolor",$BGCOL);
 
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"$BGCOL",
@@ -164,8 +158,7 @@ my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.$PRC_WIDTH.'%">
 $dbs = dbExecute($stmtCat);
 while(my @row = $dbs->fetchrow_array()) {
     if($row[0]>0){ 
-       $tbl = $tbl. 
-       '<tr class="r0"><td>'.$row[0].'</td>
+       $tbl .= '<tr class="r0"><td>'.$row[0].'</td>
             <td><input name="nm'.$row[0].'" type="text" value="'.$row[1].'" size="12"></td>
             <td align="left"><input name="ds'.$row[0].'" type="text" value="'.$row[2].'" size="64"></td>
         </tr>';
@@ -1055,4 +1048,21 @@ sub error{
     print $cgi->end_html;
     $db->disconnect();
     exit;
+}
+
+sub getTheme{
+
+
+    if ( $THEME eq 'Sun' ) {
+        $BGCOL = '#D4AF37';
+        $TH_CSS = "main_sun.css";
+    }elsif ($THEME eq 'Moon'){
+        $TH_CSS = "main_moon.css";
+        $BGCOL = '#000000';
+
+    }elsif ($THEME eq 'Earth'){
+        $TH_CSS = "main_earth.css";
+        $BGCOL = 'green';
+    }
+
 }

@@ -36,9 +36,9 @@ our $IMG_W_H      = '210x120';
 our $AUTO_WRD_LMT = 1000;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
-our $THEME        = 'Standard';
-our $TH_CSS       = 'main.css';
-
+my $THEME        = 'Standard';
+my $TH_CSS       = 'main.css';
+my $BGCOL = '#c8fff8';
 #END OF SETTINGS
 
 my $cgi = CGI->new;
@@ -89,6 +89,7 @@ my $lang  = Date::Language->new($LANGUAGE);
 my $today = DateTime->now;
 $today->set_time_zone($TIME_ZONE);
 
+
 if ( !$rs_dat_to && $rs_dat_from ) {
     my $dur = $today;
     $dur->add( months => 1 );
@@ -104,6 +105,9 @@ my $toggle = "";
 if ( $rs_keys || $rs_cat_idx || $stmD || $prm_vc > 0 ) { $toggle = 1; }
 
 $session->expire($SESSN_EXPR);
+$session->param('theme', $TH_CSS);
+$session->param('bgcolor', $BGCOL);
+$session->flush();
 
 #tag related framed sizing.
 my @arrwh = split /x/, $IMG_W_H;
@@ -116,18 +120,8 @@ else {    #defaults
     $imgh = 120;
 }
 
-my $BGCOL = '#c8fff8';
-    if ( $THEME eq 'Sun' ) {
-        $BGCOL = '#D4AF37';
-        $TH_CSS = "main_sun.css";
-    }elsif ($THEME eq 'Moon'){
-        $TH_CSS = "main_moon.css";
-        $BGCOL = '#000000';
 
-    }elsif ($THEME eq 'Earth'){
-        $TH_CSS = "main_earth.css";
-        $BGCOL = 'green';
-    }
+&getTheme;
 
 print $cgi->header(-expires => "0s", -charset => "UTF-8");
 print $cgi->start_html(
@@ -443,6 +437,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         while ( $log =~ /<<I</ ) {
             my $idx = $-[0];
             my $len = index( $log, '>', $idx ) - 4;
+            last if $len<6;
             my $sub = "<i>" . substr( $log, $idx + 4, $len - $idx ) . "</i>";
             $log =~ s/<<I<(.*?)>/$sub/o;
             $tagged = 1;
@@ -450,6 +445,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         while ( $log =~ /<<TITLE</ ) {
             my $idx = $-[0];
             my $len = index( $log, '>', $idx ) - 8;
+            last if $len<9;
             my $sub = "<h3>" . substr( $log, $idx + 8, $len - $idx ) . "</h3>";
             $log =~ s/<<TITLE<(.*?)>/$sub/o;
             $tagged = 1;
@@ -458,6 +454,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         while ( $log =~ /<<LIST</ ) {
             my $idx = $-[0];
             my $len = index( $log, '>', $idx ) - 7;
+            last if $len<9;
             my $lst = substr( $log, $idx + 7, $len - $idx );
             my $sub = "";
             my @arr = split( /\n|\\n/, $lst );
@@ -1106,13 +1103,13 @@ sub authenticate {
     sub getConfiguration{
         my $db = shift;
         try {
-            $st = $db->prepare("SELECT * FROM CONFIG;");
+            $st = $db->prepare("SELECT ID, NAME, VALUE FROM CONFIG;");
             $st->execute();
 
             while ( my @r = $st->fetchrow_array() ) {
 
                 switch ( $r[1] ) {
-                    case "$RELEASE_VER" { $RELEASE_VER  = $r[2] }
+                    case "RELEASE_VER"  { $RELEASE_VER  = $r[2] }
                     case "REC_LIMIT"    { $REC_LIMIT    = $r[2] }
                     case "TIME_ZONE"    { $TIME_ZONE    = $r[2] }
                     case "PRC_WIDTH"    { $PRC_WIDTH    = $r[2] }
@@ -1124,9 +1121,9 @@ sub authenticate {
                     case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2] }
                     case "RTF_SIZE"     { $RTF_SIZE     = $r[2] }
                     case "THEME"        { $THEME        = $r[2] }
-                    else {
-                        print "Unknow variable setting: " . $r[1] . " == " . $r[2];
-                    }
+                   # else {
+                    #    print "Unknow variable setting: " . $r[1] . " == " . $r[2];
+                    #}
                 }
 
             }
@@ -1135,13 +1132,29 @@ sub authenticate {
             print "<font color=red><b>SERVER ERROR</b></font>:" . $_;
         }
     }
-
     sub cam {
         my $am = sprintf( "%.2f", shift @_ );
         # Add one comma each time through the do-nothing loop
         1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
         return $am;
     }
+    sub getTheme{
+
+
+        if ( $THEME eq 'Sun' ) {
+            $BGCOL = '#D4AF37';
+            $TH_CSS = "main_sun.css";
+        }elsif ($THEME eq 'Moon'){
+            $TH_CSS = "main_moon.css";
+            $BGCOL = '#000000';
+
+        }elsif ($THEME eq 'Earth'){
+            $TH_CSS = "main_earth.css";
+            $BGCOL = 'green';
+        }
+
+    }
+
 
 sub quill{
 
@@ -1228,9 +1241,9 @@ return <<___STR;
     <a id="a_toggle" href="#" onclick="return toggle('#tbl_hlp .collpsd');">$sp2</a>    
     </td></tr>
 <tr class="collpsd"><td>
-<div id="rz" style="text-align:left; padding:10px;">
+<div id="rz" class="rz">
     <h2>L-Tags Specs</h2>					
-    <p>
+    <p class="rz">
     Life Log Tags are simple markup allowing fancy formatting and functionality 
     for your logs HTML layout.
     </p>
