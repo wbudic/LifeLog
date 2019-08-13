@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Programed in vim by: Will Budic
+# Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 package main;

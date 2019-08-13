@@ -16,6 +16,7 @@ use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 use DateTime::Duration;
+use Date::Language;
 use Text::CSV;
 
 #DEFAULT SETTINGS HERE!
@@ -65,6 +66,7 @@ my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>
 my $rv;
 my $dbs;
 my $today  = DateTime->now;
+my $lang  = Date::Language->new($LANGUAGE);
 my $tz     = $cgi->param('tz');
 my $csvp   = $cgi->param('csv');
    
@@ -89,50 +91,17 @@ $today->set_time_zone( $TIME_ZONE );
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 my $status = "Ready for change!";
-
-
+my $cats;
+my %hshCats = {};
+&cats;
 ###############
 &processSubmit;
 ###############
-
-
 &getTheme;
-
  $session->param("theme",$TH_CSS);
  $session->param("bgcolor",$BGCOL);
+&getHeader;
 
-print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
-print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"$BGCOL",
-           -onload  => "loadedBody(false);",	           
-            -style   => [
-          { -type => 'text/css', -src => "wsrc/$TH_CSS" },
-          { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
-          { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
-          {
-              -type => 'text/css',
-              -src  => 'wsrc/jquery-ui-timepicker-addon.css'
-          },
-          { -type => 'text/css', -src => 'wsrc/tip-skyblue/tip-skyblue.css' },
-          {
-              -type => 'text/css',
-              -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
-          },
-      ],
-      -script => [
-          { -type => 'text/javascript', -src => 'wsrc/main.js' },
-          { -type => 'text/javascript', -src => 'wsrc/jquery.js' },
-          { -type => 'text/javascript', -src => 'wsrc/jquery-ui.js' },
-          {
-              -type => 'text/javascript',
-              -src  => 'wsrc/jquery-ui-timepicker-addon.js'
-          },
-          {
-              -type => 'text/javascript',
-              -src  => 'wsrc/jquery-ui-sliderAccess.js'
-          },
-          { -type => 'text/javascript', -src => 'wsrc/jquery.poshytip.js' }
-      ],
-            );
  if ($ERROR){&error;}else{
 print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
@@ -324,22 +293,24 @@ my  $frmVars = qq(
 $tbl = qq(<table id="cnf_fix" class="tbl" border="0" width="$PRC_WIDTH%">
               <tr class="r0"><td colspan="2"><b>* DATA FIX *</b></td></tr>
              );
-my $cats = &cats;			 
+
 my  $frmDB = qq(
      <form id="frm_DB" action="config.cgi">$tbl
         <tr class="r1" align="left"><th>Extra Action</th><th>Description</th></tr>
         <tr class="r0" align="left"><td><input type="checkbox" name="reset_cats"/>Reset Categories</td><td>Resets Categories to factory values (will initiate logoff).</td></tr>
         <tr class="r1" align="left"><td><input type="checkbox" name="reset_syst"/>Reset Settings</td><td>Resets system settings to default values.</td></tr>
         <tr class="r0" align="left"><td><input type="checkbox" name="wipe_syst"/>Wipe Settings</td><td>Resets and wipes system settings for migration  (will initiate logoff).</td></tr>
-        <tr class="r1" align="left"><td><input type="checkbox" name="del_by_cats"/>Delete by Category <font color=red>*UD</font><br>$cats</td><td>Selects and displays by category logs to delete.</td></tr>
-        <tr class="r0" align="left"><td><input type="checkbox" name="del_from"/>Delete from Date <font color=red>*UD</font><br><input id="fldFrom" size/></td><td>Selects and displays from a date to into deep past logs to delete..</td></tr>
+        <tr class="r1" align="left"><td><input type="checkbox" name="del_by_cats"/>Delete by Category <font color=red></font><br>
+        $cats</td><td>Selects and displays by category logs to delete.</td></tr>
+        <tr class="r0" align="left"><td><input type="checkbox" name="del_from"/>Delete from Date <br>
+        <input id="fldFrom" name="date_from"/></td><td>Selects and displays from a date to into deep past logs to delete..</td></tr>
         <tr class="r1">		
          <td colspan="2" align="right"><b>Data maintenance for -> $dbname</b>&nbsp;<input type="submit" value="Fix"/></td>
         </tr>			
         <tr class="r1" align="left">
              <td colspan="2">Perform this change/check in the event of experiencing data problems. Or periodically for data check and maintenance. <br>
                                  <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
-                                                  of your changes. Please, export/backup first.<br><font color=red>*UD</font> - Under Development, not working!</td>
+                                                  of your changes. Please, export/backup first.</td>
         </tr>
         <input type="hidden" name="db_fix" value="1"/>
         </table></form><br>
@@ -363,8 +334,8 @@ my  $frmPASS = qq(
 #
 #Page printout from here!
 #
-my $prc_hdr = $PRC_WIDTH-2;
-  print qq(
+
+print qq(
 <a name="top"></a><center>
     <div>$frm</div>
   <div>$frmVars</div>
@@ -463,19 +434,57 @@ $db->disconnect();
 
 exit;
 
-sub processSubmit {
+sub getHeader{
+print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"$BGCOL",
+           -onload  => "loadedBody(false);",	           
+            -style   => [
+          { -type => 'text/css', -src => "wsrc/$TH_CSS" },
+          { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
+          { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
+          {
+              -type => 'text/css',
+              -src  => 'wsrc/jquery-ui-timepicker-addon.css'
+          },
+          { -type => 'text/css', -src => 'wsrc/tip-skyblue/tip-skyblue.css' },
+          {
+              -type => 'text/css',
+              -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
+          },
+      ],
+      -script => [
+          { -type => 'text/javascript', -src => 'wsrc/main.js' },
+          { -type => 'text/javascript', -src => 'wsrc/jquery.js' },
+          { -type => 'text/javascript', -src => 'wsrc/jquery-ui.js' },
+          {
+              -type => 'text/javascript',
+              -src  => 'wsrc/jquery-ui-timepicker-addon.js'
+          },
+          {
+              -type => 'text/javascript',
+              -src  => 'wsrc/jquery-ui-sliderAccess.js'
+          },
+          { -type => 'text/javascript', -src => 'wsrc/jquery.poshytip.js' }
+      ],
+            );
+}
+
+sub processSubmit{
 
 my $change = $cgi->param("cchg");
 my $chgsys = $cgi->param("sys");
 my $chdbfix  = $cgi->param("db_fix");
 my $passch = $cgi->param("pass_change");
-my $s;
-my $d;
+my $del_by_cats = $cgi->param("del_by_cats");
+my $category = $cgi->param("cats");
+my $del_by_date = $cgi->param("del_from");
+my $del_date_from = $cgi->param("date_from");
+my ($s, $d);
 
 try{
 
 $dbs = $db->prepare( $stmtCat );
-$rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+$rv = $dbs->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
     
 if($passch){
     my ($ex,$ne,$cf) = ($cgi->param("existing"),$cgi->param("new"),$cgi->param("confirm"));
@@ -532,7 +541,7 @@ elsif ($change == 1){
         }		 
       } 
     }
-    $status = "Upadated Categories!";
+    $status = "Updated Categories!";
 }
 
 
@@ -572,8 +581,78 @@ if($change > 1){
 }elsif ($chgsys == 1){
     &changeSystemSettings;		
     $status = "Changed System Settings!";
-}elsif($chdbfix){		
-    &processDBFix;
+}
+elsif($chdbfix){	
+
+    my $isByCat = ($del_by_cats eq 'on' && $category > 0);
+    my $isByDate = ($del_by_date eq 'on');
+    
+
+    if( $isByCat || $isByDate){
+
+        my $output = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
+                    <TABLE class="tbl" border="0" width="$PRC_WIDTH%">
+                    <tr class="hdr"><td colspan="5"><h2>Select Categories To Delete</h2></td></tr>
+                    <tr class="r0">
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Log</th><th>#</th>
+                        <th>Category</th>                        
+                    </tr>);
+        my $sel ="";
+        if ($isByCat){$sel = "ID_CAT ='$category'"}
+        if($isByDate){
+            if ($isByCat){ $sel .= " AND ";}
+            $sel .= "DATE<='$del_date_from'";
+        }
+
+        
+       $dbs = $db->prepare( "SELECT rowid, ID_CAT, DATE, LOG FROM LOG WHERE $sel ORDER BY DATE;" );
+       $rv = $dbs->execute() or die "<p>Error->"& $DBI::errstri &"</p>";  
+       while(my @row = $dbs->fetchrow_array()) {
+        my $id = $row[0];# rowid
+        my $ct  = $hshCats{$row[1]}; #ID_CAT
+        my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
+        my $log = $row[3];
+        
+        my ( $dty, $dtf ) = $dt->ymd;
+        my $dth = $dt->hms;
+        if ( $DATE_UNI == 1 ) {
+            $dtf = $dty;
+        }
+        else {
+            $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, $TIME_ZONE );
+        }
+
+        $output .= qq(<tr class="r0">
+                <td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
+                <td id="t$id" width="10%" class="tbl">$dth</td>
+                <td id="v$id" class="log" width="40%">$log</td>                
+                <td id="c$id" width="10%" class="tbl">$ct</td>
+                <td width="20%">
+                    <input name="chk" type="checkbox" value="$id"/>
+                </td></tr>);
+       }#while
+       $output .= qq(<td colspan="5" align="right">        
+        <button onclick="return selectAllLogs()">Select All</button>
+        <input type="reset" value="Unselect All"/>
+        <input id="del_sel" type="submit" value="Delete Selected"/>
+        </td></tr>
+        </form></TABLE>);
+
+        &getTheme;
+        &getHeader;
+
+        print "<div>$output</div>";
+
+        print $cgi->end_html;
+        $db->disconnect();
+        exit;
+
+    }	
+    else{
+        &processDBFix;
+    }
     $status = "Performed Database Fixes!";
 }
 
@@ -616,6 +695,8 @@ sub processDBFix {
      my $rs_syst = $cgi->param("reset_syst");
      my $rs_cats = $cgi->param("reset_cats");
      my $wipe_ss = $cgi->param("wipe_syst");
+
+     
      my $issue;
      my $date;
      my $cntr_upd =0;
@@ -1016,17 +1097,14 @@ sub getConfiguration {
 
 }
 
-sub cats{
-
-        my $cats = qq(<select id="cats" name="cats"><option value="0">---</option>\n);
-        $dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
+sub cats{        
+        $cats = qq(<select id="cats" name="cats"><option value="0">---</option>\n);
+        $dbs = dbExecute("SELECT ID, NAME FROM CAT ORDER BY ID;");
         while ( my @row = $dbs->fetchrow_array() ) {
-
                 $cats .= qq(<option value="$row[0]">$row[1]</option>\n);
+                $hshCats{ $row[0] } = $row[1];
         }
         $cats .= '</select>';
-
-    return $cats;
 }
 
 sub dbExecute{
