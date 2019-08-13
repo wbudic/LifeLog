@@ -1,7 +1,7 @@
 p {
     font-family: Bookman;
     margin-left: 70px;
-    font-weight: bold;
+    font-weight: bold;    
 }
 
 table,
@@ -16,7 +16,7 @@ td {
 div {
     font-family: Bookman;
     text-align: center;
-    vertical-align: middle;
+    vertical-align: middle;    
 }
 
 #div_srh {
@@ -30,19 +30,20 @@ div {
 TABLE,
 th,
 .tbl {
-    border: 1px solid black;
+    border: 1px solid white;
     padding-top: 5px;
     padding-right: 5px;
     padding-bottom: 5px;
     padding-left: 5px;
     margin-bottom: 0px;
     margin-top: 5px;
+    color: #d8d8d8;
 }
 
 .tbl_rem {
-    border: 1px solid black;
-    border-right: 1px solid black;
-    border-bottom: 1px solid black;
+    border: 1px solid white;
+    border-right: 1px solid white;
+    border-bottom: 1px solid white;
     padding-top: 5px;
     padding-right: 5px;
     padding-bottom: 5px;
@@ -51,16 +52,16 @@ th,
 }
 
 .r0 {
-    background-color: #e6ffff;
-    border: 1px solid black;
-    border-right: 1px solid black;
+    background-color: #535353;
+    border: 1px solid white;
+    border-right: 1px solid white;
     vertical-align: top;
 }
 
 .r1 {
-    background-color: #ccffff;
-    border: 1px solid black;
-    border-right: 1px solid black;
+    background-color: #272626;
+    border: 1px solid white;
+    border-right: 1px solid white;
     vertical-align: top;
 }
 
@@ -68,9 +69,9 @@ th,
     font-style: normal;
     font-weight: bold;
     font-size: large;
-    background-color: #98e6e6;
-    border: 1px solid black;
-    border-right: 1px solid black;
+    background-color: #363531;
+    border: 1px solid white;
+    border-right: 1px solid white;
     text-align: center;
 }
 
@@ -78,7 +79,7 @@ th,
     margin: 2px;
     padding: 2px;
     font-size: 9pt;
-    color: midnightblue
+    color: #aeaee4;
 }
 
 #al {
@@ -94,20 +95,22 @@ th,
 }
 
 .rz {
-    border: 1px solid black;
+    border: 1px solid white;
     text-align: left;
-    background-color: #e6ffff;
+    background-color: #363531;
+    color: #cfcfe6;
     vertical-align: top;
     align-self: baseline;
-    height: auto;
-    padding: 2%;
+    height: auto;    
     margin: 0px auto;
+    padding:10px;
 }
 
 div#rz {
-    border: 1px solid black;
+    border: 1px solid white;
     text-align: left;
-    background-color: #e6ffff;
+    background-color:#363531;
+    color:#f3f0e6;
     vertical-align: top;
     align-self: baseline;
     height: auto;
@@ -116,7 +119,7 @@ div#rz {
 }
 
 #tag_FRM {
-    border: 2px solid rgb(148, 205, 231);
+    border: 2px solid #2b3d46;
     padding: 5px;
     text-align: right;
     vertical-align: top;
@@ -129,10 +132,11 @@ img {
 
 #cat_desc {
     position: absolute;
-    border: 2px solid #94cde7;
+    border: 2px solid #9bb6c3;
     padding: 5px;
     text-align: center;
-    background: #ccffff;
+    background: #0f0f0f;
+    color: #d8d8d8;
     margin-top: 15px;
     width: 280px;
     text-decoration-style: wavy;
@@ -142,11 +146,12 @@ img {
     position: fixed;
     float: left;
     margin: 0;
-    border: 2px solid #94cde7;
+    border: 2px solid #9bb6c3;
     padding: 5px;
-    text-align: center;
-    background: #ccffff;
+    text-align: center;    
     margin-left: 90%;
+    color: white;
+    background-color: #363531;
 }
 
 #cat_lst {
@@ -194,13 +199,14 @@ img {
 .ui-menu .ui-menu-item a.ui-state-active {
     margin: -1px;
 }
+
 .ui-icon{
     float:right;
 }
 
 #standalone-container {
     margin-top: 5px;
-    border: 1px solid black;
+    border: 1px solid white;
 }
 
 #editor-container {
@@ -208,12 +214,12 @@ img {
     max-height: 480px;
     border-top: 1px solid gray;
     border-right: 1px solid gray;
-    background-color: #e6ffff;
+    background-color: #363531;
 }
 
 #toolbar-container {
-    border: 1px solid black;
-    background-color: #98e6e6;
+    border: 1px solid white;
+    background-color: #363531;
     margin-bottom: 3px;
 }
 
@@ -222,23 +228,19 @@ img {
     float: right;
 }
 
-#btnRTF {
-    float: right;
-}
-
 .midnight{
-    color:midnightblue;
+   color:#f8f868;
 }
-
 
 a:link {
-    color:#5b06fa;
+  color:#f8f868;
 }
 a:visited {
-color: #065bfa;
+  color: #d2d8d2;
 }
-
 a:hover {
-    color: #2d7081;
-    font-style: oblique;
+  color: #04c7f8;
 }
+a:active {
+    color: #ff7b00;
+} 

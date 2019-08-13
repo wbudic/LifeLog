@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-#
-# Programed in vim by: Will Budic
+# Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 use strict;
 use warnings;
+use Try::Tiny;
+use Switch;
  
 use CGI;
 use CGI::Session '-ip_match';
@@ -13,7 +14,14 @@ use DateTime;
 use DateTime::Format::SQLite;
 use Number::Bytes::Human qw(format_bytes);
 
-our $LOG_PATH    = '../../dbLifeLog/';
+#SETTINGS HERE!
+my $REC_LIMIT = 25;
+my $TIME_ZONE    = 'Australia/Sydney';
+my $LOG_PATH     = '../../dbLifeLog/';
+my $RELEASE_VER  = "";
+my $THEME        = 0;
+my $TH_CSS       = 'main.css';
+#END OF SETTINGS
 
 my $cgi = CGI->new;
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
@@ -23,56 +31,62 @@ my $userid  =$session->param('alias');
 my $password=$session->param('passw');
 
 if(!$userid||!$dbname){
-	print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
-	exit;
+    print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+    exit;
 }
 
-my $database = '../../dbLifeLog/'.$dbname;
-my $dsn= "DBI:SQLite:dbname=$database";
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->". $DBI::errstri ."</p>";
-
-
-
-
+my $database = '../../dbLifeLog/' . $dbname;
+my $dsn      = "DBI:SQLite:dbname=$database";
+my $db       = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } ) or die "<p>Error->" & $DBI::errstri & "</p>";
 my @stat = stat $database;
 
+##################
+&getConfiguration;
+##################
 
-#SETTINGS HERE!
-my $REC_LIMIT = 25;
-my $TIME_ZONE = 'Australia/Sydney';
-#
-#END OF SETTINGS
+
 my $today = DateTime->now;
 $today->set_time_zone( $TIME_ZONE );
 
-my $q = CGI->new;
 
-print $q->header(-expires=>"+6os", -charset=>"UTF-8");
-print $q->start_html(-title => "Log Data Stats", -BGCOLOR=>"#c8fff8",
-       		         -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		             -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
-		             -onload => "loadedBody();"
-		        );	  
+my $BGCOL = '#c8fff8';
+    if ( $THEME eq 'Sun' ) {
+        $BGCOL = '#D4AF37';
+        $TH_CSS = "main_sun.css";
+    }elsif ($THEME eq 'Moon'){
+        $TH_CSS = "main_moon.css";
+        $BGCOL = '#000000';
+
+    }elsif ($THEME eq 'Earth'){
+        $TH_CSS = "main_earth.css";
+        $BGCOL = 'green';
+    }
+
+print $cgi->header(-expires=>"+6os", -charset=>"UTF-8");
+print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>"$BGCOL",
+                       -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+                       -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}                       
+                );	  
 
 
-my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="4"><b>* PERSONAL LOG DATA STATS *</b></td></tr>';
+my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="5"><b>* Personal Log Data Statistics *</b></td></tr>';
 
 my $log_rc = selectSQL('select count(rowid) from LOG;');
-my $stm = "SELECT count(date) from LOG where date>=date('now','start of year');";
-my $log_this_year_rc = selectSQL($stm);
+my ($stm1,$stm2) = "SELECT count(date) from LOG where date>=date('now','start of year');";
+my $log_this_year_rc = selectSQL($stm1);
+my $notes_rc = selectSQL('select count(LID) from NOTES where DOC is not null;');
 
-my $id_expense = selectSQL('SELECT ID from CAT where name like "Expense";');
-my $id_income  = selectSQL('SELECT ID from CAT where name like "Income";');
+#my $id_expense = selectSQL('SELECT ID from CAT where name like "Expense";');
+#my $id_income  = selectSQL('SELECT ID from CAT where name like "Income";');
 
-$stm = 'SELECT sum(ammount) from LOG where date>=date("now","start of year") 
-		AND ID_CAT = '.$id_expense.';';
-my $expense = big_money(sprintf("%.2f",selectSQL($stm)));
+#INCOME
+$stm1 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 1;';
+#EXPENSE
+$stm2 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 2;';
 
-$stm = 'SELECT sum(ammount) from LOG where date>=date("now","start of year") 
-	AND ID_CAT = '.$id_income.';';
-
-my $income =  big_money(sprintf("%.2f",selectSQL($stm)));
-my $revenue = big_money($income - $expense);
+my $expense = big_money(sprintf("%.2f",selectSQL($stm1)));
+my $income =  big_money(sprintf("%.2f",selectSQL($stm2)));
+my $gross = big_money($income - $expense);
 my $hardware_status =`inxi -b -c0;uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;
 $hardware_status =~ s/Memory:/<b>Memory:/g;
@@ -85,37 +99,45 @@ my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; prin
 my  $processes = `$prc | sort -u -r -`;
 #Strip kernel 0 processes reported
 $processes =~ s/\s*0.00.*//gd;
+my $year =$today->year();
  
-$tbl = $tbl . '<tr class="r1"><td>Number of Records:</td><td>'.
- 		$log_rc.'</td></tr>
-		<tr class="r0"><td>No. of Records This Year:</td><td>'.
- 		$log_this_year_rc.'</td></tr>
-		<tr class="r0"><td># Sum of Expenses For Year '.$today->year().
-		'</td><td>'.$expense.'</td></tr>
-		<tr class="r0"><td># Sum of Income For Year '.$today->year().
-		'</td><td>'.$income.'</td></tr>
-		<tr class="r0"><td>Revenue For Year '.$today->year().
-		'</td><td>'.$revenue.'</td></tr>
-		<tr class="r1"><td>'.$database.'</td><td>'.
- 		 (uc format_bytes($stat[7], bs => 1000)).'</td></tr>
+$tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>$RELEASE_VER</td></tr>
+	      <tr class="r0"><td>Number of Records:</td><td>$log_rc</td></tr>
+          <tr class="r1"><td>No. of Records This Year:</td><td>$log_this_year_rc</td></tr>
+          <tr class="r0"><td>No. of RTF Documents:</td><td>$notes_rc</td></tr>
+          <tr class="r1"><td># Sum of Expenses For Year $year</td><td>$expense</td></tr>
+          <tr class="r0"><td># Sum of Income For Year $year</td><td>$income</td></tr>
+          <tr class="r1"><td>Gross For Year $year</td><td>$gross</td></tr>
+          <tr class="r0"><td>$database</td><td>).(uc format_bytes($stat[7], bs => 1000)).q(</td></tr>			
+</table>);
 
-</table>';
+print qq(<div id="menu" title="To close this menu click on its heart, and wait." style="border: 1px solid black;">
+<a class="a_" href="config.cgi">Config</a><hr>
+<a class="a_" href="main.cgi">Log</a><hr>
+<br>
+<a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
+</div>);
 
-print '<div style="float:left; padding:10px;">' . $tbl .'</div>';
-print '<div style="text-align:left;  border: 1px solid black;"><br/><b>Server Info</b><br/><br/>' . $hardware_status .'</div><br>';
-print '<div style="text-align:left;"><br/><b>Processes Info</b><br/><br/><pre>' . $processes .'</pre></div>';
+print qq(<div style="text-align:left; border: 1px solid black; padding:5px;"><h2>Life Log Server Statistics</h2><hr>
+    <span style="text-align:left; float:left; padding:15px;">$tbl<br></span>
+    <span style="text-align:left; margin:1px;  padding-right:15px; float:none;"><b>Server Info</b><hr><br>
+    $hardware_status</span></div>
+<div class="tbl" style="text-align:left; border: 0px; padding:5px; float:none;">
+<b>Server Side Processes</b><hr>
+<pre style="text-align:left;">$processes </pre><div>);
 
-print $q->end_html;
+
+print $cgi->end_html;
 $db->disconnect();
 exit;
 
 sub selectSQL{
 
 
-	my $sth = $db->prepare( @_ );
-	$sth->execute();
-	my @row = $sth->fetchrow_array();
-	$sth->finish;
+    my $sth = $db->prepare( @_ );
+    $sth->execute();
+    my @row = $sth->fetchrow_array();
+    $sth->finish;
 
 return $row[0];
 }
@@ -135,4 +157,30 @@ sub camm {
  1 while $amm =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
 return $amm;
 }
+
+
+
+
+sub getConfiguration {
+    try{
+        my $st = dbExecute('SELECT ID, NAME, VALUE FROM CONFIG;');
+        while (my @r=$st->fetchrow_array()){            
+            switch ($r[1]) {
+                case "RELEASE_VER" { $RELEASE_VER  = $r[2] }
+                case "THEME"       {$THEME= $r[2]}
+            }
+        }
+    }
+    catch{
+        print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+    }
+
+}
+
+sub dbExecute{
+    my $ret	= $db->prepare(shift);
+       $ret->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
+    return $ret;
+}
+
 ### CGI END

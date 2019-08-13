@@ -77,6 +77,7 @@ sudo cpanm CGI::Session;
 sudo cpanm Try::Tiny;
 sudo cpanm Number/Bytes/Human.pm;
 sudo cpanm Regexp::Common;
+sudo cpanm JSON;
 
 #Upgrade Instructions
 

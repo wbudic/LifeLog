@@ -11,6 +11,7 @@ use CGI;
 use CGI::Session '-ip_match';
 use Text::CSV;
 
+our $LOG_PATH    = '../../dbLifeLog/';
 my @zones;
 my $zone;
 open my $fh, '<', '../../dbLifeLog/zone.csv' or die "Cannot open: $!";
@@ -24,10 +25,16 @@ close $fh;
 
 
 my $cgi = CGI->new;
+my $session = new CGI::Session( "driver:File", $cgi, { Directory => $LOG_PATH } );
+my $TH_CSS =  $session->param("theme");
+my $BGCOL  =  $session->param("bgcolor");
+
+
+
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");    
-print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"#c8fff8",
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"$BGCOL",
        		           -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-		               -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+		               -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"},
 	        );
 
 

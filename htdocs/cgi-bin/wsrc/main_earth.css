@@ -51,14 +51,14 @@ th,
 }
 
 .r0 {
-    background-color: #e6ffff;
+    background-color: #e46331;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
 }
 
 .r1 {
-    background-color: #ccffff;
+    background-color: #a5682f;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
@@ -68,8 +68,8 @@ th,
     font-style: normal;
     font-weight: bold;
     font-size: large;
-    background-color: #98e6e6;
-    border: 1px solid black;
+    background-color: #7a3d03;
+    border: 1px solid #16380f;
     border-right: 1px solid black;
     text-align: center;
 }
@@ -96,7 +96,7 @@ th,
 .rz {
     border: 1px solid black;
     text-align: left;
-    background-color: #e6ffff;
+    background-color: #118107;
     vertical-align: top;
     align-self: baseline;
     height: auto;
@@ -107,7 +107,7 @@ th,
 div#rz {
     border: 1px solid black;
     text-align: left;
-    background-color: #e6ffff;
+    background-color: #08fa08;
     vertical-align: top;
     align-self: baseline;
     height: auto;
@@ -116,7 +116,7 @@ div#rz {
 }
 
 #tag_FRM {
-    border: 2px solid rgb(148, 205, 231);
+    border: 2px solid #07750d;
     padding: 5px;
     text-align: right;
     vertical-align: top;
@@ -129,10 +129,10 @@ img {
 
 #cat_desc {
     position: absolute;
-    border: 2px solid #94cde7;
+    border: 2px solid #7a3d03;
     padding: 5px;
     text-align: center;
-    background: #ccffff;
+    background: #c28a4a;
     margin-top: 15px;
     width: 280px;
     text-decoration-style: wavy;
@@ -142,10 +142,10 @@ img {
     position: fixed;
     float: left;
     margin: 0;
-    border: 2px solid #94cde7;
+    border: 2px solid #118107;
     padding: 5px;
     text-align: center;
-    background: #ccffff;
+    background: #c28a4a;
     margin-left: 90%;
 }
 
@@ -194,6 +194,7 @@ img {
 .ui-menu .ui-menu-item a.ui-state-active {
     margin: -1px;
 }
+
 .ui-icon{
     float:right;
 }
@@ -208,12 +209,12 @@ img {
     max-height: 480px;
     border-top: 1px solid gray;
     border-right: 1px solid gray;
-    background-color: #e6ffff;
+    background-color: #118107;
 }
 
 #toolbar-container {
     border: 1px solid black;
-    background-color: #98e6e6;
+    background-color: #118107;
     margin-bottom: 3px;
 }
 
@@ -222,23 +223,20 @@ img {
     float: right;
 }
 
-#btnRTF {
-    float: right;
-}
-
 .midnight{
-    color:midnightblue;
+    color:#adeccc;
 }
 
 
 a:link {
-    color:#5b06fa;
-}
-a:visited {
-color: #065bfa;
-}
-
-a:hover {
-    color: #2d7081;
-    font-style: oblique;
-}
+    color:#f8f868;
+  }
+  a:visited {
+    color: #d2d8d2;
+  }
+  a:hover {
+    color: #04f87e;
+  }
+  a:active {
+      color: #ff7b00;
+  }

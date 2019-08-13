@@ -1,19 +1,31 @@
 /*
- Programed in vim by: Will Budic
+ Programed by: Will Budic
  Open Source License -> https://choosealicense.com/licenses/isc/
 */
 
 var _MAP = new Map();
 var MNU_SCROLLING = false;
-var SRCH_VISIBLE = true;
+
+var QUILL, QUILL_PNL;
+var Delta;
+var RTF_SET = false;
+var CHANGE;
+
+var _show_all = true;
+
+var DEF_BACKGROUND = 'white';
+
+var RTF_DOC_RESIZED = false;
+var RTF_DOC_ORIG;
+
 
 function loadedBody(toggle) {
 
 
-    if (toggle) {
-        toggleSearch($("#btn_srch"));
-    }
 
+    if (toggle) {
+        this.toggle("#div_srh", false);
+    }
     $('#ed').datetimepicker({
         dateFormat: 'yy-mm-dd',
         timeFormat: 'HH:mm:ss',
@@ -23,6 +35,15 @@ function loadedBody(toggle) {
         firstDay: 1
     });
 
+    $('#srh_date_from').datepicker({
+        dateFormat: 'yy-mm-dd',
+        firstDay: 1
+    });
+
+    $('#srh_date_to').datepicker({
+        dateFormat: 'yy-mm-dd',
+        firstDay: 1
+    });
     $('#ed').poshytip({
         content: "Select here date and time of your log.",
         className: 'tip-yellowsimple',
@@ -66,6 +87,8 @@ function loadedBody(toggle) {
 
 
     $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
+    $("#btn_save_doc").button();
+
 
 
     $(window).scroll(function() {
@@ -103,44 +126,69 @@ function loadedBody(toggle) {
 
     $('#ec').show();
 
+    $("#RTF").prop("checked", false);
+    // $('#tbl_doc').toggle();
+    // $('#toolbar-container').toggle();
+    if ($('#editor-container').length) {
+        QUILL = new Quill('#editor-container', {
+            modules: {
+                formula: true,
+                syntax: true,
+                toolbar: '#toolbar-container'
+            },
+            placeholder: 'Enter your Document here...',
+            theme: 'snow'
+        });
+        Delta = Quill.import('delta');
+        CHANGE = new Delta();
+        // toggleDocument();
+    }
+
+
+    DEF_BACKGROUND = RGBToHex($('#editor-container').css('background-color'));
+    $("#fldBG").val(DEF_BACKGROUND);
+
+   // $( function() {        
+        var amf = $( "#amf" );//Amount Field Type dropdown        
+        var ec = $( "#ec" );  //Category dropdown 
+                        
+        $( amf ).selectmenu({style: "dropdown", width:120, 
+          change: function( event, data ) {
+            var evv =ec.val();
+            if(ec.val()<2||evv==32||evv==35||data.item.value == 0){
+                var sel = null;
+                if(data.item.label == "Income"){ sel = 35; }
+                else if(data.item.label == "Expense"){sel = 32; }
+                else if(data.item.value == 0 && (evv == 35||evv==32)){sel = 1; }
+                if(sel){
+                    ec.val(sel);
+                    ec.selectmenu("refresh");
+                }
+            }
+          }});
+    
+
 }
 
-function showFloatingMenu() {
-    $("#menu").show();
-    $("#div_log").toggle();
-    return false;
-}
 
-function hideLog() {
-    $("#div_log").hide();
-    return false;
-}
-
-function hideSrch() {
-    $("#div_srh").hide();
-    return false;
-}
-
-function encodeText(el) {
-    var el = $("#frm_entry");
-    var txt = el.log.value;
+function encodeText(el){
+    var el = $("#frm_entry [name=log]");
+    var txt = el.val();
     txt = txt.replace(/\r\n/g, "\\n");
     txt = txt.replace(/\n/g, "\\n");
-    el.log.value = txt;
+    el.val(txt);
 }
 
 
 function formValidation() {
-
-    var date = document.getElementById("frm_entry").date;
-    var log = document.getElementById("frm_entry").log;
-    var cat = document.getElementById("frm_entry").cat;
-    if (cat.value == 0) {
+    if ($("#ec option:selected").val() == 0) {
         alert("Category -> has not been selected!");
         return false;
     }
+    return validDate($("#frm_entry [name='date']").val()) && validLog($("#frm_entry [name='log']").val());
+}
 
-    return validDate(date.value) && validLog(log.value);
+function formDelValidation() {
 
 }
 
@@ -156,7 +204,7 @@ function validDate(dt) {
 function validTime(val) {
     // regular expression to match required time format
     re = /^(\d{2}):(\d{2}):(\d{2})([ap]m)?$/;
-    var fld = document.getElementById("frm_entry").date;
+    var fld = $("frm_entry").date;
     if (val != '') {
         if (regs = val.match(re)) {
             // 12-hour value between 1 and 12
@@ -204,6 +252,8 @@ function setNow() {
     var dd = fix0(dt.getDate());
     date.value = dt.getFullYear() + "-" + mm + "-" + dd + " " +
         fix0(dt.getHours()) + ":" + fix0(dt.getMinutes()) + ":" + fix0(dt.getSeconds());
+    $("#submit_is_edit").val("0");
+    toggleDoc(true);    
     return false;
 }
 
@@ -214,43 +264,72 @@ function fix0(v) {
     return v;
 }
 
+
+function decodeToHTMLText(txt) {
+
+    txt = txt.replace("/&#60;/g", "<");
+    txt = txt.replace("/&#62;/g", ">");
+    txt = txt.replace("/&#9;/g", "\t");
+    txt = txt.replace(/&#10;/g, "\n");
+    txt = txt.replace(/\\n/g, "\n");
+    txt = txt.replace(/&#34;/g, "\"");
+    txt = txt.replace(/&#39;/g, "'");
+    txt = txt.replace(/br\s*[\/]?>/gi, "\n");
+
+    return txt;
+}
+
+function decodeToText(txt) {
+    txt = txt.replace(/`RTF$/, "");
+    txt = txt.replace(/<br\s*[\/]?>/gi, "\n");
+    return txt;
+}
+
 function edit(row) {
 
-    var ec_v = document.getElementById("c" + row).innerText;
-    var ec = document.getElementById("ec");
+    var ed_v = $("#y" + row); //date
+    var et_v = $("#t" + row); //time    
+    var ea_v = $("#a" + row); //amount
+    var tag = $("#g" + row); //orig. tagged log text.
+    var log = $("#v" + row); //log
+    var rtf = $("#r" + row); //RTF doc
+    var isRTF = (rtf.val()>0?true:false);
+    if(!isRTF){
+            $('#rtf_doc').hide();
+            $('#tbl_doc').hide();
+            $('#toolbar-container').hide();
+    }
 
-    var ed_v = document.getElementById("y" + row);
-    var et_v = document.getElementById("t" + row);
-    var ev_v = document.getElementById("v" + row);
-    var ea_v = document.getElementById("a" + row);
-    var etag = document.getElementById("tag" + row);
+
     $("html, body").animate({ scrollTop: 0 }, "slow");
-    if (etag) {
-        var v = etag.value;
-        v = v.replace(/\\n/g, '\n');
-        document.getElementById("el").value = v;
-    } else {
-        document.getElementById("el").value = ev_v.innerText;
+    if (tag.length) {
+        $("#el").val(decodeToHTMLText(tag.val()));
+
+    } else {    
+        $("#el").val(decodeToText(log.text()));
+    }      
+        
+    $("#ed").val(ed_v.val() + " " + et_v.html()); //Time field
+    var val = ea_v.html();
+    val = val.replace(/\,/g,"");
+    $("#am").val(val); //Amount field, fix 04-08-2019 HTML input doesn't accept formated string.
+    $("#RTF").prop('checked', isRTF);
+
+    if(isRTF){
+        loadRTF(false, row);
     }
-    document.getElementById("ed").value = ed_v.value + " " + et_v.innerText;
-    document.getElementById("am").value = ea_v.innerText;
-    //Change selected category
-    for (var i = 0, j = ec.options.length; i < j; ++i) {
-        if (ec.options[i].innerHTML === ec_v) {
-            ec.selectedIndex = i;
-            break;
-        }
-    }
-    document.getElementById("submit_is_edit").value = row;
-    document.getElementById("frm_entry").log.focus();
+
+    //Select category
+    var ec_v = $("#c" + row).text();
+    $("#ec option:contains(" + ec_v + ")").prop('selected', true);
+    $("#submit_is_edit").val(row);
+    $("#el").focus();
 
     return false;
 }
 
 
-
 function selectAllLogs() {
-    var frm = document.getElementById("frm_log");
     var chks = document.getElementsByName("chk");
     for (var i = 0, n = chks.length; i < n; i++) {
         chks[i].checked = true;
@@ -260,6 +339,7 @@ function selectAllLogs() {
 
 function deleteSelected() {
     $("#del_sel").click();
+    return false;
 }
 
 
@@ -301,31 +381,40 @@ function viewAll() {
     return false;
 }
 
-
-
-function toggleSearch() {
-    $("html, body").animate({ scrollTop: 0 }, "slow");
-    if (SRCH_VISIBLE) {
-        $("#div_srh").show();
-        $("#btn_srch").text("Hide Search");
-        SRCH_VISIBLE = false;
-    } else {
-        $("#div_srh").hide();
-        $("#btn_srch").text("Show Search");
-        SRCH_VISIBLE = true;
+function resizeDoc() {
+    var css = $("#editor-container").prop('style');
+    if(RTF_DOC_RESIZED){
+        RTF_DOC_RESIZED = false;
+        css.height = RTF_DOC_ORIG;
     }
+    else{
+        RTF_DOC_RESIZED = true;
+        RTF_DOC_ORIG = css.height;
+        css.height = '480px';
+    }
+    
+}
+function resetDoc(){
+    if (RTF_SET) {
+        QUILL.setText("");     
+    }
+    $("#submit_is_edit").val("0");
+    toggleDoc(true);
 }
 
+
+
 function resetView() {
-    var f = $("#frm_srch");
-    f.keywords.value = "";
-    $("#idx_cat").value(0);
+    $("#frm_srch input").val("");    
+    $("#idx_cat").val(0);
     $('#vc>option[value="0"]').prop('selected', true);
+
+    $("#frm_srch").submit();
 }
 
 function updateSelCategory(sel) {
     if (sel.id == "ec") {
-        var cat = document.getElementById("idx_cat");
+        var cat = $("#idx_cat");
         cat.value = sel.options[sel.selectedIndex].value;
     }
 }
@@ -337,47 +426,140 @@ function toggleVisibility(target, ensureOff) {
         $(target).hide();
     }
 }
-var _collpsd_toggle = false;
-var _collpsd_toggle2 = false;
 
-function toggleLog() {
-    if (!_collpsd_toggle) {
-        $("#div_log .collpsd").hide();
-        _collpsd_toggle = true;
-    } else {
-        $("#div_log .collpsd").show();
-        _collpsd_toggle = false;
+
+
+
+
+function toggleDoc(whole) {
+
+    
+    if(whole){
+        if($("#RTF").prop('checked')){
+            $("#rtf_doc").show();
+            $('#tbl_doc').show();
+            $('#toolbar-container').show();
+        }
+        else{
+            $("#rtf_doc").hide();
+            $('#tbl_doc').hide();
+            $('#toolbar-container').hide();
+        }
     }
+    else{
+        $("#rtf_doc").toggle();
+    }
+
+    if (!RTF_SET) {
+
+        CHANGE = new Delta();
+        QUILL.on('text-change', function(delta) {
+            CHANGE = CHANGE.compose(delta);
+        });
+
+        setInterval(function() {
+            if (CHANGE.length() > 0) {
+                console.log('Saving changes', CHANGE);
+                /* 
+                Send partial changes
+                $.post('/your-endpoint', { 
+                  partial: JSON.stringify(change) 
+                });
+              
+                Send entire document
+                $.post('/your-endpoint', { 
+                  doc: JSON.stringify(QUILL.getContents())
+                });
+                */
+                CHANGE = new Delta();
+            }
+        }, 10 * 1000);
+        RTF_SET = true;
+    }
+
+
 }
 
-function toggleSrch() {
-    if (!_collpsd_toggle2) {
-        $("#div_srh .collpsd").hide();
-        _collpsd_toggle2 = true;
-    } else {
-        $("#div_srh .collpsd").show();
-        _collpsd_toggle2 = false;
-    }
+
+function hide(id) {
+    $(id).hide();
+    return false;
 }
 
-function showCat() {
-    $('#cat_desc').show();
+function show(id) {
+    $(id).show();
+    return false;
+}
+
+function toggle(id, mtoggle) {
+   //Menu button untoggle it up first. Complex interaction situation.
+    if(mtoggle){        
+        if(!$(id+" .collpsd").is(":visible")){
+            $(id+" .collpsd").show();
+            $(id).show();
+        }
+        else{
+            $(id).toggle();
+        }         
+        
+    }
+    else{    
+        $(id).toggle();
+    }
+    
+    $("html, body").animate({ scrollTop: 0 }, "fast");
+    return false;
+}
+
+
+function showAll() {
+
+   show("#menu");
+
+   if(_show_all){
+        $("#lnk_show_all").text("Hide All");
+        show('#cat_desc');
+        show("#div_log");
+        show("#div_srh");
+        show("#tbl_hlp");
+        show("#tbl_doc");
+        _show_all = false;
+   }
+   else{
+        $("#lnk_show_all").text("Show All");
+        hide('#cat_desc');
+        hide("#div_log");
+        hide("#div_srh");
+        hide("#tbl_hlp");
+        hide("#tbl_doc");
+        _show_all = true;
+   }
+   
+
+   $("html, body").animate({ scrollTop: 0 }, "fast");
+
+    return false;
 }
 
 function helpSelCategory(sel) {
-
+    
     var desc = _MAP.get(sel.options[sel.selectedIndex].value);
     if (!desc) {
         desc = "<font color='red'>Please select a Category!</font>";
     }
-    document.getElementById("cat_desc").innerHTML = desc;
-    $('#cat_desc').show();
-    $('#cat_desc').fadeOut(5000);
+    display(desc);
+}
+
+function display(desc){
+    var pnl = $("#cat_desc");
+    pnl.html(desc);
+    pnl.show();
+    pnl.fadeOut(5000);
 }
 
 function viewByCategory(btn) {
 
-    document.getElementById("rs_keys").value = "";
+    $("#rs_keys").value = "";
 }
 
 function viewByDate(btn) {
@@ -395,4 +577,165 @@ function submitNewCategory() {
 function dateDiffSelected() {
     document.getElementById("datediff").value = 1;
     return true;
+}
+
+function sumSelected() {
+    var chks = document.getElementsByName("chk");
+    var sum = 0;
+    for (var i = 0, n = chks.length; i < n; i++) {
+        if (chks[i].checked) {
+            var par = chks[i].parentNode.parentNode.childNodes;
+            for (var j = 0, nn = par.length; j < nn; j++) {
+                var el = par[j];
+                if (el.id && el.id.indexOf('a', 0) == 0) {
+                    sum = sum + Number(el.innerHTML);
+                    break;
+                }
+            }
+        }
+    }
+    $("#summary").html(sum.toFixed(2));
+    return false;
+}
+
+var RTF_SUBMIT = false;
+
+function saveRTF(id, action) {
+    // alert(JSON.stringify(QUILL.getContents()));
+    var is_submit = (id==-1);
+    if (id < 1) {
+        id = $("#submit_is_edit").val(); 
+    }
+    if(is_submit && !$("#RTF").prop('checked')){
+        return true;//we submit normal log entry
+    }
+    RTF_SUBMIT = true;
+    var bg = $("#fldBG").val();
+    $.post('json.cgi', {action:'store', id:id, bg:bg, doc: JSON.stringify(QUILL.getContents())}, saveRTFResult);
+    if(is_submit){
+        //we must wait before submitting actual form!
+        $("#idx_cat").value = "SAVING DOCUMENT...";
+        $("#idx_cat").show();        
+        setTimeout(delayedSubmit, 200);
+    }
+    return false;    
+}
+
+function delayedSubmit(){
+    if(RTF_SUBMIT){
+        setTimeout(delayedSubmit, 200);
+        return;
+    }
+    $("#frm_entry").submit();
+}
+
+function saveRTFResult(result) {
+    //alert("Result->" + result);
+    console.log("Result->" + result);
+    var obj = JSON.parse(result);
+    //alert(obj.response);  
+    $("html, body").animate({ scrollTop: 0 }, "fast");
+    display(obj.response);
+    if(obj.log_id>0){
+        //update under log display
+        if($("#q-rtf"+obj.log_id).is(":visible")){
+            loadRTF(true, obj.log_id);
+        }
+    }
+    RTF_SUBMIT = false;
+}
+
+function loadRTF(under, id){ 
+    
+    //show under log entry the document
+    if(under){
+        
+
+        if($("#q-rtf"+id).is(":visible")){
+            $("#q-rtf"+id).hide();
+            return false;
+        }
+
+        
+        QUILL_PNL = new Quill('#q-container'+id, {
+            /*
+            modules: {
+              toolbar: [
+                [{ header: [1, 2, false] }],
+                ['bold', 'italic', 'underline'],
+                ['image', 'code-block']
+              ]
+            },*/
+            scrollingContainer: '#q-scroll'+id, 
+            placeholder: 'Loading Document...',
+            readOnly: true,
+            //theme: 'bubble'
+          });         
+
+          $.post('json.cgi', {action:'load', id:id}, loadRTFPnlResult);
+          $("#q-rtf"+id).show();
+        return false;
+    }
+    
+    //var json = "[{'insert': 'Loading Document...', 'attributes': { 'bold': true }}, {'insert': '\n'}]";    
+    QUILL.setText('Loading Document...\n');
+    $.post('json.cgi', {action:'load', id:id}, loadRTFResult);
+    $("#rtf_doc").show();
+    $('#tbl_doc').show();
+    $('#toolbar-container').show();
+    
+    return false;
+}
+
+function loadRTFPnlResult(content, result, prms) {
+    loadRTFResult(content, result, prms, QUILL_PNL);
+}
+
+function loadRTFResult(content, result, prms, quill) {
+    console.log("Result->" + content);
+    var json = JSON.parse(content);
+    if(!quill)quill=QUILL;
+
+    $('#fldbg').val(json.content.bg);
+       quill.setContents(json.content.doc);
+    if(quill===QUILL){
+        $("#fldBG").val(json.content.bg);
+        editorBackground(false);
+    }
+    else{
+        var id = json.content.lid;
+        var css = $("#q-scroll"+id).prop('style'); 
+        css.backgroundColor = json.content.bg
+    }
+    //alert(obj.response);
+}
+
+ 
+
+
+function editorBackground(reset){    
+    var css = $("#editor-container").prop('style');    
+    if(reset){
+        css.backgroundColor = DEF_BACKGROUND;
+        $("#fldBG").val(DEF_BACKGROUND);
+    }
+    else{css.backgroundColor = $("#fldBG").val();}
+}
+
+
+function RGBToHex(rgb) {
+    // Choose correct separator
+    var sep = rgb.indexOf(",") > -1 ? "," : " ";
+    // Turn "rgb(r,g,b)" into [r,g,b]
+    rgb = rgb.substr(4).split(")")[0].split(sep);
+  
+    var r = (+rgb[0]).toString(16),
+        g = (+rgb[1]).toString(16),
+        b = (+rgb[2]).toString(16);
+  
+    if (r.length == 1)  r = "0" + r;
+    if (g.length == 1)  g = "0" + g;
+    if (b.length == 1)  b = "0" + b;
+  
+    return "#" + r + g + b;
 }
