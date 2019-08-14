@@ -411,7 +411,10 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
                     $b = $FRAME_SIZE;
                 }
             }
-            $b = "<iframe $b";
+            $b = qq(<div><iframe align="center" $b);
+            $log =~ s/$a/$b/o;
+            $a = q(</iframe>);
+            $b = q(</iframe></div>);
             $log =~ s/$a/$b/o;
             $tagged = 1;
         }
