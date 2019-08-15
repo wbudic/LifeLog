@@ -1,14 +1,12 @@
-# LifeLog
+#LifeLog
 
 
 Web Application that keeps an everyday CGI accessible log of database entries of various categories.
-Preferably on an small inexpensive server connected to your local network.
-=======
-Web Application that keeps an everyday CGI accessible log of database entries of various categories. And much more. It is preferably to be run  on an small inexpensive server, connected to your local network.
+Preferably on a small inexpensive server connected to your local network.
 
 Written in Perl, easy to implement and modify.
 
-Latest  version **1.5 release**  near Sun stable stage, requiring some Perl knowledge to install and enable, tweak. The main application sources are located in the ../htdocs/cgi-bin directory.
+Latest  version is **1.5 release** in **Sun** stable stage, requiring some Perl knowledge to install and enable, tweak. The main application sources are located in the ../htdocs/cgi-bin directory. Current unstable, development ver. 1.6 is in the GIT branch. The development and features are stable progressive, starting from Moon, Sun and finally Earth stable stage. This application was and is usable since its Moon stage.
 
 https://www.sqlite.org/index.html database is required to run this web application.
 
