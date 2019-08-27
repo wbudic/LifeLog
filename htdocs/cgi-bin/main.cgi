@@ -30,7 +30,7 @@ our $PRC_WIDTH    = '60';
 our $LOG_PATH     = '../../dbLifeLog/';
 our $SESSN_EXPR   = '+30m';
 our $DATE_UNI     = '0';
-our $RELEASE_VER  = '1.5';
+our $RELEASE_VER  = '1.6';
 our $AUTHORITY    = '';
 our $IMG_W_H      = '210x120';
 our $AUTO_WRD_LMT = 1000;
@@ -321,7 +321,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
         if ( $af == 1 ) { #AFLAG Income
             $sum += $am;
         }
-        elsif ( $af == 2 ) {            
+        elsif ( $af == 2 ) {
             $exp -= $am;
         }
         else{
@@ -536,6 +536,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 		<td id="c$id" width="10%" class="tbl">$ct</td>
 		<td width="20%">
         <input id="r$id" type="hidden" value="$rtf"/>
+        <input id="f$id" type="hidden" value="$af"/>
 			<button class="edit" value="Edit" onclick="return edit($id);">Edit</button>
 			<input name="chk" type="checkbox" value="$id"/>
 		</td></tr>);

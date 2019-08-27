@@ -162,7 +162,7 @@ function loadedBody(toggle) {
                 else if(data.item.value == 0 && (evv == 35||evv==32)){sel = 1; }
                 if(sel){
                     ec.val(sel);
-                    ec.selectmenu("refresh");
+                   // ec.selectmenu("refresh");
                 }
             }
           }});
@@ -288,11 +288,12 @@ function decodeToText(txt) {
 function edit(row) {
 
     var ed_v = $("#y" + row); //date
-    var et_v = $("#t" + row); //time    
+    var et_v = $("#t" + row); //time
     var ea_v = $("#a" + row); //amount
-    var tag = $("#g" + row); //orig. tagged log text.
-    var log = $("#v" + row); //log
-    var rtf = $("#r" + row); //RTF doc
+    var tag  = $("#g" + row); //orig. tagged log text.
+    var log  = $("#v" + row); //log
+    var rtf  = $("#r" + row); //RTF doc
+    var amf  = $("#f" + row); //Amount type.
     var isRTF = (rtf.val()>0?true:false);
     if(!isRTF){
             $('#rtf_doc').hide();
@@ -305,10 +306,10 @@ function edit(row) {
     if (tag.length) {
         $("#el").val(decodeToHTMLText(tag.val()));
 
-    } else {    
+    } else {
         $("#el").val(decodeToText(log.text()));
-    }      
-        
+    }
+
     $("#ed").val(ed_v.val() + " " + et_v.html()); //Time field
     var val = ea_v.html();
     val = val.replace(/\,/g,"");
@@ -323,6 +324,13 @@ function edit(row) {
     var ec_v = $("#c" + row).text();
     $("#ec option:contains(" + ec_v + ")").prop('selected', true);
     $("#submit_is_edit").val(row);
+
+
+    ec_v = amf.val();
+    $("#amf").focus();
+    $("#amf").val(ec_v);
+    $("#amf").selectmenu('refresh');
+
     $("#el").focus();
 
     return false;
@@ -584,13 +592,15 @@ function sumSelected() {
     var sum = 0;
     for (var i = 0, n = chks.length; i < n; i++) {
         if (chks[i].checked) {
-            var par = chks[i].parentNode.parentNode.childNodes;
-            for (var j = 0, nn = par.length; j < nn; j++) {
-                var el = par[j];
-                if (el.id && el.id.indexOf('a', 0) == 0) {
-                    sum = sum + Number(el.innerHTML);
-                    break;
-                }
+            var id = chks[i].value;
+            var am = $("#a"+id).text();
+            var ty = $("#c"+id).text();
+            am = am.replace(/\,/g,"");//rem formatting
+            if(ty=='Expense'){
+                sum = sum - Number(am);
+            }
+            else{
+                sum = sum + Number(am);
             }
         }
     }
@@ -713,7 +723,7 @@ function loadRTFResult(content, result, prms, quill) {
  
 
 
-function editorBackground(reset){    
+function editorBackground(reset){
     var css = $("#editor-container").prop('style');    
     if(reset){
         css.backgroundColor = DEF_BACKGROUND;
