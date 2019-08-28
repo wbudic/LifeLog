@@ -5,7 +5,7 @@ This is an Open Source License project -> https://choosealicense.com/licenses/is
 Credential format:<<AUTO_LOGIN <{alias}/{password}> , must be enabled option.
 <<AUTO_LOGIN<admin/admin>
 <<CONFIG<4>
-00|$RELEASE_VER = 1.5`LifeLog Application Version.
+00|$RELEASE_VER = 1.6`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
 03|$TIME_ZONE   = Australia/Sydney`Time zone of your country.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.
@@ -73,5 +73,7 @@ PRAGMA foreign_keys = 1;
 
 UPDATE LOG SET AFLAG=1 WHERE ID_CAT=%INCOME_ID%;
 UPDATE LOG SET AFLAG=2 WHERE ID_CAT=%EXPENSE_ID%;
+
+
 
 

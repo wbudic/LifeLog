@@ -264,16 +264,19 @@ sub getConfigurationForRemove{
 sub getTheme{
 
 
-    if ( $THEME eq 'Sun' ) {
-        $BGCOL = '#D4AF37';
-        $TH_CSS = "main_sun.css";
-    }elsif ($THEME eq 'Moon'){
-        $TH_CSS = "main_moon.css";
-        $BGCOL = '#000000';
+if ( $THEME eq 'Sun' ) {
+    $BGCOL  = '#D4AF37';
+    $TH_CSS = "main_sun.css";
+}
+elsif ( $THEME eq 'Moon' ) {
+    $TH_CSS = "main_moon.css";
+    $BGCOL  = '#000000';
+}
+elsif ( $THEME eq 'Earth' ) {
+    $TH_CSS = "main_earth.css";
+    $BGCOL  = 'green';
+}
 
-    }elsif ($THEME eq 'Earth'){
-        $TH_CSS = "main_earth.css";
-        $BGCOL = 'green';
-    }
+
 
 }

@@ -19,6 +19,7 @@
 }
 .tip-yellowsimple .tip-inner {
 	font:12px/16px arial,helvetica,sans-serif;
+	color:#000;
 }
 
 /* Configure an arrow image - the script will automatically position it on the correct side of the tip */
@@ -29,6 +30,7 @@
 	left:50%;
 	width:9px;
 	height:6px;
+	color:#000;
 	background:url(tip-yellowsimple_arrows.gif) no-repeat;
 }
 .tip-yellowsimple .tip-arrow-right {
@@ -38,6 +40,7 @@
 	left:100%;
 	width:6px;
 	height:9px;
+	color:#000;
 	background:url(tip-yellowsimple_arrows.gif) no-repeat -9px 0;
 }
 .tip-yellowsimple .tip-arrow-bottom {
@@ -47,6 +50,7 @@
 	left:50%;
 	width:9px;
 	height:6px;
+	color:#000;
 	background:url(tip-yellowsimple_arrows.gif) no-repeat -18px 0;
 }
 .tip-yellowsimple .tip-arrow-left {
@@ -56,5 +60,6 @@
 	left:0;
 	width:6px;
 	height:9px;
+	color:#000;
 	background:url(tip-yellowsimple_arrows.gif) no-repeat -27px 0;
 }
