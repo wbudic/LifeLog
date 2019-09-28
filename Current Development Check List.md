@@ -1,4 +1,4 @@
-# Branch Development LifeLog in Perl - Sun Stage v. 1.5
+# Branch Development LifeLog in Perl - Sun Stage v. 1.6
 
 *This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
@@ -52,7 +52,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 
 ## New Features of Minor Relevance
-* Provide Themes
+* Provide Exclude an Category View (if posible multiple categories). Should have option to session or not.
+* &#10004; Provide Themes
 * Enable sticky log entries
 * Enable file attachment to log entries.
 * Enable Armour Mode
@@ -68,12 +69,16 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Add category description column and page, view and editing.
 
 ## Bugs
-* &#10004; Bug - 01, date validation for proper entered time, there is no 24 h.
+* Bug -06, Invalid Time 00. Javascript error thrown, when 00am used.
+* &#10004; Bug - 05, CRLF and apostrophe replacement not working.
+* &#10004; Bug - 04, Local not picked up properly on current date.
+* &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
 * &#10004; Bug - 02, Record set paging to previous page not always working. Getting stuck.
 >> This occurs on new records placed in the far past. Complex problem.
-* &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
-* &#10004; Bug - 04, Local not picked up properly on current date.
-* &#10004; Bug - 05, CRLF and apostrophe replacement not working.
+* &#10004; Bug - 01, date validation for proper entered time, there is no 24 h.
+
+
+
 ***
 
 ** Checked (&#10004;) Are items that have been done and submitted to the branch.**
