@@ -42,12 +42,12 @@ my $BGCOL = '#c8fff8';
 #END OF SETTINGS
 
 my $cgi = CGI->new;
-my $session =
+my $sss =
   new CGI::Session( "driver:File", $cgi, { Directory => $LOG_PATH } );
-my $sid      = $session->id();
-my $dbname   = $session->param('database');
-my $userid   = $session->param('alias');
-my $password = $session->param('passw');
+my $sid      = $sss->id();
+my $dbname   = $sss->param('database');
+my $userid   = $sss->param('alias');
+my $password = $sss->param('passw');
 
 if ($AUTHORITY) {
     $userid = $password = $AUTHORITY;
@@ -65,7 +65,7 @@ my $db       = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } )
 
 my ( $imgw, $imgh );
 
-### Authenticate session to alias password
+### Authenticate sss to alias password
 &authenticate;
 &getConfiguration($db);
 
@@ -75,6 +75,7 @@ my $log_cur_id;
 my $rs_keys     = $cgi->param('keywords');
 my $rs_cat_idx  = $cgi->param('category');
 my $prm_vc      = $cgi->param("vc");
+my $prm_xc      = $cgi->param("xc");
 my $rs_dat_from = $cgi->param('v_from');
 my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
@@ -102,12 +103,12 @@ if ( $rs_dat_from && $rs_dat_to ) {
 
 #Toggle if search deployed.
 my $toggle = "";
-if ( $rs_keys || $rs_cat_idx || $stmD || $prm_vc > 0 ) { $toggle = 1; }
+if ( $rs_keys || $rs_cat_idx || $stmD || $prm_vc > 0 || $prm_xc > 0) { $toggle = 1; }
 
-$session->expire($SESSN_EXPR);
-$session->param('theme', $TH_CSS);
-$session->param('bgcolor', $BGCOL);
-$session->flush();
+$sss->expire($SESSN_EXPR);
+$sss->param('theme', $TH_CSS);
+$sss->param('bgcolor', $BGCOL);
+$sss->flush();
 
 #tag related framed sizing.
 my @arrwh = split /x/, $IMG_W_H;
@@ -180,7 +181,7 @@ $st = $db->prepare($stmtCat);
 $rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
 
 my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec" 
- onFocus="show('#cat_desc');" 
+ onFocus="show('#cat_desc');"
  onBlur="helpSelCategory(this);" 
  onScroll="helpSelCategory(this);updateSelCategory(this)" 
  onChange="updateSelCategory(this)">
@@ -189,8 +190,10 @@ my %hshCats;
 my %hshDesc = {};
 my $c_sel   = 1;
 my $cats_v  = $cats;
-my $cat_descriptions = "";
+my $cats_x  = $cats;
+my $cat_desc = "";
 $cats_v =~ s/\"ec\"/\"vc\"/g;
+$cats_x =~ s/\"ec\"/\"xc\"/g;
 while ( my @row = $st->fetchrow_array() ) {
     if ( $row[0] == $c_sel ) {
         $cats .= qq(<option selected value="$row[0]">$row[1]</option>\n);
@@ -204,17 +207,24 @@ while ( my @row = $st->fetchrow_array() ) {
     else {
         $cats_v .= qq(<option value="$row[0]">$row[1]</option>\n);
     }
+    if ( $row[0] == $prm_xc ) {
+        $cats_x .= qq(<option selected value="$row[0]">$row[1]</option>\n);
+    }
+    else {
+        $cats_x .= qq(<option value="$row[0]">$row[1]</option>\n);
+    }
     $hshCats{ $row[0] } = $row[1];
     $hshDesc{ $row[0] } = $row[2];
 }
 
 $cats .= '</select>';
 $cats_v .= '</select>';
+$cats_x .= '</select>';
 
 for my $key ( keys %hshDesc ) {
     my $kv = $hshDesc{$key};
     if ( $kv ne ".." ) {
-        $cat_descriptions .= qq(<li id="$key">$kv</li>\n);
+        $cat_desc .= qq(<li id="$key">$kv</li>\n);
     }
 }
 my $log_output =
@@ -235,11 +245,13 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     if ( $rs_keys && $rs_keys ne '*' ) {
 
         my @keywords = split / /, $rs_keys;
-        if ($rs_cat_idx) {
+        if ($rs_cat_idx && $rs_cat_idx != $prm_xc) {
             $stmS = $stmS . " ID_CAT='" . $rs_cat_idx . "' AND";
         }
         else {
-            $stmS = $stmS . " ID_CAT='0' OR";
+            if($prm_xc>0){
+                $stmS = $stmS . " ID_CAT!=$prm_xc AND";
+            }
         }
         if ($stmD) {
             $stmS = $stmS . $stmD . " AND";
@@ -255,7 +267,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
             $stmt = $stmS . $stmE;
         }
     }
-    elsif ($rs_cat_idx) {
+    elsif ($rs_cat_idx && $rs_cat_idx != $prm_xc) {
 
         if ($stmD) {
             $stmt = $stmS . $stmD . " AND ID_CAT='" . $rs_cat_idx . "'" . $stmE;
@@ -265,6 +277,9 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
         }
     }
     else {
+        if($prm_xc>0){
+            $stmt = $stmS . " ID_CAT!=$prm_xc";
+        }
         if ($stmD) {
             $stmt = $stmS . $stmD . $stmE;
         }
@@ -651,7 +666,7 @@ _TXT
 	<table class="tbl" border="0" width="$PRC_WIDTH%">
 	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b>
     <a id="log_close" href="#" onclick="return hide('#div_log');">$sp1</a>
-    <a id="log_close" href="#" onclick="return toggle('#div_log .collpsd');">$sp2</a>    
+    <a id="log_close" href="#" onclick="return toggle('#div_log .collpsd');">$sp2</a>
     </td></tr>	
 	<tr class="collpsd">
 	<td style="text-align:right; vertical-align:top; width:10%;">Date:</td>
@@ -704,7 +719,7 @@ _TXT
 	  <tr class="r0">
         <td colspan="2"><b>Search/View By</b>
             <a id="srch_close" href="#" onclick="return hide('#div_srh');">$sp1</a>
-            <a id="srch_close" href="#" onclick="return toggle('#div_srh .collpsd');">$sp2</a>                        
+            <a id="srch_close" href="#" onclick="return toggle('#div_srh .collpsd');">$sp2</a>
         </td>
       </tr>
 );
@@ -732,9 +747,18 @@ _TXT
 	<td align="left">
 		<input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/>
 		&nbsp;&nbsp;<input type="submit" value="Search" align="left">
-    </td></tr>);
+    </td></tr>
+    <tr class="collpsd">
+     <td align="right"><b>Exclude Category:</b></td>
+     <td align="left">
+        $cats_x &nbsp;&nbsp;
+        <button id="btn_cat" onclick="viewExcludeCategory(this);">View</button>
+        <input id="idx_cat_x" name="category" type="hidden" value="0"/>
+     </td>
 
-    if ( ( $rs_keys && $rs_keys ne '*' ) || $rs_cat_idx || $stmD ) {
+    );
+
+    if ( ( $rs_keys && $rs_keys ne '*' ) || $rs_cat_idx || $stmD || $prm_xc ) {
         $sm_reset_all =
           '<a class="a_" onclick="resetView();">Reset View</a><hr>';
 
@@ -781,7 +805,7 @@ $sm_reset_all
 	);
     print qq(
 <ul id="cat_lst">
-	$cat_descriptions
+	$cat_desc
 </ul>	
 			  <script type="text/javascript">
 					\$( function() {
@@ -797,7 +821,7 @@ $sm_reset_all
     print $cgi->end_html;
     $st->finish;
     $db->disconnect();
-    undef($session);
+    undef($sss);
     exit;
 
 =comm
@@ -1038,7 +1062,7 @@ sub authenticate {
             print $cgi->end_html;
 
             $db->disconnect();
-            $session->flush();
+            $sss->flush();
             exit;
 
         }

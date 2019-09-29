@@ -52,7 +52,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 
 ## New Features of Minor Relevance
-* Provide Exclude an Category View (if posible multiple categories). Should have option to session or not.
+* &#10004; Provide Exclude an Category View (if posible multiple categories). Should have option to session or not.
 * &#10004; Provide Themes
 * Enable sticky log entries
 * Enable file attachment to log entries.
@@ -69,7 +69,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Add category description column and page, view and editing.
 
 ## Bugs
-* Bug -06, Invalid Time 00. Javascript error thrown, when 00am used.
+* &#10004; Bug -06, Invalid Time 00. Javascript error thrown, when 00am used.
 * &#10004; Bug - 05, CRLF and apostrophe replacement not working.
 * &#10004; Bug - 04, Local not picked up properly on current date.
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
