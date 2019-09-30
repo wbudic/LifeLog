@@ -189,7 +189,8 @@ try{
              LOG VCHAR(128) NOT NULL,
              AMOUNT INTEGER DEFAULT 0,
              AFLAG TINY DEFAULT 0,
-             RTF BOOL DEFAULT 0
+             RTF BOOL DEFAULT 0,
+             STICKY;
         );
         CREATE INDEX idx_log_dates ON LOG (DATE);
         );
