@@ -61,7 +61,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Add other categories. i.e. Work, Recurring.
 * &#10004; Add category description column and page, view and editing.
 
-##LifeLog RTF Documents using Quill Javascript RTF API
+## LifeLog RTF Documents using Quill Javascript RTF API
 
 *&#10004; Separate JSON service page.
 >* Provide for file attachments. 
