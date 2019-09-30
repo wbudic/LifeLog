@@ -66,22 +66,17 @@ my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>
 my $rv;
 my $dbs;
 my $today  = DateTime->now;
-my $lang  = Date::Language->new($LANGUAGE);
+my $lang   = Date::Language->new($LANGUAGE);
 my $tz     = $cgi->param('tz');
 my $csvp   = $cgi->param('csv');
    
-     switch ($csvp){
-                case "1" {&exportLogToCSV}
-                case "2" {&exportLogToCSV}
-                case "3" {&exportCategoriesToCSV}
-                case "4" {&exportCategoriesToCSV}
-     }
+&exportToCSV if ($csvp);
 
-    if($cgi->param('data_cat')){
-            &importCatCSV;
-     }elsif($cgi->param('data_log')){
-            &importLogCSV;
-     }  
+if($cgi->param('data_cat')){
+    &importCatCSV;
+}elsif($cgi->param('data_log')){
+    &importLogCSV;
+}
         
 #####################
     &getConfiguration;
@@ -338,42 +333,44 @@ my  $frmPASS = qq(
 print qq(
 <a name="top"></a><center>
     <div>$frm</div>
-  <div>$frmVars</div>
+    <div>$frmVars</div>
     <div>$frmDB</div>
     <div>$frmPASS</div>
     <div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
-                <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a></div>		
-            <br><div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
-            <a href="main.cgi"><h3>Back to Main Log</h3></a><h3><a href="login_ctr.cgi?logout=bye">LOGOUT</a></h3></div>
-            <br><hr> 
-            
-            <table border="0">
-                <tr><td><H3>CSV File Format</H3></td></tr> 
-                <form action="config.cgi" method="post" enctype="multipart/form-data"> 
+                <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a>
+    </div>
+    <br>
+    <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:$BGCOL">
+            <table border="0" width="100%">
+                <tr><td><H3>CSV File Format</H3></td></tr>
+                <form action="config.cgi" method="post" enctype="multipart/form-data">
                 <tr style="border-left: 1px solid black;"><td> 
                         <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr> 
                 <tr style="border-left: 1px solid black;"><td style="text-align:right;">
-                        <input type="submit" name="Submit" value="Submit"/></td></tr> 
-                </form> 
-                <form action="config.cgi" method="post" enctype="multipart/form-data"> 
-                <tr style="border-top: 1px solid black;border-right: 1px solid black;"><td> 
-                        <b>Import Log</b>: <input type="file" name="data_log" /></td></tr> 
-                <tr style="border-right: 1px solid black;"><td style="text-align:right;"> 
-                        <input type="submit" name="Submit" value="Submit"/></td></tr> 
-                </form> 
-                    <tr><td style="text-align:right"><H3>To Server -> $sys -> $dbname</H3></td></tr>
-            </table>
+                        <input type="submit" name="Submit" value="Submit"/></td>
+                </tr>
+                </form>
+                <tr><td><b>Export Categories:</b>
+                                           <input type="button" onclick="return exportToCSV('cat',0);" value="Export"/>&nbsp;
+                                           <input type="button" onclick="return exportToCSV('cat',1);" value="View"/>
+                </td></tr>
+                <form action="config.cgi" method="post" enctype="multipart/form-data">
+                <tr style="border-top: 1px solid black;border-right: 1px solid black;"><td>
+                        <b>Import Log</b>: <input type="file" name="data_log" /></td></tr>
+                <tr style="border-right: 1px solid black;"><td style="text-align:right;">
+                        <input type="submit" name="Submit" value="Submit"/></td></tr>
+                </form>
+                <tr><td><b>Export Log:</b>
+                                           <input type="button" onclick="return exportToCSV('log',0);" value="Export"/>&nbsp;
+                                           <input type="button" onclick="return exportToCSV('log',1);" value="View"/>
+                </td></tr>
+                <tr><td style="text-align:right"><H3>For Server -> $sys -> $dbname</H3></td></tr>
+            </table><br><a href="#top">&#x219F;&nbsp;Go to Top of page</a>
     </div>
-                    
-                    <br><div><a href="#top">&#x219F;</a>&nbsp;&nbsp;&nbsp;[<a href="config.cgi?csv=1">Export Log to CSV</a>] &nbsp;
-                     [<a href="config.cgi?csv=2">View the Log in CSV Format</a>]</div> 					
-                    <br><div>[<a href="config.cgi?csv=3">Export Categories to CSV</a>] &nbsp;
-                    [<a href="config.cgi?csv=4">View the Categories in CSV Format</a>]</div> 
-                    <hr>
+   <hr>
 
-                    <center>
-                    <div id="rz" style="text-align:left; position:relative;width:640px; padding:10px;">
-                    <h2>L-Tags Specs</h2>					
+    <div id="rz" style="text-align:left; position:relative;width:640px; padding:10px;">
+                    <h2>L-Tags Specs</h2>
                     <p>
                     Life Log Tags are simple markup allowing fancy formatting and functionality 
                     for your logs HTML layout.
@@ -424,9 +421,12 @@ print qq(
                     </div>
                     </center><a name="bottom"></a><a href="#top">&#x219F;</a>
                     <hr>
-    );
-
-print '</center>';
+</div>
+<br>
+<div>
+            <a href="main.cgi"><h3>Back to Main Log</h3></a><h3><a href="login_ctr.cgi?logout=bye">LOGOUT</a></h3>
+</div>
+);
 
 
 print $cgi->end_html;
@@ -913,56 +913,34 @@ sub updCnf {
     }
 }
 
-sub exportLogToCSV {
-    try{
-          
-        my $csv = Text::CSV->new ( { binary => 1, strict => 1 , quote_space=>1, auto_diag => 1, eol => $/} ); 		  
-        $dbs = dbExecute("SELECT * FROM LOG;");
-        if($csvp==2){
-                 print $cgi->header(-charset=>"UTF-8", -type=>"text/html");	
-                 print "<pre>\n";
-            }
-            else{
-                 print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.csv");
-            }
-            
-         # print "ID_CAT,DATE,LOG,AMOUNT, AFLAG\n";
-            while (my $r=$dbs->fetchrow_arrayref()){ 
-                         print $csv->print(*STDOUT, $r)."\n";
-            }
-            if($csvp==1){			
-                 print "</pre>";
-            }
-            $dbs->finish();
-            $db->disconnect();
-            exit;
-    }
-    catch{
-        print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
-    }
-}
 
-sub exportCategoriesToCSV {
+sub exportToCSV {
     try{
-          
         my $csv = Text::CSV->new ( { binary => 1, strict => 1,eol => $/ } );
-        $dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
-        if($csvp==4){
-                 print $cgi->header(-charset=>"UTF-8", -type=>"text/html");	
+        if($csvp > 2){
+           $dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
+        }
+        else{
+           $dbs = dbExecute("SELECT * FROM LOG;");
+        }
+
+        if($csvp==2 || $csvp==4){
+                 print $cgi->header(-charset=>"UTF-8", -type=>"text/html");
                  print "<pre>\n";
         }
         else{
          print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.categories.csv");
         }
-            
+
         #print "ID,NAME,DESCRIPTION\n";
-        while (my $row=$dbs->fetchrow_arrayref()){ 
-                print $csv->print(*STDOUT, $row),"\n";
+        while (my $row=$dbs->fetchrow_arrayref()){
+               my $out = $csv->print(*STDOUT, $row);
+                  print $out if(length $out>1);
         }
-        if($csvp==4){			
+        if($csvp==2 || $csvp==4){
              print "</pre>";
-        }				
-        $dbs->finish();		
+        }
+        $dbs->finish();
         $db->disconnect();
         exit;
     }

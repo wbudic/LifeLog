@@ -207,8 +207,8 @@ function validTime(val) {
     var fld = $("frm_entry").date;
     if (val != '') {
         if (regs = val.match(re)) {
-            // 12-hour value between 1 and 12
-            if (regs[1] < 1 || regs[1] > 23) {
+            // 12-hour value between 0 and 24
+            if (regs[1] < 0 || regs[1] > 23) {
                 alert("Invalid value for hours: " + regs[1]);
                 fld.focus();
                 return false;
@@ -236,7 +236,6 @@ function validTime(val) {
 
 function validLog(log) {
     if (log == "") {
-
         alert("Log -> entry can't be empty, can't submit!");
         return false;
     }
@@ -416,6 +415,7 @@ function resetView() {
     $("#frm_srch input").val("");    
     $("#idx_cat").val(0);
     $('#vc>option[value="0"]').prop('selected', true);
+    $('#xc>option[value="0"]').prop('selected', true);
 
     $("#frm_srch").submit();
 }
@@ -566,8 +566,12 @@ function display(desc){
 }
 
 function viewByCategory(btn) {
-
     $("#rs_keys").value = "";
+    $("#vx").value = "0";
+}
+function viewExcludeCategory(btn) {
+    $("#rs_keys").value = "";
+    $("#xc").value = "0";
 }
 
 function viewByDate(btn) {
@@ -655,7 +659,7 @@ function saveRTFResult(result) {
     RTF_SUBMIT = false;
 }
 
-function loadRTF(under, id){ 
+function loadRTF(under, id){
     
     //show under log entry the document
     if(under){
@@ -749,3 +753,13 @@ function RGBToHex(rgb) {
   
     return "#" + r + g + b;
 }
+
+
+function exportToCSV(dat, view){
+    var csv;
+    if(dat == 'cat'){  csv = view ? 4:3;  }
+    else
+    if(dat == 'log'){  csv = view ? 2:1;  }
+    window.location = "config.cgi?csv="+csv;
+}
+
