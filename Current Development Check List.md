@@ -44,7 +44,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 
 ## New Features of Minor Relevance
-* Config Export of Log and Categories to be provided as a button.
+* &#10004; Config Export of Log and Categories to be provided as a button.
+*Theme colours to be revisited, bettered.
 * &#10004; Provide Exclude an Category View (if posible multiple categories). Should have option to session or not.
 * &#10004; Provide Themes
 * Enable sticky log entries
