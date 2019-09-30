@@ -4,7 +4,7 @@
 
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
-##LifeLog 
+## LifeLog 
 
 * Some System settings to be stored in session. As these are  known even before logon.
 > i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
@@ -22,16 +22,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 *&#10004; Sum selected, income, expense, totals. 
 *&#10004; Sum on view.
 
-##LifeLog RTF Documents using Quill Javascript RTF API
 
-*&#10004; Separate JSON service page.
->* Provide for file attachments. 
-> &#10004; Display in log, read only RTF on click of button.
-> &#10004; Uses compressed RTF Documents in a Notes tabe.
->&#10004; Deletion of log, deletes the document.
-
- 
-## URGENT FIXES AND KNOWN ISSUES
+## Urgent FIXES and Known Issuses
 &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 &#10004; View by Date - search not showing current month entries.
 
@@ -52,6 +44,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 
 ## New Features of Minor Relevance
+* Config Export of Log and Categories to be provided as a button.
 * &#10004; Provide Exclude an Category View (if posible multiple categories). Should have option to session or not.
 * &#10004; Provide Themes
 * Enable sticky log entries
@@ -68,8 +61,16 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Add other categories. i.e. Work, Recurring.
 * &#10004; Add category description column and page, view and editing.
 
+##LifeLog RTF Documents using Quill Javascript RTF API
+
+*&#10004; Separate JSON service page.
+>* Provide for file attachments. 
+> &#10004; Display in log, read only RTF on click of button.
+> &#10004; Uses compressed RTF Documents in a Notes tabe.
+>&#10004; Deletion of log, deletes the document.
+
 ## Bugs
-* &#10004; Bug -06, Invalid Time 00. Javascript error thrown, when 00am used.
+* &#10004; Bug - 06, Invalid Time 00. Javascript error thrown, when 00am used.
 * &#10004; Bug - 05, CRLF and apostrophe replacement not working.
 * &#10004; Bug - 04, Local not picked up properly on current date.
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
