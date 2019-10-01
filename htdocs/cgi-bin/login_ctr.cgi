@@ -190,7 +190,7 @@ try{
              AMOUNT INTEGER DEFAULT 0,
              AFLAG TINY DEFAULT 0,
              RTF BOOL DEFAULT 0,
-             STICKY;
+             STICKY BOOL DEFAULT 0;
         );
         CREATE INDEX idx_log_dates ON LOG (DATE);
         );

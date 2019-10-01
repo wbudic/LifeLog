@@ -5,7 +5,8 @@
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
 ## LifeLog 
-
+* Implement sticky log entries.
+* $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
 * Some System settings to be stored in session. As these are  known even before logon.
 > i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
 
@@ -71,6 +72,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 >&#10004; Deletion of log, deletes the document.
 
 ## Bugs
+* Bug - 07, Editing and RTF entry, Dosen't strip the attached html to view in place.
 * &#10004; Bug - 06, Invalid Time 00. Javascript error thrown, when 00am used.
 * &#10004; Bug - 05, CRLF and apostrophe replacement not working.
 * &#10004; Bug - 04, Local not picked up properly on current date.
