@@ -278,7 +278,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     }
     else {
         if($prm_xc>0){
-            $stmt = $stmS . " ID_CAT!=$prm_xc";
+            $stmt = $stmS . " ID_CAT!=$prm_xc" . $stmE;
         }
         if ($stmD) {
             $stmt = $stmS . $stmD . $stmE;
@@ -290,7 +290,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 ###############
     #
     # Uncomment bellow to see main query statement issued!
-    #print $cgi->pre("### -> ".$stmt);
+    # print $cgi->pre("### -> ".$stmt);
     #
     my $tfId      = 0;
     my $id        = 0;

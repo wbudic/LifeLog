@@ -11,23 +11,18 @@ This version is not compatible in data structure to prior versions. Data migrati
 > i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
 
 *&#10004; Dropdown for type of log amount (Mark as Expense). Default is Asset. Asset is neither, income or expense.
-
-
 *&#10004; Implement RTF Documents.
 > Useful as more document style formated details can be added instead of just plain text.
-
 *&#10004; Preserve Search view selections. After edits and submit.
 > * &#10004; Preserve from to date selections.
 > * &#10004; Date View not working on Local entered date format.
-
 *&#10004; Sum selected, income, expense, totals. 
-*&#10004; Sum on view.
+&#10004; Sum on view.
 
 
 ## Urgent FIXES and Known Issuses
 &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 &#10004; View by Date - search not showing current month entries.
-
 &#10004; Fix Interaction jumping edits and creating new entries via now button.
 >&#10004;  Fix some LTAGS not saved as LTags server side.
 
@@ -45,8 +40,9 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 
 ## New Features of Minor Relevance
-* &#10004; Config Export of Log and Categories to be provided as a button.
-*Theme colours to be revisited, bettered.
+* &#10004; Config page, links on menu to sections.
+* Theme colours to be revisited, bettered
+* &#10004; Config Export of Log and Categories to be provided as a button..
 * &#10004; Provide Exclude an Category View (if posible multiple categories). Should have option to session or not.
 * &#10004; Provide Themes
 * Enable sticky log entries
@@ -65,13 +61,14 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## LifeLog RTF Documents using Quill Javascript RTF API
 
-*&#10004; Separate JSON service page.
+&#10004; Separate JSON service page.
 >* Provide for file attachments. 
 > &#10004; Display in log, read only RTF on click of button.
 > &#10004; Uses compressed RTF Documents in a Notes tabe.
 >&#10004; Deletion of log, deletes the document.
 
 ## Bugs
+* Bug - 08 CSV imports duplicate on DB Fix in config page.
 * Bug - 07, Editing and RTF entry, Dosen't strip the attached html to view in place.
 * &#10004; Bug - 06, Invalid Time 00. Javascript error thrown, when 00am used.
 * &#10004; Bug - 05, CRLF and apostrophe replacement not working.

@@ -107,6 +107,13 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="main.cgi">Log</a><hr>
+<font size="2"><b>Jump to Sections</b>
+<a href="#top">Categories</a><br>
+<a href="#vars">System</a><br>
+<a href="#dbsets">DB Fix</a><br>
+<a href="#passets">Password</a>
+</font>
+<hr>
 <br>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>);
@@ -333,9 +340,9 @@ my  $frmPASS = qq(
 print qq(
 <a name="top"></a><center>
     <div>$frm</div>
-    <div>$frmVars</div>
-    <div>$frmDB</div>
-    <div>$frmPASS</div>
+    <div><a name="vars"></a>$frmVars</div>
+    <div><a name="dbsets"></a>$frmDB</div>
+    <div><a name="passets"></a>$frmPASS</div>
     <div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
                 <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a>
     </div>
@@ -766,7 +773,7 @@ try{
         $dbs = $db->do("VACUUM;");
 
         if($LOGOUT){
-                &logout; 
+                &logout;
         }		
             
             
