@@ -721,7 +721,7 @@ try{
         $db->do('BEGIN TRANSACTION;');
         #Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
         $dbs = dbExecute('SELECT rowid, DATE FROM LOG ORDER BY DATE;');			
-        while(my @row = $dbs->fetchrow_array()) {
+        while(@row = $dbs->fetchrow_array()) {
             my $existing = $dates{$row[0]};
             if($existing && $existing eq $row[1]){
                 $dlts[$cntr_del++] = $row[0];
@@ -730,7 +730,7 @@ try{
                 $dates{$row[0]} = $row[1];
                 $updts[$cntr_upd++] = $row[0];
             }
-        }	
+        }
 
         foreach my $del (@dlts){
             $issue = "DELETE FROM LOG WHERE rowid=$del;";
@@ -739,13 +739,26 @@ try{
                     $st_del->execute();
         }
 
-        #Renumerate Log!
+        #Renumerate Log! Copy into temp. table.
         $dbs = dbExecute("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
-        $dbs = dbExecute('SELECT rowid, DATE FROM LOG ORDER BY DATE;');	        
-        # Delete Orphaned Notes entries.			
-        $dbs = dbExecute("SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON 
-                                        NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");			
-        while(my @row = $dbs->fetchrow_array()) {				
+        $dbs = dbExecute('SELECT rowid, DATE FROM LOG WHERE RTF == 1 ORDER BY DATE;');
+        #update  notes with new log id
+        while(@row = $dbs->fetchrow_array()) {
+            my $sql_date = $row[1];
+            #$sql_date =~ s/T/ /;
+            $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
+            $issue = "SELECT rowid, DATE FROM life_log_temp_table WHERE RTF = 1 AND DATE = '".$sql_date."';";
+            $dbs = dbExecute($issue);
+            my @new  = $dbs->fetchrow_array();
+            if(scalar @new > 0){
+               $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
+            }
+        }
+
+        # Delete Orphaned Notes entries.
+        $dbs = dbExecute("SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
+                                        NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
+        while(my @row = $dbs->fetchrow_array()) {
             $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
         }
         $dbs = dbExecute('DROP TABLE LOG;');
@@ -756,7 +769,6 @@ try{
                                 AMOUNT INTEGER,
                                 AFLAG TINY DEFAULT 0,
                                 RTF BOOL DEFAULT 0);));
-
         $dbs = dbExecute('INSERT INTO LOG (ID_CAT,DATE,LOG,AMOUNT,AFLAG, RTF)
                                       SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF 
                                       FROM life_log_temp_table ORDER by DATE;');
@@ -780,7 +792,7 @@ try{
 }
 catch{	
     $db->do('ROLLBACK;');
-    die qq(@&processDBFix error:$_ with statement->$issue for $date update counter:$cntr_upd);	
+    die qq(@&processDBFix error:$_ with statement->$issue for $date update counter:$cntr_upd);
 }
 }
 
@@ -1023,6 +1035,7 @@ sub updateLOGDB {
             my $amv    = $flds[3];
             my $amf    = $flds[4];
             my $rtf    = $flds[5];
+            my $sticky = $flds[6];
             my $pdate = DateTime::Format::SQLite->parse_datetime($date);
             #Check if valid date log entry?
             if($id_cat==0||$id_cat==""||!$pdate){
@@ -1032,21 +1045,21 @@ sub updateLOGDB {
             $dbs = $db->prepare("SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF  FROM LOG WHERE date = '$date';");
             $dbs->execute();
             if(!$dbs->fetchrow_array()){
-                    $dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?)');
-                    $dbs->execute( $id_cat, $pdate, $log, $amv, $amf, $rtf);
+                    $dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?, ?)');
+                    $dbs->execute( $id_cat, $pdate, $log, $amv, $amf, $rtf, $sticky);
             }
             #Renumerate
-            $dbs = $db->prepare('select rowid from LOG ORDER BY DATE;');
-            $dbs->execute();
-            my @row = $dbs->fetchrow_array();
-            my $cnt = 1;
-             while(my @row = $dbs->fetchrow_array()) {
-            my $st_upd = $db->prepare("UPDATE LOG SET rowid=".$cnt.
-                                        " WHERE rowid='".$row[0]."';");
-                $st_upd->execute();
-                $cnt = $cnt + 1;
-            }
-            $dbs->finish;
+            # $dbs = $db->prepare('select rowid from LOG ORDER BY DATE;');
+            # $dbs->execute();
+            # my @row = $dbs->fetchrow_array();
+            # my $cnt = 1;
+            #  while(my @row = $dbs->fetchrow_array()) {
+            # my $st_upd = $db->prepare("UPDATE LOG SET rowid=".$cnt.
+            #                             " WHERE rowid='".$row[0]."';");
+            #     $st_upd->execute();
+            #     $cnt = $cnt + 1;
+            # }
+            #$dbs->finish;
     }
     catch{
         print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;

@@ -21,6 +21,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 
 ## Urgent FIXES and Known Issuses
+* CVS Export and Import has not been implemented for RTF type log entries.
 &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 &#10004; View by Date - search not showing current month entries.
 &#10004; Fix Interaction jumping edits and creating new entries via now button.
@@ -68,6 +69,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 >&#10004; Deletion of log, deletes the document.
 
 ## Bugs
+* Bug - 09 RTF documents lost on data renumeration of log. Data fix options in config. Needs urgent revision.
 * Bug - 08 CSV imports duplicate on DB Fix in config page.
 * Bug - 07, Editing and RTF entry, Dosen't strip the attached html to view in place.
 * &#10004; Bug - 06, Invalid Time 00. Javascript error thrown, when 00am used.

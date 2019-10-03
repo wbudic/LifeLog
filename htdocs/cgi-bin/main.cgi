@@ -851,6 +851,7 @@ return $today;
         my $view_all  = $cgi->param('rs_all');
         my $is_rtf    = $cgi->param('rtf');
         my $rtf       = 0;
+        my $sticky    = 0;
         $rtf = 1 if $is_rtf eq 'on';
 
         try {
@@ -901,8 +902,8 @@ return $today;
                     return;
                 }
 
-                $st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?)');
-                $st->execute( $cat, $date, $log, $am, $af, $rtf );
+                $st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?,?)');
+                $st->execute( $cat, $date, $log, $am, $af, $rtf, $sticky );
                 if($rtf){ #Update 0 ground NOTES entry to the just inserted log.
                    
                    #last_insert_id() -> Not reliable commented out.
