@@ -69,6 +69,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 >&#10004; Deletion of log, deletes the document.
 
 ## Bugs
+* Bug - 10 Expense type entries don't field ammount field on edit button clicked.
 * Bug - 09 RTF documents lost on data renumeration of log. Data fix options in config. Needs urgent revision.
 * Bug - 08 CSV imports duplicate on DB Fix in config page.
 * Bug - 07, Editing and RTF entry, Dosen't strip the attached html to view in place.
