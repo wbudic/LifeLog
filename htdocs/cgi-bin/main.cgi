@@ -909,7 +909,7 @@ return $today;
                    #last_insert_id() -> Not reliable commented out.
                    #my $gzero = $db->last_insert_id();#//$db->prepare('SELECT last_insert_rowid();');
                    $st->finish();
-                   $st = $db->prepare('SELECT rowid FROM LOG ORDER BY rowid DESC LIMIT 1;'); 
+                   $st = $db->prepare('SELECT rowid FROM LOG ORDER BY rowid DESC LIMIT 1;');
                    $st -> execute(); 
                    my @lid = $st->fetchrow_array();
                    $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';"); 

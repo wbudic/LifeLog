@@ -704,7 +704,7 @@ sub processDBFix {
      my $wipe_ss = $cgi->param("wipe_syst");
 
      
-     my $issue;
+     my $sql;
      my $date;
      my $cntr_upd =0;
 try{
@@ -717,7 +717,7 @@ try{
         my $cntr_del =0;		
         my $existing;
         my @row;
-        
+
         $db->do('BEGIN TRANSACTION;');
         #Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
         $dbs = dbExecute('SELECT rowid, DATE FROM LOG ORDER BY DATE;');			
@@ -733,48 +733,13 @@ try{
         }
 
         foreach my $del (@dlts){
-            $issue = "DELETE FROM LOG WHERE rowid=$del;";
-                    #print "$issue\n<br>";
-                    my $st_del = $db->prepare($issue);
+            $sql = "DELETE FROM LOG WHERE rowid=$del;";
+                    #print "$sql\n<br>";
+                    my $st_del = $db->prepare($sql);
                     $st_del->execute();
         }
 
-        #Renumerate Log! Copy into temp. table.
-        $dbs = dbExecute("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
-        $dbs = dbExecute('SELECT rowid, DATE FROM LOG WHERE RTF == 1 ORDER BY DATE;');
-        #update  notes with new log id
-        while(@row = $dbs->fetchrow_array()) {
-            my $sql_date = $row[1];
-            #$sql_date =~ s/T/ /;
-            $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
-            $issue = "SELECT rowid, DATE FROM life_log_temp_table WHERE RTF = 1 AND DATE = '".$sql_date."';";
-            $dbs = dbExecute($issue);
-            my @new  = $dbs->fetchrow_array();
-            if(scalar @new > 0){
-               $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
-            }
-        }
-
-        # Delete Orphaned Notes entries.
-        $dbs = dbExecute("SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
-                                        NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
-        while(my @row = $dbs->fetchrow_array()) {
-            $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
-        }
-        $dbs = dbExecute('DROP TABLE LOG;');
-        $dbs = dbExecute(qq(CREATE TABLE LOG (
-                                ID_CAT TINY        NOT NULL,
-                                DATE   DATETIME    NOT NULL,
-                                LOG    VCHAR (128) NOT NULL,
-                                AMOUNT INTEGER,
-                                AFLAG TINY DEFAULT 0,
-                                RTF BOOL DEFAULT 0);));
-        $dbs = dbExecute('INSERT INTO LOG (ID_CAT,DATE,LOG,AMOUNT,AFLAG, RTF)
-                                      SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF 
-                                      FROM life_log_temp_table ORDER by DATE;');
-        $dbs = dbExecute('DROP TABLE life_log_temp_table;');
-
-                    
+        &renumerate;
         &resetCategories if $rs_cats;
         &resetSystemConfiguration($db) if $rs_syst;			
         &wipeSystemConfiguration if $wipe_ss;
@@ -792,7 +757,7 @@ try{
 }
 catch{	
     $db->do('ROLLBACK;');
-    die qq(@&processDBFix error:$_ with statement->$issue for $date update counter:$cntr_upd);
+    die qq(@&processDBFix error:$_ with statement->$sql for $date update counter:$cntr_upd);
 }
 }
 
@@ -979,20 +944,20 @@ sub importCatCSV {
             updateCATDB(@flds);
         }else{
               warn "Data could not be parsed: $line\n";
-          }		 
+          }
     }
 }
 
 sub updateCATDB {
     my @flds = @_;
     if(@flds>2){
-    try{	
+    try{
             my $id   = $flds[0];
             my $name = $flds[1];
             my $desc = $flds[2];
-            
+
             #is it existing entry?
-            $dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT WHERE ID = '$id';");			
+            $dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT WHERE ID = '$id';");
             if(not defined $dbs->fetchrow_array()){
                     $dbs = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
                     $dbs->execute($id, $name, $desc);
@@ -1001,25 +966,28 @@ sub updateCATDB {
             else{
                 #TODO Update
             }
-        
+
     }
     catch{
         print "<font color=red><b>SERVER ERROR</b>->updateCATDB</font>:".$_;
     }
     }
 }
+
 sub importLogCSV {
     my $hndl = $cgi->upload("data_log");
-    my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } ); 	
+    my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
+
     while (my $line = <$hndl>) {
             chomp $line;
-            if ($csv->parse($line)) { 
+            if ($csv->parse($line)) {
                   my @flds   = $csv->fields();
                 updateLOGDB(@flds);
             }else{
                      warn "Data could not be parsed: $line\n";
-            } 
-    }	
+            }
+    }
+    &renumerate;
     $db->disconnect();
     print $cgi->redirect('main.cgi');
     exit;
@@ -1028,7 +996,7 @@ sub importLogCSV {
 sub updateLOGDB {
     my @flds = @_;
     if(@flds>3){
-    try{	
+    try{
             my $id_cat = $flds[0];
             my $date   = $flds[1];
             my $log    = $flds[2];
@@ -1042,24 +1010,15 @@ sub updateLOGDB {
                 return;
             }
             #is it existing entry?
-            $dbs = $db->prepare("SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF  FROM LOG WHERE date = '$date';");
+            my $sql = "SELECT DATE FROM LOG WHERE DATE is '$pdate';";
+            $dbs = $db->prepare($sql);
             $dbs->execute();
-            if(!$dbs->fetchrow_array()){
-                    $dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?, ?)');
-                    $dbs->execute( $id_cat, $pdate, $log, $amv, $amf, $rtf, $sticky);
+            my @rows = $dbs->fetchrow_array();
+            if(scalar @rows == 0){
+                      $dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?,?)');
+                      $dbs->execute( $id_cat, $pdate, $log, $amv, $amf, $rtf, $sticky);
             }
-            #Renumerate
-            # $dbs = $db->prepare('select rowid from LOG ORDER BY DATE;');
-            # $dbs->execute();
-            # my @row = $dbs->fetchrow_array();
-            # my $cnt = 1;
-            #  while(my @row = $dbs->fetchrow_array()) {
-            # my $st_upd = $db->prepare("UPDATE LOG SET rowid=".$cnt.
-            #                             " WHERE rowid='".$row[0]."';");
-            #     $st_upd->execute();
-            #     $cnt = $cnt + 1;
-            # }
-            #$dbs->finish;
+            $dbs->finish();
     }
     catch{
         print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
@@ -1141,4 +1100,45 @@ sub getTheme{
         $BGCOL = 'green';
     }
 
+}
+
+
+sub renumerate {
+    #Renumerate Log! Copy into temp. table.
+    my $sql;
+    $dbs = dbExecute("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
+    $dbs = dbExecute('SELECT rowid, DATE FROM LOG WHERE RTF == 1 ORDER BY DATE;');
+    #update  notes with new log id
+    while(my @row = $dbs->fetchrow_array()) {
+        my $sql_date = $row[1];
+        #$sql_date =~ s/T/ /;
+        $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
+        $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE RTF = 1 AND DATE = '".$sql_date."';";
+        $dbs = dbExecute($sql);
+        my @new  = $dbs->fetchrow_array();
+        if(scalar @new > 0){
+            $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
+        }
+    }
+
+    # Delete Orphaned Notes entries.
+    $dbs = dbExecute("SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
+                                    NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
+    while(my @row = $dbs->fetchrow_array()) {
+        $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
+    }
+    $dbs = dbExecute('DROP TABLE LOG;');
+    $dbs = dbExecute(qq(CREATE TABLE LOG (
+                            ID_CAT TINY        NOT NULL,
+                            DATE   DATETIME    NOT NULL,
+                            LOG    VCHAR (128) NOT NULL,
+                            AMOUNT INTEGER,
+                            AFLAG TINY DEFAULT 0,
+                            RTF BOOL DEFAULT 0,
+                            STICKY BOOL DEFAULT 0
+                            );));
+    $dbs = dbExecute('INSERT INTO LOG (ID_CAT,DATE,LOG,AMOUNT,AFLAG, RTF)
+                                    SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF
+                                    FROM life_log_temp_table ORDER by DATE;');
+    $dbs = dbExecute('DROP TABLE life_log_temp_table;');
 }

@@ -144,15 +144,14 @@ function loadedBody(toggle) {
         // toggleDocument();
     }
 
+    var rgb = $('#editor-container').css('background-color');
+    if(rgb){
+        DEF_BACKGROUND = RGBToHex(rgb);
+        $("#fldBG").val(DEF_BACKGROUND);
+        var amf = $( "#amf" );//Amount Field Type dropdown
+        var ec = $( "#ec" );  //Category dropdown
 
-    DEF_BACKGROUND = RGBToHex($('#editor-container').css('background-color'));
-    $("#fldBG").val(DEF_BACKGROUND);
-
-   // $( function() {        
-        var amf = $( "#amf" );//Amount Field Type dropdown        
-        var ec = $( "#ec" );  //Category dropdown 
-                        
-        $( amf ).selectmenu({style: "dropdown", width:120, 
+        $( amf ).selectmenu({style: "dropdown", width:120,
           change: function( event, data ) {
             var evv =ec.val();
             if(ec.val()<2||evv==32||evv==35||data.item.value == 0){
@@ -166,8 +165,7 @@ function loadedBody(toggle) {
                 }
             }
           }});
-    
-
+    }
 }
 
 
@@ -292,7 +290,7 @@ function edit(row) {
     var tag  = $("#g" + row); //orig. tagged log text.
     var log  = $("#v" + row); //log
     var rtf  = $("#r" + row); //RTF doc
-    var amf  = $("#f" + row); //Amount type.
+    var amt  = $("#f" + row); //Amount type.
     var isRTF = (rtf.val()>0?true:false);
     if(!isRTF){
             $('#rtf_doc').hide();
@@ -306,11 +304,11 @@ function edit(row) {
         $("#el").val(decodeToHTMLText(tag.val()));
 
     } else {
-        $("#el").val(decodeToText(log.html()));
+        $("#el").val(decodeToText(log.text()));
     }
 
     $("#ed").val(ed_v.val() + " " + et_v.html()); //Time field
-    var val = ea_v.html();
+    var val = ea_v.text();
     val = val.replace(/\,/g,"");
     $("#am").val(val); //Amount field, fix 04-08-2019 HTML input doesn't accept formated string.
     $("#RTF").prop('checked', isRTF);
@@ -324,8 +322,8 @@ function edit(row) {
     $("#ec option:contains(" + ec_v + ")").prop('selected', true);
     $("#submit_is_edit").val(row);
 
-
-    ec_v = amf.val();
+    //Amount type
+    ec_v = amt.val();
     $("#amf").focus();
     $("#amf").val(ec_v);
     $("#amf").selectmenu('refresh');

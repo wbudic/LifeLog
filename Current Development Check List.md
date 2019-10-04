@@ -1,22 +1,22 @@
 # Branch Development LifeLog in Perl - Sun Stage v. 1.6
 
-*This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
+*This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
-## LifeLog 
+## LifeLog
 * Implement sticky log entries.
 * $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
 * Some System settings to be stored in session. As these are  known even before logon.
 > i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
 
-*&#10004; Dropdown for type of log amount (Mark as Expense). Default is Asset. Asset is neither, income or expense.
-*&#10004; Implement RTF Documents.
+* &#10004; Dropdown for type of log amount (Mark as Expense). Default is Asset. Asset is neither, income or expense.
+* &#10004; Implement RTF Documents.
 > Useful as more document style formated details can be added instead of just plain text.
 *&#10004; Preserve Search view selections. After edits and submit.
 > * &#10004; Preserve from to date selections.
 > * &#10004; Date View not working on Local entered date format.
-*&#10004; Sum selected, income, expense, totals. 
+*&#10004; Sum selected, income, expense, totals.
 &#10004; Sum on view.
 
 
@@ -69,8 +69,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 >&#10004; Deletion of log, deletes the document.
 
 ## Bugs
-* Bug - 10 Expense type entries don't field ammount field on edit button clicked.
-* Bug - 09 RTF documents lost on data renumeration of log. Data fix options in config. Needs urgent revision.
+* &#10004; Bug - 10 Expense type entries don't fill ammount field on edit button clicked.
+* &#10004; Bug - 09 RTF documents lost on data renumeration of log. Data fix options in config. Needs urgent revision.
 * Bug - 08 CSV imports duplicate on DB Fix in config page.
 * Bug - 07, Editing and RTF entry, Dosen't strip the attached html to view in place.
 * &#10004; Bug - 06, Invalid Time 00. Javascript error thrown, when 00am used.
