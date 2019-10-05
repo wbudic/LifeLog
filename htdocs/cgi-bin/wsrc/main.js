@@ -291,7 +291,9 @@ function edit(row) {
     var log  = $("#v" + row); //log
     var rtf  = $("#r" + row); //RTF doc
     var amt  = $("#f" + row); //Amount type.
+    var sticky  = $("#s" + row); //RTF doc
     var isRTF = (rtf.val()>0?true:false);
+    var isSticky = (sticky.val()>0?true:false);
     if(!isRTF){
             $('#rtf_doc').hide();
             $('#tbl_doc').hide();
@@ -304,7 +306,9 @@ function edit(row) {
         $("#el").val(decodeToHTMLText(tag.val()));
 
     } else {
-        $("#el").val(decodeToText(log.text()));
+        var txt = log.html();
+        txt = txt.replace(/<br>/g,"\n");
+        $("#el").val(decodeToText(txt));
     }
 
     $("#ed").val(ed_v.val() + " " + et_v.html()); //Time field
@@ -312,6 +316,7 @@ function edit(row) {
     val = val.replace(/\,/g,"");
     $("#am").val(val); //Amount field, fix 04-08-2019 HTML input doesn't accept formated string.
     $("#RTF").prop('checked', isRTF);
+    $("#STICKY").prop('checked', isSticky);
 
     if(isRTF){
         loadRTF(false, row);

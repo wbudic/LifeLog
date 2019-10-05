@@ -81,7 +81,7 @@ my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
 my $rs_cur      = $cgi->param('rs_cur');
 my $rs_page     = $cgi->param('rs_page');
-my $stmS        = "SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF from LOG WHERE";
+my $stmS        = "SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG WHERE";
 my $stmE        = " ORDER BY DATE DESC;";
 my $stmD        = "";
 my $sm_reset_all;
@@ -175,7 +175,7 @@ print $cgi->start_html(
 my $rv;
 my $st;
 my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $stmt ="SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF FROM LOG ORDER BY DATE DESC, rowid DESC;";
+my $stmt ="SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG ORDER BY STICKY DESC, DATE DESC, rowid DESC;";
 
 $st = $db->prepare($stmtCat);
 $rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
@@ -290,7 +290,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 ###############
     #
     # Uncomment bellow to see main query statement issued!
-    # print $cgi->pre("### -> ".$stmt);
+     print $cgi->pre("### -> ".$stmt);
     #
     my $tfId      = 0;
     my $id        = 0;
@@ -332,6 +332,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
         my $am  = $row[4];
         my $af  = $row[5]; #AFLAG -> Asset as 0, Income as 1, Expense as 2
         my $rtf = $row[6]; #RTF has document true or false
+        my $sticky = $row[7]; #Sticky to top
 
         if ( $af == 1 ) { #AFLAG Income
             $sum += $am;
@@ -543,6 +544,9 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
            $am = qq(<font color="maroon">$am</font>);
         }
 
+        my $ssymb = "Edit";
+        $ssymb = "Edit &#10037;" if $sticky;
+
         $log_output .= qq(<tr class="r$tfId">
 		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
 		<td id="t$id" width="10%" class="tbl">$dth</td>
@@ -551,8 +555,9 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 		<td id="c$id" width="10%" class="tbl">$ct</td>
 		<td width="20%">
         <input id="r$id" type="hidden" value="$rtf"/>
+        <input id="s$id" type="hidden" value="$sticky"/>
         <input id="f$id" type="hidden" value="$af"/>
-			<button class="edit" value="Edit" onclick="return edit($id);">Edit</button>
+			<button class="edit" value="Edit" onclick="return edit($id);">$ssymb</button>
 			<input name="chk" type="checkbox" value="$id"/>
 		</td></tr>);
         
@@ -695,6 +700,7 @@ _TXT
                 <option value="2">Expense</option>
             </select>&nbsp;
             <input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> RTF Document
+            <input id="STICKY" name="sticky" type="checkbox"/> Sticky
 		</td>
 		<td align="right">
 				<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/></div>
@@ -849,10 +855,11 @@ return $today;
         my $edit_mode = $cgi->param('submit_is_edit');
         my $view_mode = $cgi->param('submit_is_view');
         my $view_all  = $cgi->param('rs_all');
-        my $is_rtf    = $cgi->param('rtf');
-        my $rtf       = 0;
-        my $sticky    = 0;
-        $rtf = 1 if $is_rtf eq 'on';
+        my $rtf    = $cgi->param('rtf');
+        my $sticky = $cgi->param('sticky');
+
+        $rtf = 1 if $rtf eq 'on';
+        $sticky = 1 if $sticky eq 'on';
 
         try {
 #Apostroph's need to be replaced with doubles  and white space to be fixed for the SQL.
@@ -861,9 +868,14 @@ return $today;
             if ( $edit_mode && $edit_mode != "0" ) {
 
                 #Update
-
-                my $stm = qq( UPDATE LOG SET ID_CAT='$cat', DATE='$date', LOG='$log', AMOUNT='$am', AFLAG = '$af', RTF='$rtf'
-                              WHERE rowid="$edit_mode";);
+                $date = DateTime::Format::SQLite->parse_datetime($date);
+                my $stm = qq( UPDATE LOG SET ID_CAT='$cat',
+                                             DATE='$date',
+                                             LOG='$log',
+                                             AMOUNT='$am',
+                                             AFLAG = '$af',
+                                             RTF='$rtf', 
+                                             STICKY='$sticky' WHERE rowid="$edit_mode";);
                 my $st = $db->prepare($stm);
                 $st->execute();
                 return;
@@ -886,7 +898,7 @@ return $today;
                     else {
                         $rs_page++;
                     }
-                    $stmt = qq(SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF from LOG where rowid <= '$rs_cur' ORDER BY DATE DESC;);
+                    $stmt = qq(SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG where rowid <= '$rs_cur' ORDER BY STICKY DESC, DATE DESC;);
                     return;
                 }
             }
