@@ -873,8 +873,9 @@ return $today;
         my $rtf    = $cgi->param('rtf');
         my $sticky = $cgi->param('sticky');
 
-        $rtf = 1 if $rtf eq 'on';
-        $sticky = 1 if $sticky eq 'on';
+
+        if($rtf eq 'on'){$rtf = 1}  else {$rtf = 0}
+        if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}
 
         try {
 #Apostroph's need to be replaced with doubles  and white space to be fixed for the SQL.
