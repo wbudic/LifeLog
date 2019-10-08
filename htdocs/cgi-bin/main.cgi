@@ -175,7 +175,7 @@ print $cgi->start_html(
 my $rv;
 my $st;
 my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $stmt ="SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG ORDER BY STICKY DESC, DATE DESC, rowid DESC;";
+my $stmt ="SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG WHERE STICKY =1 ORDER BY DATE DESC, rowid DESC;";
 
 $st = $db->prepare($stmtCat);
 $rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
@@ -290,7 +290,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 ###############
     #
     # Uncomment bellow to see main query statement issued!
-    # print $cgi->pre("### -> ".$stmt);
+     print $cgi->pre("### -> ".$stmt);
     #
     my $tfId      = 0;
     my $id        = 0;
@@ -322,6 +322,20 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     if ( $rv < 0 ) {
         print "<p>Error->" & $DBI::errstri & "</p>";
     }
+
+    &buildLog;
+
+    $stmt ="SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG WHERE STICKY != 1 ORDER BY DATE DESC, rowid DESC;";
+    $st = $db->prepare($stmt);
+    $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
+    if ( $rv < 0 ) {
+        print "<p>Error->" & $DBI::errstri & "</p>";
+    }
+
+    &buildLog;
+
+sub buildLog {
+
     while ( my @row = $st->fetchrow_array() ) {
 
         $id = $row[0];# rowid
@@ -577,6 +591,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         }
 
     }    #while end
+}#buildLog
 
     if   ( $tfId == 1 ) { $tfId = 0; }
     else                { $tfId = 1; }
