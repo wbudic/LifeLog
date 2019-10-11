@@ -92,6 +92,7 @@ sqlite3 -csv data_log.db "select * from LOG;" > current_log.csv
 cd /home/{user}/ 
 git clone https://github.com/wbudic/LifeLog
 mkdir /home/{user}/thttpd_dev/dbLifeLog
+chmod +x /home/{user}/thttpd_dev/cgi-bin/*.cgi
 
 Copy from /home/{user}/LifeLog/htdocs/cgi-bin to /home/{user}/thttpd_dev/htdocs/cgi-bin
 if doing development. Copy also the /home/{user}/LifeLog/.git to /home/{user}/thttpd_dev/
