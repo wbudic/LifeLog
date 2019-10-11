@@ -325,14 +325,19 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 
     &buildLog;
 
-    $stmt ="SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG WHERE STICKY != 1 ORDER BY DATE DESC, rowid DESC;";
-    $st = $db->prepare($stmt);
-    $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
-    if ( $rv < 0 ) {
-        print "<p>Error->" & $DBI::errstri & "</p>";
-    }
+    #SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG where rowid <= '40' and STICKY == 0 ORDER BY DATE DESC;
+    if(index ($stmt, 'rowid <=') < 1){
 
-    &buildLog;
+        $stmt = "SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG WHERE STICKY != 1 ORDER BY DATE DESC, rowid DESC;";
+       # print $cgi->pre("###2 -> ".$stmt);
+        $st = $db->prepare($stmt);
+        $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
+        if ( $rv < 0 ) {
+            print "<p>Error->" & $DBI::errstri & "</p>";
+        }
+
+        &buildLog;
+    }
 
 sub buildLog {
 
@@ -845,20 +850,9 @@ $sm_reset_all
     undef($sss);
     exit;
 
-=comm
-sub parseDate{
-	my $date = $_[0];
-try{	
-return DateTime::Format::SQLite->parse_datetime( $date );
-}
-catch{
-  print "<font color=red><b>SERVER ERROR</b></font>date:$date]->".$_;
-}
-return $today;
-}
-=cut
 
-    sub processSubmit {
+
+sub processSubmit {
 
         my $date = $cgi->param('date');
         my $log  = $cgi->param('log');
@@ -914,7 +908,7 @@ return $today;
                     else {
                         $rs_page++;
                     }
-                    $stmt = qq(SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG where rowid <= '$rs_cur' ORDER BY STICKY DESC, DATE DESC;);
+                    $stmt = qq(SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG where rowid <= '$rs_cur' and STICKY != 1 ORDER BY DATE DESC;);
                     return;
                 }
             }
@@ -1004,8 +998,8 @@ return $today;
         }
         catch {
             print "<font color=red><b>ERROR</b></font> -> " . $_;
-        }
-    }
+        }       
+}
 
     sub buildNavigationButtons {
 
