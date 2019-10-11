@@ -78,6 +78,7 @@ sudo cpanm Try::Tiny;
 sudo cpanm Number/Bytes/Human.pm;
 sudo cpanm Regexp::Common;
 sudo cpanm JSON;
+sudo cpanm Switch;
 
 #Upgrade Instructions
 
