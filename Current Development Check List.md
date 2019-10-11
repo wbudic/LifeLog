@@ -5,6 +5,7 @@
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
 ## LifeLog
+* Paging of datasets to be redone.
 * &#10004; Implement sticky log entries.
 * $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
 * Some System settings to be stored in session. As these are  known even before logon.
