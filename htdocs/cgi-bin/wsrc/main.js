@@ -331,7 +331,7 @@ function edit(row) {
     ec_v = amt.val();
     $("#amf").focus();
     $("#amf").val(ec_v);
-    $("#amf").selectmenu('refresh');
+    //$("#amf").selectmenu('refresh');
 
     $("#el").focus();
 
