@@ -10,7 +10,7 @@
 
            
 
-#Install tiny thttpd web server.
+## Install tiny thttpd web server. ##
 
 https://acme.com/software/thttpd/
 
@@ -53,6 +53,14 @@ The full URL to the LifeLog is the following link (if not working try without cg
          http://localhost:8080/cgi-bin/
 #
 #
+
+
+## Run using Lightthpd Web Server
+Modify the the config file, lighttpd.conf. To suit the path where you pulled the git repository, of LifeLog.
+With:
+git clone https://github.com/wbudic/LifeLog.git
+
+
 
 #Install cpanm to make installing other modules easier (you'll thank us later). 
 You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
