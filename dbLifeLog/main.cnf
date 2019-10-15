@@ -3,7 +3,7 @@ This the main configuration file for the LifeLog application settings.
 https://github.com/wbudic/LifeLog
 This is an Open Source License project -> https://choosealicense.com/licenses/isc/
 Credential format:<<AUTO_LOGIN <{alias}/{password}> , must be enabled option.
-<<AUTO_LOGIN<admin/admin>
+<<AUTO_LOGIN</>
 <<CONFIG<4>
 00|$RELEASE_VER = 1.6`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
