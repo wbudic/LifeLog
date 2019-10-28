@@ -74,6 +74,12 @@ sudo cpanm DBD::SQLite
 https://www.sqlite.org/download.html
 
 
+# Install Perl, properly, don't use the distro provided perl interpreter.
+https://learn.perl.org/installing/unix_linux.html
+# Perl compiled based on your hardware infrastructure, is Very Good.
+
+sudo cpan Perl::LanguageServer
+
 #Install or make sure you have following perl modules.
  
 sudo cpanm DateTime;

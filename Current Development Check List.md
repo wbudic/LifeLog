@@ -22,6 +22,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 
 ## Urgent FIXES and Known Issuses
+* Expired sessions, swallow submits into void.
 * CVS Export and Import has not been implemented for RTF type log entries.
 &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 &#10004; View by Date - search not showing current month entries.
