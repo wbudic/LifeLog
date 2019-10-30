@@ -63,22 +63,25 @@ git clone https://github.com/wbudic/LifeLog.git
 
 
 #Install cpanm to make installing other modules easier (you'll thank us later). 
-You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
+#You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
+
 sudo apt install cpanminus
 
-#Install DBI module
-sudo cpanm DBI
-sudo cpanm DBD::SQLite
 
 #Install SQLite
 https://www.sqlite.org/download.html
 
+#Developer? Install VSCode, not from flatpack. Use Microsoft site -> https://code.visualstudio.com/
+
 
 # Install Perl, properly, don't use the distro provided perl interpreter.
-https://learn.perl.org/installing/unix_linux.html
-# Perl compiled based on your hardware infrastructure, is Very Good.
-
-sudo cpan Perl::LanguageServer
+sudo apt install perlbrew
+#https://learn.perl.org/installing/unix_linux.html
+curl -L http://xrl.us/installperlnix | bash
+# Perl compiled based on your hardware infrastructure now, is Very Good.
+#Developer? Switch to it, and cpan modules:
+perlbrew use 5.28.0
+cpan Perl::LanguageServer
 
 #Install or make sure you have following perl modules.
  
@@ -93,6 +96,19 @@ sudo cpanm Number/Bytes/Human.pm;
 sudo cpanm Regexp::Common;
 sudo cpanm JSON;
 sudo cpanm Switch;
+
+#Install DBI module
+sudo cpanm DBI;
+sudo cpanm DBD::SQLite;
+
+#Final Perl Installation Notes
+
+This perl setup might take time and efforts. But, it is worth it.
+You get it build and tested professionally, based on your hardware.
+Platforms supported, Windows, Unix (all), Mac.
+
+Installing perl as an developer, requires no sudo. 
+But hence can't run server (system level) like.
 
 #Upgrade Instructions
 

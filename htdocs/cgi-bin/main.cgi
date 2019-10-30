@@ -3,8 +3,8 @@
 # Programed in by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-use strict;
 use warnings;
+use strict;
 use Try::Tiny;
 use Switch;
 
@@ -36,14 +36,16 @@ our $IMG_W_H      = '210x120';
 our $AUTO_WRD_LMT = 1000;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
+
 my $THEME        = 'Standard';
 my $TH_CSS       = 'main.css';
-my $BGCOL = '#c8fff8';
+my $BGCOL        = '#c8fff8';
 #END OF SETTINGS
+
 
 my $cgi = CGI->new;
 my $sss =
-  new CGI::Session( "driver:File", $cgi, { Directory => $LOG_PATH } );
+  new CGI::Session( "driver:File", $cgi, { Directory => $LOG_PATH} );
 my $sid      = $sss->id();
 my $dbname   = $sss->param('database');
 my $userid   = $sss->param('alias');
@@ -290,7 +292,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 ###############
     #
     # Uncomment bellow to see main query statement issued!
-    # print $cgi->pre("### -> ".$stmt);
+     print $cgi->pre("### -> ".$stmt);
     #
     my $tfId      = 0;
     my $id        = 0;
@@ -325,11 +327,11 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 
     &buildLog;
 
-    #SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG where rowid <= '40' and STICKY == 0 ORDER BY DATE DESC;
-    if(index ($stmt, 'rowid <=') < 1){
+ 
+    if(index ($stmt, 'rowid <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
 
         $stmt = "SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG WHERE STICKY != 1 ORDER BY DATE DESC, rowid DESC;";
-       # print $cgi->pre("###2 -> ".$stmt);
+      print $cgi->pre("###2 -> ".$stmt);
         $st = $db->prepare($stmt);
         $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
         if ( $rv < 0 ) {
