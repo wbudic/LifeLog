@@ -292,7 +292,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 ###############
     #
     # Uncomment bellow to see main query statement issued!
-     print $cgi->pre("### -> ".$stmt);
+    #print $cgi->pre("### -> ".$stmt);
     #
     my $tfId      = 0;
     my $id        = 0;
@@ -331,7 +331,8 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     if(index ($stmt, 'rowid <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
 
         $stmt = "SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG WHERE STICKY != 1 ORDER BY DATE DESC, rowid DESC;";
-      print $cgi->pre("###2 -> ".$stmt);
+        #uncomment
+        #print $cgi->pre("###2 -> ".$stmt);
         $st = $db->prepare($stmt);
         $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
         if ( $rv < 0 ) {
