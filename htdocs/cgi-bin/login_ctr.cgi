@@ -108,13 +108,15 @@ try{
     if($alias&&$passw){
 
             $passw = uc crypt $passw, hex $cipher_key;
-            &checkCreateTables;
-            $session->param('alias', $alias);
-            $session->param('passw', $passw);
-            $session->param('database', 'data_'.$alias.'_log.db');
-            $session->flush();
-            print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
-            return 1;
+            #CheckTables will return 1 if it was an logout set in config table.
+            if(&checkCreateTables()==0){
+                $session->param('alias', $alias);
+                $session->param('passw', $passw);
+                $session->param('database', 'data_'.$alias.'_log.db');
+                $session->flush();
+                print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
+                return 1;
+            }
     }
     else{
         &removeOldSessions;
@@ -124,7 +126,7 @@ return 0;
  catch{
         print $cgi->header;
         print "<font color=red><b>SERVER ERROR</b></font> dump ->". $session->dump();
-    print $cgi->end_html;
+        print $cgi->end_html;
  }
 }
 
@@ -180,7 +182,7 @@ try{
        $st->execute();
 
     my $changed = 0;
-
+   
     if(!$st->fetchrow_array()) {
         my $stmt = qq(
         CREATE TABLE LOG (
@@ -230,8 +232,8 @@ try{
     # 00|DEFAULT`No action idle use.|
     # 02|CONF_UPD`Configuration file update with db.
     # 03|EMAIL`Issue email.|
-  # 06|DESTRUCT`Self destruct, remove alias and all data.
-  # 08|CHNG_PASS`Change password.
+    # 06|DESTRUCT`Self destruct, remove alias and all data.
+    # 08|CHNG_PASS`Change password.
     # 10|CHNG_ALIAS`Change alias.
 
     my $stmt = qq(
@@ -317,8 +319,13 @@ try{
     }
     #
      &populate($db) if $changed;
-    #
-    $db->disconnect();
+     $db->disconnect();
+    #  
+    #Still going through checking tables and data, all above as we might have an version update in code.
+    #Then we check if we are login in intereactively back. Interective, logout should bring us to the login screen.
+    #Bypassing auto login. So to start maybe working on another database, and a new session.
+    return $cgi->param('autologoff') == 1;
+    
 }
  catch{
       print $cgi->header;
@@ -326,7 +333,9 @@ try{
     print $cgi->end_html;
         exit;
  }
+
 }
+
 
 sub populate {
 
@@ -456,7 +465,7 @@ sub logout{
 
     print qq(<font color="white"><center><h2>You have properly loged out of the Life Log Application!</h2>
     <br>
-    <form action="login_ctr.cgi"><input type="submit" value="No, no, NO! Log me In Again."/></form><br>
+    <form action="login_ctr.cgi"><input type="hidden" name="autologoff" value="1"/><input type="submit" value="No, no, NO! Log me In Again."/></form><br>
     </br>
     <iframe width="60%" height="600px" src="https://www.youtube.com/embed/qTFojoffE78?autoplay=1"
       frameborder="0"
