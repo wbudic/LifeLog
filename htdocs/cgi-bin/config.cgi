@@ -34,9 +34,10 @@ our $AUTO_WRD_LMT = 200;
 our $AUTO_LOGIN   = 0;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
-my $THEME        = 0;
-my $TH_CSS       = 'main.css';
-my $BGCOL = '#c8fff8';
+
+my  $THEME        = 0;
+my  $TH_CSS       = 'main.css';
+my  $BGCOL = '#c8fff8';
 #END OF SETTINGS
 
 #This is the OS developer release key, replace on istallation. As it is not secure.
@@ -253,18 +254,24 @@ while(my @row = $dbs->fetchrow_array()) {
         }
         elsif($n eq "THEME"){
             my($s0,$s1,$s2,$s3)=("","","","");
-             if($v eq 'Sun'){
-                $s1 = "SELECTED";
+             if($v eq 'Standard'){
+                $s0 = " SELECTED";
+            }
+            elsif($v == 'Sun'){
+                $s1 = " SELECTED";
             }
             elsif($v == 'Moon'){
-                $s2 = "SELECTED";
+                $s2 = " SELECTED";
+            }
+            elsif($v == 'Earth'){
+                $s3 = " SELECTED";
             }
 
             $v = qq(<select id="theme" name="var$i">
-                   <option $s0>Standard</option>
-                   <option $s1>Sun</option>
-                   <option $s2>Moon</option>
-                   <option $s3>Earth</option>
+                   <option$s0>Standard</option>
+                   <option$s1>Sun</option>
+                   <option$s2>Moon</option>
+                   <option$s3>Earth</option>
                 </select>);	
         }
         elsif($n ne "RELEASE_VER"){		 
