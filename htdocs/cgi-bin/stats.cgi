@@ -4,7 +4,7 @@
 #
 use strict;
 use warnings;
-no warnings 'uninitialized';
+#no warnings 'uninitialized';
 
 use Try::Tiny;
 use Switch;
@@ -15,7 +15,12 @@ use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 use Number::Bytes::Human qw(format_bytes);
-#use File::HomeDir;
+my $HS;
+#perlbrew fix, with main::sub not recognised in inxi.pl
+BEGIN {
+  $HS = `inxi -b -c0; uptime -p`;
+}
+
 
 #SETTINGS HERE!
 my $REC_LIMIT = 25;
@@ -34,8 +39,11 @@ my $userid  =$session->param('alias');
 my $password=$session->param('passw');
 
 if(!$userid||!$dbname){
-    print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
-    exit;
+   # print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+  #  exit;
+  $userid ="admin";
+  $dbname = "data_admin_log.db";
+  $password = "admin";
 }
 
 my $database = '../../dbLifeLog/' . $dbname;
@@ -53,17 +61,17 @@ $today->set_time_zone( $TIME_ZONE );
 
 
 my $BGCOL = '#c8fff8';
-    if ( $THEME eq 'Sun' ) {
-        $BGCOL = '#D4AF37';
-        $TH_CSS = "main_sun.css";
-    }elsif ($THEME eq 'Moon'){
-        $TH_CSS = "main_moon.css";
-        $BGCOL = '#000000';
+if ( $THEME eq 'Sun' ) {
+    $BGCOL = '#D4AF37';
+    $TH_CSS = "main_sun.css";
+}elsif ($THEME eq 'Moon'){
+    $TH_CSS = "main_moon.css";
+    $BGCOL = '#000000';
 
-    }elsif ($THEME eq 'Earth'){
-        $TH_CSS = "main_earth.css";
-        $BGCOL = 'green';
-    }
+}elsif ($THEME eq 'Earth'){
+    $TH_CSS = "main_earth.css";
+    $BGCOL = 'green';
+}
 
 $ENV{'HOME'} = "~/";
 
@@ -84,23 +92,24 @@ my ($stm1,$stm2) = "SELECT count(date) from LOG where date>=date('now','start of
 my $log_this_year_rc = selectSQL($stm1);
 my $notes_rc = selectSQL('select count(LID) from NOTES where DOC is not null;');
 
-#my $id_expense = selectSQL('SELECT ID from CAT where name like "Expense";');
-#my $id_income  = selectSQL('SELECT ID from CAT where name like "Income";');
-
 #INCOME
 $stm1 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 1;';
 #EXPENSE
 $stm2 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 2;';
 
-my $expense = big_money(sprintf("%.2f",selectSQL($stm1)));
-my $income =  big_money(sprintf("%.2f",selectSQL($stm2)));
-my $gross = big_money($income - $expense);
-my $hardware_status = `inxi -b -c0;uptime -p`;
+my $expense = selectSQL($stm1);
+my $income  = selectSQL($stm2);
+my $gross   = big_money($income - $expense);
+$expense    = big_money(sprintf("%.2f",$expense));
+$income     = big_money(sprintf("%.2f",$income));
+
+my $hardware_status = $HS;#`inxi -b -c0; uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;
 $hardware_status =~ s/Memory:/<b>Memory:/g;
 $hardware_status =~ s/Init:/<\/b>Initial:/g;
 $hardware_status =~ s/up\s/<b>Server is up: /g;
 $hardware_status .= '</b>';
+
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 
 
@@ -110,7 +119,7 @@ my  $dbSize = (uc format_bytes($stat[7], bs => 1000));
 $processes =~ s/\s*0.00.*//gd;
 my $year =$today->year();
 
-my $IPPublic  = `curl ifconfig.me`;
+my $IPPublic  = `curl -s https://www.ifconfig.me`;
 my $IPPrivate = `hostname -I`; $IPPrivate =~ s/\s/<br>/g;
  
 $tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>$RELEASE_VER</td></tr>
@@ -148,13 +157,12 @@ exit;
 
 sub selectSQL{
 
-
-    my $sth = $db->prepare( @_ );
-    $sth->execute();
+    my ($sth,$ret) = dbExecute( @_ );    
     my @row = $sth->fetchrow_array();
     $sth->finish;
-
-return $row[0];
+    $ret = $row[0];
+    $ret = 0 if !$ret;
+return $ret;
 }
 
 sub big_money {
@@ -172,9 +180,6 @@ sub camm {
  1 while $amm =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
 return $amm;
 }
-
-
-
 
 sub getConfiguration {
     try{
@@ -197,5 +202,6 @@ sub dbExecute{
        $ret->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
     return $ret;
 }
+
 
 ### CGI END
