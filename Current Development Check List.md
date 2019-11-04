@@ -5,6 +5,7 @@
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
 ## LifeLog
+* Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
 * Paging of datasets to be redone.
 * &#10004; Implement sticky log entries.
 * $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
@@ -48,7 +49,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Config Export of Log and Categories to be provided as a button..
 * &#10004; Provide Exclude an Category View (if posible multiple categories). Should have option to session or not.
 * &#10004; Provide Themes
-* Enable sticky log entries
+* &#10004; Enable sticky log entries
 * Enable file attachment to log entries.
 * Enable Armour Mode
 > In this mode settings page is disabled. And can be enabled only by System Admin.
