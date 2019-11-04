@@ -1,9 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 use strict;
 use warnings;
+no warnings 'uninitialized';
+
 use Try::Tiny;
 use Switch;
  
@@ -13,6 +15,7 @@ use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 use Number::Bytes::Human qw(format_bytes);
+#use File::HomeDir;
 
 #SETTINGS HERE!
 my $REC_LIMIT = 25;
@@ -62,11 +65,16 @@ my $BGCOL = '#c8fff8';
         $BGCOL = 'green';
     }
 
+$ENV{'HOME'} = "~/";
+
+
 print $cgi->header(-expires=>"+6os", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>"$BGCOL",
                        -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
                        -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}                       
                 );	  
+
+
 
 
 my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="5"><b>* Personal Log Data Statistics *</b></td></tr>';
@@ -87,7 +95,7 @@ $stm2 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND
 my $expense = big_money(sprintf("%.2f",selectSQL($stm1)));
 my $income =  big_money(sprintf("%.2f",selectSQL($stm2)));
 my $gross = big_money($income - $expense);
-my $hardware_status =`inxi -b -c0;uptime -p`;
+my $hardware_status = `inxi -b -c0;uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;
 $hardware_status =~ s/Memory:/<b>Memory:/g;
 $hardware_status =~ s/Init:/<\/b>Initial:/g;
@@ -97,9 +105,13 @@ my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; prin
 
 
 my  $processes = `$prc | sort -u -r -`;
+my  $dbSize = (uc format_bytes($stat[7], bs => 1000));
 #Strip kernel 0 processes reported
 $processes =~ s/\s*0.00.*//gd;
 my $year =$today->year();
+
+my $IPPublic  = `curl ifconfig.me`;
+my $IPPrivate = `hostname -I`; $IPPrivate =~ s/\s/<br>/g;
  
 $tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>$RELEASE_VER</td></tr>
 	      <tr class="r0"><td>Number of Records:</td><td>$log_rc</td></tr>
@@ -108,8 +120,11 @@ $tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>$RELEASE_VER</td></tr
           <tr class="r1"><td># Sum of Expenses For Year $year</td><td>$expense</td></tr>
           <tr class="r0"><td># Sum of Income For Year $year</td><td>$income</td></tr>
           <tr class="r1"><td>Gross For Year $year</td><td>$gross</td></tr>
-          <tr class="r0"><td>$database</td><td>).(uc format_bytes($stat[7], bs => 1000)).q(</td></tr>			
+          <tr class="r0"><td>$database</td><td>$dbSize</td></tr>			
+          <tr class="r1"><td>Public IP</td><td>$IPPublic</td></tr>
+          <tr class="r0"><td>Private IP</td><td>$IPPrivate</td></tr>
 </table>);
+
 
 print qq(<div id="menu" title="To close this menu click on its heart, and wait." style="border: 1px solid black;">
 <a class="a_" href="config.cgi">Config</a><hr>
@@ -120,11 +135,11 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 
 print qq(<div style="text-align:left; border: 1px solid black; padding:5px;"><h2>Life Log Server Statistics</h2><hr>
     <span style="text-align:left; float:left; padding:15px;">$tbl<br></span>
-    <span style="text-align:left; margin:1px;  padding-right:15px; float:none;"><b>Server Info</b><hr><br>
+    <span style="text-align:left; margin:1px;  padding-right:15px; float:none;"><h2>Server Info</h2><hr><br>
     $hardware_status</span></div>
-<div class="tbl" style="text-align:left; border: 0px; padding:5px; float:none;">
-<b>Server Side Processes</b><hr>
-<pre style="text-align:left;">$processes </pre><div>);
+<div class="tbl" style="text-align:left; border: 0px; padding:5px;">
+<b>Server Side Processes</b><hr></div>
+<pre style="text-align:left;">$processes</pre></div>);
 
 
 print $cgi->end_html;
