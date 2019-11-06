@@ -201,7 +201,19 @@ try{
 
         $st = $db->prepare('INSERT INTO LOG(ID_CAT,DATE,LOG) VALUES (?,?,?)');
         $st->execute( 3, $today, "DB Created!");
-      }
+    }
+
+    # From v.1.6 view use server side views, for pages and correct record by ID and PID lookups.
+    # This should make queries faster, less convulsed, and log renumeration less needed, for accurate pagination.
+    $st = $db->prepare(selSQLView('VW_LOG'));
+    $st->execute();
+    if(!$st->fetchrow_array()) {        
+        $rv = $db->do('CREATE VIEW VW_LOG AS 
+                              SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID 
+                              FROM LOG as a ORDER BY DATE DESC;');
+        if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>";}
+    }
+
     $st = $db->prepare(selSQLTbl('CAT'));
     $st->execute();
     if(!$st->fetchrow_array()) {
@@ -438,6 +450,11 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
 sub selSQLTbl{
       my $name = $_[0];
 return "SELECT name FROM sqlite_master WHERE type='table' AND name='$name';"
+}
+
+sub selSQLView{
+      my $name = $_[0];
+return "SELECT name FROM sqlite_master WHERE type='view' AND name='$name';"
 }
 
 

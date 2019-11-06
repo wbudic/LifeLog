@@ -5,13 +5,12 @@
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
 ## LifeLog
-* Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
-* Paging of datasets to be redone.
-* &#10004; Implement sticky log entries.
-* $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
 * Some System settings to be stored in session. As these are  known even before logon.
 > i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
-
+* * &#10004; Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
+* * &#10004; Paging of datasets to be redone.
+* &#10004; Implement sticky log entries.
+* $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
 * &#10004; Dropdown for type of log amount (Mark as Expense). Default is Asset. Asset is neither, income or expense.
 * &#10004; Implement RTF Documents.
 > Useful as more document style formated details can be added instead of just plain text.

@@ -19,12 +19,16 @@ var RTF_DOC_RESIZED = false;
 var RTF_DOC_ORIG;
 
 
-function loadedBody(toggle) {
+function loadedBody(toggle, rs_cur) {
 
 
 
     if (toggle) {
         this.toggle("#div_srh", false);
+    }
+    if(rs_cur){
+        _show_all = false;//toggle type switch
+        showAll();
     }
     $('#ed').datetimepicker({
         dateFormat: 'yy-mm-dd',
@@ -352,31 +356,57 @@ function deleteSelected() {
     return false;
 }
 
-
-function submitNext(tbl_rc) {
-
+function submitTop(top) {
     var frm = document.getElementById("frm_entry");
     frm.submit_is_view.value = 1;
-    frm.rs_all.value = 0;
-    frm.rs_cur.value = tbl_rc;
-    frm.submit_is_view.value = 1;
+    frm.rs_all.value  = 0;
+    frm.rs_cur.value  = 0;
+    frm.rs_prev.value = top;
+    frm.submit_is_view.value = 1;    
     frm.submit();
 
     return false;
 }
 
-function submitPrev(tbl_rc) {
+function submitPrev(tbl_rc, limit) {
 
     var frm = document.getElementById("frm_entry");
     frm.submit_is_view.value = 1;
     frm.rs_all.value = 0;
-    frm.rs_cur.value = tbl_rc;
+    frm.rs_cur.value = tbl_rc + limit;
     frm.rs_prev.value = tbl_rc;
     frm.submit_is_view.value = 1;
     frm.submit();
 
     return false;
 }
+
+function submitNext(tbl_rc, limit) {
+
+    var frm = document.getElementById("frm_entry");
+    frm.submit_is_view.value = 1;
+    frm.rs_all.value = 0;
+    frm.rs_cur.value = tbl_rc;
+    frm.rs_prev.value = tbl_rc + limit;
+    frm.submit_is_view.value = 1;
+    frm.submit();
+
+    return false;
+}
+
+function submitEnd(limit) {
+    var frm = document.getElementById("frm_entry");
+    frm.submit_is_view.value = 1;
+    frm.rs_all.value  = 0;
+    frm.rs_cur.value  = limit;
+    frm.rs_prev.value = limit * 2;
+    frm.submit_is_view.value = 1;
+    frm.submit();
+
+    return false;
+}
+
+
 
 function viewAll() {
 

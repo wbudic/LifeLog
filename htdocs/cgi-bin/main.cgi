@@ -40,6 +40,8 @@ our $RTF_SIZE     = 0;
 my $THEME        = 'Standard';
 my $TH_CSS       = 'main.css';
 my $BGCOL        = '#c8fff8';
+#Set to 1 to get debug help. Switch off with 0.
+my $DEBUG        = 0;
 #END OF SETTINGS
 
 
@@ -73,7 +75,8 @@ my ( $imgw, $imgh );
 
 my $log_rc      = 0;
 my $log_rc_prev = 0;
-my $log_cur_id;
+my $log_cur_id  = 0;
+my $log_top = 0;
 my $rs_keys     = $cgi->param('keywords');
 my $rs_cat_idx  = $cgi->param('category');
 my $prm_vc      = $cgi->param("vc");
@@ -83,10 +86,12 @@ my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
 my $rs_cur      = $cgi->param('rs_cur');
 my $rs_page     = $cgi->param('rs_page');
-my $stmS        = "SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG WHERE";
-my $stmE        = " ORDER BY DATE DESC;";
+my $stmS        = 'SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG WHERE';#"SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG WHERE";
+my $stmE        = "";#" ORDER BY DATE DESC;";
 my $stmD        = "";
 my $sm_reset_all;
+
+
 
 my $lang  = Date::Language->new($LANGUAGE);
 my $today = DateTime->now;
@@ -130,7 +135,7 @@ print $cgi->header(-expires => "0s", -charset => "UTF-8");
 print $cgi->start_html(
     -title   => "Personal Log",
     -BGCOLOR => $BGCOL,
-    -onload  => "loadedBody('" . $toggle . "');",
+    -onload  => "loadedBody('" . $toggle . "',$rs_cur);",
     -style   => [
         { -type => 'text/css', -src => "wsrc/$TH_CSS" },
         { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
@@ -177,7 +182,7 @@ print $cgi->start_html(
 my $rv;
 my $st;
 my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $stmt ="SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG WHERE STICKY =1 ORDER BY DATE DESC, rowid DESC;";
+my $stmt = "SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY =1;";
 
 $st = $db->prepare($stmtCat);
 $rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
@@ -290,23 +295,23 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 ###############
     &processSubmit;
 ###############
-    #
-    # Uncomment bellow to see main query statement issued!
-    #print $cgi->pre("### -> ".$stmt);
-    #
+    
     my $tfId      = 0;
     my $id        = 0;
     my $log_start = index $stmt, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
 
+    print $cgi->pre("### -> ".$stmt) if $DEBUG;
+
     if ( $log_start > 0 ) {
 
         #check if we are at the beggining of the LOG table?
         my $stc =
-          $db->prepare('select rowid from LOG order by rowid DESC LIMIT 1;');
+          $db->prepare('SELECT PID from VW_LOG LIMIT 1;');
         $stc->execute();
         my @row = $stc->fetchrow_array();
-        if ( $row[0] == $rs_prev && $rs_cur == $rs_prev ) {
+        $log_top = $row[0];
+        if ($log_top == $rs_prev && $rs_cur == $rs_prev ) {            
             $log_start = -1;
         }
         $stc->finish();
@@ -328,11 +333,10 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     &buildLog;
 
  
-    if(index ($stmt, 'rowid <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
+    if(index ($stmt, 'PID <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
 
-        $stmt = "SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM LOG WHERE STICKY != 1 ORDER BY DATE DESC, rowid DESC;";
-        #uncomment
-        #print $cgi->pre("###2 -> ".$stmt);
+        $stmt = "SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY != 1;";
+        print $cgi->pre("###2 -> ".$stmt)  if $DEBUG;
         $st = $db->prepare($stmt);
         $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
         if ( $rv < 0 ) {
@@ -346,7 +350,7 @@ sub buildLog {
 
     while ( my @row = $st->fetchrow_array() ) {
 
-        $id = $row[0];# rowid
+        $id = $row[0];# PID
 
         my $ct  = $hshCats{$row[1]}; #ID_CAT
         my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
@@ -551,6 +555,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 
         my ( $dty, $dtf ) = $dt->ymd;
         my $dth = $dt->hms;
+        $dth .= " id=($id)" if $DEBUG;
         if ( $DATE_UNI == 1 ) {
             $dtf = $dty;
         }
@@ -610,17 +615,18 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
     $tas = &cam($ass);
     $tot = &cam($tot);
     
-    $log_output .= qq(<tr class="r$tfId">
+    $log_output .= qq(
+    <tr class="r$tfId">
 		<td></td>
 		<td></td>
 		<td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets[$tas] Gross[<b><i>$tot</i></b> &lt;-- $sum (<font color="red">$exp</font>)]</td>
 	</tr>);
 
-    if ( $REC_LIMIT > 0 && $log_rc == $REC_LIMIT ) {
-        &buildNavigationButtons;
-    }
-
-##
+    ###
+    &buildNavigationButtons;
+    ###
+    
+    ##
     #Fetch Keywords autocomplete we go by words larger then three.
     #
     $st = $db->prepare( 'select LOG from LOG' . $stmE );
@@ -631,16 +637,6 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         print "<p>Error->" & $DBI::errstri & "</p>";
     }
     &fetchAutocomplete;
-
-    #End of table?
-    if ( $rs_prev && $log_rc < $REC_LIMIT ) {
-        $st = $db->prepare("SELECT count(*) FROM LOG;");
-        $st->execute();
-        my @row = $st->fetchrow_array();
-        if ( $row[0] > $REC_LIMIT ) {
-            &buildNavigationButtons(1);
-        }
-    }
 
     if ( $log_rc == 0 ) {
 
@@ -657,13 +653,12 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 			<b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td></tr>);
         }
         else {
-            $log_output .=
-'<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
+            $log_output .= '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
         }
     }
 
     $log_output .= <<_TXT;
-<tr class="r0"><td colspan="2">Show All Again -&#62; 
+<tr class="r0"><td colspan="2">Show All hidden with &#10132;
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;></span></a>
 
 <a href="#top">&#x219F;</a></td>
@@ -911,7 +906,7 @@ sub processSubmit {
                     else {
                         $rs_page++;
                     }
-                    $stmt = qq(SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG where rowid <= '$rs_cur' and STICKY != 1 ORDER BY DATE DESC;);
+                    $stmt = qq(SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1;);
                     return;
                 }
             }
@@ -934,7 +929,7 @@ sub processSubmit {
                    #last_insert_id() -> Not reliable commented out.
                    #my $gzero = $db->last_insert_id();#//$db->prepare('SELECT last_insert_rowid();');
                    $st->finish();
-                   $st = $db->prepare('SELECT rowid FROM LOG ORDER BY rowid DESC LIMIT 1;');
+                   $st = $db->prepare('SELECT ID FROM VW_LOG LIMIT 1;');
                    $st -> execute(); 
                    my @lid = $st->fetchrow_array();
                    $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';"); 
@@ -1005,9 +1000,7 @@ sub processSubmit {
 }
 
     sub buildNavigationButtons {
-
-        my $is_end_of_rs = shift;
-
+        
         if ( !$log_cur_id ) {
 
         #Following is a quick hack as previous id as current minus one might not
@@ -1021,31 +1014,40 @@ sub processSubmit {
             $tfId = 1;
         }
 
-        $log_output .= qq!<tr class="r$tfId"><td></td>!;
+        
+        if($REC_LIMIT == 0){
 
-        if ( $rs_prev && $rs_prev > 0 && $log_start > 0 && $rs_page > 0 ) {
-
-            $log_output = $log_output . qq!<td><input type="hidden" value="$rs_prev"/>
-	 <input type="button" onclick="submitPrev($rs_prev);return false;"
-	  value="&lsaquo;&lsaquo;&ndash; Previous"/></td>!;
+            $log_output .= '';
+            $log_output .= qq!<tr class="r$tfId"><td></td><td colspan="3">
+                               <input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="Back To Page View"/>!;
 
         }
-        else {
-            $log_output .= '<td><i>Top</i></td>';
-        }
+        else{
+                if ($rs_cur < $log_top && $rs_prev && $rs_prev > 0 && $log_start > 0 && $rs_page > 0) {
 
-        $log_output .=
-'<td colspan="1"><input type="button" onclick="viewAll();return false;" value="View All"/></td>';
+                    $log_output .= qq!<tr class="r$tfId"><td></td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
+                    <input type="hidden" value="$rs_prev"/>
+                    <input class="ui-button" type="button" onclick="submitPrev($log_rc_prev, $REC_LIMIT);return false;" value="&lsaquo;&lsaquo;&nbsp; Previous"/>&nbsp;&nbsp;!;
 
-        if ( $is_end_of_rs == 1 ) {
-            $log_output = $log_output . '<td><i>End</i></td>';
-        }
-        else {
+                }
+                else {
+                    $log_output .= '<tr class="r$tfId"><td></td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;';
+                }
 
-            $log_output .=
-qq!<td><input type="button" onclick="submitNext($log_cur_id);return false;"
-		                      value="Next &ndash;&rsaquo;&rsaquo;"/></td>!;
+                               
+                    $log_output .= '<input class="ui-button" type="button" onclick="viewAll();return false;" value="View All"/>&nbsp;&nbsp;';
+                
 
+                if ( $log_cur_id == 0 ) {
+                    $log_output = $log_output . '<i>End</i></td>';
+                }
+                else {
+
+                    $log_output .= qq!<input class="ui-button" type="button" onclick="submitNext($log_cur_id, $REC_LIMIT);return false;"
+                                        value="Next &nbsp;&rsaquo;&rsaquo;"/>&nbsp;&nbsp;
+                                        <input class="ui-button" type="button" onclick="submitEnd($REC_LIMIT);return false;" value="END"/></td>!;
+
+                }
         }
 
         $log_output = $log_output . '<td colspan="2"></td></tr>';
