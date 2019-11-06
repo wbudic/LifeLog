@@ -15,11 +15,7 @@ use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 use Number::Bytes::Human qw(format_bytes);
-my $HS;
-#perlbrew fix, with main::sub not recognised in inxi.pl
-BEGIN {
-  $HS = `inxi -b -c0; uptime -p`;
-}
+use IPC::Run qw( run );  
 
 
 #SETTINGS HERE!
@@ -29,6 +25,7 @@ my $LOG_PATH     = '../../dbLifeLog/';
 my $RELEASE_VER  = "";
 my $THEME        = 0;
 my $TH_CSS       = 'main.css';
+my $DEBUG = 0;
 #END OF SETTINGS
 
 my $cgi = CGI->new;
@@ -39,11 +36,15 @@ my $userid  =$session->param('alias');
 my $password=$session->param('passw');
 
 if(!$userid||!$dbname){
-   # print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
-  #  exit;
-  $userid ="admin";
-  $dbname = "data_admin_log.db";
-  $password = "admin";
+    if ($DEBUG){
+        $userid ="admin";
+        $dbname = "data_admin_log.db";
+        $password = "admin";
+    }
+    else{
+    print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+    exit;
+    }
 }
 
 my $database = '../../dbLifeLog/' . $dbname;
@@ -102,6 +103,16 @@ my $income  = selectSQL($stm2);
 my $gross   = big_money($income - $expense);
 $expense    = big_money(sprintf("%.2f",$expense));
 $income     = big_money(sprintf("%.2f",$income));
+
+
+#Under perlbrew, sometimes STDOUT is not piped back to our cgi,
+#utility inxi could be a perl written version on newer systems.
+#So I use the inter processing module here for inxi. -- @wbudic
+my  $HS = "";
+my @cmd = ("inxi", "-b", "-c0");
+run \@cmd, '>&', \$HS; #instead of -> system("inxi",'-b', '-c0');
+    $HS .= `uptime -p`;
+
 
 my $hardware_status = $HS;#`inxi -b -c0; uptime -p`;
 $hardware_status =~ s/\n/<br\/>/g;

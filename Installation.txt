@@ -96,6 +96,7 @@ sudo cpanm Number/Bytes/Human.pm;
 sudo cpanm Regexp::Common;
 sudo cpanm JSON;
 sudo cpanm Switch;
+sudo cpanm install IPC::Run
 
 #Install DBI module
 sudo cpanm DBI;
@@ -109,6 +110,9 @@ Platforms supported, Windows, Unix (all), Mac.
 
 Installing perl as an developer, requires no sudo. 
 But hence can't run server (system level) like.
+
+If developer and running perlbrew, recommended is to use
+cpan to install required modules.
 
 #Upgrade Instructions
 
