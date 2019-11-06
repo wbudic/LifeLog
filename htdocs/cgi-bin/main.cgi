@@ -112,10 +112,44 @@ if ( $rs_dat_from && $rs_dat_to ) {
 my $toggle = "";
 if ( $rs_keys || $rs_cat_idx || $stmD || $prm_vc > 0 || $prm_xc > 0) { $toggle = 1; }
 
+
+##Handle Session Keeps
 $sss->expire($SESSN_EXPR);
 $sss->param('theme', $TH_CSS);
 $sss->param('bgcolor', $BGCOL);
+
+
+#Reset Clicked
+if($cgi->param('srch_reset') == 1){
+    $sss->clear('sss_vc');
+    $sss->clear('sss_xc');
+}
+
+if($prm_vc){
+   if ($cgi->param('sss_xc') eq 'on'){
+       $sss->param('sss_vc', $prm_vc)
+   }
+   else{
+        $sss->clear('sss_vc');
+   }
+}else{
+       $prm_vc = $sss->param('sss_vc');
+}
+if($prm_xc){
+   if ($cgi->param('sss_xc') eq 'on'){
+       $sss->param('sss_xc', $prm_xc)
+   }
+   else{
+        $sss->clear('sss_xc');
+   }
+}else{
+       $prm_xc = $sss->param('sss_xc');
+}
+
+
 $sss->flush();
+
+
 
 #tag related framed sizing.
 my @arrwh = split /x/, $IMG_W_H;
@@ -150,8 +184,6 @@ print $cgi->start_html(
             -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
         },
 
-#  {-type => 'application/atom+xml',
-#   -src=>'https://quilljs.com/feed.xml', -title=>"Quill - Your powerful rich text editor"},
         { -type => 'text/css', -src => 'wsrc/quill/katex.min.css' },
         { -type => 'text/css', -src => 'wsrc/quill/monokai-sublime.min.css' },
         { -type => 'text/css', -src => 'wsrc/quill/quill.snow.css' },
@@ -182,7 +214,7 @@ print $cgi->start_html(
 my $rv;
 my $st;
 my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $stmt = "SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY =1;";
+my $stmt    = "SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY = 1;";
 
 $st = $db->prepare($stmtCat);
 $rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
@@ -301,7 +333,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     my $log_start = index $stmt, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
 
-    print $cgi->pre("### -> ".$stmt) if $DEBUG;
+    print $cgi->pre("###[sss_xc PARAM->vc=$prm_vc|xc=$prm_xc] -> ".$stmt) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
@@ -747,15 +779,24 @@ _TXT
         </td>
       </tr>
 );
-
+    my $sss_checked = 'checked' if $sss->param('sss_vc') || $sss->param('sss_xc') ;
     $srh .=
-      qq(
+    qq(
     <tr class="collpsd">
      <td align="right"><b>View by Category:</b></td>
      <td align="left">
         $cats_v &nbsp;&nbsp;
         <button id="btn_cat" onclick="viewByCategory(this);">View</button>
         <input id="idx_cat" name="category" type="hidden" value="0"/>
+     </td>
+   </tr>
+   <tr class="collpsd">
+     <td align="right"><b>Exclude Category:</b></td>
+     <td align="left">
+        $cats_x &nbsp;&nbsp;
+        <button id="btn_cat" onclick="viewExcludeCategory(this);">View</button>
+        <input id="idx_cat_x" name="category" type="hidden" value="0"/>
+        <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked/> Keep In Seession
      </td>
    </tr>
    <tr class="collpsd">
@@ -771,24 +812,17 @@ _TXT
 	<td align="left">
 		<input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/>
 		&nbsp;&nbsp;<input type="submit" value="Search" align="left">
-    </td></tr>
-    <tr class="collpsd">
-     <td align="right"><b>Exclude Category:</b></td>
-     <td align="left">
-        $cats_x &nbsp;&nbsp;
-        <button id="btn_cat" onclick="viewExcludeCategory(this);">View</button>
-        <input id="idx_cat_x" name="category" type="hidden" value="0"/>
-     </td>
-
+    </td>
     );
 
     if ( ( $rs_keys && $rs_keys ne '*' ) || $rs_cat_idx || $stmD || $prm_xc ) {
         $sm_reset_all =
           '<a class="a_" onclick="resetView();">Reset View</a><hr>';
-
         $srh .= '<tr class="collpsd"><td align="center" colspan="2">
+        <input id="srch_reset" name="srh_reset" type="hidden" value="0"/>
         <button onClick="resetView()">Reset Whole View</button></td></tr>';
     }
+    else {$srh .= '</tr>'};
 
     $srh .= '</table></form>';
     my $quill = &quill( $cgi->param('submit_is_edit') );
@@ -807,7 +841,12 @@ qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <a id="menu_close" href="#" onclick="return hideLog();"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 </div>
 <hr>
-<a class="a_" onclick="return toggle('#div_log',true);">Log</a><hr>
+<a class="a_" onclick="return toggle('#div_log',true);">Log</a><br>
+<a href="#" title="TOP" onclick="return submitTop();" ><span class="ui-icon ui-icon-triangle-1-w" style="float:none;"></span></a>
+<a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $REC_LIMIT);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
+<a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $REC_LIMIT);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
+<a href="#" title="END" onclick="return submitEnd($REC_LIMIT);"><span class="ui-icon ui-icon-triangle-1-e" style="float:none;"></span></a>
+<hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="config.cgi">Config</a><hr>
 <a class="a_" onclick="return deleteSelected();">Delete</a><hr>
@@ -896,7 +935,7 @@ sub processSubmit {
             if ( $view_mode == "1" ) {
 
                 if ($rs_cur) {
-
+                    my $sand = "";
                     if ( $rs_cur == $rs_prev )
                     {    #Mid page back button if id ordinal.
                         $rs_cur += $REC_LIMIT;
@@ -906,7 +945,15 @@ sub processSubmit {
                     else {
                         $rs_page++;
                     }
-                    $stmt = qq(SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1;);
+
+                    if($prm_vc){
+                        $sand = "and ID_CAT == $prm_vc";
+                    }
+                    elsif($prm_xc){
+                        $sand = "and ID_CAT != $prm_xc";
+                    }
+
+                    $stmt = qq(SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1 $sand;);
                     return;
                 }
             }
@@ -1014,24 +1061,25 @@ sub processSubmit {
             $tfId = 1;
         }
 
+        my $vmode = "<font color='red'><b>[View Mode]</b></font>&nbsp;" if $sss->param('sss_vc')||$sss->param('sss_xc');
         
         if($REC_LIMIT == 0){
 
             $log_output .= '';
-            $log_output .= qq!<tr class="r$tfId"><td></td><td colspan="3">
+            $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3">
                                <input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="Back To Page View"/>!;
 
         }
         else{
                 if ($rs_cur < $log_top && $rs_prev && $rs_prev > 0 && $log_start > 0 && $rs_page > 0) {
 
-                    $log_output .= qq!<tr class="r$tfId"><td></td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
+                    $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
                     <input type="hidden" value="$rs_prev"/>
                     <input class="ui-button" type="button" onclick="submitPrev($log_rc_prev, $REC_LIMIT);return false;" value="&lsaquo;&lsaquo;&nbsp; Previous"/>&nbsp;&nbsp;!;
 
                 }
                 else {
-                    $log_output .= '<tr class="r$tfId"><td></td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;';
+                    $log_output .= qq(<tr class="r$tfId"><td>$vmode</td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
                 }
 
                                

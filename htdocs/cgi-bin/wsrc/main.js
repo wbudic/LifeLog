@@ -445,11 +445,12 @@ function resetDoc(){
 
 
 function resetView() {
-    $("#frm_srch input").val("");    
+    $("#frm_srch input").val("");
+    $("#srch_reset").val(1);
     $("#idx_cat").val(0);
     $('#vc>option[value="0"]').prop('selected', true);
     $('#xc>option[value="0"]').prop('selected', true);
-
+    $("#sss_xc").prop('checked', false);
     $("#frm_srch").submit();
 }
 
