@@ -650,6 +650,12 @@ var RTF_SUBMIT = false;
 
 function saveRTF(id, action) {
     // alert(JSON.stringify(QUILL.getContents()));
+
+    //Strip ammount to show plain number.
+       var am = $("#am").val().trim();
+           am = am.replace(/[^\d\.]/g,"");
+       $("#am").val(am);
+
     var is_submit = (id==-1);
     if (id < 1) {
         id = $("#submit_is_edit").val(); 
