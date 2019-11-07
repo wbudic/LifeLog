@@ -37,9 +37,9 @@ our $AUTO_WRD_LMT = 1000;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
 
-my $THEME        = 'Standard';
-my $TH_CSS       = 'main.css';
-my $BGCOL        = '#c8fff8';
+my $THEME         = 'Standard';
+my $TH_CSS        = 'main.css';
+my $BGCOL         = '#c8fff8';
 #Set to 1 to get debug help. Switch off with 0.
 my $DEBUG        = 0;
 #END OF SETTINGS
@@ -64,7 +64,7 @@ elsif ( !$userid || !$dbname ) {
 
 my $database = '../../dbLifeLog/' . $dbname;
 my $dsn      = "DBI:SQLite:dbname=$database";
-my $db       = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } )
+my $db       = DBI->connect( $dsn, $userid, $password, { PrintError => 0, RaiseError => 1 } )
   or die "<p>Error->" & $DBI::errstri & "</p>";
 
 my ( $imgw, $imgh );
@@ -149,8 +149,6 @@ if($prm_xc){
 
 $sss->flush();
 
-
-
 #tag related framed sizing.
 my @arrwh = split /x/, $IMG_W_H;
 if ( @arrwh == 2 ) {
@@ -215,6 +213,8 @@ my $rv;
 my $st;
 my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
 my $stmt    = "SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY = 1;";
+
+print qq("## Using db -> $dsn) if $DEBUG;
 
 $st = $db->prepare($stmtCat);
 $rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
@@ -324,7 +324,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
         }
     }
 
-###############
+###############./st 
     &processSubmit;
 ###############
     
@@ -333,7 +333,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     my $log_start = index $stmt, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
 
-    print $cgi->pre("###[sss_xc PARAM->vc=$prm_vc|xc=$prm_xc] -> ".$stmt) if $DEBUG;
+    print $cgi->pre("###[sss PARAMS->vc=$prm_vc|xc=$prm_xc] -> ".$stmt) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
@@ -685,7 +685,8 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 			<b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td></tr>);
         }
         else {
-            $log_output .= '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>\n';
+            if (&isInViewMode) { $log_output .= '<tr><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>' }
+            else{ $log_output .= '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>'}
         }
     }
 
@@ -742,7 +743,7 @@ _TXT
 	</tr>
 	<tr class="collpsd"><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Amount:</td>
 		<td id="al">
-			<input id="am" name="am" type="number" step="any">&nbsp;
+			<input id="am" name="am" type="text">&nbsp;
             Marks as: 
             <select id="amf" name="amf">
                 <option value="0" selected>Asset</option>
@@ -779,7 +780,7 @@ _TXT
         </td>
       </tr>
 );
-    my $sss_checked = 'checked' if $sss->param('sss_vc') || $sss->param('sss_xc') ;
+    my $sss_checked = 'checked' if &isInViewMode;
     $srh .=
     qq(
     <tr class="collpsd">
@@ -816,11 +817,10 @@ _TXT
     );
 
     if ( ( $rs_keys && $rs_keys ne '*' ) || $rs_cat_idx || $stmD || $prm_xc ) {
-        $sm_reset_all =
-          '<a class="a_" onclick="resetView();">Reset View</a><hr>';
-        $srh .= '<tr class="collpsd"><td align="center" colspan="2">
-        <input id="srch_reset" name="srh_reset" type="hidden" value="0"/>
-        <button onClick="resetView()">Reset Whole View</button></td></tr>';
+        $sm_reset_all = '<a class="a_" onclick="resetView();">Reset View</a><hr>';
+        $srh .= '<tr class="collpsd"><td align="right" colspan="2">
+        <input id="srch_reset" name="srch_reset" type="hidden" value="0"/>
+        <button onClick="resetView()">Reset Whole View</button><br></td></tr>';
     }
     else {$srh .= '</tr>'};
 
@@ -889,6 +889,7 @@ $sm_reset_all
 
 
 
+
 sub processSubmit {
 
         my $date = $cgi->param('date');
@@ -907,6 +908,7 @@ sub processSubmit {
 
         if($rtf eq 'on'){$rtf = 1}  else {$rtf = 0}
         if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}
+        if(!$am){$am=0}
 
         try {
 #Apostroph's need to be replaced with doubles  and white space to be fixed for the SQL.
@@ -923,8 +925,13 @@ sub processSubmit {
                                              AFLAG = '$af',
                                              RTF='$rtf', 
                                              STICKY='$sticky' WHERE rowid="$edit_mode";);
-                my $st = $db->prepare($stm);
-                $st->execute();
+                #                                             
+                print $stm if $DEBUG;
+                #
+                
+                my $dbUpd = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } )  or die "<p>Error->" & $DBI::errstri & "</p>";
+                my $st = $dbUpd->prepare($stm);
+                   $st->execute();
                 return;
             }
 
@@ -962,20 +969,25 @@ sub processSubmit {
 
                 #check for double entry
                 #
-                my $st = $db->prepare(qq(SELECT DATE,LOG FROM LOG where DATE='$date' AND LOG='$log';));
+                my $stm = qq(SELECT DATE,LOG FROM LOG where DATE='$date' AND LOG='$log';);
 
+                my $st = $db->prepare($stm);
                 $st->execute();
-                if ( my @row = $st->fetchrow_array() ) {
+
+                if ($st->fetchrow_array() ) {
                     return;
                 }
 
-                $st = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?,?)');
-                $st->execute( $cat, $date, $log, $am, $af, $rtf, $sticky );
+                $stm = qq(INSERT INTO LOG (ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY)
+                        VALUES($cat, '$date', '$log', $am, $af, $rtf, $sticky);
+                        );
+                print "\n###$stm\n" if $DEBUG;
+
+                $st = $db->prepare($stm);           
+                $st->execute();
+
                 if($rtf){ #Update 0 ground NOTES entry to the just inserted log.
-                   
-                   #last_insert_id() -> Not reliable commented out.
-                   #my $gzero = $db->last_insert_id();#//$db->prepare('SELECT last_insert_rowid();');
-                   $st->finish();
+                 
                    $st = $db->prepare('SELECT ID FROM VW_LOG LIMIT 1;');
                    $st -> execute(); 
                    my @lid = $st->fetchrow_array();
@@ -984,7 +996,7 @@ sub processSubmit {
                    my @gzero = $st->fetchrow_array();
                    
 
-                   if(scalar @lid > 0 && scalar @gzero > 0){
+                   if(scalar @lid > 0){
             #By Notes.LID contraint, there should NOT be an already existing log rowid entry just submitted in the Notes table! 
             #What happened? We must check and delete, regardles. As data is renumerated and shuffled from perl in database. :(
                       $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = '$lid[0]';");
@@ -1042,7 +1054,17 @@ sub processSubmit {
             }
         }
         catch {
+
+
+      
             print "<font color=red><b>ERROR</b></font> -> " . $_;
+
+print qq(
+<html><body><pre>
+Reached2! -> $cat, $date, $log, $am, $af, $rtf, $sticky
+</pre></body></html
+);
+exit;
         }       
 }
 
@@ -1061,7 +1083,7 @@ sub processSubmit {
             $tfId = 1;
         }
 
-        my $vmode = "<font color='red'><b>[View Mode]</b></font>&nbsp;" if $sss->param('sss_vc')||$sss->param('sss_xc');
+        my $vmode = "<font color='red'><b>[View Mode]</b></font>&nbsp;" if &isInViewMode;
         
         if($REC_LIMIT == 0){
 
@@ -1256,7 +1278,10 @@ sub authenticate {
             $TH_CSS = "main_earth.css";
             $BGCOL = 'green';
         }
+    }
 
+    sub isInViewMode {
+        return $sss->param('sss_vc') || $sss->param('sss_xc');
     }
 
 

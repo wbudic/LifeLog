@@ -764,7 +764,7 @@ try{
 }
 catch{	
     $db->do('ROLLBACK;');
-    die qq(@&processDBFix error:$_ with statement->$sql for $date update counter:$cntr_upd);
+    die qq(@&processDBFix error -> $_ with statement->$sql for $date update counter:$cntr_upd);
 }
 }
 
@@ -1073,11 +1073,11 @@ sub cats{
 
 sub dbExecute{
     my $ret	= $db->prepare(shift);
-       $ret->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
+       $ret->execute() or die "<p>ERROR->"& $DBI::errstri &"</p>";
     return $ret;
 }
 
-sub error{
+sub error {
     my $url = $cgi->url();
     print qq(<h2>Sorry Encountered Errors</h2><p>Page -> $url</p><p>$ERROR</p>);
     print qq(<h3>CGI Parameters</h3>);
@@ -1086,7 +1086,7 @@ sub error{
         print '<li>'.$_.'=='. $cgi->param($_).'</li>';
     }
     print "</ol>\n";
-    print "<a href=$cgi>Return to -> $url</a>";
+    print "<a href=$url>Return to -> $url</a>";
     print $cgi->end_html;
     $db->disconnect();
     exit;
