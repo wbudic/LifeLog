@@ -1,16 +1,16 @@
-# Branch Development LifeLog in Perl - Sun Stage v. 1.6
+# Branch Development LifeLog in Perl - Sun Stage v. 1.6 FINAL
 
 *This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
 ## LifeLog
+* $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
 * Some System settings to be stored in session. As these are  known even before logon.
 > i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
-* * &#10004; Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
-* * &#10004; Paging of datasets to be redone.
+* &#10004; Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
+* &#10004; Paging of datasets to be redone.
 * &#10004; Implement sticky log entries.
-* $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
 * &#10004; Dropdown for type of log amount (Mark as Expense). Default is Asset. Asset is neither, income or expense.
 * &#10004; Implement RTF Documents.
 > Useful as more document style formated details can be added instead of just plain text.
@@ -43,16 +43,17 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 
 ## New Features of Minor Relevance
-* &#10004; Config page, links on menu to sections.
 * Theme colours to be revisited, bettered
-* &#10004; Config Export of Log and Categories to be provided as a button..
-* &#10004; Provide Exclude an Category View (if posible multiple categories). Should have option to session or not.
-* &#10004; Provide Themes
-* &#10004; Enable sticky log entries
 * Enable file attachment to log entries.
 * Enable Armour Mode
 > In this mode settings page is disabled. And can be enabled only by System Admin.
 * Provide About button and info.
+* &#10004; Implement sessioned category view mode.
+* &#10004; Config page, links on menu to sections.
+* &#10004; Config Export of Log and Categories to be provided as a button..
+* &#10004; Provide Exclude an Category View (if posible multiple categories). Should have option to session or not.
+* &#10004; Provide Themes
+* &#10004; Enable sticky log entries
 * &#10004; Configuration page - JQuery look and feel implemented.
 * &#10004; Migration for data structural changes to be bettered.
 * &#10004; Floating side menu for links and navigation.
@@ -71,7 +72,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 >&#10004; Deletion of log, deletes the document.
 
 ## Bugs
-Bug - 11 View runs, brocken since sticky feature implentation. Page record sets don't work.
+* &#10004; Bug - 11 View runs, brocken since sticky feature implentation. Page record sets don't work.
 * &#10004; Bug - 10 Expense type entries don't fill ammount field on edit button clicked.
 * &#10004; Bug - 09 RTF documents lost on data renumeration of log. Data fix options in config. Needs urgent revision.
 * Bug - 08 CSV imports duplicate on DB Fix in config page.
@@ -83,8 +84,6 @@ Bug - 11 View runs, brocken since sticky feature implentation. Page record sets 
 * &#10004; Bug - 02, Record set paging to previous page not always working. Getting stuck.
 >> This occurs on new records placed in the far past. Complex problem.
 * &#10004; Bug - 01, date validation for proper entered time, there is no 24 h.
-
-
 
 ***
 
