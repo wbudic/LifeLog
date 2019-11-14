@@ -23,41 +23,17 @@ use Time::localtime;
 use Regexp::Common qw /URI/;
 
 #DEFAULT SETTINGS HERE!
-our $REC_LIMIT    = 25;
-our $TIME_ZONE    = 'Australia/Sydney';
-our $LANGUAGE     = 'English';
-our $PRC_WIDTH    = '60';
-our $LOG_PATH     = '../../dbLifeLog/';
-our $SESSN_EXPR   = '+30m';
-our $DATE_UNI     = '0';
-our $RELEASE_VER  = '1.6';
-our $AUTHORITY    = '';
-our $IMG_W_H      = '210x120';
-our $AUTO_WRD_LMT = 1000;
-our $FRAME_SIZE   = 0;
-our $RTF_SIZE     = 0;
-
-my $THEME         = 'Standard';
-my $TH_CSS        = 'main.css';
-my $BGCOL         = '#c8fff8';
-#Set to 1 to get debug help. Switch off with 0.
-my $DEBUG        = 0;
-#END OF SETTINGS
-
+use lib "system/modules";
+require Settings;
 
 my $cgi = CGI->new;
-my $sss =
-  new CGI::Session( "driver:File", $cgi, { Directory => $LOG_PATH} );
+my $sss = new CGI::Session( "driver:File", $cgi, { Directory => Settings::logPath()} );
 my $sid      = $sss->id();
 my $dbname   = $sss->param('database');
 my $userid   = $sss->param('alias');
 my $password = $sss->param('passw');
 
-if ($AUTHORITY) {
-    $userid = $password = $AUTHORITY;
-    $dbname = 'data_' . $userid . '_log.db';
-}
-elsif ( !$userid || !$dbname ) {
+if ( !$userid || !$dbname ) {
     print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
     exit;
 }
@@ -68,10 +44,11 @@ my $db       = DBI->connect( $dsn, $userid, $password, { PrintError => 0, RaiseE
   or die "<p>Error->" & $DBI::errstri & "</p>";
 
 my ( $imgw, $imgh );
-
+#Fetch settings
+Settings::getConfiguration($db);
+Settings::getTheme();
 ### Authenticate sss to alias password
 &authenticate;
-&getConfiguration($db);
 
 my $log_rc      = 0;
 my $log_rc_prev = 0;
@@ -86,16 +63,23 @@ my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
 my $rs_cur      = $cgi->param('rs_cur');
 my $rs_page     = $cgi->param('rs_page');
-my $stmS        = 'SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG WHERE';#"SELECT rowid, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from LOG WHERE";
-my $stmE        = "";#" ORDER BY DATE DESC;";
+my $stmS        = 'SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG WHERE';
+my $stmE        = "";
 my $stmD        = "";
 my $sm_reset_all;
+my $rl = &Settings::recordLimit;
+### Page specific settings Here
+my $TH_CSS        = &Settings::css;
+my $BGCOL         = &Settings::bgcol;
+#Set to 1 to get debug help. Switch off with 0.
+my $DEBUG        = &Settings::debug;
+#END OF SETTINGS
 
 
 
-my $lang  = Date::Language->new($LANGUAGE);
+my $lang  = Date::Language->new(Settings::language());
 my $today = DateTime->now;
-$today->set_time_zone($TIME_ZONE);
+$today->set_time_zone(Settings::timezone());
 
 
 if ( !$rs_dat_to && $rs_dat_from ) {
@@ -114,7 +98,7 @@ if ( $rs_keys || $rs_cat_idx || $stmD || $prm_vc > 0 || $prm_xc > 0) { $toggle =
 
 
 ##Handle Session Keeps
-$sss->expire($SESSN_EXPR);
+$sss->expire(&Settings::sessionExprs);
 $sss->param('theme', $TH_CSS);
 $sss->param('bgcolor', $BGCOL);
 
@@ -150,7 +134,7 @@ if($prm_xc){
 $sss->flush();
 
 #tag related framed sizing.
-my @arrwh = split /x/, $IMG_W_H;
+my @arrwh = split /x/, &Settings::imgWidthHeight;
 if ( @arrwh == 2 ) {
     $imgw = $arrwh[0];
     $imgh = $arrwh[1];
@@ -159,9 +143,6 @@ else {    #defaults
     $imgw = 210;
     $imgh = 120;
 }
-
-
-&getTheme;
 
 print $cgi->header(-expires => "0s", -charset => "UTF-8");
 print $cgi->start_html(
@@ -268,7 +249,7 @@ for my $key ( keys %hshDesc ) {
 }
 my $log_output =
 qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
-<TABLE class="tbl" border="0" width="$PRC_WIDTH%">
+<TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
 <tr class="r0">
 	<th>Date</th>
 	<th>Time</th>
@@ -477,12 +458,12 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         if ( $log =~ /<iframe / ) {
             my $a = q(<iframe width="560" height="315");
             my $b;
-            switch ($FRAME_SIZE) {
+            switch (&Setting::frameSize) {
                 case "0" { $b = q(width="390" height="215") }
                 case "1" { $b = q(width="280" height="180") }
                 case "2" { $b = q(width="160" height="120") }
                 else {
-                    $b = $FRAME_SIZE;
+                    $b = &Setting::frameSize;
                 }
             }
             $b = qq(<div><iframe align="center" $b);
@@ -588,11 +569,11 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         my ( $dty, $dtf ) = $dt->ymd;
         my $dth = $dt->hms;
         $dth .= " id=($id)" if $DEBUG;
-        if ( $DATE_UNI == 1 ) {
+        if ( &Settings::universalDate == 1 ) {
             $dtf = $dty;
         }
         else {
-            $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, $TIME_ZONE );
+            $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, &Settings::timezone);
         }
 
         if ( $rtf > 0 ) {
@@ -631,7 +612,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 
         $log_rc += 1;
 
-        if ( $REC_LIMIT > 0 && $log_rc == $REC_LIMIT ) {
+        if ( $rl > 0 && $log_rc == $rl ) {
             last;
         }
 
@@ -719,7 +700,7 @@ _TXT
 
     my $frm = qq(<a name="top"></a>
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
-	<table class="tbl" border="0" width="$PRC_WIDTH%">
+	<table class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
 	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b>
     <a id="log_close" href="#" onclick="return hide('#div_log');">$sp1</a>
     <a id="log_close" href="#" onclick="return toggle('#div_log .collpsd');">$sp2</a>
@@ -772,7 +753,7 @@ _TXT
 
     my $srh = qq(
 	<form id="frm_srch" action="main.cgi">
-	<table class="tbl" border="0" width="$PRC_WIDTH%">
+	<table class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
 	  <tr class="r0">
         <td colspan="2"><b>Search/View By</b>
             <a id="srch_close" href="#" onclick="return hide('#div_srh');">$sp1</a>
@@ -832,6 +813,7 @@ _TXT
  #   Page printout from here!   #
 ################################
 
+
 print
 qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
@@ -843,9 +825,9 @@ qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <hr>
 <a class="a_" onclick="return toggle('#div_log',true);">Log</a><br>
 <a href="#" title="TOP" onclick="return submitTop();" ><span class="ui-icon ui-icon-triangle-1-w" style="float:none;"></span></a>
-<a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $REC_LIMIT);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
-<a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $REC_LIMIT);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
-<a href="#" title="END" onclick="return submitEnd($REC_LIMIT);"><span class="ui-icon ui-icon-triangle-1-e" style="float:none;"></span></a>
+<a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $rl);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
+<a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $rl);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
+<a href="#" title="END" onclick="return submitEnd($rl);"><span class="ui-icon ui-icon-triangle-1-e" style="float:none;"></span></a>
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="config.cgi">Config</a><hr>
@@ -881,11 +863,11 @@ $sm_reset_all
 						
 		 );
 
-    print $cgi->end_html;
-    $st->finish;
-    $db->disconnect();
-    undef($sss);
-    exit;
+print $cgi->end_html;
+$st->finish;
+$db->disconnect();
+undef($sss);
+exit;
 
 
 
@@ -936,7 +918,7 @@ sub processSubmit {
             }
 
             if ( $view_all && $view_all == "1" ) {
-                $REC_LIMIT = 0;
+                $rl = 0;
             }
 
             if ( $view_mode == "1" ) {
@@ -945,7 +927,7 @@ sub processSubmit {
                     my $sand = "";
                     if ( $rs_cur == $rs_prev )
                     {    #Mid page back button if id ordinal.
-                        $rs_cur += $REC_LIMIT;
+                        $rs_cur += $rl;
                         $rs_prev = $rs_cur;
                         $rs_page--;
                     }
@@ -1022,7 +1004,7 @@ sub processSubmit {
                 #
                 my $dt    = DateTime::Format::SQLite->parse_datetime($date);
                 my $dtCur = DateTime->now();
-                $dtCur->set_time_zone($TIME_ZONE);
+                $dtCur->set_time_zone(&Settings::timezone);
                 $dtCur = $dtCur - DateTime::Duration->new( days => 1 );
 
                 if ( $dtCur > $dt ) {
@@ -1085,7 +1067,7 @@ exit;
 
         my $vmode = "<font color='red'><b>[View Mode]</b></font>&nbsp;" if &isInViewMode;
         
-        if($REC_LIMIT == 0){
+        if($rl == 0){
 
             $log_output .= '';
             $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3">
@@ -1097,7 +1079,7 @@ exit;
 
                     $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
                     <input type="hidden" value="$rs_prev"/>
-                    <input class="ui-button" type="button" onclick="submitPrev($log_rc_prev, $REC_LIMIT);return false;" value="&lsaquo;&lsaquo;&nbsp; Previous"/>&nbsp;&nbsp;!;
+                    <input class="ui-button" type="button" onclick="submitPrev($log_rc_prev, $rl);return false;" value="&lsaquo;&lsaquo;&nbsp; Previous"/>&nbsp;&nbsp;!;
 
                 }
                 else {
@@ -1113,9 +1095,9 @@ exit;
                 }
                 else {
 
-                    $log_output .= qq!<input class="ui-button" type="button" onclick="submitNext($log_cur_id, $REC_LIMIT);return false;"
+                    $log_output .= qq!<input class="ui-button" type="button" onclick="submitNext($log_cur_id, $rl);return false;"
                                         value="Next &nbsp;&rsaquo;&rsaquo;"/>&nbsp;&nbsp;
-                                        <input class="ui-button" type="button" onclick="submitEnd($REC_LIMIT);return false;" value="END"/></td>!;
+                                        <input class="ui-button" type="button" onclick="submitEnd($rl);return false;" value="END"/></td>!;
 
                 }
         }
@@ -1125,11 +1107,7 @@ exit;
 
 sub authenticate {
         try {
-
-            if ($AUTHORITY) {
-                return;
-            }
-
+         
             my $st = $db->prepare( "SELECT alias FROM AUTH WHERE alias='$userid' and passw='$password';");
             $st->execute();
             my @c = $st->fetchrow_array(); 
@@ -1209,13 +1187,13 @@ sub authenticate {
                         }
 
                         $autowords .= qq(,"$word");
-                        if ( $aw_cnt++ > $AUTO_WRD_LMT ) {
+                        if ( $aw_cnt++ > &Settings::autoWordLimit ) {
                             last;
                         }
                     }
                 }
 
-                if ( $aw_cnt > $AUTO_WRD_LMT ) {
+                if ( $aw_cnt > &Settings::autoWordLimit ) {
                     last;
                 }
             }
@@ -1226,59 +1204,13 @@ sub authenticate {
         }
     }
 
-    sub getConfiguration{
-        my $db = shift;
-        try {
-            $st = $db->prepare("SELECT ID, NAME, VALUE FROM CONFIG;");
-            $st->execute();
-
-            while ( my @r = $st->fetchrow_array() ) {
-
-                switch ( $r[1] ) {
-                    case "RELEASE_VER"  { $RELEASE_VER  = $r[2] }
-                    case "REC_LIMIT"    { $REC_LIMIT    = $r[2] }
-                    case "TIME_ZONE"    { $TIME_ZONE    = $r[2] }
-                    case "PRC_WIDTH"    { $PRC_WIDTH    = $r[2] }
-                    case "SESSN_EXPR"   { $SESSN_EXPR   = $r[2] }
-                    case "DATE_UNI"     { $DATE_UNI     = $r[2] }
-                    case "LANGUAGE"     { $LANGUAGE     = $r[2] }
-                    case "IMG_W_H"      { $IMG_W_H      = $r[2] }
-                    case "AUTO_WRD_LMT" { $AUTO_WRD_LMT = $r[2] }
-                    case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2] }
-                    case "RTF_SIZE"     { $RTF_SIZE     = $r[2] }
-                    case "THEME"        { $THEME        = $r[2] }
-                   # else {
-                    #    print "Unknow variable setting: " . $r[1] . " == " . $r[2];
-                    #}
-                }
-
-            }
-        }
-        catch {
-            print "<font color=red><b>SERVER ERROR</b></font>:" . $_;
-        }
-    }
     sub cam {
         my $am = sprintf( "%.2f", shift @_ );
         # Add one comma each time through the do-nothing loop
-        1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
+        1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;       
         return $am;
     }
-    sub getTheme{
 
-
-        if ( $THEME eq 'Sun' ) {
-            $BGCOL = '#D4AF37';
-            $TH_CSS = "main_sun.css";
-        }elsif ($THEME eq 'Moon'){
-            $TH_CSS = "main_moon.css";
-            $BGCOL = '#000000';
-
-        }elsif ($THEME eq 'Earth'){
-            $TH_CSS = "main_earth.css";
-            $BGCOL = 'green';
-        }
-    }
 
     sub isInViewMode {
         return $sss->param('sss_vc') || $sss->param('sss_xc');
@@ -1289,17 +1221,16 @@ sub quill{
 
     my ( $log_id, $height ) = shift;
 
-    switch ($RTF_SIZE) {
+switch ( &Settings::windowRTFSize ) {
         case "0" { $height = q(height:420px;) }
         case "1" { $height = q(height:260px;) }
         case "2" { $height = q(height:140px;) }
         else {
-            $height = $RTF_SIZE;
+            $height = &Settings::windowRTFSize;
         }
-    }
-
-return <<___STR;
-<table id="tbl_doc" class="tbl" width="$PRC_WIDTH%" style="border:1; margin-top: 5px;" hidden>
+}
+return qq(
+<table id="tbl_doc" class="tbl" width=").&Settings::pagePrcWidth.qq(%" style="border:1; margin-top: 5px;" hidden>
 	<tr class="r0" style="text-align:center"><td><b>* Document *</b>    
     <a id="log_close" href="#" onclick="return hide('#tbl_doc');">$sp1</a>
     <a id="log_close" href="#" onclick="return toggleDoc(false);">$sp2</a>
@@ -1355,16 +1286,14 @@ return <<___STR;
   </div>
   <div id="editor-container" style="$height"></div>
   <div class="save_button">
-  <input type="button" id="btn_save_doc" onclick="saveRTF(0, 'store'); return false;"); value="Save"/>
+  <input type="button" id="btn_save_doc" onclick="saveRTF(0, 'store'); return false;" value="Save"/>
   </div>
   </td></tr></table>  
-___STR
-
-}
+)}
 
 sub help{
-return <<___STR;
-<table id="tbl_hlp" class="tbl" border="0" width="$PRC_WIDTH%" hidden>
+return qq(
+<table id="tbl_hlp" class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%" hidden>
 	<tr class="r0"><td colspan="3"><b>* HELP *</b>
     <a id="a_close" href="#" onclick="return hide('#tbl_hlp');">$sp1</a>
     <a id="a_toggle" href="#" onclick="return toggle('#tbl_hlp .collpsd');">$sp2</a>    
@@ -1421,5 +1350,5 @@ return <<___STR;
 					</p>
 </div>
 </td></tr></table>
-___STR
-}
+)}
+
