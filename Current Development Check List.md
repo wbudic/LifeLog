@@ -4,29 +4,49 @@
 
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
-## LifeLog
+## LifeLog Development
+
+### v.1.7 Encountered
+
+* Delete page updated to show better display of entries.
+* Login page to indentify host.
+* Invalid login only shows db error.
+* Session cleanup on autologin not clearing properly.
+  * A dbfix, should clear older entris as well.
+
+### v.1.6 and less
+
 * $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
 * Some System settings to be stored in session. As these are  known even before logon.
-> i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
+  * i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
 * &#10004; Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
 
 ## Urgent FIXES and Known Issuses
+
 * Expired sessions, swallow submits into void.
 * CVS Export and Import has not been implemented for RTF type log entries.
 &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 
 ## New Features of Minor Relevance
+
 * Theme colours to be revisited, bettered
 * Enable file attachment to log entries.
 * Enable Armour Mode
-> In this mode settings page is disabled. And can be enabled only by System Admin.
+  * In this mode settings page is disabled. And can be enabled only by System Admin.
 * Provide About button and info.
 
 ## LifeLog RTF Documents using Quill Javascript RTF API
+
 * Deal with export/import of RTF Documents.
 
 ## Bugs
-#### v. 1.6 Encountered/Fixed
+
+### v. 1.7 Encountered/Fixed
+
+* Bug 12 - Migrated old data, linking to wrong id, db fix in config page seems to fix this.
+ 
+### v. 1.6 Encountered/Fixed
+
 * &#10004; Bug - 11 View runs, brocken since sticky feature implentation. Page record sets don't work.
 * &#10004; Bug - 10 Expense type entries don't fill ammount field on edit button clicked.
 * &#10004; Bug - 09 RTF documents lost on data renumeration of log. Data fix options in config. Needs urgent revision.
@@ -37,7 +57,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Bug - 04, Local not picked up properly on current date.
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
 * &#10004; Bug - 02, Record set paging to previous page not always working. Getting stuck.
->> This occurs on new records placed in the far past. Complex problem.
+    *This occurs on new records placed in the far past. Complex problem.
 * &#10004; Bug - 01, date validation for proper entered time, there is no 24 h.
 
 ***
