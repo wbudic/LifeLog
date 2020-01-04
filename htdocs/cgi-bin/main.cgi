@@ -458,12 +458,12 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         if ( $log =~ /<iframe / ) {
             my $a = q(<iframe width="560" height="315");
             my $b;
-            switch (&Setting::frameSize) {
+            switch (&Settings::frameSize) {
                 case "0" { $b = q(width="390" height="215") }
                 case "1" { $b = q(width="280" height="180") }
                 case "2" { $b = q(width="160" height="120") }
                 else {
-                    $b = &Setting::frameSize;
+                    $b = &Settings::frameSize;
                 }
             }
             $b = qq(<div><iframe align="center" $b);
