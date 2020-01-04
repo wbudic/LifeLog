@@ -5,7 +5,7 @@ This is an Open Source License project -> https://choosealicense.com/licenses/is
 Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUTO_LOGIN option bellow, use config in app.
 <<AUTO_LOGIN</>
 <<CONFIG<4>
-00|$RELEASE_VER = 1.6`LifeLog Application Version.
+00|$RELEASE_VER = 1.7`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
 03|$TIME_ZONE   = Australia/Sydney`Time zone of your country.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.

@@ -747,14 +747,18 @@ try{
         }
 
         &renumerate;
+        &removeOldSessions;
         &resetCategories if $rs_cats;
         &resetSystemConfiguration($db) if $rs_syst;			
         &wipeSystemConfiguration if $wipe_ss;
+
+
 
         $db->do('COMMIT;');
         $db->disconnect();
         $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
         $dbs = $db->do("VACUUM;");
+       
 
         if($LOGOUT){
                 &logout;
@@ -1061,7 +1065,7 @@ sub getConfiguration {
 
 }
 
-sub cats{        
+sub cats {        
         $cats = qq(<select id="cats" name="cats"><option value="0">---</option>\n);
         $dbs = dbExecute("SELECT ID, NAME FROM CAT ORDER BY ID;");
         while ( my @row = $dbs->fetchrow_array() ) {
@@ -1071,7 +1075,7 @@ sub cats{
         $cats .= '</select>';
 }
 
-sub dbExecute{
+sub dbExecute {
     my $ret	= $db->prepare(shift);
        $ret->execute() or die "<p>ERROR->"& $DBI::errstri &"</p>";
     return $ret;
@@ -1092,7 +1096,7 @@ sub error {
     exit;
 }
 
-sub getTheme{
+sub getTheme {
 
 
     if ( $THEME eq 'Sun' ) {
@@ -1148,4 +1152,17 @@ sub renumerate {
                                     SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF
                                     FROM life_log_temp_table ORDER by DATE;');
     $dbs = dbExecute('DROP TABLE life_log_temp_table;');
+}
+
+sub removeOldSessions {
+    opendir(DIR, $LOG_PATH);
+    my @files = grep(/cgisess_*/,readdir(DIR));
+    closedir(DIR);
+    my $now = time - (24 * 60 * 60);
+    foreach my $file (@files) {
+        my $mod = (stat("$LOG_PATH/$file"))[9];
+        if($mod<$now){
+            unlink "$LOG_PATH/$file";
+        }
+    }
 }

@@ -1099,14 +1099,22 @@ sub authenticate {
             print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
             print $cgi->start_html(
                 -title => "Personal Log Login",
+                -BGCOLOR => $BGCOL,
                 -script =>
                   { -type => 'text/javascript', -src => 'wsrc/main.js' },
                 -style => { -type => 'text/css', -src => 'wsrc/main.css' },
             );
-
-            print $cgi->center(
-                $cgi->div("<b>Access Denied!</b> alias:$userid pass:$password SQL->SELECT * FROM AUTH WHERE alias='$userid' and passw='$password'; ")
-            );
+            if($DEBUG){
+                    print $cgi->center(
+                        $cgi->div("<b>Access Denied!</b> alias:$userid pass:$password SQL->SELECT * FROM AUTH WHERE alias='$userid' and passw='$password'; ")
+                    );
+            }
+            else{
+                    print $cgi->center(
+                        $cgi->div('<h2>Sorry Access Denied!</h2><font color=red><b>You supplied wrong credentials.</b></font>'),
+                        $cgi->div('<h3>[<a href="login_ctr.cgi">Login</a>]</h3>')
+                    );
+            }
             print $cgi->end_html;
 
             $db->disconnect();

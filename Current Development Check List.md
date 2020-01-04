@@ -4,15 +4,17 @@
 
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
+
 ## LifeLog Development
 
 ### v.1.7 Encountered
 
-* Delete page updated to show better display of entries.
-* Login page to indentify host.
-* Invalid login only shows db error.
-* Session cleanup on autologin not clearing properly.
-  * A dbfix, should clear older entris as well.
+* Delete page updated to show better display of entries.  
+* Provide sub alias login that sets data visible to only a set of categories.
+  * View specific based login on a different password.
+* &#10004; Login page to indentify host.
+* &#10004; Session cleanup on autologin not clearing properly.
+  * A dbfix, should clear older entries as well.
 
 ### v.1.6 and less
 
@@ -43,8 +45,9 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v. 1.7 Encountered/Fixed
 
-* Bug 12 - Migrated old data, linking to wrong id, db fix in config page seems to fix this.
- 
+* &#10004; Bug 13 - Migrated old data, linking to wrong id, db fix in config page seems to fix this.
+* &#10004; Bug 12 - Invalid login only shows db error.
+
 ### v. 1.6 Encountered/Fixed
 
 * &#10004; Bug - 11 View runs, brocken since sticky feature implentation. Page record sets don't work.
@@ -62,5 +65,6 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ***
 
-** Checked (&#10004;) Are items that have been done and submitted to the branch.**
-**Project ->**  https://github.com/wbudic/LifeLog/
+     Checked (&#10004;) Are items that have been done and submitted to the branch.
+  
+     Project ->  <https://github.com/wbudic/LifeLog/>

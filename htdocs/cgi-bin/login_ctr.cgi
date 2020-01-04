@@ -3,7 +3,6 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-package main;
 use strict;
 use warnings;
 use Try::Tiny;
@@ -25,7 +24,7 @@ our $PRC_WIDTH   = '70';
 our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
 our $DATE_UNI    = '0';
-our $RELEASE_VER = '1.6';
+our $RELEASE_VER = '1.7';
 our $AUTHORITY   = '';
 our $IMG_W_H     = '210x120';
 our $AUTO_WRD_LMT= 200;
@@ -48,7 +47,6 @@ my $alias = $cgi->param('alias');
 my $passw = $cgi->param('passw');
 my $frm;
 
-
 #This is the OS developer release key, replace on istallation. As it is not secure.
 my $cipher_key = '95d7a85ba891da';
 
@@ -66,7 +64,8 @@ if(&processSubmit==0){
     -style   => { -type => 'text/css', -src => "wsrc/$TH_CSS" },
 );
 
-
+my $ip =`hostname -I`; 
+   $ip =~ s/\s/<br>/g;
 $frm = qq(
      <form id="frm_login" action="login_ctr.cgi" method="post"><table border="0" width="$PRC_WIDTH%">
       <tr class="r0">
@@ -83,7 +82,7 @@ $frm = qq(
          Alias will create a new database if it doesn't exist. Note down your password.
          <input type="hidden" name="CGISESSID" value="$sid"/>
          <input type="hidden" name="login" value="1"/></td></tr>
-      <tr class="r0"><td colspan="2"></td><td><input type="submit" value="Login"/></td></tr>
+      <tr class="r0"><td colspan="2">You are on Server -> <b>$ip</b></td><td><input type="submit" value="Login"/></td></tr>
     </table></form>);
 
 print qq(<br><br><div id=rz>
@@ -115,12 +114,13 @@ try{
                 $session->param('database', 'data_'.$alias.'_log.db');
                 $session->flush();
                 print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
-                return 1;
+                return 1; #activate redirect to main, main will check credentials.
             }
-    }
+    }  
     else{
-        &removeOldSessions;
-    }
+        $alias = $passw = "";
+    }  
+    &removeOldSessions;  #and prompt for login returning 0
 return 0;
 }
  catch{
@@ -157,6 +157,7 @@ try{
                     if(@set && $set[0]=="1"){
                          $alias = $cre[0];
                          $passw = $cre[1];
+                         &removeOldSessions;
                     }
              $db->disconnect();
         }
@@ -169,7 +170,7 @@ try{
  }
 }
 
-sub checkCreateTables{
+sub checkCreateTables {
 try{
     my $today = DateTime->now;
        $today->set_time_zone( $TIME_ZONE );
@@ -261,7 +262,13 @@ try{
 
         $rv = $db->do($stmt);
         if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>"};
-
+        $st = $db->prepare("SELECT ALIAS, PASSW, EMAIL, ACTION FROM AUTH WHERE alias='$alias' AND passw='$passw';");
+        $st->execute();
+        my @res = $st->fetchrow_array();
+        if(scalar @res == 0) {
+            $st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?);');
+            $st->execute($alias, $passw,"",0);
+        }
     }
     #
     # Scratch FTS4 implementation if present.
@@ -285,13 +292,6 @@ try{
         if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>"};
     }
 
-    $st = $db->prepare("SELECT ALIAS, PASSW, EMAIL, ACTION FROM AUTH WHERE alias='$alias' AND passw='$passw';");
-    $st->execute();
-    my @res = $st->fetchrow_array();
-    if(scalar @res == 0) {
-        $st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?);');
-        $st->execute($alias, $passw,"",0);
-    }
 
     $st = $db->prepare(selSQLTbl('CONFIG'));
     $st->execute();
@@ -413,7 +413,7 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
                                     }elsif($table_type==1){
                                                             my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+)]g;
                                                             if ( scalar(@pair)==2 ) {
-                                                                    my $st = $db->prepare("SELECT rowid FROM CONFIG WHERE NAME LIKE '$pair[1]';");
+                                                                    my $st = $db->prepare("SELECT ID FROM CAT WHERE NAME LIKE '$pair[1]';");
                                                                         $st->execute();
                                                                         $inData = 1;
                                                                         if(!$st->fetchrow_array()) {
@@ -495,7 +495,7 @@ sub logout{
     exit;
 }
 
-sub getTheme{
+sub getTheme {
 
 
     if ( $THEME eq 'Sun' ) {
