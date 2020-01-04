@@ -83,9 +83,6 @@ print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>"$BGCOL",
                        -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}                       
                 );	  
 
-
-
-
 my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="5"><b>* Personal Log Data Statistics *</b></td></tr>';
 
 my $log_rc = selectSQL('select count(rowid) from LOG;');
