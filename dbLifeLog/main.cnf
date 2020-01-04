@@ -1,8 +1,8 @@
 
-This the main configuration file for the LifeLog application settings.
+This is the main configuration file for the LifeLog applications settings.
 https://github.com/wbudic/LifeLog
 This is an Open Source License project -> https://choosealicense.com/licenses/isc/
-Credential format:<<AUTO_LOGIN <{alias}/{password}> , must be enabled option.
+Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUTO_LOGIN option bellow, use config in app.
 <<AUTO_LOGIN</>
 <<CONFIG<4>
 00|$RELEASE_VER = 1.6`LifeLog Application Version.

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Programed in by: Will Budic
+# Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 use warnings;
@@ -876,8 +876,8 @@ sub processSubmit {
 
         my $date = $cgi->param('date');
         my $log  = $cgi->param('log');
-        my $cat  = $cgi->param('ec')
-          ;    #Used to be cat v.1.3, tag id and name should be kept same.
+        my $cat  = $cgi->param('ec');
+        my $cnt;        
         my $am = $cgi->param('am');
         my $af = $cgi->param('amf');
 
@@ -892,7 +892,7 @@ sub processSubmit {
         if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}
         if(!$am){$am=0}
 
-        try {
+try {
 #Apostroph's need to be replaced with doubles  and white space to be fixed for the SQL.
             $log =~ s/'/''/g;
 
@@ -1008,46 +1008,18 @@ sub processSubmit {
                 $dtCur = $dtCur - DateTime::Duration->new( days => 1 );
 
                 if ( $dtCur > $dt ) {
-                    print $cgi->p('<b>Insert is in the past!</b>');
-
-                    #Renumerate directly (not proper SQL but faster);
-                    $st = $db->prepare('select rowid, RTF from LOG ORDER BY DATE;');
-                    $st->execute();
-                    my $cnt = 1;
-                    while ( my @row = $st->fetchrow_array() ) {
-                        my $st_upd = $db->prepare(qq(UPDATE LOG SET rowid='$cnt' WHERE rowid='$row[0]';));
-                        $st_upd->execute();
-                        $cnt = $cnt + 1;
-                        if ( $row[1] > 0 ) {
-                            my $st_del = $db->prepare(qq(SELECT DOC FROM NOTES WHERE LID='$row[0]';));
-                            my @doc = $st_del->execute();
-                            if(scalar @doc>0){
-                               my $st_del = $db->prepare(qq(DELETE FROM NOTES WHERE LID='$row[0]';));
-                               #   print qq(<p>delnid:$row[0]</p>);
-                               $st_del->execute();
-                               $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");                                                   
-                               $st->execute($cnt, $doc[0]);
-                            }
-                        }
-
-                    }
-
+                    print $cgi->p('<b>Insert is in the past!</b>');                    
+                    &renumerate;
                 }
             }
-        }
-        catch {
-
-
+}
+ catch {
       
-            print "<font color=red><b>ERROR</b></font> -> " . $_;
-
-print qq(
-<html><body><pre>
-Reached2! -> $cat, $date, $log, $am, $af, $rtf, $sticky
-</pre></body></html
-);
+ print "<font color=red><b>ERROR</b></font> -> " . $_;
+ print qq(<html><body><pre>Reached2! -> $cnt, $cat, $date, $log, $am, $af, $rtf, $sticky </pre></body></html
+        );
 exit;
-        }       
+  }       
 }
 
     sub buildNavigationButtons {
@@ -1350,5 +1322,5 @@ return qq(
 					</p>
 </div>
 </td></tr></table>
-)}
-
+)
+}

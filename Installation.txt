@@ -1,5 +1,7 @@
 *** LifeLog Requirements ***
 
+Requirments: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
+
  -Web Server (any will do that supports CGI perl execution)
  -SQLite
  -Perl Modules
@@ -12,14 +14,19 @@
 
 ## Install tiny thttpd web server. ##
 
+Requirments: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
+
+
 https://acme.com/software/thttpd/
 
 wget https://acme.com/software/thttpd/thttpd-2.29.tar.gz
 tar -xvzf thttpd-2.29.tar.gz
 cd thttpd-2.29/
 sudo groupadd www
-make
-make install
+./configure
+sudo mkdir /usr/local/man/man1
+sudo make
+sudo make install
 
 #rm thttpd-2.29.tar.gz
 #rm -rf thttpd-2.29
@@ -80,8 +87,9 @@ sudo apt install perlbrew
 curl -L http://xrl.us/installperlnix | bash
 # Perl compiled based on your hardware infrastructure now, is Very Good.
 #Developer? Switch to it, and cpan modules:
+
 perlbrew use 5.28.0
-cpan Perl::LanguageServer
+sudo cpan Perl::LanguageServer
 
 #Install or make sure you have following perl modules.
  
@@ -103,6 +111,10 @@ sudo cpanm DBI;
 sudo cpanm DBD::SQLite;
 
 #Final Perl Installation Notes
+
+NOTICE -> Perl installation and modules can take time as they build and test
+          using your computers configuration and hardware for optimal performance.
+          The Perl::LanguageServer, can fail in tests, as it development specific, can be ignored.
 
 This perl setup might take time and efforts. But, it is worth it.
 You get it build and tested professionally, based on your hardware.
