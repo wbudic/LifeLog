@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Programed in by: Will Budic
+# Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 use warnings;
@@ -894,8 +894,8 @@ sub processSubmit {
 
         my $date = $cgi->param('date');
         my $log  = $cgi->param('log');
-        my $cat  = $cgi->param('ec')
-          ;    #Used to be cat v.1.3, tag id and name should be kept same.
+        my $cat  = $cgi->param('ec');
+        my $cnt;        
         my $am = $cgi->param('am');
         my $af = $cgi->param('amf');
 
@@ -910,7 +910,7 @@ sub processSubmit {
         if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}
         if(!$am){$am=0}
 
-        try {
+try {
 #Apostroph's need to be replaced with doubles  and white space to be fixed for the SQL.
             $log =~ s/'/''/g;
 
@@ -1026,46 +1026,18 @@ sub processSubmit {
                 $dtCur = $dtCur - DateTime::Duration->new( days => 1 );
 
                 if ( $dtCur > $dt ) {
-                    print $cgi->p('<b>Insert is in the past!</b>');
-
-                    #Renumerate directly (not proper SQL but faster);
-                    $st = $db->prepare('select rowid, RTF from LOG ORDER BY DATE;');
-                    $st->execute();
-                    my $cnt = 1;
-                    while ( my @row = $st->fetchrow_array() ) {
-                        my $st_upd = $db->prepare(qq(UPDATE LOG SET rowid='$cnt' WHERE rowid='$row[0]';));
-                        $st_upd->execute();
-                        $cnt = $cnt + 1;
-                        if ( $row[1] > 0 ) {
-                            my $st_del = $db->prepare(qq(SELECT DOC FROM NOTES WHERE LID='$row[0]';));
-                            my @doc = $st_del->execute();
-                            if(scalar @doc>0){
-                               my $st_del = $db->prepare(qq(DELETE FROM NOTES WHERE LID='$row[0]';));
-                               #   print qq(<p>delnid:$row[0]</p>);
-                               $st_del->execute();
-                               $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");                                                   
-                               $st->execute($cnt, $doc[0]);
-                            }
-                        }
-
-                    }
-
+                    print $cgi->p('<b>Insert is in the past!</b>');                    
+                    &renumerate;
                 }
             }
-        }
-        catch {
-
-
+}
+ catch {
       
-            print "<font color=red><b>ERROR</b></font> -> " . $_;
-
-print qq(
-<html><body><pre>
-Reached2! -> $cat, $date, $log, $am, $af, $rtf, $sticky
-</pre></body></html
-);
+ print "<font color=red><b>ERROR</b></font> -> " . $_;
+ print qq(<html><body><pre>Reached2! -> $cnt, $cat, $date, $log, $am, $af, $rtf, $sticky </pre></body></html
+        );
 exit;
-        }       
+  }       
 }
 
     sub buildNavigationButtons {
@@ -1258,6 +1230,48 @@ sub authenticate {
             print "<font color=red><b>SERVER ERROR</b></font>:" . $_;
         }
     }
+
+
+    sub renumerate {
+        #Renumerate Log! Copy into temp. table.
+        my $sql;
+        $db = dbExecute("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
+        $db = dbExecute('SELECT rowid, DATE FROM LOG WHERE RTF == 1 ORDER BY DATE;');
+        #update  notes with new log id
+        while(my @row = $db->fetchrow_array()) {
+            my $sql_date = $row[1];
+            #$sql_date =~ s/T/ /;
+            $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
+            $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE RTF = 1 AND DATE = '".$sql_date."';";
+            $db = dbExecute($sql);
+            my @new  = $db->fetchrow_array();
+            if(scalar @new > 0){
+                $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
+            }
+        }
+
+        # Delete Orphaned Notes entries.
+        $db = dbExecute("SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
+                                        NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
+        while(my @row = $db->fetchrow_array()) {
+            $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
+        }
+        $db = dbExecute('DROP TABLE LOG;');
+        $db = dbExecute(qq(CREATE TABLE LOG (
+                                ID_CAT TINY        NOT NULL,
+                                DATE   DATETIME    NOT NULL,
+                                LOG    VCHAR (128) NOT NULL,
+                                AMOUNT INTEGER,
+                                AFLAG TINY DEFAULT 0,
+                                RTF BOOL DEFAULT 0,
+                                STICKY BOOL DEFAULT 0
+                                );));
+        $db = dbExecute('INSERT INTO LOG (ID_CAT,DATE,LOG,AMOUNT,AFLAG, RTF)
+                                        SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF
+                                        FROM life_log_temp_table ORDER by DATE;');
+        $db = dbExecute('DROP TABLE life_log_temp_table;');
+    }
+
     sub cam {
         my $am = sprintf( "%.2f", shift @_ );
         # Add one comma each time through the do-nothing loop
