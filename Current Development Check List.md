@@ -9,7 +9,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
-* Delete page updated to show better display of entries.  
+* &#10004; Delete page updated to show better display of entries.  
 * Provide sub alias login that sets data visible to only a set of categories.
   * View specific based login on a different password.
 * &#10004; Login page to indentify host.
