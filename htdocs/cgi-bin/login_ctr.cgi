@@ -19,7 +19,7 @@ use Text::CSV;
 #DEFAULT SETTINGS HERE!
 our $REC_LIMIT   = 25;
 our $TIME_ZONE   = 'Australia/Sydney';
-our $LANGUAGE	   = 'English';
+our $LANGUAGE	 = 'English';
 our $PRC_WIDTH   = '70';
 our $LOG_PATH    = '../../dbLifeLog/';
 our $SESSN_EXPR  = '+30m';
@@ -443,7 +443,7 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
       print $cgi->header;
       print "<font color=red><b>SERVER ERROR!</b></font><br> ".$_."<br><pre>$err</pre>";
       print $cgi->end_html;
-        exit;
+      exit;
  }
 }
 
