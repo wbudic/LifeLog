@@ -1,7 +1,5 @@
 *** LifeLog Requirements ***
 
-Requirments: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
-
  -Web Server (any will do that supports CGI perl execution)
  -SQLite
  -Perl Modules
@@ -13,8 +11,6 @@ Requirments: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
            
 
 ## Install tiny thttpd web server. ##
-
-Requirments: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
 
 
 https://acme.com/software/thttpd/
@@ -78,8 +74,11 @@ sudo apt install cpanminus
 #Install SQLite
 https://www.sqlite.org/download.html
 
-#Developer? Install VSCode, not from flatpack. Use Microsoft site -> https://code.visualstudio.com/
 
+#Development Environment Perl Install
+
+#Developer? Install VSCode, not from flatpack. Use Microsoft site -> https://code.visualstudio.com/
+Requirments: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
 
 # Install Perl, properly, don't use the distro provided perl interpreter.
 sudo apt install perlbrew
@@ -88,10 +87,25 @@ curl -L http://xrl.us/installperlnix | bash
 # Perl compiled based on your hardware infrastructure now, is Very Good.
 #Developer? Switch to it, and cpan modules:
 
-perlbrew use 5.28.0
+#Perlbrew allowes you to switch to newer (securer) patched versions of perl.
+#Example bellow builds from a $HOME/dev/perl-5.30.1.tar.gz source code archive
+#        a descent perl installation for development on your machine.
+
+perlbrew install ~/dev/perl-5.30.1.tar.gz --thread --multi --64int --64all --no-patchperl --debug
+#switch to it in a terminal.
+perlbrew use 5.30.1
+sudo apt install libperl-critic-perl
+#libperl-dev is required for the lang server
+sudo apt install libperl-dev
 sudo cpan Perl::LanguageServer
 
-#Install or make sure you have following perl modules.
+NOTICE -> Above Perl installation and modules can take time as they build (compiled) and are tested
+          using your computers configuration and hardware for optimal performance.
+          The Perl::LanguageServer, can fail in tests, as it development specific, can be ignored.
+
+
+
+# LifeLOg Required Perl modules.
  
 sudo cpanm DateTime;
 sudo cpanm DateTime::Format::Human::Duration
@@ -111,10 +125,6 @@ sudo cpanm DBI;
 sudo cpanm DBD::SQLite;
 
 #Final Perl Installation Notes
-
-NOTICE -> Perl installation and modules can take time as they build and test
-          using your computers configuration and hardware for optimal performance.
-          The Perl::LanguageServer, can fail in tests, as it development specific, can be ignored.
 
 This perl setup might take time and efforts. But, it is worth it.
 You get it build and tested professionally, based on your hardware.
