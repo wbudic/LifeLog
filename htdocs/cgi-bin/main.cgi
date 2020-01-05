@@ -27,7 +27,7 @@ use lib "system/modules";
 require Settings;
 
 my $cgi = CGI->new;
-my $sss = new CGI::Session( "driver:File", $cgi, { Directory => Settings::logPath()} );
+my $sss = new CGI::Session( "driver:File", $cgi, { Directory => Settings::logPath() } );
 my $sid      = $sss->id();
 my $dbname   = $sss->param('database');
 my $userid   = $sss->param('alias');
@@ -38,7 +38,7 @@ if ( !$userid || !$dbname ) {
     exit;
 }
 
-my $database = '../../dbLifeLog/' . $dbname;
+my $database = Settings::logPath() . $dbname;
 my $dsn      = "DBI:SQLite:dbname=$database";
 my $db       = DBI->connect( $dsn, $userid, $password, { PrintError => 0, RaiseError => 1 } )
   or die "<p>Error->" & $DBI::errstri & "</p>";
@@ -1157,12 +1157,12 @@ sub authenticate {
                     if ( length($word) > 2 ) {
                         $word = lc $word;
 
-                      #parse for already placed words, instead of using an hash.
+                        #parse for already placed words, instead of using an hash.
                         my $idx = index( $autowords, $word, 0 );
                         if ( $idx > 0 ) {
                             my $end = index( $autowords, '"', $idx );
                             my $existing =
-                              substr( $autowords, $idx, $end - $idx );
+                                substr( $autowords, $idx, $end - $idx );
                             next if $word eq $existing;
                         }
 

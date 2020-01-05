@@ -77,6 +77,7 @@ sub getConfiguration {
                 case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2] }
                 case "RTF_SIZE"     { $RTF_SIZE     = $r[2] }
                 case "THEME"        { $THEME        = $r[2] }
+                case "DEBUG"        { $DEBUG        = $r[2] }
             }
 
         }
