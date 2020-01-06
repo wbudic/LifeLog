@@ -24,10 +24,10 @@ our $RTF_SIZE     = 0;
 our $THEME        = 'Standard';
 
 ### Page specific settings Here
-my $TH_CSS        = 'main.css';
-my $BGCOL         = '#c8fff8';
+our $TH_CSS        = 'main.css';
+our $BGCOL         = '#c8fff8';
 #Set to 1 to get debug help. Switch off with 0.
-my $DEBUG        = 0;
+our $DEBUG         = 0;
 #END OF SETTINGS
 
 
@@ -92,9 +92,9 @@ sub getConfiguration {
 sub getTheme {
 
         switch ($THEME){
-            case "Sun"  { $BGCOL = '#D4AF37'; $TH_CSS = "main_sun.css"; }
-            case "Moon" { $BGCOL = '#000000'; $TH_CSS = "main_moon.css"; }
-            case "Sun"  { $BGCOL = 'green';   $TH_CSS = "main_earth.css"; }
+            case "Sun"   { $BGCOL = '#D4AF37'; $TH_CSS = "main_sun.css"; }
+            case "Moon"  { $BGCOL = '#000000'; $TH_CSS = "main_moon.css"; }
+            case "Earth" { $BGCOL = '#26be54'; $TH_CSS = "main_earth.css"; }
             else{
                 # Standard;
                 $BGCOL    = '#c8fff8';

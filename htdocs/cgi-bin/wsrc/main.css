@@ -232,10 +232,10 @@ img {
 
 
 a:link {
-    color:#5b06fa;
+ color:#5b06fa;
 }
 a:visited {
-color: #065bfa;
+ color: #065bfa;
 }
 
 a:hover {
@@ -243,3 +243,15 @@ a:hover {
     font-style: oblique;
 }
 
+#sss_status{
+    font-size: smaller;
+    font-style: italic;
+    color:darkslateblue;
+}
+
+ #sss_expired{
+    font-size: large;
+    font-style: normal;
+    font-weight: bold;
+    color:crimson; 
+}

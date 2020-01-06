@@ -158,9 +158,11 @@ img {
     margin: 0;
 }
 
+
 .ui-button,
 .ui-button-text .ui-button {
     font-size: 12px !important;
+    background: #b5e7a1 !important;    
 }
 
 .ui-menu {
@@ -240,3 +242,17 @@ a:link {
   a:active {
       color: #ff7b00;
   }
+
+  #sss_status{
+    font-size: smaller;
+    font-style: italic;
+    color:lawngreen;
+}
+
+ #sss_expired{
+    font-size: large;
+    font-style: normal;
+    font-weight: bold;
+    color:lightsalmon;
+    background-color: #26be54;
+}

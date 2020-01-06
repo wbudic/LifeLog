@@ -243,4 +243,17 @@ a:hover {
 }
 a:active {
     color: #ff7b00;
-} 
+}
+
+#sss_status{
+    font-size: smaller;
+    font-style: italic;
+    color:gray
+}
+
+ #sss_expired{
+    font-size: large;
+    font-style: normal;
+    font-weight: bold;
+    color:khaki;
+}
