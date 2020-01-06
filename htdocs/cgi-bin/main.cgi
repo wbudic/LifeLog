@@ -32,6 +32,7 @@ my $sid      = $sss->id();
 my $dbname   = $sss->param('database');
 my $userid   = $sss->param('alias');
 my $password = $sss->param('passw');
+my $sssCDB   = $sss->param('cdb');
 
 if ( !$userid || !$dbname ) {
     print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
@@ -148,7 +149,7 @@ print $cgi->header(-expires => "0s", -charset => "UTF-8");
 print $cgi->start_html(
     -title   => "Personal Log",
     -BGCOLOR => $BGCOL,
-    -onload  => "loadedBody('" . $toggle . "',$rs_cur);",
+    -onload  => "onBodyLoad('$toggle','".&Settings::sessionExprs."',$rs_cur);",
     -style   => [
         { -type => 'text/css', -src => "wsrc/$TH_CSS" },
         { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
@@ -186,6 +187,7 @@ print $cgi->start_html(
         { -type => 'text/javascript', -src => 'wsrc/quill/highlight.min.js' },
         { -type => 'text/javascript', -src => 'wsrc/quill/quill.min.js' },
         { -type => 'text/javascript', -src => 'wsrc/jscolor.js' },
+        { -type => 'text/javascript', -src => 'wsrc/moment.js' },
 
     ],
 );
@@ -305,9 +307,9 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
         }
     }
 
-###############./st 
-    &processSubmit;
-###############
+    ################### 
+      &processSubmit;
+    ###################
     
     my $tfId      = 0;
     my $id        = 0;
@@ -732,9 +734,10 @@ _TXT
                 <option value="2">Expense</option>
             </select>&nbsp;
             <input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> RTF Document
-            <input id="STICKY" name="sticky" type="checkbox"/> Sticky
+            <input id="STICKY" name="sticky" type="checkbox"/> Sticky            
 		</td>
 		<td align="right">
+                <span id="sss_status"></span>&nbsp;
 				<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/></div>
 		</td>		
 	</tr>
@@ -967,6 +970,10 @@ try {
 
                 $st = $db->prepare($stm);           
                 $st->execute();
+                if($sssCDB){
+                    #Allow further new database creation, it is not an login infinite db creation attack.
+                    $sss->param("cdb", 0);
+                }
 
                 if($rtf){ #Update 0 ground NOTES entry to the just inserted log.
                  

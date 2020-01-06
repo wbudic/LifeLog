@@ -19,7 +19,7 @@ var RTF_DOC_RESIZED = false;
 var RTF_DOC_ORIG;
 
 
-function loadedBody(toggle, rs_cur) {
+function onBodyLoad(toggle, expires, rs_cur) {
 
 
 
@@ -170,6 +170,7 @@ function loadedBody(toggle, rs_cur) {
             }
           }});
     }
+    setPageSessionTimer(expires);
 }
 
 
@@ -803,3 +804,39 @@ function exportToCSV(dat, view){
     window.location = "config.cgi?csv="+csv;
 }
 
+function setPageSessionTimer(expires) {
+
+            var timeout;
+            var now = new moment();
+            expires = "+2m";
+            var val = expires.replace(/\+|[A-Z]|[a-z]/g, '');
+            if(expires.indexOf("h")>0){
+                timeout = moment(now).add(val, "h");
+            }
+            else
+            if(expires.indexOf("m")>0){
+                timeout = moment(now).add(val, "m");
+            }
+            else
+            if(expires.indexOf("s")>0){
+               timeout = moment(now).add(val, "s");
+            }
+
+           	var timer   =  setInterval(function() { 
+                var now = new moment();
+                var dif = timeout.diff(now);
+                var min = Math.floor(dif / 60000);
+                var sec = ((dif % 60000) / 1000).toFixed(0);
+                var out = (min < 10 ? '0' : '') + min + ":" + (sec < 10 ? '0' : '') + sec;
+                $("#sss_status").html(" Session expires in " + out);
+                //$("#sss_status").html(" Session expires  " + timeout.from(now));//timeout.format("ddd, hA, HH:mm:ss"));
+                if(now.isAfter(timeout)){
+                    $("#sss_status").html("<span id='sss_expired'>Page Session has Expired!</span>");
+                    clearInterval(timer);
+                }
+                
+                                        }, 1000);
+
+	}
+
+	
