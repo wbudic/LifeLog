@@ -9,6 +9,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
+* Mutli new alias access flood attack security trigger implementation.
+* Debug system settings implementaiton.
 * &#10004; Delete page updated to show better display of entries.  
 * Provide sub alias login that sets data visible to only a set of categories.
   * View specific based login on a different password.

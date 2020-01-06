@@ -17,28 +17,14 @@ use Text::CSV;
 
 
 #DEFAULT SETTINGS HERE!
-our $REC_LIMIT   = 25;
-our $TIME_ZONE   = 'Australia/Sydney';
-our $LANGUAGE	 = 'English';
-our $PRC_WIDTH   = '70';
-our $LOG_PATH    = '../../dbLifeLog/';
-our $SESSN_EXPR  = '+30m';
-our $DATE_UNI    = '0';
-our $RELEASE_VER = '1.7';
-our $AUTHORITY   = '';
-our $IMG_W_H     = '210x120';
-our $AUTO_WRD_LMT= 200;
-our $AUTO_LOGIN  = 0;
-our $FRAME_SIZE  = 0;
-my $THEME = 'Standard';
-my $TH_CSS = 'main.css';
-my $BGCOL = '#c8fff8';
-#END OF SETTINGS
+use lib "system/modules";
+require Settings;
 
 
 my $cgi = CGI->new;
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
-   $session->expire($SESSN_EXPR);
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
+   $session->expire(&Settings::sessionExprs);
+my $sssCreatedDB = $session->param("cdb");
 my $sid=$session->id();
 my $cookie = $cgi->cookie(CGISESSID => $sid);
 
@@ -47,27 +33,26 @@ my $alias = $cgi->param('alias');
 my $passw = $cgi->param('passw');
 my $frm;
 
+
 #This is the OS developer release key, replace on istallation. As it is not secure.
 my $cipher_key = '95d7a85ba891da';
 
 if($cgi->param('logout')){&logout}
 
 &checkAutologinSet;
-if(&processSubmit==0){
-    &getTheme;
-
-  print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
-  print $cgi->start_html(
+if(&processSubmit==0){    
+    print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
+    print $cgi->start_html(
     -title   => "Personal Log Login",
-    -BGCOLOR => "$BGCOL",
+    -BGCOLOR => &Settings::bgcol,
     -script  => { -type => 'text/javascript', -src => 'wsrc/main.js' },
-    -style   => { -type => 'text/css', -src => "wsrc/$TH_CSS" },
+    -style   => { -type => 'text/css', -src => 'wsrc/'.&Settings::css },
 );
 
-my $ip =`hostname -I`; 
-   $ip =~ s/\s/<br>/g;
+my @ht = split(m/\s/,`hostname -I`);    
+my $hst = `hostname` . "($ht[0])";
 $frm = qq(
-     <form id="frm_login" action="login_ctr.cgi" method="post"><table border="0" width="$PRC_WIDTH%">
+     <form id="frm_login" action="login_ctr.cgi" method="post"><table border="0" width=").&Settings::pagePrcWidth.qq(%">
       <tr class="r0">
          <td colspan="3"><center>LOGIN</center></td>
         </tr>
@@ -82,7 +67,7 @@ $frm = qq(
          Alias will create a new database if it doesn't exist. Note down your password.
          <input type="hidden" name="CGISESSID" value="$sid"/>
          <input type="hidden" name="login" value="1"/></td></tr>
-      <tr class="r0"><td colspan="2">You are on Server -> <b>$ip</b></td><td><input type="submit" value="Login"/></td></tr>
+      <tr class="r0"><td colspan="2">Your Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
     </table></form>);
 
 print qq(<br><br><div id=rz>
@@ -134,7 +119,7 @@ sub checkAutologinSet {
 try{
         #We don't need to slurp as it is expected setting in header.
         my @cre;
-        open(my $fh, '<', $LOG_PATH.'main.cnf' ) or die "Can't open main.cnf: $!";
+        open(my $fh, '<', &Settings::logPath.'main.cnf' ) or die "Can't open main.cnf: $!";
         while (my $line = <$fh>) {
                     chomp $line;
                     if(rindex ($line, "<<AUTO_LOGIN<", 0)==0){
@@ -146,7 +131,7 @@ try{
         }
     close $fh;
         if(@cre &&scalar(@cre)>1){
-             my $database = $LOG_PATH.'data_'.$cre[0].'_log.db';
+             my $database = &Settings::logPath.'data_'.$cre[0].'_log.db';
              my $dsn= "DBI:SQLite:dbname=$database";
              my $db = DBI->connect($dsn, $cre[0], $cre[1], { RaiseError => 1 })
                                 or die "<p>Error->"& $DBI::errstri &"</p>";
@@ -173,8 +158,8 @@ try{
 sub checkCreateTables {
 try{
     my $today = DateTime->now;
-       $today->set_time_zone( $TIME_ZONE );
-    my $database = $LOG_PATH.'data_'.$alias.'_log.db';
+       $today->set_time_zone( &Settings::timezone );
+    my $database = &Settings::logPath.'data_'.$alias.'_log.db';
     my $dsn= "DBI:SQLite:dbname=$database";
     my $db = DBI->connect($dsn, $alias, $passw, { RaiseError => 1 })
               or die "<p>Error->"& $DBI::errstri &"</p>";
@@ -197,11 +182,21 @@ try{
         );
         CREATE INDEX idx_log_dates ON LOG (DATE);
         );
-        $rv = $db->do($stmt);
-        if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>";}
+
+        if($sssCreatedDB){            
+            print $cgi->header;
+            print $cgi->start_html;
+            print "<center><font color=red><b>A new alias login detect! <br>
+            Server security measure has been triggered -> Sorry further new alias login/creation not allowed!</b></font><br><br>Contact your network admin.</center>".$_;
+            print $cgi->end_html;
+            exit;
+        }
+
+        $db->do($stmt);
 
         $st = $db->prepare('INSERT INTO LOG(ID_CAT,DATE,LOG) VALUES (?,?,?)');
         $st->execute( 3, $today, "DB Created!");
+        $session->param("cdb", "1");        
     }
 
     # From v.1.6 view use server side views, for pages and correct record by ID and PID lookups.
@@ -314,14 +309,6 @@ try{
 
     }
     else{
-                #PRAGMA table_info(CONFIG); <-To check current structure
-                #populateConfig($db);
-                $st = $db->prepare("SELECT VALUE FROM CONFIG WHERE NAME == 'THEME';");
-                $st->execute();
-                my $val = $st->fetchrow_array();
-                if($val){
-                    $THEME = $val;
-                }
 
                 #Has configuration been wiped out?
                 $st = $db->prepare('SELECT count(ID) FROM CONFIG;');
@@ -329,7 +316,9 @@ try{
                 $changed = 1 if($st->fetchrow_array()==0);
 
     }
-    #
+    #We got an db now, lets get settings from there.
+    Settings::getConfiguration($db);
+    #    
      &populate($db) if $changed;
      $db->disconnect();
     #  
@@ -340,10 +329,10 @@ try{
     
 }
  catch{
-      print $cgi->header;
-        print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+    print $cgi->header;
+    print "<font color=red><b>SERVER ERROR</b></font>:".$_;
     print $cgi->end_html;
-        exit;
+    exit;
  }
 
 }
@@ -359,7 +348,7 @@ sub populate {
         my @lines;
         my $table_type = 0;
 
-        open(my $fh, "<:perlio", $LOG_PATH.'main.cnf' ) or die "Can't open main.cnf: $!";
+        open(my $fh, "<:perlio", &Settings::logPath.'main.cnf' ) or die "Can't open main.cnf: $!";
         read $fh, my $content, -s $fh;
              @lines  = split '\n', $content;
       close $fh;
@@ -437,7 +426,7 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
 
                     }
         }
-        die "Configuration script $LOG_PATH/main.cnf [$fh] contains errors." if $err;
+        die "Configuration script ".&Settings::logPath."/main.cnf [$fh] contains errors." if $err;
         $db->commit();
     } catch{
       print $cgi->header;
@@ -459,14 +448,14 @@ return "SELECT name FROM sqlite_master WHERE type='view' AND name='$name';"
 
 
 sub removeOldSessions {
-    opendir(DIR, $LOG_PATH);
+    opendir(DIR, &Settings::logPath);
     my @files = grep(/cgisess_*/,readdir(DIR));
     closedir(DIR);
     my $now = time - (24 * 60 * 60);
     foreach my $file (@files) {
-        my $mod = (stat("$LOG_PATH/$file"))[9];
+        my $mod = (stat(&Settings::logPath,$file))[9];
         if($mod<$now){
-            unlink "$LOG_PATH/$file";
+            unlink &Settings::logPath.$file;
         }
     }
 }
@@ -494,24 +483,5 @@ sub logout{
     print $cgi->end_html;
     exit;
 }
-
-sub getTheme {
-
-
-    if ( $THEME eq 'Sun' ) {
-        $BGCOL = '#D4AF37';
-        $TH_CSS = "main_sun.css";
-    }elsif ($THEME eq 'Moon'){
-        $TH_CSS = "main_moon.css";
-        $BGCOL = '#000000';
-
-    }elsif ($THEME eq 'Earth'){
-        $TH_CSS = "main_earth.css";
-        $BGCOL = 'green';
-    }
-
-}
-
-
 
 ### CGI END
