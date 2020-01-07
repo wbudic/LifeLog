@@ -170,4 +170,17 @@ sub toLog {
     # }
 }
 
+sub removeOldSessions {    
+    opendir(DIR, $LOG_PATH);
+    my @files = grep(/cgisess_*/,readdir(DIR));
+    closedir(DIR);
+    my $now = time - (24 * 60 * 60);
+    foreach my $file (@files) {
+        my $mod = (stat("$LOG_PATH/$file"))[9];
+        if($mod<$now){
+            unlink "$LOG_PATH/$file";
+        }
+    }
+}
+
 1;
