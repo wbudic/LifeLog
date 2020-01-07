@@ -114,12 +114,12 @@ try{
     else{
         $alias = $passw = "";
     }  
-    &removeOldSessions;  #and prompt for login returning 0
+    &Settings::removeOldSessions;  #and prompt for login returning 0
 return 0;
 }
  catch{
         print $cgi->header;
-        print "<font color=red><b>SERVER ERROR</b></font> dump ->". $session->dump();
+        print "<font color=red><b>SERVER ERROR processSubmit()</b></font>: $_ dump ->". $session->dump();
         print $cgi->end_html;
  }
 }
@@ -151,7 +151,7 @@ try{
                     if(@set && $set[0]=="1"){
                          $alias = $cre[0];
                          $passw = $cre[1];
-                         &removeOldSessions;
+                         &Settings::removeOldSessions;
                     }
              $db->disconnect();
         }
@@ -526,19 +526,6 @@ sub selSQLView{
 return "SELECT name FROM sqlite_master WHERE type='view' AND name='$name';"
 }
 
-
-sub removeOldSessions {
-    opendir(DIR, &Settings::logPath);
-    my @files = grep(/cgisess_*/,readdir(DIR));
-    closedir(DIR);
-    my $now = time - (24 * 60 * 60);
-    foreach my $file (@files) {
-        my $mod = (stat(&Settings::logPath,$file))[9];
-        if($mod<$now){
-            unlink &Settings::logPath.$file;
-        }
-    }
-}
 
 sub logout{
 
