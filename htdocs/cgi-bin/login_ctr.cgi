@@ -46,11 +46,16 @@ if(&processSubmit==0){
     print $cgi->start_html(
     -title   => "Personal Log Login",
     -BGCOLOR => &Settings::bgcol,
+    -onload  => "startBackgroundAnim()",
     -script => [
                 { -type => 'text/javascript', -src => 'wsrc/main.js' },
+                { -type => 'text/javascript', -src => 'wsrc/bckanim.js' },
+                { -type => 'text/javascript', -src => 'wsrc/jquery.js' },
+                { -type => 'text/javascript', -src => 'wsrc/jquery.transit.js' },
     ],
     -style  => [
-                { -type => 'text/css', -src => 'wsrc/'.&Settings::css },                
+                { -type => 'text/css', -src => 'wsrc/'.&Settings::css },    
+                { -type => 'text/css', -src => "https://fonts.googleapis.com/css?family=Raleway:300"},
             ]
 );
 
@@ -76,7 +81,7 @@ $frm = qq(
       <tr class="r0"><td colspan="2">Your Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
     </table></form>);
 
-print qq(<br><br><div id=rz>
+print qq(<br><br><div id="rz">
                         <center>
                             <h2>Welcome to Life Log</h2><div>$frm</div><br>
                             <a href="https://github.com/wbudic/LifeLog" target="_blank">Get latest version of this application here!</a><br>
