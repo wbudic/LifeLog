@@ -176,6 +176,9 @@ while(my @row = $dbs->fetchrow_array()) {
          my $n = $row[1];
          my $v = $row[2];
          my $d = $row[3];
+         
+         next if($n =~ m/^\^/);
+         
          if($n eq "TIME_ZONE"){
               $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
               if($tz){

@@ -31,8 +31,9 @@ my $cookie = $cgi->cookie(CGISESSID => $sid);
 
 my $alias = $cgi->param('alias');
 my $passw = $cgi->param('passw');
-my $frm;
-
+my ($debug,$frm) = "";
+#Codebase release version. Release in the created db or existing one can be different, through time.
+my $RELEASE = Settings::release();
 
 #This is the OS developer release key, replace on istallation. As it is not secure.
 my $cipher_key = '95d7a85ba891da';
@@ -81,7 +82,9 @@ print qq(<br><br><div id="rz">
                             <h2>Welcome to Life Log</h2><div>$frm</div><br>
                             <a href="https://github.com/wbudic/LifeLog" target="_blank">Get latest version of this application here!</a><br>
                         </center><div>);
-    print $cgi->end_html;
+
+Settings::printDebugHTML($debug) if (&Settings::debug);
+print $cgi->end_html;
 
 
 }
@@ -240,15 +243,7 @@ try{
     $st = $db->prepare(selSQLTbl('AUTH'));
     $st->execute();
     if(!$st->fetchrow_array()) {
-    #
-    # @TODO
-    # AUTH Action Flags
-    # 00|DEFAULT`No action idle use.|
-    # 02|CONF_UPD`Configuration file update with db.
-    # 03|EMAIL`Issue email.|
-    # 06|DESTRUCT`Self destruct, remove alias and all data.
-    # 08|CHNG_PASS`Change password.
-    # 10|CHNG_ALIAS`Change alias.
+
 
     my $stmt = qq(
         CREATE TABLE AUTH(
@@ -315,17 +310,46 @@ try{
 
     }
     else{
-
                 #Has configuration been wiped out?
                 $st = $db->prepare('SELECT count(ID) FROM CONFIG;');
-                $st->execute();
-                $changed = 1 if($st->fetchrow_array()==0);
-
+                $st->execute();                                
+                if(!$st->fetchrow_array()){
+                    $changed = 1;
+                }
     }
     #We got an db now, lets get settings from there.
     Settings::getConfiguration($db);
+        if(!$changed){
+            #Run db fix renum if this is an relese update? Relese in software might not be what is in db, which counts.
+            #$st = Settings::dbExecute($db, 'SELECT NAME, VALUE FROM CONFIG WHERE NAME == "RELEASE_VER";');
+            $st	= $db->prepare('SELECT ID, NAME, VALUE FROM CONFIG WHERE NAME IS "RELEASE_VER";');
+            $st->execute() or die "<p>ERROR with->$DBI::errstri</p>";         
+            my @pair = $st->fetchrow_array();
+            my $cmp = $pair[2] eq $RELEASE;            
+            $debug .= "Upgrade cmp(RELESE_VER:'$pair[2]' eq Settings::release:'$RELEASE') ==  $cmp";
+            #Settings::debug(1);            
+            if(!$cmp){                            
+                Settings::renumerate($db);
+                #App private inner db properties, start from 200.
+                #^REL_RENUM is marker that an renumeration is issued during upgrade.
+                my $pv = obtainProperty($db, '^REL_RENUM');
+                if($pv){
+                   $pv += 1;
+                }
+                else{
+                   $pv = "1";
+                }
+                configProperty($db, 200, '^REL_RENUM',$pv);
+                configProperty($db, $pair[0], 'RELEASE_VER', $RELEASE);
+                Settings::toLog($db,&dbTimeStamp, "Upgraded LifeLog from ".$pair[2]." to $RELEASE version, this is the $pv upgrade.");
+                &populate($db);
+            }
+        }
+        else{
+            &populate($db);
+        }
     #    
-     &populate($db) if $changed;
+     
      $db->disconnect();
     #  
     #Still going through checking tables and data, all above as we might have an version update in code.
@@ -337,6 +361,56 @@ try{
  catch{
     print $cgi->header;
     print "<font color=red><b>SERVER ERROR</b></font>:".$_;
+    print $cgi->end_html;
+    exit;
+ }
+
+}
+#TODO move this subroutine to settings.
+sub dbTimeStamp {
+    my $dat = DateTime->now;
+    $dat -> set_time_zone(Settings::timezone());
+    return DateTime::Format::SQLite->format_datetime($dat);
+}
+#TODO move this subroutine to settings.
+sub obtainProperty {
+    my($db, $name) = @_;    
+    die "Invalid use of subroutine obtainProperty($db)" if(!$db || !$name);
+    try{      
+        my $dbs = Settings::dbExecute($db, "SELECT ID, VALUE FROM CONFIG WHERE NAME IS '$name';");
+        my @row = $dbs->fetchrow_array();
+        if(scalar @row > 0){        
+        return $row[1];
+        }
+        else{
+        return 0;        
+        }
+    }
+    catch{
+        print $cgi->header;
+        print "<font color=red><b>SERVER ERROR[obtainProperty(db, $name)]</b></font>:".$_;
+        print $cgi->end_html;
+        exit;
+    }
+}
+#TODO move this subroutine to settings.
+sub configProperty {
+    my($db, $id, $name, $value) = @_;    
+    die "Invalid use of subroutine obtaiconfigPropertynProperty($db)" if(!$db || !$name|| !$value);
+try{
+    
+    my $dbs = Settings::dbExecute($db, "SELECT ID, NAME FROM CONFIG WHERE NAME IS '$name';");
+    if($dbs->fetchrow_array()){        
+       Settings::dbExecute($db, "UPDATE CONFIG SET VALUE = '$value' WHERE NAME IS '$name';");
+    }
+    else{
+       Settings::dbExecute($db,"INSERT INTO CONFIG (ID, NAME, VALUE) VALUES ($id, '$name', '$value');");
+        
+    }
+}
+ catch{
+    print $cgi->header;
+    print "<font color=red><b>SERVER ERROR[configProperty(db, $id, $name, $value)]</b></font>:".$_;
     print $cgi->end_html;
     exit;
  }
@@ -393,7 +467,7 @@ $err .= "UID{$id} taken by $vars{$id}-> $line\n";
                                                                                 $st->execute();
                                                                                 $inData = 1;
                                                                                 if(!$st->fetchrow_array()) {
-                                                                                      $insConfig->execute($id,$name,$value,$tick[1])	if(!$st->fetchrow_array());
+                                                                                      $insConfig->execute($id,$name,$value,$tick[1]);
                                                                                 }
                                                                     }
                                                                 }
@@ -412,7 +486,7 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
                                                                         $st->execute();
                                                                         $inData = 1;
                                                                         if(!$st->fetchrow_array()) {
-                                                                            $insCat->execute($pair[0],$pair[1],$tick[1]) if(!$st->fetchrow_array());
+                                                                            $insCat->execute($pair[0],$pair[1],$tick[1]);
                                                                         }
                                                             }
                                                             else {

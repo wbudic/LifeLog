@@ -8,6 +8,7 @@ use Switch;
 use DBI;
 
 #DEFAULT SETTINGS HERE!
+our $RELEASE_VER  = '1.7';
 our $REC_LIMIT    = 25;
 our $TIME_ZONE    = 'Australia/Sydney';
 our $LANGUAGE     = 'English';
@@ -15,7 +16,6 @@ our $PRC_WIDTH    = '60';
 our $LOG_PATH     = '../../dbLifeLog/';
 our $SESSN_EXPR   = '+30m';
 our $DATE_UNI     = '0';
-our $RELEASE_VER  = '1.7';
 our $AUTHORITY    = '';
 our $IMG_W_H      = '210x120';
 our $AUTO_WRD_LMT = 1000;
@@ -52,7 +52,7 @@ sub windowRTFSize  {return $RTF_SIZE;}
 
 sub bgcol           {return $BGCOL;}
 sub css             {return $TH_CSS;}
-sub debug           {return $DEBUG;}
+sub debug           {my $ret =shift; if($ret){$DEBUG = $ret;}; return $DEBUG;}
 
 
 
@@ -102,6 +102,72 @@ sub getTheme {
             }
         }
 
+}
+
+
+sub renumerate {
+    my $db = shift;
+    #Renumerate Log! Copy into temp. table.
+    my $sql;
+    my $dbs = dbExecute($db, 'CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;');
+       $dbs = dbExecute($db, 'SELECT rowid, DATE FROM LOG WHERE RTF == 1 ORDER BY DATE;');
+    #update  notes with new log id
+    while(my @row = $dbs->fetchrow_array()) {
+        my $sql_date = $row[1];
+        #$sql_date =~ s/T/ /;
+        $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
+        $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE RTF = 1 AND DATE = '".$sql_date."';";
+        $dbs = dbExecute($db, $sql);
+        my @new  = $dbs->fetchrow_array();
+        if(scalar @new > 0){
+            $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
+        }
+    }
+
+    # Delete Orphaned Notes entries.
+    $dbs = dbExecute($db, "SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
+                                    NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
+    while(my @row = $dbs->fetchrow_array()) {
+        $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
+    }
+    $dbs = dbExecute($db, 'DROP TABLE LOG;');
+    $dbs = dbExecute($db, qq(CREATE TABLE LOG (
+                            ID_CAT TINY        NOT NULL,
+                            DATE   DATETIME    NOT NULL,
+                            LOG    VCHAR (128) NOT NULL,
+                            AMOUNT INTEGER,
+                            AFLAG TINY DEFAULT 0,
+                            RTF BOOL DEFAULT 0,
+                            STICKY BOOL DEFAULT 0
+                            );));
+    $dbs = dbExecute($db, 'INSERT INTO LOG (ID_CAT,DATE,LOG,AMOUNT,AFLAG, RTF)
+                                    SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF
+                                    FROM life_log_temp_table ORDER by DATE;');
+    $dbs = dbExecute($db, 'DROP TABLE life_log_temp_table;');
+}
+
+sub dbExecute {
+    my ($db,$sql) = @_;
+    my $ret	= $db->prepare($sql);
+       $ret->execute() or die "<p>ERROR with->$sql</p>";
+    return $ret;
+}
+
+sub printDebugHTML {
+    my $msg = shift;
+    print qq(<!-- $msg -->);
+}
+
+sub toLog {
+    my ($db,$stamp,$log) = @_;
+    # try {
+        #Apostrophe in the log value is doubled to avoid SQL errors.
+        $log =~ s/'/''/g;
+        $db->do("INSERT INTO LOG (ID_CAT, DATE, LOG) VALUES(6,'$stamp', \"$log\");");      
+    # }
+    # catch {
+    #     print "<font color=red><b>SERVER ERROR toLog(6,$stamp,$log)</b></font>:" . $_;
+    # }
 }
 
 1;
