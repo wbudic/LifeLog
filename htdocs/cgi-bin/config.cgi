@@ -20,25 +20,9 @@ use Date::Language;
 use Text::CSV;
 
 #DEFAULT SETTINGS HERE!
-our $REC_LIMIT    = 25;
-our $TIME_ZONE    = 'Australia/Sydney';
-our $LANGUAGE     = 'English';
-our $PRC_WIDTH    = '70';
-our $LOG_PATH     = '../../dbLifeLog/';
-our $SESSN_EXPR   = '+30m';
-our $DATE_UNI     = '0';
-our $RELEASE_VER  = '1.4';
-our $AUTHORITY    = '';
-our $IMG_W_H      = '210x120';
-our $AUTO_WRD_LMT = 200;
-our $AUTO_LOGIN   = 0;
-our $FRAME_SIZE   = 0;
-our $RTF_SIZE     = 0;
-
-my  $THEME        = 0;
-my  $TH_CSS       = 'main.css';
-my  $BGCOL = '#c8fff8';
-#END OF SETTINGS
+use lib "system/modules";
+require Settings;
+##
 
 #This is the OS developer release key, replace on istallation. As it is not secure.
 my $cipher_key = '95d7a85ba891da';
@@ -47,7 +31,7 @@ my $cipher_key = '95d7a85ba891da';
 $CGI::POST_MAX = 1024 * 15000;
 my ($LOGOUT,$ERROR) = (0,"");
 my $cgi = CGI->new;
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
 my $sid=$session->id();
 my $dbname  =$session->param('database');
 my $userid  =$session->param('alias');
@@ -60,14 +44,19 @@ if(!$userid||!$dbname){
     exit;
 }
 
-my $database = $LOG_PATH.$dbname;
+my $database = &Settings::logPath.$dbname;
 my $dsn= "DBI:SQLite:dbname=$database";
 my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+
+### Fetch settings
+    Settings::getConfiguration($db);
+    Settings::getTheme();
+###
 
 my $rv;
 my $dbs;
 my $today  = DateTime->now;
-my $lang   = Date::Language->new($LANGUAGE);
+my $lang   = Date::Language->new(&Settings::language);
 my $tz     = $cgi->param('tz');
 my $csvp   = $cgi->param('csv');
    
@@ -78,11 +67,8 @@ if($cgi->param('data_cat')){
 }elsif($cgi->param('data_log')){
     &importLogCSV;
 }
-        
-#####################
-    &getConfiguration;
-#####################
-$today->set_time_zone( $TIME_ZONE );
+
+$today->set_time_zone( &Settings::timezone );
     
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
@@ -93,9 +79,9 @@ my %hshCats = {};
 ###############
 &processSubmit;
 ###############
-&getTheme;
- $session->param("theme",$TH_CSS);
- $session->param("bgcolor",$BGCOL);
+Settings::getTheme();
+$session->param("theme",&Settings::css);
+$session->param("bgcolor",&Settings::bgcol);
 &getHeader;
 
  if ($ERROR){&error;}else{
@@ -123,7 +109,7 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 
 
 
-my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.$PRC_WIDTH.'%">
+my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.&Settings::pagePrcWidth.'%">
               <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
             <tr class="r1"><th>ID</th><th>Category</th><th  align="left">Description</th></tr>
           ';
@@ -159,7 +145,7 @@ my  $frm = qq(
         </table><input type="hidden" name="cchg" value="1"/></form><br>);
      
 
-$tbl = qq(<table id="cnf_sys" class="tbl" border="1" width="$PRC_WIDTH%">
+$tbl = qq(<table id="cnf_sys" class="tbl" border="1" width=").&Settings::pagePrcWidth.qq(%">
               <tr class="r0"><td colspan="3"><b>* SYSTEM CONFIGURATION *</b></td></tr>
             <tr class="r1" align="left">
                             <th width="20%">Variable</th>
@@ -178,7 +164,7 @@ while(my @row = $dbs->fetchrow_array()) {
          my $d = $row[3];
          
          next if($n =~ m/^\^/);
-         
+
          if($n eq "TIME_ZONE"){
               $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
               if($tz){
@@ -260,13 +246,13 @@ while(my @row = $dbs->fetchrow_array()) {
              if($v eq 'Standard'){
                 $s0 = " SELECTED";
             }
-            elsif($v == 'Sun'){
+            elsif($v eq 'Sun'){
                 $s1 = " SELECTED";
             }
-            elsif($v == 'Moon'){
+            elsif($v eq 'Moon'){
                 $s2 = " SELECTED";
             }
-            elsif($v == 'Earth'){
+            elsif($v eq 'Earth'){
                 $s3 = " SELECTED";
             }
 
@@ -302,7 +288,7 @@ my  $frmVars = qq(
 
 
 
-$tbl = qq(<table id="cnf_fix" class="tbl" border="0" width="$PRC_WIDTH%">
+$tbl = qq(<table id="cnf_fix" class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
               <tr class="r0"><td colspan="2"><b>* DATA FIX *</b></td></tr>
              );
 
@@ -327,7 +313,7 @@ my  $frmDB = qq(
         <input type="hidden" name="db_fix" value="1"/>
         </table></form><br>
         );
-$tbl = qq(<table id="cnf_fix" class="tbl" border="1" width="$PRC_WIDTH%">
+$tbl = qq(<table id="cnf_fix" class="tbl" border="1" width=").&Settings::pagePrcWidth.qq(%">
               <tr class="r0"><td colspan="2"><b>* CHANGE PASSWORD *</b></td></tr>
              );
 my  $frmPASS = qq(
@@ -353,11 +339,11 @@ print qq(
     <div><a name="vars"></a>$frmVars</div>
     <div><a name="dbsets"></a>$frmDB</div>
     <div><a name="passets"></a>$frmPASS</div>
-    <div id="rz" style="text-align:center;width:$PRC_WIDTH%;">
+    <div id="rz" style="text-align:center;width:).&Settings::pagePrcWidth.qq(%;">
                 <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a>
     </div>
     <br>
-    <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:$BGCOL">
+    <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:).&Settings::bgcol.qq(">
             <table border="0" width="100%">
                 <tr><td><H3>CSV File Format</H3></td></tr>
                 <form action="config.cgi" method="post" enctype="multipart/form-data">
@@ -451,12 +437,12 @@ $db->disconnect();
 
 exit;
 
-sub getHeader{
+sub getHeader {
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
-print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"$BGCOL",
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>&Settings::bgcol,
            -onload  => "loadedBody(false);",	           
             -style   => [
-          { -type => 'text/css', -src => "wsrc/$TH_CSS" },
+          { -type => 'text/css', -src => "wsrc/".&Settings::css },
           { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
           { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
           {
@@ -608,7 +594,7 @@ elsif($chdbfix){
     if( $isByCat || $isByDate){
 
         my $output = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
-                    <TABLE class="tbl" border="0" width="$PRC_WIDTH%">
+                    <TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
                     <tr class="hdr"><td colspan="5"><h2>Select Categories To Delete</h2></td></tr>
                     <tr class="r0">
                         <th>Date</th>
@@ -634,11 +620,11 @@ elsif($chdbfix){
         
         my ( $dty, $dtf ) = $dt->ymd;
         my $dth = $dt->hms;
-        if ( $DATE_UNI == 1 ) {
+        if ( &Settings::universalDate == 1 ) {
             $dtf = $dty;
         }
         else {
-            $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, $TIME_ZONE );
+            $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, &Settings::timezone );
         }
 
         $output .= qq(<tr class="r0">
@@ -750,7 +736,7 @@ try{
         }
 
         &renumerate;
-        &removeOldSessions;
+        &Settings::removeOldSessions;
         &resetCategories if $rs_cats;
         &resetSystemConfiguration($db) if $rs_syst;			
         &wipeSystemConfiguration if $wipe_ss;
@@ -790,7 +776,7 @@ sub wipeSystemConfiguration {
 
 sub resetSystemConfiguration {
 
-        open(my $fh, '<', $LOG_PATH.'main.cnf' ) or die "Can't open main.cnf: $!";
+        open(my $fh, '<', &Settings::logPath.'main.cnf' ) or die "Can't open main.cnf: $!";
         my $db = shift;
         my ($did,$name, $value, $desc);
         my $inData = 0;
@@ -862,38 +848,25 @@ try{
  }
 }
 
-
-sub logout{
+sub logout {
     $session->delete();
     $session->flush();
     print $cgi->redirect("login_ctr.cgi");
     exit;
 }
 
-
 sub changeSystemSettings {
     try{
+            my $updated;
             $dbs = dbExecute("SELECT ID, NAME FROM CONFIG;");
             while (my @r=$dbs->fetchrow_array()){ 
                 my $var = $cgi->param('var'.$r[0]);
-                if(defined $var){					
-                    switch ($r[1]) {
-                        case "REC_LIMIT" {$REC_LIMIT=$var;  updCnf($r[0],$var)}
-                        case "TIME_ZONE" {$TIME_ZONE=$var;  updCnf($r[0],$var)}
-                        case "PRC_WIDTH" {$PRC_WIDTH=$var;  updCnf($r[0],$var)}
-                        case "SESSN_EXPR"{$SESSN_EXPR=$var; updCnf($r[0],$var)}
-                        case "DATE_UNI"  {$DATE_UNI=$var; updCnf($r[0],$var)}
-                        case "LANGUAGE"  {$LANGUAGE=$var; updCnf($r[0],$var)}
-                        case "AUTHORITY" {$AUTHORITY=$var; updCnf($r[0],$var)}
-                        case "IMG_W_H"   {$IMG_W_H=$var; updCnf($r[0],$var)}
-                        case "AUTO_WRD_LMT"{$AUTO_WRD_LMT=$var; updCnf($r[0],$var)}
-                        case "AUTO_LOGIN" {$AUTO_LOGIN=$var; updCnf($r[0],$var)}
-                        case "FRAME_SIZE" {$FRAME_SIZE=$var; updCnf($r[0],$var)}
-                        case "RTF_SIZE"   {$RTF_SIZE=$var; updCnf($r[0],$var)}
-                        case "THEME"      {$THEME=$var; updCnf($r[0],$var)}
-                     }
+                if(defined $var){			
+                    updCnf($r[0],$var);	
+                    $updated = 1;	
                 }
             }
+            Settings::getConfiguration($db) if($updated);
     }
     catch{
         print "<font color=red><b>SERVER ERROR->changeSystemSettings</b></font>:".$_;
@@ -1040,34 +1013,6 @@ sub updateLOGDB {
     }
 }
 
-
-sub getConfiguration {
-    try{
-        $dbs = dbExecute("SELECT * FROM CONFIG;");
-        while (my @r=$dbs->fetchrow_array()){
-            
-            switch ($r[1]) {
-                case "REC_LIMIT"    {$REC_LIMIT=$r[2]}
-                case "TIME_ZONE"    {$TIME_ZONE=$r[2]}
-                case "PRC_WIDTH"    {$PRC_WIDTH=$r[2]}		
-                case "SESSN_EXPR"   {$SESSN_EXPR=$r[2]}
-                case "DATE_UNI"     {$DATE_UNI=$r[2]}
-                case "LANGUAGE"     {$LANGUAGE=$r[2]}
-                case "IMG_W_H"      {$IMG_W_H=$r[2]}
-                case "AUTO_WRD_LMT" {$AUTO_WRD_LMT=$r[2]}
-                case "AUTO_LOGIN" 	{$AUTO_LOGIN=$r[2]}
-                case "FRAME_SIZE"	{$FRAME_SIZE=$r[2]}
-                case "RTF_SIZE"		{$RTF_SIZE=$r[2]}
-                case "THEME"        {$THEME= $r[2]}
-            }
-        }
-    }
-    catch{
-        print "<font color=red><b>SERVER ERROR</b></font>:".$_;
-    }
-
-}
-
 sub cats {        
         $cats = qq(<select id="cats" name="cats"><option value="0">---</option>\n);
         $dbs = dbExecute("SELECT ID, NAME FROM CAT ORDER BY ID;");
@@ -1097,23 +1042,6 @@ sub error {
     print $cgi->end_html;
     $db->disconnect();
     exit;
-}
-
-sub getTheme {
-
-
-    if ( $THEME eq 'Sun' ) {
-        $BGCOL = '#D4AF37';
-        $TH_CSS = "main_sun.css";
-    }elsif ($THEME eq 'Moon'){
-        $TH_CSS = "main_moon.css";
-        $BGCOL = '#000000';
-
-    }elsif ($THEME eq 'Earth'){
-        $TH_CSS = "main_earth.css";
-        $BGCOL = 'green';
-    }
-
 }
 
 
@@ -1157,15 +1085,3 @@ sub renumerate {
     $dbs = dbExecute('DROP TABLE life_log_temp_table;');
 }
 
-sub removeOldSessions {
-    opendir(DIR, $LOG_PATH);
-    my @files = grep(/cgisess_*/,readdir(DIR));
-    closedir(DIR);
-    my $now = time - (24 * 60 * 60);
-    foreach my $file (@files) {
-        my $mod = (stat("$LOG_PATH/$file"))[9];
-        if($mod<$now){
-            unlink "$LOG_PATH/$file";
-        }
-    }
-}
