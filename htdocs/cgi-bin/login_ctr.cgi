@@ -41,16 +41,22 @@ if($cgi->param('logout')){&logout}
 
 &checkAutologinSet;
 if(&processSubmit==0){    
+
     print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
     print $cgi->start_html(
     -title   => "Personal Log Login",
     -BGCOLOR => &Settings::bgcol,
-    -script  => { -type => 'text/javascript', -src => 'wsrc/main.js' },
-    -style   => { -type => 'text/css', -src => 'wsrc/'.&Settings::css },
+    -script => [
+                { -type => 'text/javascript', -src => 'wsrc/main.js' },
+    ],
+    -style  => [
+                { -type => 'text/css', -src => 'wsrc/'.&Settings::css },                
+            ]
 );
 
 my @ht = split(m/\s/,`hostname -I`);    
 my $hst = `hostname` . "($ht[0])";
+
 $frm = qq(
      <form id="frm_login" action="login_ctr.cgi" method="post"><table border="0" width=").&Settings::pagePrcWidth.qq(%">
       <tr class="r0">
@@ -72,7 +78,7 @@ $frm = qq(
 
 print qq(<br><br><div id=rz>
                         <center>
-                            <h2>Welcome to Life Log</h2><div>$frm</div><br/>
+                            <h2>Welcome to Life Log</h2><div>$frm</div><br>
                             <a href="https://github.com/wbudic/LifeLog" target="_blank">Get latest version of this application here!</a><br>
                         </center><div>);
     print $cgi->end_html;

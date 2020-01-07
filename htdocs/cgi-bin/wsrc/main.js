@@ -807,8 +807,7 @@ function exportToCSV(dat, view){
 function setPageSessionTimer(expires) {
 
             var timeout;
-            var now = new moment();
-            expires = "+2m";
+            var now = new moment();              
             var val = expires.replace(/\+|[A-Z]|[a-z]/g, '');
             if(expires.indexOf("h")>0){
                 timeout = moment(now).add(val, "h");
@@ -831,7 +830,7 @@ function setPageSessionTimer(expires) {
                 $("#sss_status").html(" Session expires in " + out);
                 //$("#sss_status").html(" Session expires  " + timeout.from(now));//timeout.format("ddd, hA, HH:mm:ss"));
                 if(now.isAfter(timeout)){
-                    $("#sss_status").html("<span id='sss_expired'>Page Session has Expired!</span>");
+                    $("#sss_status").html("<span id='sss_expired'><a href='login_ctr.cgi'>Page Session has Expired!</a></span>");
                     clearInterval(timer);
                 }
                 
