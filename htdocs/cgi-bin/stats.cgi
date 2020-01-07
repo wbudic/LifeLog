@@ -125,6 +125,8 @@ my  $processes = `$prc | sort -u -r -`;
 my  $dbSize = (uc format_bytes($stat[7], bs => 1000));
 #Strip kernel 0 processes reported
 $processes =~ s/\s*0.00.*//gd;
+#trim reduce prefixed spacing
+$processes =~ s/^\s+/  /gm;
 my $year =$today->year();
 
 my $IPPublic  = `curl -s https://www.ifconfig.me`;
@@ -150,13 +152,16 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>);
 
-print qq(<div style="text-align:left; border: 1px solid black; padding:5px;"><h2>Life Log Server Statistics</h2><hr>
+print qq(
+<div style="text-align:left; border: 1px solid black; padding:5px;"><h2>Life Log Server Statistics</h2><hr>
     <span style="text-align:left; float:left; padding:15px;">$tbl<br></span>
-    <span style="text-align:left; margin:1px;  padding-right:15px; float:none;"><h2>Server Info</h2><hr><br>
-    $hardware_status</span></div>
+    <span style="text-align:left; margin:1px; padding-right:15px; float:none;"><h2>Server Info</h2><hr><br>
+    $hardware_status</span><hr>
+</div>
 <div class="tbl" style="text-align:left; border: 0px; padding:5px;">
-<b>Server Side Processes</b><hr></div>
-<pre style="text-align:left;">$processes</pre></div>);
+    <b>Server Side Processes</b><hr>
+</div>
+<pre>$processes</pre>);
 
 
 print $cgi->end_html;
