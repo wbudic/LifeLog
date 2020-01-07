@@ -46,16 +46,11 @@ if(&processSubmit==0){
     print $cgi->start_html(
     -title   => "Personal Log Login",
     -BGCOLOR => &Settings::bgcol,
-    -onload  => "startBackgroundAnim()",
     -script => [
-                { -type => 'text/javascript', -src => 'wsrc/main.js' },
-                { -type => 'text/javascript', -src => 'wsrc/bckanim.js' },
-                { -type => 'text/javascript', -src => 'wsrc/jquery.js' },
-                { -type => 'text/javascript', -src => 'wsrc/jquery.transit.js' },
-    ],
+                { -type => 'text/javascript', -src => 'wsrc/main.js' },    ],
     -style  => [
-                { -type => 'text/css', -src => 'wsrc/'.&Settings::css },    
-                { -type => 'text/css', -src => "https://fonts.googleapis.com/css?family=Raleway:300"},
+                { -type => 'text/css', -src => 'wsrc/'.&Settings::css }
+                
             ]
 );
 
