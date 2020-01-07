@@ -33,6 +33,7 @@ my $dbname   = $sss->param('database');
 my $userid   = $sss->param('alias');
 my $password = $sss->param('passw');
 my $sssCDB   = $sss->param('cdb');
+my $vmode;
 
 if ( !$userid || !$dbname ) {
     print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
@@ -46,11 +47,11 @@ my $db       = DBI->connect( $dsn, $userid, $password, { PrintError => 0, RaiseE
 
 my ( $imgw, $imgh );
 #Fetch settings
-Settings::getConfiguration($db);
-Settings::getTheme();
+    Settings::getConfiguration($db);
+    Settings::getTheme();
 ### Authenticate sss to alias password
-&authenticate;
-
+    &authenticate;
+#
 my $log_rc      = 0;
 my $log_rc_prev = 0;
 my $log_cur_id  = 0;
@@ -68,7 +69,7 @@ my $stmS        = 'SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from
 my $stmE        = "";
 my $stmD        = "";
 my $sm_reset_all;
-my $rl = &Settings::recordLimit;
+my $rec_limit   = &Settings::recordLimit;
 ### Page specific settings Here
 my $TH_CSS        = &Settings::css;
 my $BGCOL         = &Settings::bgcol;
@@ -614,7 +615,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 
         $log_rc += 1;
 
-        if ( $rl > 0 && $log_rc == $rl ) {
+        if ( $rec_limit > 0 && $log_rc == $rec_limit ) {
             last;
         }
 
@@ -817,10 +818,8 @@ _TXT
 ################################
 
 
-print
-qq(<div id="menu" title="To close this menu click on its heart, and wait.">
+print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
-
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
 <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
 <a id="menu_close" href="#" onclick="return hideLog();"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
@@ -828,19 +827,19 @@ qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <hr>
 <a class="a_" onclick="return toggle('#div_log',true);">Log</a><br>
 <a href="#" title="TOP" onclick="return submitTop();" ><span class="ui-icon ui-icon-triangle-1-w" style="float:none;"></span></a>
-<a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $rl);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
-<a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $rl);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
-<a href="#" title="END" onclick="return submitEnd($rl);"><span class="ui-icon ui-icon-triangle-1-e" style="float:none;"></span></a>
+<a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
+<a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
+<a href="#" title="END" onclick="return submitEnd($rec_limit);"><span class="ui-icon ui-icon-triangle-1-e" style="float:none;"></span></a>
 <hr>
+<a class="a_" onclick="return toggle('#div_srh',true);">Search</a><hr>
+<a class="a_" onclick="return deleteSelected();">Delete</a><hr>
+<a class="a_" onclick="return toggle('#tbl_hlp',true);">Help</a><hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="config.cgi">Config</a><hr>
-<a class="a_" onclick="return deleteSelected();">Delete</a><hr>
-<a class="a_" onclick="return toggle('#div_srh',true);">Search</a><hr>
-<a class="a_" onclick="return toggle('#tbl_hlp',true);">Help</a><hr>
 <a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></a><hr>
 $sm_reset_all
-<br>
-<a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
+<a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br>
+<span style="font-size: x-small;">$vmode</span><br>
 </div>
 	  <div id="div_log">$frm</div>\n
 	  <div id="div_srh">$srh</div>
@@ -850,21 +849,18 @@ $sm_reset_all
 	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
 	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
 	  <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"/></div>
-	);
-    print qq(
 <ul id="cat_lst">
 	$cat_desc
 </ul>	
-			  <script type="text/javascript">
-					\$( function() {
-						var tags = [$autowords];
-						\$( "#rs_keys, #rs_keys2" ).autocomplete({
-							source: tags
-							});
-						});
-				</script>
-						
-		 );
+<script type="text/javascript">
+    \$( function() {
+        var tags = [$autowords];
+        \$( "#rs_keys, #rs_keys2" ).autocomplete({
+            source: tags
+            });
+        });
+</script>						
+);
 
 print $cgi->end_html;
 $st->finish;
@@ -921,7 +917,7 @@ try {
             }
 
             if ( $view_all && $view_all == "1" ) {
-                $rl = 0;
+                $rec_limit = 0;
             }
 
             if ( $view_mode == "1" ) {
@@ -930,7 +926,7 @@ try {
                     my $sand = "";
                     if ( $rs_cur == $rs_prev )
                     {    #Mid page back button if id ordinal.
-                        $rs_cur += $rl;
+                        $rs_cur += $rec_limit;
                         $rs_prev = $rs_cur;
                         $rs_page--;
                     }
@@ -1044,11 +1040,10 @@ exit;
             $tfId = 1;
         }
 
-        my $vmode = "<font color='red'><b>[View Mode]</b></font>&nbsp;" if &isInViewMode;
+        $vmode = "[In Page Mode]&nbsp;";
+        $vmode = "<font color='red'>[In View Mode]</font>&nbsp;" if &isInViewMode;
         
-        if($rl == 0){
-
-            $log_output .= '';
+        if($rec_limit == 0){            
             $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3">
                                <input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="Back To Page View"/>!;
 
@@ -1058,7 +1053,7 @@ exit;
 
                     $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
                     <input type="hidden" value="$rs_prev"/>
-                    <input class="ui-button" type="button" onclick="submitPrev($log_rc_prev, $rl);return false;" value="&lsaquo;&lsaquo;&nbsp; Previous"/>&nbsp;&nbsp;!;
+                    <input class="ui-button" type="button" onclick="submitPrev($log_rc_prev, $rec_limit);return false;" value="&lsaquo;&lsaquo;&nbsp; Previous"/>&nbsp;&nbsp;!;
 
                 }
                 else {
@@ -1074,14 +1069,14 @@ exit;
                 }
                 else {
 
-                    $log_output .= qq!<input class="ui-button" type="button" onclick="submitNext($log_cur_id, $rl);return false;"
+                    $log_output .= qq!<input class="ui-button" type="button" onclick="submitNext($log_cur_id, $rec_limit);return false;"
                                         value="Next &nbsp;&rsaquo;&rsaquo;"/>&nbsp;&nbsp;
-                                        <input class="ui-button" type="button" onclick="submitEnd($rl);return false;" value="END"/></td>!;
+                                        <input class="ui-button" type="button" onclick="submitEnd($rec_limit);return false;" value="END"/></td>!;
 
                 }
         }
 
-        $log_output = $log_output . '<td colspan="2"></td></tr>';
+        $log_output .= '<td colspan="2"></td></tr>';
     }
 
 sub authenticate {
