@@ -1,10 +1,10 @@
-#!/bin/bash                                                                                        
+#!/bin/bash
 
 DIR="/home/will/dev/LifeLog"
 
 if [ ! -d "$DIR/log" ]; then
-   mkdir "$DIR/log"
+    mkdir "$DIR/log"
 fi
 cd $DIR
 cd /home/will/dev/LifeLog
-thttpd -C thttpd.conf& 
+thttpd -C thttpd.conf &
