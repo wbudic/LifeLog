@@ -36,7 +36,7 @@ my $sid=$session->id();
 my $dbname  =$session->param('database');
 my $userid  =$session->param('alias');
 my $password=$session->param('passw');
-my  $sys = `uname -n`;
+my $sys = `uname -n`;
 #my $acumululator="";
 
 if(!$userid||!$dbname){
@@ -82,6 +82,7 @@ my %hshCats = {};
 Settings::getTheme();
 $session->param("theme",&Settings::css);
 $session->param("bgcolor",&Settings::bgcol);
+
 &getHeader;
 
  if ($ERROR){&error;}else{
@@ -1085,3 +1086,4 @@ sub renumerate {
     $dbs = dbExecute('DROP TABLE life_log_temp_table;');
 }
 
+1;

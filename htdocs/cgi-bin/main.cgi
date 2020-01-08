@@ -103,7 +103,8 @@ if ( $rs_keys || $rs_cat_idx || $stmD || $prm_vc > 0 || $prm_xc > 0) { $toggle =
 $sss->expire(&Settings::sessionExprs);
 $sss->param('theme', $TH_CSS);
 $sss->param('bgcolor', $BGCOL);
-
+$sss->param('sss_main', $today);
+#
 
 #Reset Clicked
 if($cgi->param('srch_reset') == 1){
@@ -150,7 +151,7 @@ print $cgi->header(-expires => "0s", -charset => "UTF-8");
 print $cgi->start_html(
     -title   => "Personal Log",
     -BGCOLOR => $BGCOL,
-    -onload  => "onBodyLoad('$toggle','".&Settings::sessionExprs."',$rs_cur);",
+    -onload  => "onBodyLoad('$toggle','".Settings::timezone()."','$today','".&Settings::sessionExprs."',$rs_cur);",
     -style   => [
         { -type => 'text/css', -src => "wsrc/$TH_CSS" },
         { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
@@ -189,6 +190,7 @@ print $cgi->start_html(
         { -type => 'text/javascript', -src => 'wsrc/quill/quill.min.js' },
         { -type => 'text/javascript', -src => 'wsrc/jscolor.js' },
         { -type => 'text/javascript', -src => 'wsrc/moment.js' },
+        { -type => 'text/javascript', -src => 'wsrc/moment-timezone-with-data.js' },
 
     ],
 );
