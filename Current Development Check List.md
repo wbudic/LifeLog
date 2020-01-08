@@ -53,7 +53,7 @@ This version is not compatible in data structure to prior versions. Data migrati
     * All subpages need either to inherit the counter, and jump user to the login screen if expired.
     * Or update main pages timer countdown. Which is not possible if browsers back button is pressed.
     * Pressing back button brings the page display to initial time it was loaded from.
-    * This has been now marked as an complex issue. Not worth much spending time on. LifeLong is not an banking app.
+    * This has been now marked as an complex issue. Not worth much spending time on.
 
 * &#10004; Bug 13 - Migrated old data, linking to wrong id, db fix in config page seems to fix this.
 * &#10004; Bug 12 - Invalid login only shows db error.
