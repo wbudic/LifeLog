@@ -8,6 +8,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## LifeLog Development
 
 ### v.1.7 Encountered
+* &#10004; Settings module requires subroutines for debug logging and db properties access.
+* &#10004; LifeLog codebase release verion upgrade tracking and procedures with older databases.
 * &#10004; JS based session logout timer warning to be implemented.
 * &#10004; Mutli new alias access flood attack security trigger implementation.
 * &#10004; Debug system settings implementaiton.
@@ -46,7 +48,9 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## Bugs
 
 ### v. 1.7 Encountered/Fixed
-
+* Bug 14 Subpages pages links to main, restart main page session counter, making main page fully usable.
+    * Not really a bug. These pages simply need to inherit the counter, and jump user to login screen if expired.
+    * Possible workaround is to allow only subpage display for an pre established amount of time, before login user off.
 * &#10004; Bug 13 - Migrated old data, linking to wrong id, db fix in config page seems to fix this.
 * &#10004; Bug 12 - Invalid login only shows db error.
 
@@ -62,7 +66,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Bug - 04, Local not picked up properly on current date.
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
 * &#10004; Bug - 02, Record set paging to previous page not always working. Getting stuck.
-    *This occurs on new records placed in the far past. Complex problem.
+   * This occurs on new records placed in the far past. Complex problem.
 * &#10004; Bug - 01, date validation for proper entered time, there is no 24 h.
 
 ***
