@@ -256,7 +256,7 @@ function setNow() {
     date.value = dt.getFullYear() + "-" + mm + "-" + dd + " " +
         fix0(dt.getHours()) + ":" + fix0(dt.getMinutes()) + ":" + fix0(dt.getSeconds());
     $("#submit_is_edit").val("0");
-    toggleDoc(true);    
+    toggleDoc(true);
     return false;
 }
 
@@ -364,7 +364,7 @@ function submitTop(top) {
     frm.rs_all.value  = 0;
     frm.rs_cur.value  = 0;
     frm.rs_prev.value = top;
-    frm.submit_is_view.value = 1;    
+    frm.submit_is_view.value = 1;
     frm.submit();
 
     return false;
@@ -434,11 +434,11 @@ function resizeDoc() {
         RTF_DOC_ORIG = css.height;
         css.height = '480px';
     }
-    
+
 }
 function resetDoc(){
     if (RTF_SET) {
-        QUILL.setText("");     
+        QUILL.setText("");
     }
     $("#submit_is_edit").val("0");
     toggleDoc(true);
@@ -477,7 +477,7 @@ function toggleVisibility(target, ensureOff) {
 
 function toggleDoc(whole) {
 
-    
+
     if(whole){
         if($("#RTF").prop('checked')){
             $("#rtf_doc").show();
@@ -504,14 +504,14 @@ function toggleDoc(whole) {
         setInterval(function() {
             if (CHANGE.length() > 0) {
                 console.log('Saving changes', CHANGE);
-                /* 
+                /*
                 Send partial changes
-                $.post('/your-endpoint', { 
-                  partial: JSON.stringify(change) 
+                $.post('/your-endpoint', {
+                  partial: JSON.stringify(change)
                 });
-              
+
                 Send entire document
-                $.post('/your-endpoint', { 
+                $.post('/your-endpoint', {
                   doc: JSON.stringify(QUILL.getContents())
                 });
                 */
@@ -537,20 +537,20 @@ function show(id) {
 
 function toggle(id, mtoggle) {
    //Menu button untoggle it up first. Complex interaction situation.
-    if(mtoggle){        
+    if(mtoggle){
         if(!$(id+" .collpsd").is(":visible")){
             $(id+" .collpsd").show();
             $(id).show();
         }
         else{
             $(id).toggle();
-        }         
-        
+        }
+
     }
-    else{    
+    else{
         $(id).toggle();
     }
-    
+
     $("html, body").animate({ scrollTop: 0 }, "fast");
     return false;
 }
@@ -578,7 +578,7 @@ function showAll() {
         hide("#tbl_doc");
         _show_all = true;
    }
-   
+
 
    $("html, body").animate({ scrollTop: 0 }, "fast");
 
@@ -586,7 +586,7 @@ function showAll() {
 }
 
 function helpSelCategory(sel) {
-    
+
     var desc = _MAP.get(sel.options[sel.selectedIndex].value);
     if (!desc) {
         desc = "<font color='red'>Please select a Category!</font>";
@@ -603,11 +603,66 @@ function display(desc){
 
 function viewByCategory(btn) {
     $("#rs_keys").value = "";
-    $("#vx").value = "0";
+    $("#xc").val(0);
 }
 function viewExcludeCategory(btn) {
     $("#rs_keys").value = "";
-    $("#xc").value = "0";
+    $("#vc").value = "0";
+    var tagged = $('#divxc').text();
+    if(tagged.length>0){
+        var opts = $("#xc option");
+        var ids = "";
+        for(var i =0; i < opts.length; i++){
+                var lbl = opts[i].innerText;
+                if(tagged.match(lbl)){
+                    ids += opts[i].value + ',';
+                }
+
+        }
+        $("#idx_cat_x").val(ids.replace(/^\,+|\,+$/g,''));
+    }
+}
+function addExclude() {
+    var sel = $('#xc option:selected');
+    var div = $('#divxc');
+    var tagged = $('#divxc').text();
+    var reg = new RegExp(sel.text());
+    if($('#xc').val() == 0){
+        alert("Must select a category to add to list of excludes.");
+    }
+    else if(!tagged.match(reg)){
+        if(tagged.length>0){
+            div.text(tagged + ',' + sel.text());
+        }
+        else{
+            $('#divxc_lbl').toggle();
+            div.text(sel.text());
+        }
+    }
+
+
+return false;
+}
+function removeExclude() {
+    var sel = $('#xc option:selected');
+    var div = $('#divxc');
+    var tagged = $('#divxc').text();
+    var reg = new RegExp(sel.text());
+
+    if($('#xc').val() == 0){
+        alert("Must select a category to remove from list of excludes.");
+    }
+    else if(tagged.match(reg)){
+            tagged = tagged.replace(reg,'');
+            tagged = tagged.replace(/\,\,/,'\,');
+            tagged = tagged.replace(/^\,+|\,+$/g,'');
+            div.text(tagged);
+            if(tagged.length==0){
+                $('#divxc_lbl').toggle();
+            }
+    }
+
+return false;
 }
 
 function viewByDate(btn) {
@@ -660,7 +715,7 @@ function saveRTF(id, action) {
 
     var is_submit = (id==-1);
     if (id < 1) {
-        id = $("#submit_is_edit").val(); 
+        id = $("#submit_is_edit").val();
     }
     if(is_submit && !$("#RTF").prop('checked')){
         return true;//we submit normal log entry
@@ -671,10 +726,10 @@ function saveRTF(id, action) {
     if(is_submit){
         //we must wait before submitting actual form!
         $("#idx_cat").value = "SAVING DOCUMENT...";
-        $("#idx_cat").show();        
+        $("#idx_cat").show();
         setTimeout(delayedSubmit, 200);
     }
-    return false;    
+    return false;
 }
 
 function delayedSubmit(){
@@ -689,7 +744,7 @@ function saveRTFResult(result) {
     //alert("Result->" + result);
     console.log("Result->" + result);
     var obj = JSON.parse(result);
-    //alert(obj.response);  
+    //alert(obj.response);
     $("html, body").animate({ scrollTop: 0 }, "fast");
     display(obj.response);
     if(obj.log_id>0){
@@ -702,17 +757,17 @@ function saveRTFResult(result) {
 }
 
 function loadRTF(under, id){
-    
+
     //show under log entry the document
     if(under){
-        
+
 
         if($("#q-rtf"+id).is(":visible")){
             $("#q-rtf"+id).hide();
             return false;
         }
 
-        
+
         QUILL_PNL = new Quill('#q-container'+id, {
             /*
             modules: {
@@ -722,24 +777,24 @@ function loadRTF(under, id){
                 ['image', 'code-block']
               ]
             },*/
-            scrollingContainer: '#q-scroll'+id, 
+            scrollingContainer: '#q-scroll'+id,
             placeholder: 'Loading Document...',
             readOnly: true,
             //theme: 'bubble'
-          });         
+          });
 
           $.post('json.cgi', {action:'load', id:id}, loadRTFPnlResult);
           $("#q-rtf"+id).show();
         return false;
     }
-    
-    //var json = "[{'insert': 'Loading Document...', 'attributes': { 'bold': true }}, {'insert': '\n'}]";    
+
+    //var json = "[{'insert': 'Loading Document...', 'attributes': { 'bold': true }}, {'insert': '\n'}]";
     QUILL.setText('Loading Document...\n');
     $.post('json.cgi', {action:'load', id:id}, loadRTFResult);
     $("#rtf_doc").show();
     $('#tbl_doc').show();
     $('#toolbar-container').show();
-    
+
     return false;
 }
 
@@ -760,13 +815,13 @@ function loadRTFResult(content, result, prms, quill) {
     }
     else{
         var id = json.content.lid;
-        var css = $("#q-scroll"+id).prop('style'); 
+        var css = $("#q-scroll"+id).prop('style');
         css.backgroundColor = json.content.bg
     }
     //alert(obj.response);
 }
 
- 
+
 
 
 function editorBackground(reset){
@@ -784,15 +839,15 @@ function RGBToHex(rgb) {
     var sep = rgb.indexOf(",") > -1 ? "," : " ";
     // Turn "rgb(r,g,b)" into [r,g,b]
     rgb = rgb.substr(4).split(")")[0].split(sep);
-  
+
     var r = (+rgb[0]).toString(16),
         g = (+rgb[1]).toString(16),
         b = (+rgb[2]).toString(16);
-  
+
     if (r.length == 1)  r = "0" + r;
     if (g.length == 1)  g = "0" + g;
     if (b.length == 1)  b = "0" + b;
-  
+
     return "#" + r + g + b;
 }
 
@@ -808,7 +863,7 @@ function exportToCSV(dat, view){
 function setPageSessionTimer(expires) {
 
             var timeout;
-            var now = new moment();              
+            var now = new moment();
             var val = expires.replace(/\+|[A-Z]|[a-z]/g, '');
             if(expires.indexOf("h")>0){
                 timeout = moment(now).add(val, "h");
@@ -822,7 +877,7 @@ function setPageSessionTimer(expires) {
                timeout = moment(now).add(val, "s");
             }
 
-           	var timer   =  setInterval(function() { 
+           	var timer   =  setInterval(function() {
                 var now = new moment();
                 var dif = timeout.diff(now);
                 var min = Math.floor(dif / 60000);
@@ -835,9 +890,8 @@ function setPageSessionTimer(expires) {
                     $("#sss_status").html("<span id='sss_expired'><a href='login_ctr.cgi'>Page Session has Expired!</a></span>");
                     clearInterval(timer);
                 }
-                
+
                                         }, 1000);
 
 	}
 
-	

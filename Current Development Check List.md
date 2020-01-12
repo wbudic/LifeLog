@@ -8,12 +8,13 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## LifeLog Development
 
 ### v.1.7 Encountered
+* Config stored list of excludes. Provide multiple excludes view.
 * &#10004; Settings module requires subroutines for debug logging and db properties access.
 * &#10004; LifeLog codebase release verion upgrade tracking and procedures with older databases.
 * &#10004; JS based session logout timer warning to be implemented.
 * &#10004; Mutli new alias access flood attack security trigger implementation.
 * &#10004; Debug system settings implementaiton.
-* &#10004; Delete page updated to show better display of entries.  
+* &#10004; Delete page updated to show better display of entries.
 * Provide sub alias login that sets data visible to only a set of categories.
   * View specific based login on a different password.
 * &#10004; Login page to indentify host.
@@ -48,7 +49,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## Bugs
 
 ### v. 1.7 Encountered/Fixed
-* Issue 14 Subpages pages links to main, restart main page session counter, making the main page fully usable.
+
+* &#10004; Issue 14 Subpages pages links to main, restart main page session counter, making the main page fully usable.
     * Not really a bug. Session will expire but time remaining will be displayed wrong on the main page.
     * All subpages need either to inherit the counter, and jump user to the login screen if expired.
     * Or update main pages timer countdown. Which is not possible if browsers back button is pressed.
@@ -76,5 +78,5 @@ This version is not compatible in data structure to prior versions. Data migrati
 ***
 
      Checked (&#10004;) Are items that have been done and submitted to the branch.
-  
+
      Project ->  <https://github.com/wbudic/LifeLog/>

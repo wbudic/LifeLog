@@ -60,6 +60,7 @@ my $rs_keys     = $cgi->param('keywords');
 my $rs_cat_idx  = $cgi->param('category');
 my $prm_vc      = $cgi->param("vc");
 my $prm_xc      = $cgi->param("xc");
+my $prm_xc_lst  = $cgi->param("idx_cat_x");
 my $rs_dat_from = $cgi->param('v_from');
 my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
@@ -133,6 +134,8 @@ if($prm_xc){
        $prm_xc = $sss->param('sss_xc');
 }
 
+my @xc_lst = split /\,/, $prm_xc_lst;
+
 
 $sss->flush();
 
@@ -205,10 +208,10 @@ print qq("## Using db -> $dsn) if $DEBUG;
 $st = $db->prepare($stmtCat);
 $rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
 
-my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec" 
+my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec"
  onFocus="show('#cat_desc');"
- onBlur="helpSelCategory(this);" 
- onScroll="helpSelCategory(this);updateSelCategory(this)" 
+ onBlur="helpSelCategory(this);"
+ onScroll="helpSelCategory(this);updateSelCategory(this)"
  onChange="updateSelCategory(this)">
  <option value="0">---</option>\n);
 my %hshCats;
@@ -271,11 +274,16 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 
         my @keywords = split / /, $rs_keys;
         if ($rs_cat_idx && $rs_cat_idx != $prm_xc) {
-            $stmS = $stmS . " ID_CAT='" . $rs_cat_idx . "' AND";
+            $stmS .= " ID_CAT='" . $rs_cat_idx . "' AND";
         }
         else {
             if($prm_xc>0){
-                $stmS = $stmS . " ID_CAT!=$prm_xc AND";
+                if(@xc_lst){
+                    foreach (@xc_lst){
+                            $stmS .= " ID_CAT!=$_ AND";
+                    }
+                }
+                else{       $stmS .= " ID_CAT!=$prm_xc AND"; }
             }
         }
         if ($stmD) {
@@ -303,23 +311,37 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     }
     else {
         if($prm_xc>0){
-            $stmt = $stmS . " ID_CAT!=$prm_xc" . $stmE;
+
+                if(@xc_lst){
+                    my $ands = "";
+                    foreach (@xc_lst){
+                            $ands .= " ID_CAT!=$_ AND";
+                    }
+                    $ands =~ s/AND$//g;
+                    $stmt = $stmS . $ands . $stmE;
+                }
+                else{
+                    $stmt = $stmS . " ID_CAT!=$prm_xc" . $stmE;
+                }
+
+
+
         }
         if ($stmD) {
             $stmt = $stmS . $stmD . $stmE;
         }
     }
 
-    ################### 
+    ###################
       &processSubmit;
     ###################
-    
+
     my $tfId      = 0;
     my $id        = 0;
     my $log_start = index $stmt, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
 
-    print $cgi->pre("###[sss PARAMS->vc=$prm_vc|xc=$prm_xc] -> ".$stmt) if $DEBUG;
+    print $cgi->pre("###[Session PARAMS->vc=$prm_vc|xc=$prm_xc|xc_lst=@xc_lst|] -> ".$stmt) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
@@ -329,7 +351,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
         $stc->execute();
         my @row = $stc->fetchrow_array();
         $log_top = $row[0];
-        if ($log_top == $rs_prev && $rs_cur == $rs_prev ) {            
+        if ($log_top == $rs_prev && $rs_cur == $rs_prev ) {
             $log_start = -1;
         }
         $stc->finish();
@@ -350,7 +372,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
 
     &buildLog;
 
- 
+
     if(index ($stmt, 'PID <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
 
         $stmt = "SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY != 1;";
@@ -605,7 +627,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 			<button class="edit" value="Edit" onclick="return edit($id);">$ssymb</button>
 			<input name="chk" type="checkbox" value="$id"/>
 		</td></tr>);
-        
+
         if ( $rtf > 0 ) {
              $log_output .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
                          <td colspan="6">
@@ -632,7 +654,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
     $exp = &cam($exp);
     $tas = &cam($ass);
     $tot = &cam($tot);
-    
+
     $log_output .= qq(
     <tr class="r$tfId">
 		<td></td>
@@ -643,7 +665,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
     ###
     &buildNavigationButtons;
     ###
-    
+
     ##
     #Fetch Keywords autocomplete we go by words larger then three.
     #
@@ -681,7 +703,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;></span></a>
 
 <a href="#top">&#x219F;</a></td>
-<td colspan="4" align="right"> 
+<td colspan="4" align="right">
     <input type="hidden" name="datediff" id="datediff" value="0"/>
     <input type="submit" value="Sum Selected" onclick="return sumSelected()"/>&nbsp;
     <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
@@ -698,7 +720,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
 </TABLE>
 _TXT
 
-    my ( $sp1, $sp2, $sp3 );    
+    my ( $sp1, $sp2, $sp3 );
     $sp1 = '<span  class="ui-icon ui-icon-heart"></span>';
     $sp2 = '<span  class="ui-icon ui-icon-circle-triangle-s"></span>';
     $sp3 = '<span  class="ui-icon ui-icon-arrow-4-diag"></span>';
@@ -709,15 +731,15 @@ _TXT
 	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b>
     <a id="log_close" href="#" onclick="return hide('#div_log');">$sp1</a>
     <a id="log_close" href="#" onclick="return toggle('#div_log .collpsd');">$sp2</a>
-    </td></tr>	
+    </td></tr>
 	<tr class="collpsd">
 	<td style="text-align:right; vertical-align:top; width:10%;">Date:</td>
 	<td id="al" colspan="1" style="text-align:top; vertical-align:top"><input id="ed" type="text" name="date" size="18" value=")
       . $today->ymd . " " . $today->hms . qq(">
-	
+
 	&nbsp;<button type="button" onclick="return setNow();">Now</button>
 			&nbsp;<button type="reset"  onclick="setNow();resetDoc(); return true;">Reset</button></td>
-			<td style="text-align:top; vertical-align:top">Category: 
+			<td style="text-align:top; vertical-align:top">Category:
     $cats
 				<br><br><div id="cat_desc" name="cat_desc"></div>
 			</td>
@@ -725,24 +747,24 @@ _TXT
 	<tr class="collpsd"><td style="text-align:right; vertical-align:top">Log:</td>
 		<td id="al" colspan="2" style="text-align:top;">
 			<textarea id="el" name="log" rows="3" style="float:left; width:99%;" onChange="toggleVisibility('cat_desc',true)"></textarea>
-		</td>	
+		</td>
 	</tr>
 	<tr class="collpsd"><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Amount:</td>
 		<td id="al">
 			<input id="am" name="am" type="text">&nbsp;
-            Marks as: 
+            Marks as:
             <select id="amf" name="amf">
                 <option value="0" selected>Asset</option>
                 <option value="1">Income</option>
                 <option value="2">Expense</option>
             </select>&nbsp;
             <input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> RTF Document
-            <input id="STICKY" name="sticky" type="checkbox"/> Sticky            
+            <input id="STICKY" name="sticky" type="checkbox"/> Sticky
 		</td>
 		<td align="right">
                 <span id="sss_status"></span>&nbsp;
 				<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/></div>
-		</td>		
+		</td>
 	</tr>
 	<tr class="collpsd"><td colspan="3"></td></tr>
 	</table>
@@ -768,25 +790,33 @@ _TXT
       </tr>
 );
     my $sss_checked = 'checked' if &isInViewMode;
+    my $divxc = '<td id="divxc_lbl" align="right" style="display:none"><b>Excludes:</b></td><td align="left" id="divxc"></td>';
+    if(@xc_lst){#Do list of excludes, past from browser in form of category id's.
+        my $xcls ="";
+        foreach(@xc_lst){ $xcls .= $hshCats{$_}.','}
+        $xcls =~ s/\,$//g;
+        $divxc = '<td id="divxc_lbl" align="right"><b>Excludes:</b></td><td align="left" id="divxc">'.$xcls.'</td>';
+    }
     $srh .=
     qq(
     <tr class="collpsd">
      <td align="right"><b>View by Category:</b></td>
-     <td align="left">
-        $cats_v &nbsp;&nbsp;
+     <td align="left">$cats_v&nbsp;&nbsp;
         <button id="btn_cat" onclick="viewByCategory(this);">View</button>
         <input id="idx_cat" name="category" type="hidden" value="0"/>
      </td>
    </tr>
    <tr class="collpsd">
      <td align="right"><b>Exclude Category:</b></td>
-     <td align="left">
-        $cats_x &nbsp;&nbsp;
-        <button id="btn_cat" onclick="viewExcludeCategory(this);">View</button>
-        <input id="idx_cat_x" name="category" type="hidden" value="0"/>
+     <td align="left">$cats_x&nbsp;&nbsp;
+        <input id="idx_cat_x" name="idx_cat_x" type="hidden" value="0"/>
+        <button id="btnxca" onClick="return addExclude()"/>Add</button>&nbsp;&nbsp;
+        <button id="btnxrc" type="button" onClick="return removeExclude()">Remove</button>&nbsp;&nbsp;
+        <button id="btn_cat" onclick="return viewExcludeCategory(this);">View</button>&nbsp;&nbsp;
         <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked/> Keep In Seession
      </td>
    </tr>
+   <tr class="collpsd">$divxc</tr>
    <tr class="collpsd">
     <td align="right"><b>View by Date:</b></td>
 	<td align="left">
@@ -853,7 +883,7 @@ $sm_reset_all
 	  <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"/></div>
 <ul id="cat_lst">
 	$cat_desc
-</ul>	
+</ul>
 <script type="text/javascript">
     \$( function() {
         var tags = [$autowords];
@@ -861,7 +891,7 @@ $sm_reset_all
             source: tags
             });
         });
-</script>						
+</script>
 );
 
 print $cgi->end_html;
@@ -878,7 +908,7 @@ sub processSubmit {
         my $date = $cgi->param('date');
         my $log  = $cgi->param('log');
         my $cat  = $cgi->param('ec');
-        my $cnt;        
+        my $cnt;
         my $am = $cgi->param('am');
         my $af = $cgi->param('amf');
 
@@ -906,12 +936,12 @@ try {
                                              LOG='$log',
                                              AMOUNT='$am',
                                              AFLAG = '$af',
-                                             RTF='$rtf', 
+                                             RTF='$rtf',
                                              STICKY='$sticky' WHERE rowid="$edit_mode";);
-                #                                             
+                #
                 print $stm if $DEBUG;
                 #
-                
+
                 my $dbUpd = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } )  or die "<p>Error->" & $DBI::errstri & "</p>";
                 my $st = $dbUpd->prepare($stm);
                    $st->execute();
@@ -966,7 +996,7 @@ try {
                         );
                 print "\n###$stm\n" if $DEBUG;
 
-                $st = $db->prepare($stm);           
+                $st = $db->prepare($stm);
                 $st->execute();
                 if($sssCDB){
                     #Allow further new database creation, it is not an login infinite db creation attack.
@@ -974,35 +1004,35 @@ try {
                 }
 
                 if($rtf){ #Update 0 ground NOTES entry to the just inserted log.
-                 
+
                    $st = $db->prepare('SELECT ID FROM VW_LOG LIMIT 1;');
-                   $st -> execute(); 
+                   $st -> execute();
                    my @lid = $st->fetchrow_array();
-                   $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';"); 
-                   $st -> execute();                   
+                   $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';");
+                   $st -> execute();
                    my @gzero = $st->fetchrow_array();
-                   
+
 
                    if(scalar @lid > 0){
-            #By Notes.LID contraint, there should NOT be an already existing log rowid entry just submitted in the Notes table! 
+            #By Notes.LID contraint, there should NOT be an already existing log rowid entry just submitted in the Notes table!
             #What happened? We must check and delete, regardles. As data is renumerated and shuffled from perl in database. :(
                       $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = '$lid[0]';");
-                      $st->execute();  
-                      if($st->fetchrow_array()){                          
+                      $st->execute();
+                      if($st->fetchrow_array()){
                           $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$lid[0]';");
-                          $st->execute();  
+                          $st->execute();
                           print qq(<p>Warning deleted (possible old) NOTES.LID[$lid[0]] -> lid:$lid[0]</p>);
                       }
-                      $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);"); 
-                     # 
+                      $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
+                     #
                       $st->execute($lid[0], $gzero[0]);
 
-                       #Flatten ground zero                   
+                       #Flatten ground zero
                        $st = $db->prepare("UPDATE NOTES SET DOC='' WHERE LID = 0;");
-                       $st->execute();   
+                       $st->execute();
                    }
 
-                   
+
                 }
                 #
                 # After Insert renumeration check
@@ -1013,22 +1043,22 @@ try {
                 $dtCur = $dtCur - DateTime::Duration->new( days => 1 );
 
                 if ( $dtCur > $dt ) {
-                    print $cgi->p('<b>Insert is in the past!</b>');                    
-                    &renumerate;
+                    print $cgi->p('<b>Insert is in the past!</b>');
+                   Settings::renumerate($db);
                 }
             }
 }
  catch {
-      
+
  print "<font color=red><b>ERROR</b></font> -> " . $_;
  print qq(<html><body><pre>Reached2! -> $cnt, $cat, $date, $log, $am, $af, $rtf, $sticky </pre></body></html
         );
 exit;
-  }       
+  }
 }
 
     sub buildNavigationButtons {
-        
+
         if ( !$log_cur_id ) {
 
         #Following is a quick hack as previous id as current minus one might not
@@ -1044,8 +1074,8 @@ exit;
 
         $vmode = "[In Page Mode]&nbsp;";
         $vmode = "<font color='red'>[In View Mode]</font>&nbsp;" if &isInViewMode;
-        
-        if($rec_limit == 0){            
+
+        if($rec_limit == 0){
             $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3">
                                <input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="Back To Page View"/>!;
 
@@ -1062,9 +1092,9 @@ exit;
                     $log_output .= qq(<tr class="r$tfId"><td>$vmode</td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
                 }
 
-                               
+
                     $log_output .= '<input class="ui-button" type="button" onclick="viewAll();return false;" value="View All"/>&nbsp;&nbsp;';
-                
+
 
                 if ( $log_cur_id == 0 ) {
                     $log_output = $log_output . '<i>End</i></td>';
@@ -1083,16 +1113,16 @@ exit;
 
 sub authenticate {
         try {
-         
+
             my $st = $db->prepare( "SELECT alias FROM AUTH WHERE alias='$userid' and passw='$password';");
             $st->execute();
-            my @c = $st->fetchrow_array(); 
+            my @c = $st->fetchrow_array();
             if (@c && $c[0] eq $userid ) { return; }
 
             #Check if passw has been wiped for reset?
             $st = $db->prepare("SELECT * FROM AUTH WHERE alias='$userid';");
             $st->execute();
-            @c = $st->fetchrow_array(); 
+            @c = $st->fetchrow_array();
             if ( @c && $c[1] == "" ) {
                 #Wiped with -> UPDATE AUTH SET passw='' WHERE alias='$userid';
                 $st = $db->prepare("UPDATE AUTH SET passw='$password' WHERE alias='$userid';");
@@ -1134,71 +1164,71 @@ sub authenticate {
         }
 }
 
-    sub fetchAutocomplete {
-        try {
+sub fetchAutocomplete {
+    try {
 
-            while ( my @row = $st->fetchrow_array() ) {
-                my $log = $row[0];
+        while ( my @row = $st->fetchrow_array() ) {
+            my $log = $row[0];
 
-                #Decode escaped \\n
-                $log =~ s/\\n/\n/gs;
-                $log =~ s/''/'/g;
+            #Decode escaped \\n
+            $log =~ s/\\n/\n/gs;
+            $log =~ s/''/'/g;
 
-                #Replace link to empty string
-                my @words = split( /($re_a_tag)/si, $log );
-                foreach my $ch_i (@words) {
-                    next if $ch_i =~ /$re_a_tag/;
-                    next if index( $ch_i, "<img" ) > -1;
-                    $ch_i =~ s/https//gsi;
-                    $ch_i =~ s/($RE{URI}{HTTP})//gsi;
-                }
-                $log   = join( ' ', @words );
-                @words = split( ' ', $log );
-                foreach my $word (@words) {
+            #Replace link to empty string
+            my @words = split( /($re_a_tag)/si, $log );
+            foreach my $ch_i (@words) {
+                next if $ch_i =~ /$re_a_tag/;
+                next if index( $ch_i, "<img" ) > -1;
+                $ch_i =~ s/https//gsi;
+                $ch_i =~ s/($RE{URI}{HTTP})//gsi;
+            }
+            $log   = join( ' ', @words );
+            @words = split( ' ', $log );
+            foreach my $word (@words) {
 
-                    #remove all non alphanumerics
-                    $word =~ s/[^a-zA-Z]//gs;
-                    if ( length($word) > 2 ) {
-                        $word = lc $word;
+                #remove all non alphanumerics
+                $word =~ s/[^a-zA-Z]//gs;
+                if ( length($word) > 2 ) {
+                    $word = lc $word;
 
-                        #parse for already placed words, instead of using an hash.
-                        my $idx = index( $autowords, $word, 0 );
-                        if ( $idx > 0 ) {
-                            my $end = index( $autowords, '"', $idx );
-                            my $existing =
-                                substr( $autowords, $idx, $end - $idx );
-                            next if $word eq $existing;
-                        }
-
-                        $autowords .= qq(,"$word");
-                        if ( $aw_cnt++ > &Settings::autoWordLimit ) {
-                            last;
-                        }
+                    #parse for already placed words, instead of using an hash.
+                    my $idx = index( $autowords, $word, 0 );
+                    if ( $idx > 0 ) {
+                        my $end = index( $autowords, '"', $idx );
+                        my $existing =
+                            substr( $autowords, $idx, $end - $idx );
+                        next if $word eq $existing;
                     }
-                }
 
-                if ( $aw_cnt > &Settings::autoWordLimit ) {
-                    last;
+                    $autowords .= qq(,"$word");
+                    if ( $aw_cnt++ > &Settings::autoWordLimit ) {
+                        last;
+                    }
                 }
             }
 
+            if ( $aw_cnt > &Settings::autoWordLimit ) {
+                last;
+            }
         }
-        catch {
-            print "<font color=red><b>SERVER ERROR</b></font>:" . $_;
-        }
-    }
 
-    sub cam {
-        my $am = sprintf( "%.2f", shift @_ );
-        # Add one comma each time through the do-nothing loop
-        1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;       
-        return $am;
     }
+    catch {
+        print "<font color=red><b>SERVER ERROR</b></font>:" . $_;
+    }
+}
+
+sub cam {
+    my $am = sprintf( "%.2f", shift @_ );
+    # Add one comma each time through the do-nothing loop
+    1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
+    return $am;
+}
 
 
-    sub isInViewMode {
-        return $sss->param('sss_vc') || $sss->param('sss_xc');
-    }
+sub isInViewMode {
+    return $sss->param('sss_vc') || $sss->param('sss_xc');
+}
 
 
 sub quill{
@@ -1215,7 +1245,7 @@ switch ( &Settings::windowRTFSize ) {
 }
 return qq(
 <table id="tbl_doc" class="tbl" width=").&Settings::pagePrcWidth.qq(%" style="border:1; margin-top: 5px;" hidden>
-	<tr class="r0" style="text-align:center"><td><b>* Document *</b>    
+	<tr class="r0" style="text-align:center"><td><b>* Document *</b>
     <a id="log_close" href="#" onclick="return hide('#tbl_doc');">$sp1</a>
     <a id="log_close" href="#" onclick="return toggleDoc(false);">$sp2</a>
     <a id="log_close" href="#" onclick="return resizeDoc();">$sp3</a>
@@ -1262,17 +1292,17 @@ return qq(
       <button class="ql-image"></button>
       <button class="ql-video"></button>
       <button class="ql-formula"></button>
-    </span>  
-    <span class="ql-formats" style="float:right; border:1px;">        
+    </span>
+    <span class="ql-formats" style="float:right; border:1px;">
         Background <input id="fldBG" type="field" class="jscolor {onFineChange:'editorBackground(false)',closable:true,closeText:'Close',hash:true}" size="10" value="000000"/>
         <button onClick="editorBackground(true);" style="float:right; border:1px;">&nbsp;&nbsp;Reset</button>
-    </span>    
+    </span>
   </div>
   <div id="editor-container" style="$height"></div>
   <div class="save_button">
   <input type="button" id="btn_save_doc" onclick="saveRTF(0, 'store'); return false;" value="Save"/>
   </div>
-  </td></tr></table>  
+  </td></tr></table>
 )}
 
 sub help{
@@ -1280,13 +1310,13 @@ return qq(
 <table id="tbl_hlp" class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%" hidden>
 	<tr class="r0"><td colspan="3"><b>* HELP *</b>
     <a id="a_close" href="#" onclick="return hide('#tbl_hlp');">$sp1</a>
-    <a id="a_toggle" href="#" onclick="return toggle('#tbl_hlp .collpsd');">$sp2</a>    
+    <a id="a_toggle" href="#" onclick="return toggle('#tbl_hlp .collpsd');">$sp2</a>
     </td></tr>
 <tr class="collpsd"><td>
 <div id="rz" class="rz">
-    <h2>L-Tags Specs</h2>					
+    <h2>L-Tags Specs</h2>
     <p class="rz">
-    Life Log Tags are simple markup allowing fancy formatting and functionality 
+    Life Log Tags are simple markup allowing fancy formatting and functionality
     for your logs HTML layout.
     </p>
     <p>
@@ -1294,7 +1324,7 @@ return qq(
     </p>
     <p>
     <b>&#60;&#60;I&#60;<i>{Text To Italic}</i><b>&#62;</b>
-    </p>					
+    </p>
     <p>
     <b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;</b>
     </p>
@@ -1313,7 +1343,7 @@ return qq(
 						<pre>
 		../cgi-bin/images/
 			my_cat_simon_frm.png
-			my_cat_simon.jpg	
+			my_cat_simon.jpg
 
           For log entry, place:
 
@@ -1323,8 +1353,8 @@ return qq(
 					</p>
 					<p>
 					<b>&#60;&#60;LNK&#60;<i>{url to image}</i><b>&#62;</b><br><br>
-					Explicitly tag an URL in the log entry. 
-					Required if using in log IMG or FRM tags. 
+					Explicitly tag an URL in the log entry.
+					Required if using in log IMG or FRM tags.
 					Otherwise link appears as plain text.
 					</p>
 					<hr>
