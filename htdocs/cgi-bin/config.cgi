@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use Try::Tiny;
 use Switch;
- 
+
 use CGI;
 use CGI::Session '-ip_match';
 use CGI::Carp qw ( fatalsToBrowser );
@@ -59,7 +59,7 @@ my $today  = DateTime->now;
 my $lang   = Date::Language->new(&Settings::language);
 my $tz     = $cgi->param('tz');
 my $csvp   = $cgi->param('csv');
-   
+
 &exportToCSV if ($csvp);
 
 if($cgi->param('data_cat')){
@@ -69,7 +69,6 @@ if($cgi->param('data_cat')){
 }
 
 $today->set_time_zone( &Settings::timezone );
-    
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 my $status = "Ready for change!";
@@ -116,7 +115,7 @@ my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.&Settings::pageP
           ';
 $dbs = dbExecute($stmtCat);
 while(my @row = $dbs->fetchrow_array()) {
-    if($row[0]>0){ 
+    if($row[0]>0){
        $tbl .= '<tr class="r0"><td>'.$row[0].'</td>
             <td><input name="nm'.$row[0].'" type="text" value="'.$row[1].'" size="12"></td>
             <td align="left"><input name="ds'.$row[0].'" type="text" value="'.$row[2].'" size="64"></td>
@@ -129,22 +128,22 @@ my  $frm = qq(
       <tr class="r1">
          <td><input type="text" name="caid" value="" size="3"/></td>
          <td><input type="text" name="canm" value="" size="12"/></td>
-         <td align="left"><input type="text" name="cade" value="" size="64"/></td>		 
+         <td align="left"><input type="text" name="cade" value="" size="64"/></td>
         </tr>
       <tr class="r1">
          <td colspan="2"><a href="#bottom">&#x21A1;</a>&nbsp;&nbsp;&nbsp;<input type="submit" value="Add New Category" onclick="return submitNewCategory()"/></td>
          <td colspan="1" align="right"><b>Categories Configuration In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
         </tr>
         <tr class="r1">
-          <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font> 
-           Removing or changing categories is permanent! Each category one must have an unique ID. 
-             Blank a category name to remove it. LOG records will change to the 
+          <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font>
+           Removing or changing categories is permanent! Each category one must have an unique ID.
+             Blank a category name to remove it. LOG records will change to the
              <b>Unspecified</b> (id 1) category! And the categories <b>Unspecified</b>, <b>Income</b> and <b>Expense</b>  can't be removed!
              </div>
-            </td>			
+            </td>
         </tr>
         </table><input type="hidden" name="cchg" value="1"/></form><br>);
-     
+
 
 $tbl = qq(<table id="cnf_sys" class="tbl" border="1" width=").&Settings::pagePrcWidth.qq(%">
               <tr class="r0"><td colspan="3"><b>* SYSTEM CONFIGURATION *</b></td></tr>
@@ -163,7 +162,7 @@ while(my @row = $dbs->fetchrow_array()) {
          my $n = $row[1];
          my $v = $row[2];
          my $d = $row[3];
-         
+
          next if($n =~ m/^\^/);
 
          if($n eq "TIME_ZONE"){
@@ -171,7 +170,7 @@ while(my @row = $dbs->fetchrow_array()) {
               if($tz){
                    $v = $tz;
               }
-              $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';		
+              $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
          }
          elsif($n eq "DATE_UNI"){
               my($l,$u)=("","");
@@ -212,13 +211,13 @@ while(my @row = $dbs->fetchrow_array()) {
                 }
                 else{
                       $t = $v;
-                }		
+                }
         $v = qq(<select id="frms" name="var$i">
                    <option value="0" $l>Large</option>
                    <option value="1" $m>Medium</option>
                    <option value="2" $s>Small</option>
                    <option value="3" $t>---</option>
-                </select>);	
+                </select>);
         }
         elsif($n eq "RTF_SIZE"){
                 my($l,$m,$s, $t)=("","");
@@ -233,13 +232,13 @@ while(my @row = $dbs->fetchrow_array()) {
                 }
                 else{
                       $t = $v;
-                }		
+                }
         $v = qq(<select id="rtfs" name="var$i">
                    <option value="0" $l>Large</option>
                    <option value="1" $m>Medium</option>
                    <option value="2" $s>Small</option>
                    <option value="3" $t>---</option>
-                </select>);	
+                </select>);
 
         }
         elsif($n eq "THEME"){
@@ -262,28 +261,41 @@ while(my @row = $dbs->fetchrow_array()) {
                    <option$s1>Sun</option>
                    <option$s2>Moon</option>
                    <option$s3>Earth</option>
-                </select>);	
+                </select>);
         }
-        elsif($n ne "RELEASE_VER"){		 
+        elsif($n eq "DEBUG"){
+            my($l,$u)=("","");
+            if($v == 0){
+               $l = "SELECTED"
+            }
+            else{
+               $u = "SELECTED"
+            }
+            $v = qq(<select id="dbg" name="var$i">
+                   <option value="0" $l>Off</option>
+                   <option value="1" $u>On</option>
+                </select>);
+        }
+        elsif($n ne "RELEASE_VER"){
              $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
         }
 
 
 
-       $tbl = qq($tbl 
+       $tbl = qq($tbl
        <tr class="r0" align="left">
             <td>$n</td>
             <td>$v</td>
-                <td>$d</td>   
+                <td>$d</td>
         </tr>);
 }
 
 
 my  $frmVars = qq(
      <form id="frm_vars" action="config.cgi">$tbl
-      <tr class="r1">		
+      <tr class="r1">
          <td colspan="3" align=right><b>System Settings In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
-        </tr>	
+        </tr>
         <input type="hidden" name="sys" value="1"/>
         </table></form><br>);
 
@@ -303,9 +315,9 @@ my  $frmDB = qq(
         $cats</td><td>Selects and displays by category logs to delete.</td></tr>
         <tr class="r0" align="left"><td><input type="checkbox" name="del_from"/>Delete from Date <br>
         <input id="fldFrom" name="date_from"/></td><td>Selects and displays from a date to into deep past logs to delete..</td></tr>
-        <tr class="r1">		
+        <tr class="r1">
          <td colspan="2" align="right"><b>Data maintenance for -> $dbname</b>&nbsp;<input type="submit" value="Fix"/></td>
-        </tr>			
+        </tr>
         <tr class="r1" align="left">
              <td colspan="2">Perform this change/check in the event of experiencing data problems. Or periodically for data check and maintenance. <br>
                                  <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
@@ -322,9 +334,9 @@ my  $frmPASS = qq(
         <tr class="r1" align="left"><td style="width:100px">Existing:</td><td><input type="password" name="existing" value="" size="12"/></td></tr>
         <tr class="r1" align="left"><td>New:</td><td><input type="password" name="new" value="" size="12"/></td></tr>
         <tr class="r1" align="left"><td>Confirmation:</td><td><input type="password" name="confirm" value="" size="12"/></td></tr>
-        <tr class="r1">		
+        <tr class="r1">
          <td colspan="2" align="right"><b>Password change for -> $userid</b>&nbsp;<input type="submit" value="Change"/></td>
-        </tr>			
+        </tr>
         <input type="hidden" name="pass_change" value="1"/>
         </table></form><br>
         );
@@ -348,8 +360,8 @@ print qq(
             <table border="0" width="100%">
                 <tr><td><H3>CSV File Format</H3></td></tr>
                 <form action="config.cgi" method="post" enctype="multipart/form-data">
-                <tr style="border-left: 1px solid black;"><td> 
-                        <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr> 
+                <tr style="border-left: 1px solid black;"><td>
+                        <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr>
                 <tr style="border-left: 1px solid black;"><td style="text-align:right;">
                         <input type="submit" name="Submit" value="Submit"/></td>
                 </tr>
@@ -376,7 +388,7 @@ print qq(
     <div id="rz" style="text-align:left; position:relative;width:640px; padding:10px;">
                     <h2>L-Tags Specs</h2>
                     <p>
-                    Life Log Tags are simple markup allowing fancy formatting and functionality 
+                    Life Log Tags are simple markup allowing fancy formatting and functionality
                     for your logs HTML layout.
                     </p>
                     <p>
@@ -384,7 +396,7 @@ print qq(
                     </p>
                     <p>
                     <b>&#60;&#60;I&#60;<i>{Text To Italic}</i><b>&#62;</b>
-                    </p>					
+                    </p>
                     <p>
                     <b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;</b>
                     </p>
@@ -403,7 +415,7 @@ print qq(
                         <pre>
         ../cgi-bin/images/
             my_cat_simon_frm.png
-            my_cat_simon.jpg	
+            my_cat_simon.jpg
 
           For log entry, place:
 
@@ -413,8 +425,8 @@ print qq(
                     </p>
                     <p>
                     <b>&#60;&#60;LNK&#60;<i>{url to image}</i><b>&#62;</b><br><br>
-                    Explicitly tag an URL in the log entry. 
-                    Required if using in log IMG or FRM tags. 
+                    Explicitly tag an URL in the log entry.
+                    Required if using in log IMG or FRM tags.
                     Otherwise link appears as plain text.
                     </p>
                     <hr>
@@ -441,7 +453,7 @@ exit;
 sub getHeader {
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>&Settings::bgcol,
-           -onload  => "loadedBody(false);",	           
+           -onload  => "loadedBody(false);",
             -style   => [
           { -type => 'text/css', -src => "wsrc/".&Settings::css },
           { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
@@ -489,7 +501,7 @@ try{
 
 $dbs = $db->prepare( $stmtCat );
 $rv = $dbs->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
-    
+
 if($passch){
     my ($ex,$ne,$cf) = ($cgi->param("existing"),$cgi->param("new"),$cgi->param("confirm"));
     if($ne ne $cf){
@@ -505,7 +517,7 @@ if($passch){
             $status = "Wrong existing password was entered, are you user by alias: $userid ?";
             print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
         }
-    }	
+    }
 }
 elsif ($change == 1){
 
@@ -514,36 +526,36 @@ elsif ($change == 1){
           my $cid = $row[0];
           my $cnm = $row[1];
           my $cds = $row[2];
-          
+
           my $pnm  = $cgi->param('nm'.$cid);
           my $pds  = $cgi->param('ds'.$cid);
 
       if($pnm ne $cnm || $pds ne $cds){
-        
+
          if( ($cid!=1 && $cid!=32 && $cid!=35) && $pnm eq  ""){
 
            $s = "SELECT rowid, ID_CAT FROM LOG WHERE ID_CAT =".$cid.";";
-           $d = $db->prepare($s); 
+           $d = $db->prepare($s);
            $d->execute();
 
             while(my @r = $d->fetchrow_array()) {
                      $s = "  LOG SET ID_CAT=1 WHERE rowid=".$r[0].";";
-                     $d = $db->prepare($s); 
+                     $d = $db->prepare($s);
                      $d->execute();
              }
 
             #Delete
-            $s = "DELETE FROM CAT WHERE ID=".$cid.";"; 
-            $d = $db->prepare($s); 
-            $d->execute();   
+            $s = "DELETE FROM CAT WHERE ID=".$cid.";";
+            $d = $db->prepare($s);
+            $d->execute();
 
         }else{
             #Update
-            $s = "UPDATE CAT SET NAME='".$pnm."', DESCRIPTION='".$pds."' WHERE ID=".$cid.";"; 
-               $d = $db->prepare($s); 
+            $s = "UPDATE CAT SET NAME='".$pnm."', DESCRIPTION='".$pds."' WHERE ID=".$cid.";";
+               $d = $db->prepare($s);
                $d->execute();
-        }		 
-      } 
+        }
+      }
     }
     $status = "Updated Categories!";
 }
@@ -562,7 +574,7 @@ if($change > 1){
         my $cid = $row[0];
         my $cnm = $row[1];
         my $cds = $row[2];
-        
+
 
         if($cid==$caid || $cnm eq $canm){
                         $valid = 0;
@@ -580,17 +592,17 @@ if($change > 1){
         die "<div><p><font color=red>Client Error</font>: $status</p></div>";
     }
     $status = "Inserted new category[$canm]";
-        
-    
+
+
 }elsif ($chgsys == 1){
-    &changeSystemSettings;		
+    &changeSystemSettings;
     $status = "Changed System Settings!";
 }
-elsif($chdbfix){	
+elsif($chdbfix){
 
     my $isByCat = ($del_by_cats eq 'on' && $category > 0);
     my $isByDate = ($del_by_date eq 'on');
-    
+
 
     if( $isByCat || $isByDate){
 
@@ -601,7 +613,7 @@ elsif($chdbfix){
                         <th>Date</th>
                         <th>Time</th>
                         <th>Log</th><th>#</th>
-                        <th>Category</th>                        
+                        <th>Category</th>
                     </tr>);
         my $sel ="";
         if ($isByCat){$sel = "ID_CAT ='$category'"}
@@ -610,15 +622,15 @@ elsif($chdbfix){
             $sel .= "DATE<='$del_date_from'";
         }
 
-        
+
        $dbs = $db->prepare( "SELECT rowid, ID_CAT, DATE, LOG FROM LOG WHERE $sel ORDER BY DATE;" );
-       $rv = $dbs->execute() or die "<p>Error->"& $DBI::errstri &"</p>";  
+       $rv = $dbs->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
        while(my @row = $dbs->fetchrow_array()) {
         my $id = $row[0];# rowid
         my $ct  = $hshCats{$row[1]}; #ID_CAT
         my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
         my $log = $row[3];
-        
+
         my ( $dty, $dtf ) = $dt->ymd;
         my $dth = $dt->hms;
         if ( &Settings::universalDate == 1 ) {
@@ -631,13 +643,13 @@ elsif($chdbfix){
         $output .= qq(<tr class="r0">
                 <td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
                 <td id="t$id" width="10%" class="tbl">$dth</td>
-                <td id="v$id" class="log" width="40%">$log</td>                
+                <td id="v$id" class="log" width="40%">$log</td>
                 <td id="c$id" width="10%" class="tbl">$ct</td>
                 <td width="20%">
                     <input name="chk" type="checkbox" value="$id"/>
                 </td></tr>);
        }#while
-       $output .= qq(<td colspan="5" align="right">        
+       $output .= qq(<td colspan="5" align="right">
         <button onclick="return selectAllLogs()">Select All</button>
         <input type="reset" value="Unselect All"/>
         <input id="del_sel" type="submit" value="Delete Selected"/>
@@ -653,7 +665,7 @@ elsif($chdbfix){
         $db->disconnect();
         exit;
 
-    }	
+    }
     else{
         &processDBFix;
     }
@@ -662,7 +674,7 @@ elsif($chdbfix){
 
 
 }
-catch{	  
+catch{
     $ERROR = qq(<p><font color=red><b>SERVER ERROR</b></font> -> $_</p>);
 }
 }
@@ -686,7 +698,7 @@ sub changePassword {
         if($dbs->fetchrow_array()){
             return 1;
         }
-        return 0;	
+        return 0;
 }
 sub encryptPassw {
     return uc crypt $_[0], hex $cipher_key;
@@ -700,24 +712,24 @@ sub processDBFix {
      my $rs_cats = $cgi->param("reset_cats");
      my $wipe_ss = $cgi->param("wipe_syst");
 
-     
+
      my $sql;
      my $date;
      my $cntr_upd =0;
 try{
 
-    
+
         my %dates  = ();
         my @dlts = ();
         #Hash is unreliable for returning sequential order of keys so array must do.
         my @updts = ();
-        my $cntr_del =0;		
+        my $cntr_del =0;
         my $existing;
         my @row;
 
         $db->do('BEGIN TRANSACTION;');
         #Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
-        $dbs = dbExecute('SELECT rowid, DATE FROM LOG ORDER BY DATE;');			
+        $dbs = dbExecute('SELECT rowid, DATE FROM LOG ORDER BY DATE;');
         while(@row = $dbs->fetchrow_array()) {
             my $existing = $dates{$row[0]};
             if($existing && $existing eq $row[1]){
@@ -739,7 +751,7 @@ try{
         &renumerate;
         &Settings::removeOldSessions;
         &resetCategories if $rs_cats;
-        &resetSystemConfiguration($db) if $rs_syst;			
+        &resetSystemConfiguration($db) if $rs_syst;
         &wipeSystemConfiguration if $wipe_ss;
 
 
@@ -748,15 +760,15 @@ try{
         $db->disconnect();
         $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
         $dbs = $db->do("VACUUM;");
-       
+
 
         if($LOGOUT){
                 &logout;
-        }		
-            
-            
+        }
+
+
 }
-catch{	
+catch{
     $db->do('ROLLBACK;');
     die qq(@&processDBFix error -> $_ with statement->$sql for $date update counter:$cntr_upd);
 }
@@ -785,7 +797,7 @@ sub resetSystemConfiguration {
         my %vars = {};
 
 try{
-          
+
         my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
         my $update = $db->prepare("UPDATE CONFIG SET VALUE=? WHERE ID=?;");
         $dbs->finish();
@@ -794,7 +806,7 @@ try{
                     my @tick = split("`",$line);
                     if(scalar(@tick)==2){
                                     my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
-                                    if(scalar(%hsh)==1){										
+                                    if(scalar(%hsh)==1){
                                             for my $key (keys %hsh) {
 
                                                     my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
@@ -832,16 +844,16 @@ try{
                     if(scalar(@tick)==1){
                              $err .= "Corrupt Entry, no description supplied -> $line\n";
                         }
-                        else{	
+                        else{
                            $err .= "Corrupt Entry -> $line\n";
                         }
                     }
-        }    
+        }
         #die "Configuration script './main.cnf' [$fh] contains errors." if $err;
         close $fh;
         &getConfiguration;
- } catch{	 	
-      close $fh;	
+ } catch{
+      close $fh;
       print $cgi->header;
         print "<font color=red><b>SERVER ERROR!</b></font><br> ".$_."<br><pre>$err</pre>";
     print $cgi->end_html;
@@ -860,11 +872,11 @@ sub changeSystemSettings {
     try{
             my $updated;
             $dbs = dbExecute("SELECT ID, NAME FROM CONFIG;");
-            while (my @r=$dbs->fetchrow_array()){ 
+            while (my @r=$dbs->fetchrow_array()){
                 my $var = $cgi->param('var'.$r[0]);
-                if(defined $var){			
-                    updCnf($r[0],$var);	
-                    $updated = 1;	
+                if(defined $var){
+                    updCnf($r[0],$var);
+                    $updated = 1;
                 }
             }
             Settings::getConfiguration($db) if($updated);
@@ -875,10 +887,10 @@ sub changeSystemSettings {
 }
 
 sub updCnf {
-    my ($id, $val, $s) = @_;    
-    $s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";"; 
+    my ($id, $val, $s) = @_;
+    $s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";";
     try{
-          dbExecute($s); 
+          dbExecute($s);
     }
     catch{
         print "<font color=red><b>SERVER ERROR</b>->updCnf[$s]</font>:".$_;
@@ -924,10 +936,10 @@ sub exportToCSV {
 
 sub importCatCSV {
     my $hndl = $cgi->upload("data_cat");
-    my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } ); 	
+    my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
     while (my $line = <$hndl>) {
         chomp $line;
-        if ($csv->parse($line)) { 
+        if ($csv->parse($line)) {
               my @flds   = $csv->fields();
             updateCATDB(@flds);
         }else{
@@ -1014,7 +1026,7 @@ sub updateLOGDB {
     }
 }
 
-sub cats {        
+sub cats {
         $cats = qq(<select id="cats" name="cats"><option value="0">---</option>\n);
         $dbs = dbExecute("SELECT ID, NAME FROM CAT ORDER BY ID;");
         while ( my @row = $dbs->fetchrow_array() ) {
