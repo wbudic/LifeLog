@@ -22,6 +22,7 @@ our $AUTO_WRD_LMT = 1000;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
 our $THEME        = 'Standard';
+our $KEEP_EXCS    = 0;
 
 ### Page specific settings Here
 our $TH_CSS        = 'main.css';
@@ -29,6 +30,12 @@ our $BGCOL         = '#c8fff8';
 #Set to 1 to get debug help. Switch off with 0.
 our $DEBUG         = 0;
 #END OF SETTINGS
+
+
+### Private Settings sofar (id -> name : def.value):
+#200 -> '^REL_RENUM' : this.$RELEASE_VER (Used in login_ctr.cgi)
+#201 -> '^EXCLUDES'  : 0 (Used in main.cgi)
+
 
 
 
@@ -48,11 +55,10 @@ sub frameSize      {return $FRAME_SIZE;}
 sub universalDate  {return $DATE_UNI;}
 sub autoWordLimit  {return $AUTO_WRD_LMT;}
 sub windowRTFSize  {return $RTF_SIZE;}
-
-
-sub bgcol           {return $BGCOL;}
-sub css             {return $TH_CSS;}
-sub debug           {my $ret =shift; if($ret){$DEBUG = $ret;}; return $DEBUG;}
+sub keepExcludes   {return $KEEP_EXCS;}
+sub bgcol          {return $BGCOL;}
+sub css            {return $TH_CSS;}
+sub debug          {my $ret=shift; if($ret){$DEBUG = $ret;}; return $DEBUG;}
 
 
 
@@ -78,6 +84,7 @@ sub getConfiguration {
                 case "RTF_SIZE"     { $RTF_SIZE     = $r[2] }
                 case "THEME"        { $THEME        = $r[2] }
                 case "DEBUG"        { $DEBUG        = $r[2] }
+                case "KEEP_EXCS"   { $KEEP_EXCS    = $r[2] }
             }
 
         }
@@ -163,14 +170,14 @@ sub toLog {
     # try {
         #Apostrophe in the log value is doubled to avoid SQL errors.
         $log =~ s/'/''/g;
-        $db->do("INSERT INTO LOG (ID_CAT, DATE, LOG) VALUES(6,'$stamp', \"$log\");");      
+        $db->do("INSERT INTO LOG (ID_CAT, DATE, LOG) VALUES(6,'$stamp', \"$log\");");
     # }
     # catch {
     #     print "<font color=red><b>SERVER ERROR toLog(6,$stamp,$log)</b></font>:" . $_;
     # }
 }
 
-sub removeOldSessions {    
+sub removeOldSessions {
     opendir(DIR, $LOG_PATH);
     my @files = grep(/cgisess_*/,readdir(DIR));
     closedir(DIR);
@@ -180,6 +187,34 @@ sub removeOldSessions {
         if($mod<$now){
             unlink "$LOG_PATH/$file";
         }
+    }
+}
+
+
+#TODO move this subroutine to settings.
+sub obtainProperty {
+    my($db, $name) = @_;
+    die "Invalid use of subroutine obtainProperty($db, $name)" if(!$db || !$name);
+    my $dbs = Settings::dbExecute($db, "SELECT ID, VALUE FROM CONFIG WHERE NAME IS '$name';");
+    my @row = $dbs->fetchrow_array();
+    if(scalar @row > 0){
+       return $row[1];
+     }
+     else{
+       return 0;
+     }
+}
+#TODO move this subroutine to settings.
+sub configProperty {
+    my($db, $id, $name, $value) = @_;
+    die "Invalid use of subroutine configProperty($db,$name,$value)" if(!$db || !$name|| !$value);
+
+    my $dbs = Settings::dbExecute($db, "SELECT ID, NAME FROM CONFIG WHERE NAME IS '$name';");
+    if($dbs->fetchrow_array()){
+       Settings::dbExecute($db, "UPDATE CONFIG SET VALUE = '$value' WHERE NAME IS '$name';");
+    }
+    else{
+       Settings::dbExecute($db,"INSERT INTO CONFIG (ID, NAME, VALUE) VALUES ($id, '$name', '$value');");
     }
 }
 
