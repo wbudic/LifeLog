@@ -31,7 +31,7 @@ my $cipher_key = '95d7a85ba891da';
 $CGI::POST_MAX = 1024 * 15000;
 my ($LOGOUT,$ERROR) = (0,"");
 my $cgi = CGI->new;
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
+my $session = new CGI::Session("driver:File", $cgi, {Directory=>&Settings::logPath});
 my $sid=$session->id();
 my $dbname  =$session->param('database');
 my $userid  =$session->param('alias');
@@ -106,9 +106,6 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 </div>);
 }
 
-
-
-
 my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.&Settings::pagePrcWidth.'%">
               <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
             <tr class="r1"><th>ID</th><th>Category</th><th  align="left">Description</th></tr>
@@ -158,12 +155,11 @@ $dbs = $db->prepare( $stm );
 $rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
 while(my @row = $dbs->fetchrow_array()) {
+
+         my $n = $row[1]; next if($n =~ m/^\^/); #skip private tagged settings
          my $i = $row[0];
-         my $n = $row[1];
          my $v = $row[2];
          my $d = $row[3];
-
-         next if($n =~ m/^\^/);
 
          if($n eq "TIME_ZONE"){
               $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
@@ -263,6 +259,19 @@ while(my @row = $dbs->fetchrow_array()) {
                    <option$s3>Earth</option>
                 </select>);
         }
+        elsif($n eq "KEEP_EXCS"){
+            my($l,$u)=("","");
+            if($v == 0){
+               $l = "SELECTED"
+            }
+            else{
+               $u = "SELECTED"
+            }
+            $v = qq(<select id="excs" name="var$i">
+                   <option value="0" $l>Off</option>
+                   <option value="1" $u>On</option>
+                </select>);
+        }
         elsif($n eq "DEBUG"){
             my($l,$u)=("","");
             if($v == 0){
@@ -286,7 +295,7 @@ while(my @row = $dbs->fetchrow_array()) {
        <tr class="r0" align="left">
             <td>$n</td>
             <td>$v</td>
-                <td>$d</td>
+            <td>$d</td>
         </tr>);
 }
 
@@ -851,7 +860,7 @@ try{
         }
         #die "Configuration script './main.cnf' [$fh] contains errors." if $err;
         close $fh;
-        &getConfiguration;
+       Settings::getConfiguration($db);
  } catch{
       close $fh;
       print $cgi->header;
