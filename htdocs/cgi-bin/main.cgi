@@ -47,8 +47,8 @@ my $db       = DBI->connect( $dsn, $userid, $password, { PrintError => 0, RaiseE
 
 my ( $imgw, $imgh );
 #Fetch settings
-    Settings::getConfiguration($db);
-    Settings::getTheme();
+ Settings::getConfiguration($db);
+ Settings::getTheme();
 ### Authenticate sss to alias password
     &authenticate;
 #
@@ -72,18 +72,29 @@ my $stmD        = "";
 my $sm_reset_all;
 my $rec_limit   = &Settings::recordLimit;
 ### Page specific settings Here
-my $TH_CSS        = &Settings::css;
-my $BGCOL         = &Settings::bgcol;
+my $TH_CSS      = &Settings::css;
+my $BGCOL       = &Settings::bgcol;
 #Set to 1 to get debug help. Switch off with 0.
-my $DEBUG        = &Settings::debug;
+my $DEBUG       = &Settings::debug;
 #END OF SETTINGS
 
 
 
 my $lang  = Date::Language->new(Settings::language());
 my $today = DateTime->now;
-$today->set_time_zone(Settings::timezone());
+   $today -> set_time_zone(Settings::timezone());
 
+#Excludes can be now set as permanent to page view excluded, visible if view searched.
+#http://localhost:8080/cgi-bin/main.cgi?vc=0&category=0&xc=0&idx_cat_x=0&v_from=&v_to=&keywords=&srch_reset=0
+if(!$prm_vc && &Settings::keepExcludes){
+    if($prm_xc_lst){
+        &Settings::configProperty($db, 201, '^EXCLUDES', $prm_xc_lst);
+    }
+    else{
+       $prm_xc_lst = &Settings::obtainProperty($db, '^EXCLUDES');
+       $prm_xc = $prm_xc_lst if (!$prm_xc && !$cgi->param('srch_reset'));
+    }
+}
 
 if ( !$rs_dat_to && $rs_dat_from ) {
     my $dur = $today;
@@ -109,8 +120,8 @@ $sss->param('sss_main', $today);
 
 #Reset Clicked
 if($cgi->param('srch_reset') == 1){
-    $sss->clear('sss_vc');
-    $sss->clear('sss_xc');
+   $sss->clear('sss_vc');
+   $sss->clear('sss_xc');
 }
 
 if($prm_vc){
@@ -341,7 +352,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     my $log_start = index $stmt, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
 
-    print $cgi->pre("###[Session PARAMS->vc=$prm_vc|xc=$prm_xc|xc_lst=@xc_lst|] -> ".$stmt) if $DEBUG;
+    print $cgi->pre("###[Session PARAMS->vc=$prm_vc|xc=$prm_xc|xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$stmt) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
