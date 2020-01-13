@@ -41,7 +41,7 @@ my $cipher_key = '95d7a85ba891da';
 if($cgi->param('logout')){&logout}
 
 &checkAutologinSet;
-if(&processSubmit==0){    
+if(&processSubmit==0){
 
     print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
     print $cgi->start_html(
@@ -51,11 +51,10 @@ if(&processSubmit==0){
                 { -type => 'text/javascript', -src => 'wsrc/main.js' },    ],
     -style  => [
                 { -type => 'text/css', -src => 'wsrc/'.&Settings::css }
-                
             ]
 );
 
-my @ht = split(m/\s/,`hostname -I`);    
+my @ht = split(m/\s/,`hostname -I`);
 my $hst = `hostname` . "($ht[0])";
 
 $frm = qq(
@@ -110,10 +109,10 @@ try{
                 print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
                 return 1; #activate redirect to main, main will check credentials.
             }
-    }  
+    }
     else{
         $alias = $passw = "";
-    }  
+    }
     &Settings::removeOldSessions;  #and prompt for login returning 0
 return 0;
 }
@@ -177,7 +176,7 @@ try{
        $st->execute();
 
     my $changed = 0;
-   
+
     if(!$st->fetchrow_array()) {
         my $stmt = qq(
         CREATE TABLE LOG (
@@ -192,7 +191,7 @@ try{
         CREATE INDEX idx_log_dates ON LOG (DATE);
         );
 
-        if($sssCreatedDB){            
+        if($sssCreatedDB){
             print $cgi->header;
             print $cgi->start_html;
             print "<center><font color=red><b>A new alias login detect! <br>
@@ -205,16 +204,16 @@ try{
 
         $st = $db->prepare('INSERT INTO LOG(ID_CAT,DATE,LOG) VALUES (?,?,?)');
         $st->execute( 3, $today, "DB Created!");
-        $session->param("cdb", "1");        
+        $session->param("cdb", "1");
     }
 
     # From v.1.6 view use server side views, for pages and correct record by ID and PID lookups.
     # This should make queries faster, less convulsed, and log renumeration less needed, for accurate pagination.
     $st = $db->prepare(selSQLView('VW_LOG'));
     $st->execute();
-    if(!$st->fetchrow_array()) {        
-        $rv = $db->do('CREATE VIEW VW_LOG AS 
-                              SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID 
+    if(!$st->fetchrow_array()) {
+        $rv = $db->do('CREATE VIEW VW_LOG AS
+                              SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
                               FROM LOG as a ORDER BY DATE DESC;');
         if($rv < 0){print "<p>Error->"& $DBI::errstri &"</p>";}
     }
@@ -311,52 +310,47 @@ try{
     }
     else{
                 #Has configuration been wiped out?
-                $st = $db->prepare('SELECT count(ID) FROM CONFIG;');
-                $st->execute();                                
-                if(!$st->fetchrow_array()){
-                    $changed = 1;
-                }
+                $st = $db->prepare('SELECT count(ID) FROM CONFIG;'); $st->execute();
+                $changed = 1 if(!$st->fetchrow_array());
     }
     #We got an db now, lets get settings from there.
     Settings::getConfiguration($db);
-        if(!$changed){
-            #Run db fix renum if this is an relese update? Relese in software might not be what is in db, which counts.
-            #$st = Settings::dbExecute($db, 'SELECT NAME, VALUE FROM CONFIG WHERE NAME == "RELEASE_VER";');
-            $st	= $db->prepare('SELECT ID, NAME, VALUE FROM CONFIG WHERE NAME IS "RELEASE_VER";');
-            $st->execute() or die "<p>ERROR with->$DBI::errstri</p>";         
-            my @pair = $st->fetchrow_array();
-            my $cmp = $pair[2] eq $RELEASE;            
-            $debug .= "Upgrade cmp(RELESE_VER:'$pair[2]' eq Settings::release:'$RELEASE') ==  $cmp";
-            #Settings::debug(1);            
-            if(!$cmp){                            
-                Settings::renumerate($db);
-                #App private inner db properties, start from 200.
-                #^REL_RENUM is marker that an renumeration is issued during upgrade.
-                my $pv = obtainProperty($db, '^REL_RENUM');
-                if($pv){
-                   $pv += 1;
-                }
-                else{
-                   $pv = "1";
-                }
-                configProperty($db, 200, '^REL_RENUM',$pv);
-                configProperty($db, $pair[0], 'RELEASE_VER', $RELEASE);
-                Settings::toLog($db,&dbTimeStamp, "Upgraded LifeLog from ".$pair[2]." to $RELEASE version, this is the $pv upgrade.");
-                &populate($db);
+    if(!$changed){
+        #Run db fix renum if this is an relese update? Relese in software might not be what is in db, which counts.
+        #$st = Settings::dbExecute($db, 'SELECT NAME, VALUE FROM CONFIG WHERE NAME == "RELEASE_VER";');
+        $st	= $db->prepare('SELECT ID, NAME, VALUE FROM CONFIG WHERE NAME IS "RELEASE_VER";');
+        $st->execute() or die "<p>ERROR with->$DBI::errstri</p>";
+        my @pair = $st->fetchrow_array();
+        my $cmp = $pair[2] eq $RELEASE;
+        $debug .= "Upgrade cmp(RELESE_VER:'$pair[2]' eq Settings::release:'$RELEASE') ==  $cmp";
+        #Settings::debug(1);
+        if(!$cmp){
+            Settings::renumerate($db);
+            #App private inner db properties, start from 200.
+            #^REL_RENUM is marker that an renumeration is issued during upgrade.
+            my $pv = &Settings::obtainProperty($db, '^REL_RENUM');
+            if($pv){
+                $pv += 1;
             }
-        }
-        else{
+            else{
+                $pv = "1";
+            }
+            &Settings::configProperty($db, 200, '^REL_RENUM',$pv);
+            &Settings::configProperty($db, $pair[0], 'RELEASE_VER', $RELEASE);
+            &Settings::toLog($db,&dbTimeStamp, "Upgraded LifeLog from ".$pair[2]." to $RELEASE version, this is the $pv upgrade.");
             &populate($db);
         }
-    #    
-     
+    }
+    else{
+        &populate($db);
+    }
+    #
      $db->disconnect();
-    #  
+    #
     #Still going through checking tables and data, all above as we might have an version update in code.
     #Then we check if we are login in intereactively back. Interective, logout should bring us to the login screen.
     #Bypassing auto login. So to start maybe working on another database, and a new session.
     return $cgi->param('autologoff') == 1;
-    
 }
  catch{
     print $cgi->header;
@@ -372,51 +366,6 @@ sub dbTimeStamp {
     $dat -> set_time_zone(Settings::timezone());
     return DateTime::Format::SQLite->format_datetime($dat);
 }
-#TODO move this subroutine to settings.
-sub obtainProperty {
-    my($db, $name) = @_;    
-    die "Invalid use of subroutine obtainProperty($db)" if(!$db || !$name);
-    try{      
-        my $dbs = Settings::dbExecute($db, "SELECT ID, VALUE FROM CONFIG WHERE NAME IS '$name';");
-        my @row = $dbs->fetchrow_array();
-        if(scalar @row > 0){        
-        return $row[1];
-        }
-        else{
-        return 0;        
-        }
-    }
-    catch{
-        print $cgi->header;
-        print "<font color=red><b>SERVER ERROR[obtainProperty(db, $name)]</b></font>:".$_;
-        print $cgi->end_html;
-        exit;
-    }
-}
-#TODO move this subroutine to settings.
-sub configProperty {
-    my($db, $id, $name, $value) = @_;    
-    die "Invalid use of subroutine obtaiconfigPropertynProperty($db)" if(!$db || !$name|| !$value);
-try{
-    
-    my $dbs = Settings::dbExecute($db, "SELECT ID, NAME FROM CONFIG WHERE NAME IS '$name';");
-    if($dbs->fetchrow_array()){        
-       Settings::dbExecute($db, "UPDATE CONFIG SET VALUE = '$value' WHERE NAME IS '$name';");
-    }
-    else{
-       Settings::dbExecute($db,"INSERT INTO CONFIG (ID, NAME, VALUE) VALUES ($id, '$name', '$value');");
-        
-    }
-}
- catch{
-    print $cgi->header;
-    print "<font color=red><b>SERVER ERROR[configProperty(db, $id, $name, $value)]</b></font>:".$_;
-    print $cgi->end_html;
-    exit;
- }
-
-}
-
 
 sub populate {
 
