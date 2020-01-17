@@ -376,7 +376,7 @@ qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();"
     my $exp       = 0;
     my $ass       = 0;
     $st = $db->prepare($stmt);
-    $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
+    $rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
     if ( $rv < 0 ) {
         print "<p>Error->" & $DBI::errstri & "</p>";
     }
@@ -981,7 +981,14 @@ try {
                         $sand = "and ID_CAT == $prm_vc";
                     }
                     elsif($prm_xc){
-                        $sand = "and ID_CAT != $prm_xc";
+
+                        if(@xc_lst){
+                                foreach (@xc_lst){
+                                        $sand .= "and ID_CAT!=$_ ";
+                                }
+                        }
+                        else{        $sand = "and ID_CAT != $prm_xc"; }
+
                     }
 
                     $stmt = qq(SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1 $sand;);
