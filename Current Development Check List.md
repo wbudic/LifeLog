@@ -8,6 +8,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## LifeLog Development
 
 ### v.1.7 Encountered
+* main.cnf newer versions have precedence to id and entry name to previously set or stored.
 * Config stored list of excludes. Provide multiple excludes view.
 * &#10004; Settings module requires subroutines for debug logging and db properties access.
 * &#10004; LifeLog codebase release verion upgrade tracking and procedures with older databases.
