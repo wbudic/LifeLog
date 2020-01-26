@@ -800,15 +800,15 @@ sub resetSystemConfiguration {
 
         open(my $fh, '<', &Settings::logPath.'main.cnf' ) or die "Can't open main.cnf: $!";
         my $db = shift;
-        my ($did,$name, $value, $desc);
+        my ($id,$name, $value, $desc);
         my $inData = 0;
         my $err = "";
         my %vars = {};
 
 try{
-
         my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
-        my $update = $db->prepare("UPDATE CONFIG SET VALUE=? WHERE ID=?;");
+        my $update = $db->prepare('UPDATE CONFIG SET VALUE=? WHERE ID=?;');
+        my $updExs = $db->prepare('UPDATE CONFIG SET NAME=?, VALUE=? WHERE ID=?;');
         $dbs->finish();
     while (my $line = <$fh>) {
                     chomp $line;
@@ -820,9 +820,9 @@ try{
 
                                                     my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
                                                     if(scalar(%nash)==1){
-                                                            for my $id (keys %nash) {
-                                                                my $name  = $nash{$id};
-                                                                my $value = $hsh{$key};
+                                                            for $id (keys %nash) {
+                                                                $name  = $nash{$id};
+                                                                $value = $hsh{$key};
                                                                 if($vars{$id}){
                             $err .= "UID{$id} taken by $vars{$id}-> $line\n";
                                                                 }
@@ -832,7 +832,16 @@ try{
                                                                     $inData = 1;
                                                                     my @row = $dbs->fetchrow_array();
                                                                     if(scalar @row == 0){
+                                                                       #The id in config file has precedence to the one in the db,
+                                                                       #from a ppossible previous version.
+                                                                       $dbs = dbExecute("SELECT ID FROM CONFIG WHERE ID = $id;");
+                                                                       @row = $dbs->fetchrow_array();
+                                                                       if(scalar @row == 0){
                                                                             $insert->execute($id,$name,$value,$tick[1]);
+                                                                       }else{
+                                                                            #rename, revalue exsisting id
+                                                                            $updExs->execute($name,$value,$id);
+                                                                        }
                                                                     }
                                                                     else{
                                                                             $update->execute($value,$id);
@@ -864,7 +873,7 @@ try{
  } catch{
       close $fh;
       print $cgi->header;
-        print "<font color=red><b>SERVER ERROR!</b></font><br> ".$_."<br><pre>$err</pre>";
+        print "<font color=red><b>SERVER ERROR! [id:$id,name:$name,value:$value]/b></font><br> ".$_."<br><pre>$err</pre>";
     print $cgi->end_html;
         exit;
  }
