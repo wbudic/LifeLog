@@ -20,7 +20,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUT
 26|$RTF_SIZE    = 2`RTF Document height, 0 - Large, 1 - Medium, 2- Small.
 28|$THEME       = Standard`Theme to applay, Standard, Sun, Moon, Earth.
 30|$DEBUG       = 0`Development page additional debug output, off (default) or on.
-32|$KEEP_EXECS  = 0`Cache excludes between sessions, off (default) or on.
+32|$KEEP_EXCS   = 0`Cache excludes between sessions, off (default) or on.
 <<CAT<3>
 01|Unspecified `For quick uncategorised entries.
 03|File System `Operating file system/Application short log.

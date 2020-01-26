@@ -84,7 +84,7 @@ sub getConfiguration {
                 case "RTF_SIZE"     { $RTF_SIZE     = $r[2] }
                 case "THEME"        { $THEME        = $r[2] }
                 case "DEBUG"        { $DEBUG        = $r[2] }
-                case "KEEP_EXCS"   { $KEEP_EXCS    = $r[2] }
+                case "KEEP_EXCS"    { $KEEP_EXCS    = $r[2] }
             }
 
         }
