@@ -94,7 +94,7 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="main.cgi">Log</a><hr>
-<font size="2"><b>Jump to Sections</b>
+<font size="2"><b>Jump to Sections</b><br>
 <a href="#top">Categories</a><br>
 <a href="#vars">System</a><br>
 <a href="#dbsets">DB Fix</a><br>
@@ -462,7 +462,7 @@ exit;
 sub getHeader {
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>&Settings::bgcol,
-           -onload  => "loadedBody(false);",
+           -onload  => "onBodyLoadGeneric();",
             -style   => [
           { -type => 'text/css', -src => "wsrc/".&Settings::css },
           { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },

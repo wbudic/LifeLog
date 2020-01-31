@@ -20,10 +20,16 @@ var RTF_DOC_ORIG;
 var TIME_STAMP;
 var TIMEZONE;
 
+function onBodyLoadGeneric() {
+    $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
+    $("#btn_save_doc").button();
+}
+
 function onBodyLoad(toggle, tz, today, expires, rs_cur) {
 
     TIMEZONE   = tz;
     TIME_STAMP = new Date(today);
+    onBodyLoadGeneric();
     if (toggle) {
         this.toggle("#div_srh", false);
     }
@@ -89,10 +95,6 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         offsetX: 5,
         showTimeout: 100
     });
-
-
-    $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
-    $("#btn_save_doc").button();
 
 
 
