@@ -8,14 +8,14 @@ use warnings;
 
 use Try::Tiny;
 use Switch;
- 
+
 use CGI;
 use CGI::Session '-ip_match';
 use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
 use Number::Bytes::Human qw(format_bytes);
-use IPC::Run qw( run );  
+use IPC::Run qw( run );
 
 
 #SETTINGS HERE!
@@ -79,9 +79,15 @@ $ENV{'HOME'} = "~/";
 
 print $cgi->header(-expires=>"+6os", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>"$BGCOL",
-                       -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-                       -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}                       
-                );	  
+                       -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
+                                  {-type => 'text/javascript', -src => 'wsrc/jquery.js' },
+                                  { -type => 'text/javascript', -src => 'wsrc/jquery-ui.js' }],
+                       -style => [{-type => 'text/css', -src => "wsrc/$TH_CSS"},
+                                  { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
+                                  { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' }],
+
+                       -onload  => "onBodyLoadGeneric()"
+                );
 
 my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="5"><b>* Personal Log Data Statistics *</b></td></tr>';
 
@@ -112,15 +118,17 @@ run \@cmd, '>&', \$HS; #instead of -> system("inxi",'-b', '-c0');
 
 
 my $hardware_status = $HS;#`inxi -b -c0; uptime -p`;
+my $syslog = "<b>".substr $HS, index($HS, 'Host:'), index($HS, 'Console:');
+   $syslog .= "</b>\n".substr $HS, rindex($HS, 'Info:');
+   $HS = "<pre>".`df -h -l -x tmpfs`."</pre>";
+   $syslog .= $HS;
 $hardware_status =~ s/\n/<br\/>/g;
 $hardware_status =~ s/Memory:/<b>Memory:/g;
 $hardware_status =~ s/Init:/<\/b>Initial:/g;
 $hardware_status =~ s/up\s/<b>Server is up: /g;
-$hardware_status .= '</b>';
+$hardware_status .= "</b>$HS";
 
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
-
-
 my  $processes = `$prc | sort -u -r -`;
 my  $dbSize = (uc format_bytes($stat[7], bs => 1000));
 #Strip kernel 0 processes reported
@@ -131,7 +139,7 @@ my $year =$today->year();
 
 my $IPPublic  = `curl -s https://www.ifconfig.me`;
 my $IPPrivate = `hostname -I`; $IPPrivate =~ s/\s/<br>/g;
- 
+
 $tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>$RELEASE_VER</td></tr>
 	      <tr class="r0"><td>Number of Records:</td><td>$log_rc</td></tr>
           <tr class="r1"><td>No. of Records This Year:</td><td>$log_this_year_rc</td></tr>
@@ -139,13 +147,13 @@ $tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>$RELEASE_VER</td></tr
           <tr class="r1"><td># Sum of Expenses For Year $year</td><td>$expense</td></tr>
           <tr class="r0"><td># Sum of Income For Year $year</td><td>$income</td></tr>
           <tr class="r1"><td>Gross For Year $year</td><td>$gross</td></tr>
-          <tr class="r0"><td>$database</td><td>$dbSize</td></tr>			
+          <tr class="r0"><td>$database</td><td>$dbSize</td></tr>
           <tr class="r1"><td>Public IP</td><td>$IPPublic</td></tr>
           <tr class="r0"><td>Private IP</td><td>$IPPrivate</td></tr>
 </table>);
 
 
-print qq(<div id="menu" title="To close this menu click on its heart, and wait." style="border: 1px solid black;">
+print qq(<div id="menu" title="To close this menu click on its heart, and wait." style="border: 1px solid black;padding: 5px;margin-top: 25px;">
 <a class="a_" href="config.cgi">Config</a><hr>
 <a class="a_" href="main.cgi">Log</a><hr>
 <br>
@@ -162,15 +170,14 @@ print qq(
     <b>Server Side Processes</b><hr>
 </div>
 <pre>$processes</pre>);
-
-
 print $cgi->end_html;
+my $date = DateTime::Format::SQLite->parse_datetime($today);
+dbExecute(qq(  INSERT INTO LOG (ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY) VALUES(6, '$date', '$syslog', 0, 0, 0, 0); ));
 $db->disconnect();
 exit;
 
 sub selectSQL{
-
-    my ($sth,$ret) = dbExecute( @_ );    
+    my ($sth,$ret) = dbExecute( @_ );
     my @row = $sth->fetchrow_array();
     $sth->finish;
     $ret = $row[0];
@@ -197,7 +204,7 @@ return $amm;
 sub getConfiguration {
     try{
         my $st = dbExecute('SELECT ID, NAME, VALUE FROM CONFIG;');
-        while (my @r=$st->fetchrow_array()){            
+        while (my @r=$st->fetchrow_array()){
             switch ($r[1]) {
                 case "RELEASE_VER" { $RELEASE_VER  = $r[2] }
                 case "THEME"       {$THEME= $r[2]}
