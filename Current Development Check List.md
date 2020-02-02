@@ -8,6 +8,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## LifeLog Development
 
 ### v.1.7 Encountered
+
+* New CNF Development.
 * &#10004; Provide system logs on stats page runs.
 * &#10004; Menus updated in other pages to have button look.
 * &#10004; main.cnf newer versions should have precedence to id and entry name to previously set or stored in db.
@@ -54,11 +56,11 @@ This version is not compatible in data structure to prior versions. Data migrati
 ### v. 1.7 Encountered/Fixed
 
 * &#10004; Issue 14 Subpages pages links to main, restart main page session counter, making the main page fully usable.
-    * Not really a bug. Session will expire but time remaining will be displayed wrong on the main page.
-    * All subpages need either to inherit the counter, and jump user to the login screen if expired.
-    * Or update main pages timer countdown. Which is not possible if browsers back button is pressed.
-    * Pressing back button brings the page display to initial time it was loaded from.
-    * This has been now marked as an complex issue. Not worth much spending time on.
+  * Not really a bug. Session will expire but time remaining will be displayed wrong on the main page.
+  * All subpages need either to inherit the counter, and jump user to the login screen if expired.
+  * Or update main pages timer countdown. Which is not possible if browsers back button is pressed.
+  * Pressing back button brings the page display to initial time it was loaded from.
+  * This has been now marked as an complex issue. Not worth much spending time on.
 
 * &#10004; Bug 13 - Migrated old data, linking to wrong id, db fix in config page seems to fix this.
 * &#10004; Bug 12 - Invalid login only shows db error.

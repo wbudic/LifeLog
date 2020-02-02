@@ -1,4 +1,8 @@
 #!/usr/bin/perl -w
+#
+# Programed by: Will Budic
+# Open Source License -> https://choosealicense.com/licenses/isc/
+#
 package Settings;
 
 use strict;
