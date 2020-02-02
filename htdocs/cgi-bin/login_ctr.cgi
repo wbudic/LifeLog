@@ -293,7 +293,6 @@ try{
     if(!$st->fetchrow_array()) {
         #v.1.3 -> v.1.4
         #alter table CONFIG add DESCRIPTION VCHAR(128);
-
     my $stmt = qq(
                         CREATE TABLE CONFIG(
                                 ID TINY PRIMARY KEY NOT NULL,
