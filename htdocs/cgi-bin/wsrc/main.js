@@ -285,7 +285,8 @@ function decodeToHTMLText(txt) {
 }
 
 function decodeToText(txt) {
-    txt = txt.replace(/`RTF$/, "");
+    //bug 7 fix
+    txt = txt.replace(/<hr>.*RTF<\/button>/gm, "");
     txt = txt.replace(/<br\s*[\/]?>/gi, "\n");
     return txt;
 }

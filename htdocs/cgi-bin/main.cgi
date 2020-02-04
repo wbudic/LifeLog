@@ -615,7 +615,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
         }
 
         if ( $rtf > 0 ) {
-            $log .= qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">`RTF</button>);
+            $log .= qq(<hr><button id="btnRTF" onClick="return loadRTF(true, $id);">RTF</button>);
         }
 
         if($af==2){
