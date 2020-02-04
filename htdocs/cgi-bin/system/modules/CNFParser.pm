@@ -92,13 +92,7 @@ try{
             }
 
            # print "Ins($i): with $e do $t\n";
-            if($t eq 'TABLE'){
-               $st = "CREATE TABLE $e(\n$v\n);";
-            }
-            elsif($t eq 'INDEX'){
-               $st = "CREATE INDEX $v;";
-            }
-            elsif($t eq 'DATA'){
+           if($t eq 'DATA'){
                $st ="";
                foreach(split /\n/,$v){
                    my $d = $i = "";
@@ -128,6 +122,15 @@ try{
                    $i =~ s/,$//;
                    $st .="INSERT INTO $e VALUES($i);\n" if $i;
                }
+            }
+            elsif($t eq 'TABLE'){
+               $st = "CREATE TABLE $e(\n$v\n);";
+            }
+            elsif($t eq 'INDEX'){
+               $st = "CREATE INDEX $v;";
+            }
+            elsif($t eq 'VIEW'){
+                $st = "CREATE VIEW $v;";
             }
             else{
                 #Register application statement as an anonymouse one.

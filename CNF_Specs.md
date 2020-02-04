@@ -36,16 +36,23 @@ And are recognised as constants, anons and sqlites.
   * There is no database interaction, handling or processing as part of this processing.
 
 ## CNF Tag Formats
+
 ### Property Value Tag
+
     <<{name}<{value}>>
+
 ### Instruction Value Tag
+
     <<<{instruction}
     {value\n...valuen\n}>>
+
 ### Full Tag
+
     <<{name}>{instruction}
         {value\n...value\n}
     >>
-**Examples**
+
+**Examples:**
 
     <<CONST>$HELP
         Sorry help is currently.
@@ -61,19 +68,41 @@ And are recognised as constants, anons and sqlites.
 
 ## SQL Instruction Formatting
 
-(section not complete, as of 2020-02-02)
+(section not complete, as of 2020-02-04)
 
 * SQLites have the following reserved instructions.
   * TABLE
-  * INDEX
-  * DATA
 
         <<MyAliasTable>TABLE
-            ID INT PRIMARY KEY NOT NULL,
-            ALIAS VCHAR(16),
-            EMAIL VCHAR(28),
-            FULL_NAME VCHAR(128)
+                    ID INT PRIMARY KEY NOT NULL,
+                    ALIAS VCHAR(16) UNIQUE CONSTRAINT,
+                    EMAIL VCHAR(28),
+                    FULL_NAME VCHAR(128)
         >>
+
+  * INDEX
+
+        <<MyAliasTable<INDEX
+            idx_alias on MyAliasTable (ALIAS);
+        >>
+
+  * SQL
+    * SQL statments are actual full SQL statments placed in the tag body.
+
+            <<VW_ALIASES>VIEW
+                CREATE VIEW VW_ALIASES AS SELECT ID,ALIAS ORDER BY ALIAS;
+            >>
+
+  * DATA
+    * Data columns are delimited with the **`** delimiter. In the tag body.
+    * These should apear as last in the config file as they are translated into insert statements.
+
+            <<MyAliasTable<DATA
+                01`admin`admin@inc.com`Super User
+                02`chef`chef@inc.com`Bruno Allinoise
+                03`juicy`sfox@inc.com`Samantha Fox
+            >>
+
 
 ***
 
