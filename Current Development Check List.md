@@ -1,4 +1,4 @@
-# Branch Development LifeLog in Perl - Sun Stage v. 1.7
+# Branch Development LifeLog in Perl - Sun Stage v. 1.8
 
 *This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
