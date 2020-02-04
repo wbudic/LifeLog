@@ -53,7 +53,12 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Bugs
 
-### v. 1.7 Encountered/Fixed
+### v. 1.8 Encountered/Fixed
+
+* Bug 16 - Saving new log entries with rtf overrites previous log entries rtf.
+* Issue 15 Date diff, showes upside down first range by current date with multiple selections.
+
+  * Range should be selected from date in selected latest to current date last as inbetween difference.
 
 * &#10004; Issue 14 Subpages pages links to main, restart main page session counter, making the main page fully usable.
   * Not really a bug. Session will expire but time remaining will be displayed wrong on the main page.
