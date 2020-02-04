@@ -66,7 +66,7 @@ my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
 my $rs_cur      = $cgi->param('rs_cur');
 my $rs_page     = $cgi->param('rs_page');
-my $stmS        = 'SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG WHERE';
+my $stmS        = 'SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG WHERE';
 my $stmE        = "";
 my $stmD        = "";
 my $sm_reset_all;
@@ -212,7 +212,7 @@ print $cgi->start_html(
 my $rv;
 my $st;
 my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $stmt    = "SELECT ID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY = 1;";
+my $stmt    = "SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY = 1;";
 
 print qq("## Using db -> $dsn) if $DEBUG;
 
@@ -267,7 +267,7 @@ for my $key ( keys %hshDesc ) {
     }
 }
 my $log_output =
-qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
+qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 <TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
 <tr class="r0">
 	<th>Date</th>
@@ -1032,14 +1032,14 @@ try {
 
 
                    if(scalar @lid > 0){
-            #By Notes.LID contraint, there should NOT be an already existing log rowid entry just submitted in the Notes table!
+            #By Notes.LID constraint, there should NOT be an already existing log rowid entry just submitted in the Notes table!
             #What happened? We must check and delete, regardles. As data is renumerated and shuffled from perl in database. :(
                       $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = '$lid[0]';");
                       $st->execute();
                       if($st->fetchrow_array()){
                           $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$lid[0]';");
                           $st->execute();
-                          print qq(<p>Warning deleted (possible old) NOTES.LID[$lid[0]] -> lid:$lid[0]</p>);
+                          print qq(<p>Warning deleted (possible old) NOTES.LID[$lid[0]] -> lid:@lid</p>);
                       }
                       $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
                      #

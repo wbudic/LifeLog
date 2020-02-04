@@ -9,7 +9,7 @@ use warnings;
 use Try::Tiny;
 use Switch;
 
- 
+
 use CGI;
 use CGI::Session '-ip_match';
 use DBI;
@@ -52,26 +52,16 @@ my $PRC_WIDTH = &Settings::pagePrcWidth;
 my $TH_CSS = &Settings::css;
 my $BGCOL  = &Settings::bgcol;
 #Set to 1 to get debug help. Switch off with 0.
-my $DEBUG        = &Settings::debug;
+my $DEBUG  = &Settings::debug;
 #END OF SETTINGS
 
 my $today = DateTime->now;
 $today->set_time_zone(&Settings::timezone);
 
-my %hshCats ={};
 my $tbl_rc =0;
-my $stm;
-my $stmtCat = "SELECT ID, NAME FROM CAT;";
-my $st = $db->prepare( $stmtCat );
-my $rv = $st->execute();
+my ($stm,$st, $rv);
 
-
-while(my @row = $st->fetchrow_array()) {
-    $hshCats{$row[0]} = $row[1];
-}
-
-
-my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
+my $tbl = '<form name="frm_log_del" action="data.cgi" onSubmit="return formDelValidation();">
            <table class="tbl_rem" width="'.$PRC_WIDTH.'%">
            <tr class="hdr" style="text-align:left;"><th>Date</th> <th>Time</th><th>Log</th><th>Category</th></tr>';
 
@@ -79,25 +69,25 @@ my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDel
 my $datediff = $cgi->param("datediff");
 my $confirmed = $cgi->param('confirmed');
 if ($datediff){
-         print $cgi->header(-expires=>"+6os");    
+         print $cgi->header(-expires=>"+6os");
          print $cgi->start_html(-title => "Date Difference Report", -BGCOLOR => $BGCOL,
                  -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
                  -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
 
-        );	  
+        );
         &DisplayDateDiffs;
-}elsif (!$confirmed){
-         print $cgi->header(-expires=>"+6os");    
+}elsif ($confirmed){
+    &ConfirmedDelition;
+}else{
+         print $cgi->header(-expires=>"+6os");
          print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
                  -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
                  -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
 
-        );	  
+        );
 
 
         &NotConfirmed;
-}else{
-        &ConfirmedDelition;
 }
 
 
@@ -106,31 +96,45 @@ $db->disconnect();
 exit;
 
 sub DisplayDateDiffs{
+
     $tbl = '<table class="tbl" width="'.$PRC_WIDTH.'%">
         <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
-    $stm = 'SELECT DATE, LOG FROM LOG WHERE '; 
+    $stm = 'SELECT DATE, LOG FROM VW_LOG WHERE ';
     my  @ids = $cgi->param('chk');
 
+     @ids = reverse @ids;
+
     foreach (@ids){
-        $stm .= "rowid = '" . $_ ."'";
+        $stm .= "PID = " . $_ ."";
         if(  \$_ != \$ids[-1]  ) {
             $stm = $stm." OR ";
         }
     }
     $stm .= ';';
+    print $cgi->pre("###[stm:$stm]") if($DEBUG);
     $st = $db->prepare( $stm );
     $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
 
-    my $dt_prev = $today;
+    my ($dt,$dif,$first,$last,$tnext, $dt_prev) = (0,0,0,0,0,$today);
     while(my @row = $st->fetchrow_array()) {
 
-         my $dt = DateTime::Format::SQLite->parse_datetime( $row[0] );
-         my $dif = dateDiff($dt_prev, $dt);
-         $tbl .= '<tr class="r1"><td>'. $dt->ymd . '</td> 
+         $dt = DateTime::Format::SQLite->parse_datetime( $row[0] );
+         $dif = dateDiff($dt_prev, $dt);
+         $tbl .= '<tr class="r1"><td>'. $dt->ymd . '</td>
                     </td><td style="text-align:left;">'.$row[1]."</td></tr>".
-                 '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';	
-        $dt_prev = $dt;
+                 '<tr class="r0"><td colspan="2">'.$dif.'</td> </tr>';
+         $last = $dt_prev;
+         $dt_prev = $dt;
+         if($tnext){
+             $dif = dateDiff($today, $dt,'');
+             $tbl .= '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';
+         }
+         else{$tnext=1; $first = $dt;}
+    }
+    if($first != $last){
+        $dif = dateDiff($first, $dt_prev,'(first above)');
+        $tbl .= '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';
     }
     $tbl .= '</table>';
 
@@ -138,57 +142,61 @@ print '<center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</
 }
 
 
-sub dateDiff{
-    my($d1,$d2)=@_;
+sub dateDiff {
+    my($d1,$d2,$ff)=@_;
     my $span = DateTime::Format::Human::Duration->new();
     my $dur = $span->format_duration($d2 - $d1);
-return sprintf( "%s <br>between %s and %s", $dur, boldDate($d1), boldDate($d2));
+    my $t = "<font color='red'> today </font>";
+       $t = "" if ($d1!=$today);
+return sprintf( "%s <br>between $t $ff %s and %s", $dur, boldDate($d1), boldDate($d2));
 
 }
 
-sub boldDate{
+sub boldDate {
     my($d)=@_;
 return "<b>".$d->ymd."</b> ".$d->hms;
 }
 
 
-sub ConfirmedDelition{
+sub ConfirmedDelition {
 
+try{
 
     foreach my $id ($cgi->param('chk')){
-        
+        print $cgi->p("###[deleting:$id]")  if(Settings::debug());
         $st = $db->prepare("DELETE FROM LOG WHERE rowid = '$id';");
         $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
         $st = $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$id';");
         $rv = $st->execute();
 
-        if($rv < 0) {
-             print "<p>Error->"& $DBI::errstri &"</p>";
-             exit;
-        }
-        
+       # if($rv == 0) {
+          #   die "<p>Error->"& $DBI::errstri &"</p>";
+       # }
+
     }
-    
-    
     $st->finish;
 
     print $cgi->redirect('main.cgi');
 
+}catch{
+    print $cgi->p("<font color=red><b>ERROR</b></font>  " . $_);
 }
 
-sub NotConfirmed{
+}
 
-    my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
-    my $stmE = " ORDER BY DATE DESC, rowid DESC;";
+sub NotConfirmed {
+
+    my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT == CAT.ID) as CAT, DATE, LOG from VW_LOG WHERE";
+    my $stmE = " ORDER BY DATE DESC, ID DESC;";
 
     #Get ids and build confirm table and check
     my $stm = $stmS ." ";
         foreach my $id ($cgi->param('chk')){
-            $stm = $stm . "rowid = '" . $id . "' OR ";
+            $stm = $stm . "PID = " . $id . " OR ";
         }
-    #OR end to rid=0 hack! ;)
-        $stm = $stm . "rowid = '0' " . $stmE;
-    #
+        $stm =~ s/ OR $//; $stm .= $stmE;
+
+    print $cgi->pre("###[stm:$stm][confirmed:$confirmed]")  if($DEBUG);
     $st = $db->prepare( $stm );
     $rv = $st->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
     if($rv < 0) {
@@ -199,11 +207,11 @@ sub NotConfirmed{
     my $rs = "r1";
     while(my @row = $st->fetchrow_array()) {
 
-        my $ct = $hshCats{$row[1]};
-        my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
-        my $log = log2html($row[3]);
-        
-        $tbl = $tbl . '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" . 
+        my $ct = $row[2];
+        my $dt = DateTime::Format::SQLite->parse_datetime( $row[3] );
+        my $log = log2html($row[4]);
+
+        $tbl = $tbl . '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" .
             '<td class="'.$rs.'">' . $dt->hms . "</td>" .
             '<td class="'.$rs.'" style="font-weight:bold; color:maroon;">'."$log</td>\n".
             '<td class="'.$rs.'">' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';
@@ -222,7 +230,7 @@ sub NotConfirmed{
 
  $tbl = $tbl .  '<tr class="r0"><td colspan="4">
  <center>
- <h2>Please Confirm You Want <br/>The Above Record'.$plural.' Deleted?</h2>
+ <h2>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h2>
  (Or hit you Browsers Back Button!)</center>
  </td></tr>
  <tr class="r0"><td colspan="4"><center>
@@ -240,7 +248,7 @@ print '<center><div>' . $tbl .'</div></center>';
 sub log2html{
     my $log = shift;
     my ($re_a_tag, $sub)  = qr/<a\s+.*?>.*<\/a>/si;
-    $log =~ s/''/'/g;    
+    $log =~ s/''/'/g;
     $log =~ s/\r\n/<br>/gs;
     $log =~ s/\\n/<br>/gs;
 
@@ -300,7 +308,7 @@ sub log2html{
         $log =~ s/$a/$b/o;
         $a = q(</iframe>);
         $b = q(</iframe></div>);
-        $log =~ s/$a/$b/o;        
+        $log =~ s/$a/$b/o;
     }
     else {
         my @chnks = split( /($re_a_tag)/si, $log );

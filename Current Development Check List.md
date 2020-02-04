@@ -55,8 +55,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v. 1.8 Encountered/Fixed
 
-* Bug 16 - Saving new log entries with rtf overrites previous log entries rtf.
-* Issue 15 Date diff, showes upside down first range by current date with multiple selections.
+* Bug 16 - Saving new log entries with rtf overides previous log entries rtf.
+* &#10004; Issue 15 Date diff, showes upside down first range by current date with multiple selections.
 
   * Range should be selected from date in selected latest to current date last as inbetween difference.
 
