@@ -71,7 +71,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Bug - 10 Expense type entries don't fill ammount field on edit button clicked.
 * &#10004; Bug - 09 RTF documents lost on data renumeration of log. Data fix options in config. Needs urgent revision.
 * Bug - 08 CSV imports duplicate on DB Fix in config page.
-* Bug - 07, Editing and RTF entry, Dosen't strip the attached html to view in place.
+* &#10004; Bug - 07, Editing and RTF entry, Dosen't strip the attached html to view in place.
 * &#10004; Bug - 06, Invalid Time 00. Javascript error thrown, when 00am used.
 * &#10004; Bug - 05, CRLF and apostrophe replacement not working.
 * &#10004; Bug - 04, Local not picked up properly on current date.
