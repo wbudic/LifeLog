@@ -1,6 +1,5 @@
 # Configuration Network File Format Specifications
 
- Moon Stage v.1.0
 
 ## Introduction
 
@@ -8,6 +7,7 @@ This is a simple and fast file format. That allowes setting an network applicati
 SQL database structures and data. It is designed to accomodate an parser to read and parse CNF tags.
 These can be of three types, using an textual similar presentation.
 And are recognised as constants, anons and sqlites.
+
 ## CNF Formatting Rules
 
 * Text that isn't CNF tagged is ignored in the file and can be used as comments.
@@ -18,8 +18,11 @@ And are recognised as constants, anons and sqlites.
   * Constants are ususally scripted at the begining of the file, or parsed first in a separate file.
   * The instruction processor can use them if signifier $ surounds the constant name. Therefore, replacing it with the contants value if further found in the file.
 
+```HTML
         <<<CONST>$APP_PATH=~/MyApplication>>
         <<app_path>$APP_PATH$/module/main>>
+```
+
   * CNF Constant values can't be changed for th life of the application.
   * CNF Constant values can be changed in the file itself only.
 * A CNF Anon is to similar to constants but a more simpler property and value only pair.
@@ -27,8 +30,10 @@ And are recognised as constants, anons and sqlites.
   * Anon has no signifier.
   * Anon value is global to the application and its value can be modified.
 
+```HTML
         <<USE_SWITCH>true>>
         <<DIALOG_TITLE_EN>MyApplication Title>>
+```
 
 * CNF supports basic SQL Database structure statment generation. This is done via instruction based CNF tags. Named sqlites.
   * Supported is table, view, index and data creation statments.
@@ -39,18 +44,24 @@ And are recognised as constants, anons and sqlites.
 
 ### Property Value Tag
 
+```HTML
     <<{name}<{value}>>
+```
 
 ### Instruction Value Tag
 
+```HTML
     <<<{instruction}
     {value\n...valuen\n}>>
+```
 
 ### Full Tag
 
+```javascript
     <<{name}>{instruction}
         {value\n...value\n}
     >>
+```
 
 **Examples:**
 
@@ -106,6 +117,9 @@ And are recognised as constants, anons and sqlites.
 
 ***
 
+   Document is from project ->  <https://github.com/wbudic/LifeLog/>
 
+   An open source application.
 
-     Project ->  <https://github.com/wbudic/LifeLog/>
+<center>Moon Stage - v.1.0 2020</center>
+

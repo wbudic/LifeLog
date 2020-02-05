@@ -45,3 +45,5 @@ cgisess_*
 *.db
 *.swp
 
+log/thttpd.log
+.gitignore

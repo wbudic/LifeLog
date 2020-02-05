@@ -1,4 +1,4 @@
-# Branch Development LifeLog in Perl - Sun Stage v. 1.8
+# Branch Development LifeLog in Perl
 
 *This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
@@ -29,7 +29,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 ### v.1.6 and less
 
 * $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
-* Some System settings to be stored in session. As these are  known even before logon.
+* &#10004; Some System settings to be stored in session. As these are  known even before logon.
   * i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
 * &#10004; Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
 
@@ -39,8 +39,10 @@ This version is not compatible in data structure to prior versions. Data migrati
 * CVS Export and Import has not been implemented for RTF type log entries.
 &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 
-## New Features of Minor Relevance
+## Planned New Possible Features of Minor Relevance
 
+* Table sort in config system settings by variable name.
+* Enable automatic bold title heading for specified cattegories.
 * Theme colours to be revisited, bettered
 * Enable file attachment to log entries.
 * Enable Armour Mode
@@ -82,11 +84,13 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Bug - 04, Local not picked up properly on current date.
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
 * &#10004; Bug - 02, Record set paging to previous page not always working. Getting stuck.
-   * This occurs on new records placed in the far past. Complex problem.
+  * This occurs on new records placed in the far past. Complex problem.
 * &#10004; Bug - 01, date validation for proper entered time, there is no 24 h.
 
 ***
 
-     Checked (&#10004;) Are items that have been done and submitted to the branch.
+   Document is from project ->  <https://github.com/wbudic/LifeLog/>
 
-     Project ->  <https://github.com/wbudic/LifeLog/>
+   An open source application.
+
+<center>Sun Stage v.1.8 - 2020</center>
