@@ -56,7 +56,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## Bugs
 
 ### v. 1.8 Encountered/Fixed
-
+* Bug 17 - Editimg of entries on occasions, duplicates entries.
 * Bug 16 - Saving new log entries with rtf overides previous log entries rtf.
 * &#10004; Issue 15 Date diff, showes upside down first range by current date with multiple selections.
 
