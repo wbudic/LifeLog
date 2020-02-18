@@ -79,15 +79,8 @@ if ($datediff){
 }elsif ($confirmed){
     &ConfirmedDelition;
 }else{
-         print $cgi->header(-expires=>"+6os");
-         print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
-                 -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-                 -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
-
-        );
-
-
-        &NotConfirmed;
+    print $cgi->redirect('main.cgi') if not $cgi->param('chk');
+    &NotConfirmed;
 }
 
 
@@ -192,19 +185,25 @@ sub NotConfirmed {
     #Get ids and build confirm table and check
     my $stm = $stmS ." ";
         foreach my $id ($cgi->param('chk')){
-            $stm = $stm . "PID = " . $id . " OR ";
+            $stm = $stm . "ID = " . $id . " OR ";
         }
         $stm =~ s/ OR $//; $stm .= $stmE;
 
-    print $cgi->pre("###[stm:$stm][confirmed:$confirmed]")  if($DEBUG);
     $st = $db->prepare( $stm );
-    $rv = $st->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
-    if($rv < 0) {
-            print "<p>Error->"& $DBI::errstri &"</p>";
-    }
+    $rv = $st->execute();
+    print $cgi->header(-expires=>"+6os");
+    print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
+            -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+            -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
+
+    );
+
+    print $cgi->pre("###NotConfirmed($rv,$st)->[stm:$stm]")  if($DEBUG);
 
     my $r_cnt = 0;
     my $rs = "r1";
+
+
     while(my @row = $st->fetchrow_array()) {
 
         my $ct = $row[2];
@@ -257,7 +256,7 @@ sub log2html{
         my $len = index( $log, '>', $idx );
         $sub = substr( $log, $idx + 1, $len - $idx - 1 );
         my $url = qq(<a href="$sub" target=_blank>$sub</a>);
-        $log =~ s/<<LNK<(.*?)>/$url/osi;
+        $log =~ s/<<LNK<(.*?)>+/$url/osi;
     }
 
     if ( $log =~ /<<IMG</ ) {
@@ -265,7 +264,7 @@ sub log2html{
             my $len = index( $log, '>', $idx );
             $sub = substr( $log, $idx + 1, $len - $idx - 1 );
             my $url = qq(<img src="$sub"/>);
-            $log =~ s/<<IMG<(.*?)>/$url/osi;
+            $log =~ s/<<IMG<(.*?)>+/$url/osi;
     }
     elsif ( $log =~ /<<FRM</ ) {
             my $idx = $-[0] + 5;
@@ -289,7 +288,7 @@ sub log2html{
                 #TODO fetch from web locally the original image.
                 $lnk =  qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
             }
-            $log =~ s/<<FRM<(.*?)>/$lnk/o;
+            $log =~ s/<<FRM<(.*?)>+/$lnk/o;
         }
 
     #Replace with a full link an HTTP URI
