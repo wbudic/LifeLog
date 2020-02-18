@@ -191,7 +191,13 @@ function formValidation() {
         alert("Category -> has not been selected!");
         return false;
     }
-    return validDate($("#frm_entry [name='date']").val()) && validLog($("#frm_entry [name='log']").val());
+    var dt = $("#frm_entry [name='date']").val();
+    var i = dt.indexOf('id=');
+    if(i>0){
+        dt = dt.substring(0, i-1);
+        $("#frm_entry [name='date']").val(dt);
+    }
+    return validDate(dt) && validLog($("#frm_entry [name='log']").val());
 }
 
 function formDelValidation() {
