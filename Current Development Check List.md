@@ -9,7 +9,19 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
+* &#10004;Change all code to use Exceptions as project is becoming hard to manage.
+  * The harder it is to foresee possible problems, the less likely you will add unnecessary complexity. -- bud@
+* &#10004; Notes to Log table should be other way in relationship direction.
+  * LOG.ID_RTF -> NOTES.rowid
+  * This is currently causing problems when the log renumerates, or entries are imported.
+* Database backup tar ball, download button on config page.
+* New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
 * New CNF Development.
+  * Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
+  * CVS imports are to be made obsolete in the future.
+* &#10004; In config page Categories section to appear after system settings. As less likelly to be changed.
+  * System Configuration section is to be sorted. As in future it is more likelly to grow.
+* &#10004; New system setting, $VIEW_ALL_LMT=1000. To limit view all records displayed on huge databases.
 * &#10004; Provide system logs on stats page runs.
 * &#10004; Menus updated in other pages to have button look.
 * &#10004; main.cnf newer versions should have precedence to id and entry name to previously set or stored in db.
@@ -20,8 +32,6 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Mutli new alias access flood attack security trigger implementation.
 * &#10004; Debug system settings implementaiton.
 * &#10004; Delete page updated to show better display of entries.
-* Provide sub alias login that sets data visible to only a set of categories.
-  * View specific based login on a different password.
 * &#10004; Login page to indentify host.
 * &#10004; Session cleanup on autologin not clearing properly.
   * A dbfix, should clear older entries as well.
@@ -41,7 +51,9 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Planned New Possible Features of Minor Relevance
 
-* Table sort in config system settings by variable name.
+* Provide sub alias login that sets data visible to only a set of categories.
+  * View specific based login on a different password.
+* &#10004; Table sort in config system settings by variable name.
 * Enable automatic bold title heading for specified cattegories.
 * Theme colours to be revisited, bettered
 * Enable file attachment to log entries.
@@ -56,12 +68,14 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## Bugs
 
 ### v. 1.8 Encountered/Fixed
-* Bug 17 - Editimg of entries on occasions, duplicates entries.
-* Bug 16 - Saving new log entries with rtf overides previous log entries rtf.
+
+* &#10004; Issue 18 - Setting excludes for views, deliveres page but long delays with server finished exchange (page doesn't hang).
+  * The page is server delivered, if sections contain external internet links, this timeouts page browser delivery if the internet is down.
+* &#10004; Bug 17 - Editimg of entries on occasions, duplicates entries.
+* &#10004; Bug 16 - Saving new log entries with rtf overides previous log entries rtf.
+  * Issue 16.1 - Currently importing of records linked to rtf notes is not supported.
 * &#10004; Issue 15 Date diff, showes upside down first range by current date with multiple selections.
-
   * Range should be selected from date in selected latest to current date last as inbetween difference.
-
 * &#10004; Issue 14 Subpages pages links to main, restart main page session counter, making the main page fully usable.
   * Not really a bug. Session will expire but time remaining will be displayed wrong on the main page.
   * All subpages need either to inherit the counter, and jump user to the login screen if expired.

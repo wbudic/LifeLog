@@ -5,7 +5,8 @@
 #
 use warnings;
 use strict;
-use Try::Tiny;
+use Exception::Class ('LifeLogException');
+use Syntax::Keyword::Try;
 use Switch;
 
 use CGI;
@@ -27,7 +28,7 @@ use lib "system/modules";
 require Settings;
 
 my $cgi = CGI->new;
-my $sss = new CGI::Session( "driver:File", $cgi, { Directory => Settings::logPath() } );
+my $sss = new CGI::Session( "driver:File", $cgi, { Directory => &Settings::logPath } );
 my $sid      = $sss->id();
 my $dbname   = $sss->param('database');
 my $userid   = $sss->param('alias');
@@ -40,11 +41,10 @@ if ( !$userid || !$dbname ) {
     exit;
 }
 
-my $database = Settings::logPath() . $dbname;
+my $database = &Settings::logPath . $dbname;
 my $dsn      = "DBI:SQLite:dbname=$database";
 my $db       = DBI->connect( $dsn, $userid, $password, { PrintError => 0, RaiseError => 1 } )
-  or die "<p>Error->" & $DBI::errstri & "</p>";
-
+                      or LifeLogException->throw("Execute failed [$DBI::errstri]");
 my ( $imgw, $imgh );
 #Fetch settings
  Settings::getConfiguration($db);
@@ -55,7 +55,7 @@ my ( $imgw, $imgh );
 my $log_rc      = 0;
 my $log_rc_prev = 0;
 my $log_cur_id  = 0;
-my $log_top = 0;
+my $log_top     = 0;
 my $rs_keys     = $cgi->param('keywords');
 my $rs_cat_idx  = $cgi->param('category');
 my $prm_vc      = $cgi->param("vc");
@@ -66,7 +66,7 @@ my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
 my $rs_cur      = $cgi->param('rs_cur');
 my $rs_page     = $cgi->param('rs_page');
-my $stmS        = 'SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG WHERE';
+my $stmS        = 'SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG WHERE';
 my $stmE        = "";
 my $stmD        = "";
 my $sm_reset_all;
@@ -209,15 +209,15 @@ print $cgi->start_html(
     ],
 );
 
-my $rv;
+
 my $st;
-my $stmtCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $stmt    = "SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY = 1;";
+my $str_sqlCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
+my $str_sql    = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY = 1;";
 
-print qq("## Using db -> $dsn) if $DEBUG;
+print qq(## Using db -> $dsn\n) if $DEBUG;
 
-$st = $db->prepare($stmtCat);
-$rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
+$st = $db->prepare($str_sqlCat);
+$st->execute() or LifeLogException->throw($DBI::errstri);
 
 my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec"
  onFocus="show('#cat_desc');"
@@ -308,16 +308,16 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
                     $stmS = $stmS . " OR ";
                 }
             }
-            $stmt = $stmS . $stmE;
+            $str_sql = $stmS . $stmE;
         }
     }
     elsif ($rs_cat_idx && $rs_cat_idx != $prm_xc) {
 
         if ($stmD) {
-            $stmt = $stmS . $stmD . " AND ID_CAT='" . $rs_cat_idx . "'" . $stmE;
+            $str_sql = $stmS . $stmD . " AND ID_CAT='" . $rs_cat_idx . "'" . $stmE;
         }
         else {
-            $stmt = $stmS . " ID_CAT='" . $rs_cat_idx . "'" . $stmE;
+            $str_sql = $stmS . " ID_CAT=" . $rs_cat_idx . ";" . $stmE;
         }
     }
     else {
@@ -329,17 +329,17 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
                             $ands .= " ID_CAT!=$_ AND";
                     }
                     $ands =~ s/AND$//g;
-                    $stmt = $stmS . $ands . $stmE;
+                    $str_sql = $stmS . $ands . $stmE;
                 }
                 else{
-                    $stmt = $stmS . " ID_CAT!=$prm_xc" . $stmE;
+                    $str_sql = $stmS . " ID_CAT!=$prm_xc;" . $stmE;
                 }
 
 
 
         }
         if ($stmD) {
-            $stmt = $stmS . $stmD . $stmE;
+            $str_sql = $stmS . $stmD . $stmE;
         }
     }
 
@@ -349,19 +349,17 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 
     my $tfId      = 0;
     my $id        = 0;
-    my $log_start = index $stmt, "<=";
+    my $log_start = index $str_sql, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
 
-    print $cgi->pre("###[Session PARAMS->vc=$prm_vc|xc=$prm_xc|xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$stmt) if $DEBUG;
+    print $cgi->pre("###[Session PARAMS->vc=$prm_vc|xc=$prm_xc|xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$str_sql) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
         #check if we are at the beggining of the LOG table?
-        my $stc =
-          $db->prepare('SELECT PID from VW_LOG LIMIT 1;');
-        $stc->execute();
+        my $stc = traceDBExe('SELECT PID from VW_LOG LIMIT 1;');
         my @row = $stc->fetchrow_array();
-        $log_top = $row[0];
+            $log_top = $row[0];
         if ($log_top == $rs_prev && $rs_cur == $rs_prev ) {
             $log_start = -1;
         }
@@ -375,41 +373,43 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $sum       = 0;
     my $exp       = 0;
     my $ass       = 0;
-    $st = $db->prepare($stmt);
-    $rv = $st->execute() or die "<p>Error->" & $DBI::errstri & "</p>";
-    if ( $rv < 0 ) {
-        print "<p>Error->" & $DBI::errstri & "</p>";
+
+
+    #place sticky or view param.ed entries first!
+    buildLog(traceDBExe($str_sql));
+
+    if(index ($str_sql, 'PID <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
+        $str_sql = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY != 1 ORDER BY DATE DESC;";
+        print $cgi->pre("###2 -> ".$str_sql)  if $DEBUG;
+        ;
+        &buildLog(traceDBExe($str_sql));
     }
 
-    &buildLog;
 
-
-    if(index ($stmt, 'PID <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
-
-        $stmt = "SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY FROM VW_LOG WHERE STICKY != 1;";
-        print $cgi->pre("###2 -> ".$stmt)  if $DEBUG;
-        $st = $db->prepare($stmt);
-        $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
-        if ( $rv < 0 ) {
-            print "<p>Error->" & $DBI::errstri & "</p>";
-        }
-
-        &buildLog;
+sub traceDBExe {
+    my $sql = shift;
+    try{
+        my $st = $db->prepare($sql);
+           $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
+        return $st;
+    }catch{
+                LifeLogException->throw(error=>"database error encountered.", show_trace=>1);
     }
+}
 
 sub buildLog {
-
-    while ( my @row = $st->fetchrow_array() ) {
-
-        $id = $row[0];# PID
-
-        my $ct  = $hshCats{$row[1]}; #ID_CAT
-        my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
-        my $log = $row[3];
-        my $am  = $row[4];
-        my $af  = $row[5]; #AFLAG -> Asset as 0, Income as 1, Expense as 2
-        my $rtf = $row[6]; #RTF has document true or false
-        my $sticky = $row[7]; #Sticky to top
+    my $pst = shift;
+    #print "## str_sql: $str_sql\n";
+    while ( my @row = $pst->fetchrow_array() ) {
+        my $i = 0;
+        $id = $row[$i++]; #ID must be rowid in LOG.
+        my $ct  = $hshCats{$row[$i++]}; #ID_CAT
+        my $rtf = $row[$i++];           #ID_RTF since v.1.8
+        my $dt  = DateTime::Format::SQLite->parse_datetime( $row[$i++] ); #LOG.DATE
+        my $log = $row[$i++]; #LOG.LOG
+        my $am  = $row[$i++]; #LOG.AMOUNT
+        my $af  = $row[$i++]; #AFLAG -> Asset as 0, Income as 1, Expense as 2
+        my $sticky = $row[$i++]; #Sticky to top
 
         if ( $af == 1 ) { #AFLAG Income
             $sum += $am;
@@ -454,7 +454,7 @@ sub buildLog {
             $sub = substr( $log, $idx + 1, $len - $idx - 1 );
             my $url = qq(<a href="$sub" target=_blank>$sub</a>);
             $tagged = 1;
-            $log =~ s/<<LNK<(.*?)>/$url/osi;
+            $log =~ s/<<LNK<(.*?)>+/$url/osi;
         }
 
         if ( $log =~ /<<IMG</ ) {
@@ -463,7 +463,7 @@ sub buildLog {
             $sub = substr( $log, $idx + 1, $len - $idx - 1 );
             my $url = qq(<img src="$sub"/>);
             $tagged = 1;
-            $log =~ s/<<IMG<(.*?)>/$url/osi;
+            $log =~ s/<<IMG<(.*?)>+/$url/osi;
         }
         elsif ( $log =~ /<<FRM</ ) {
             my $idx = $-[0] + 5;
@@ -485,10 +485,9 @@ sub buildLog {
             }
             else {
                 #TODO fetch from web locally the original image.
-                $lnk =
-qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
+                $lnk =qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
             }
-            $log =~ s/<<FRM<(.*?)>/$lnk/o;
+            $log =~ s/<<FRM<(.*?)>+/$lnk/o;
             $tagged = 1;
         }
 
@@ -527,7 +526,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
             my $idx = $-[0];
             my $len = index( $log, '>', $idx ) - 4;
             my $sub = "<b>" . substr( $log, $idx + 4, $len - $idx ) . "</b>";
-            $log =~ s/<<B<(.*?)>/$sub/o;
+            $log =~ s/<<B<(.*?)>+/$sub/o;
             $tagged = 1;
         }
         while ( $log =~ /<<I</ ) {
@@ -535,7 +534,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
             my $len = index( $log, '>', $idx ) - 4;
             last if $len<6;
             my $sub = "<i>" . substr( $log, $idx + 4, $len - $idx ) . "</i>";
-            $log =~ s/<<I<(.*?)>/$sub/o;
+            $log =~ s/<<I<(.*?)>+/$sub/o;
             $tagged = 1;
         }
         while ( $log =~ /<<TITLE</ ) {
@@ -543,7 +542,7 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
             my $len = index( $log, '>', $idx ) - 8;
             last if $len<9;
             my $sub = "<h3>" . substr( $log, $idx + 8, $len - $idx ) . "</h3>";
-            $log =~ s/<<TITLE<(.*?)>/$sub/o;
+            $log =~ s/<<TITLE<(.*?)>+/$sub/o;
             $tagged = 1;
         }
 
@@ -680,13 +679,9 @@ qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
     ##
     #Fetch Keywords autocomplete we go by words larger then three.
     #
-    $st = $db->prepare( 'select LOG from LOG' . $stmE );
     my $aw_cnt    = 0;
     my $autowords = qq("gas","money","today");
-    $rv = $st->execute() or die or die "<p>Error->" & $DBI::errstri & "</p>";
-    if ( $rv < 0 ) {
-        print "<p>Error->" & $DBI::errstri & "</p>";
-    }
+
     &fetchAutocomplete;
 
     if ( $log_rc == 0 ) {
@@ -799,7 +794,7 @@ _TXT
             <a id="srch_close" href="#" onclick="return toggle('#div_srh .collpsd');">$sp2</a>
         </td>
       </tr>
-);
+    );
     my $sss_checked = 'checked' if &isInViewMode;
     my $divxc = '<td id="divxc_lbl" align="right" style="display:none"><b>Excludes:</b></td><td align="left" id="divxc"></td>';
     if(@xc_lst){#Do list of excludes, past from browser in form of category id's.
@@ -860,7 +855,6 @@ _TXT
  #   Page printout from here!   #
 ################################
 
-
 print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
@@ -919,7 +913,7 @@ sub processSubmit {
         my $date = $cgi->param('date');
         my $log  = $cgi->param('log');
         my $cat  = $cgi->param('ec');
-        my $cnt;
+        my $cnt ="";
         my $am = $cgi->param('am');
         my $af = $cgi->param('amf');
 
@@ -928,8 +922,9 @@ sub processSubmit {
         my $view_all  = $cgi->param('rs_all');
         my $rtf    = $cgi->param('rtf');
         my $sticky = $cgi->param('sticky');
+        my $stm;
 
-
+        ##TODO
         if($rtf eq 'on'){$rtf = 1}  else {$rtf = 0}
         if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}
         if(!$am){$am=0}
@@ -942,25 +937,24 @@ try {
 
                 #Update
                 $date = DateTime::Format::SQLite->parse_datetime($date);
-                my $stm = qq( UPDATE LOG SET ID_CAT='$cat',
+                $stm = qq( UPDATE LOG SET ID_CAT='$cat', ID_RTF='$rtf',
                                              DATE='$date',
                                              LOG='$log',
                                              AMOUNT='$am',
                                              AFLAG = '$af',
-                                             RTF='$rtf',
-                                             STICKY='$sticky' WHERE rowid="$edit_mode";);
+                                             STICKY='$sticky' WHERE rowid="$edit_mode";
+                    <br>);
                 #
                 print $stm if $DEBUG;
                 #
 
-                my $dbUpd = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } )  or die "<p>Error->" & $DBI::errstri & "</p>";
-                my $st = $dbUpd->prepare($stm);
-                   $st->execute();
+                my $dbUpd = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } )  or LifeLogException->throw("Execute failed [$DBI::errstri]");
+                traceDBExe($stm);
                 return;
             }
 
             if ( $view_all && $view_all == "1" ) {
-                $rec_limit = 0;
+                $rec_limit = &Settings::viewAllLimit;
             }
 
             if ( $view_mode == "1" ) {
@@ -991,7 +985,7 @@ try {
 
                     }
 
-                    $stmt = qq(SELECT PID, ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1 $sand;);
+                    $str_sql = qq(SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1 $sand;);
                     return;
                 }
             }
@@ -1000,57 +994,39 @@ try {
 
                 #check for double entry
                 #
-                my $stm = qq(SELECT DATE,LOG FROM LOG where DATE='$date' AND LOG='$log';);
-
-                my $st = $db->prepare($stm);
-                $st->execute();
-
+                $date = DateTime::Format::SQLite->parse_datetime($date);
+                $stm = qq(SELECT DATE,LOG FROM LOG where DATE='$date' AND LOG='$log';);
+                my $st = traceDBExe($stm);
                 if ($st->fetchrow_array() ) {
                     return;
                 }
 
-                $stm = qq(INSERT INTO LOG (ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY)
-                        VALUES($cat, '$date', '$log', $am, $af, $rtf, $sticky);
-                        );
-                print "\n###$stm\n" if $DEBUG;
-
-                $st = $db->prepare($stm);
-                $st->execute();
+                $stm = qq(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES($cat, $rtf, '$date', '$log', $am, $af, $sticky););
+                $st = traceDBExe($stm);
                 if($sssCDB){
                     #Allow further new database creation, it is not an login infinite db creation attack.
                     $sss->param("cdb", 0);
                 }
-
                 if($rtf){ #Update 0 ground NOTES entry to the just inserted log.
 
-                   $st = $db->prepare('SELECT ID FROM VW_LOG LIMIT 1;');
-                   $st -> execute();
+                   $st = traceDBExe('SELECT ID FROM VW_LOG LIMIT 1;');
                    my @lid = $st->fetchrow_array();
-                   $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';");
-                   $st -> execute();
+                   $st = traceDBExe('SELECT DOC FROM NOTES WHERE LID = 0;');
                    my @gzero = $st->fetchrow_array();
-
-
                    if(scalar @lid > 0){
             #By Notes.LID constraint, there should NOT be an already existing log rowid entry just submitted in the Notes table!
             #What happened? We must check and delete, regardles. As data is renumerated and shuffled from perl in database. :(
-                      $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = '$lid[0]';");
-                      $st->execute();
+                      $st = traceDBExe("SELECT LID FROM NOTES WHERE LID = '$lid[0]';");
                       if($st->fetchrow_array()){
-                          $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$lid[0]';");
-                          $st->execute();
+                          $st = $db->do("DELETE FROM NOTES WHERE LID = '$lid[0]';");
                           print qq(<p>Warning deleted (possible old) NOTES.LID[$lid[0]] -> lid:@lid</p>);
                       }
                       $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
-                     #
                       $st->execute($lid[0], $gzero[0]);
-
                        #Flatten ground zero
-                       $st = $db->prepare("UPDATE NOTES SET DOC='' WHERE LID = 0;");
-                       $st->execute();
+                      $st = $db->prepare("UPDATE NOTES SET DOC='' WHERE LID = 0;");
+                      $st->execute();
                    }
-
-
                 }
                 #
                 # After Insert renumeration check
@@ -1068,11 +1044,23 @@ try {
 }
  catch {
 
- print "<font color=red><b>ERROR</b></font> -> " . $_;
- print qq(<html><body><pre>Reached2! -> $cnt, $cat, $date, $log, $am, $af, $rtf, $sticky </pre></body></html
-        );
-exit;
-  }
+my $err = $@;
+my $pwd = `pwd`;
+$pwd =~ s/\s*$//;
+
+my $dbg = qq(--DEBUG OUTPUT--\n
+    DSN:$dsn
+    stm:$stm
+    \@DB::args:@DB::args
+    \$DBI::err:$DBI::errstr
+    cnt:$cnt, cat:$cat, date:$date, log:$log, am:$am, af:$af, rtf:$rtf, sticky:$sticky);
+print $cgi->header,
+        "<hr><font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
+        "<hr><pre>$pwd/$0 -> &".caller." -> [<font color=red><b>$DBI::errstr</b></font>] $err\n$dbg</pre>",
+        $cgi->end_html;
+
+    exit;
+}
 }
 
     sub buildNavigationButtons {
@@ -1130,109 +1118,99 @@ exit;
     }
 
 sub authenticate {
-        try {
-
-            my $st = $db->prepare( "SELECT alias FROM AUTH WHERE alias='$userid' and passw='$password';");
-            $st->execute();
-            my @c = $st->fetchrow_array();
-            if (@c && $c[0] eq $userid ) { return; }
-
-            #Check if passw has been wiped for reset?
-            $st = $db->prepare("SELECT * FROM AUTH WHERE alias='$userid';");
-            $st->execute();
-            @c = $st->fetchrow_array();
-            if ( @c && $c[1] == "" ) {
-                #Wiped with -> UPDATE AUTH SET passw='' WHERE alias='$userid';
-                $st = $db->prepare("UPDATE AUTH SET passw='$password' WHERE alias='$userid';");
-                $st->execute();
-                return;
-            }
-
-            print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
-            print $cgi->start_html(
-                -title => "Personal Log Login",
-                -BGCOLOR => $BGCOL,
-                -script =>
-                  { -type => 'text/javascript', -src => 'wsrc/main.js' },
-                -style => { -type => 'text/css', -src => 'wsrc/main.css' },
-            );
-            if($DEBUG){
-                    print $cgi->center(
-                        $cgi->div("<b>Access Denied!</b> alias:$userid pass:$password SQL->SELECT * FROM AUTH WHERE alias='$userid' and passw='$password'; ")
-                    );
-            }
-            else{
-                    print $cgi->center(
-                        $cgi->div('<h2>Sorry Access Denied!</h2><font color=red><b>You supplied wrong credentials.</b></font>'),
-                        $cgi->div('<h3>[<a href="login_ctr.cgi">Login</a>]</h3>')
-                    );
-            }
-            print $cgi->end_html;
-
-            $db->disconnect();
-            $sss->flush();
-            exit;
-
-        }
-        catch {
-            print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
-            print $cgi->p( "ERROR:" . $_ );
-            print $cgi->end_html;
-            exit;
-        }
-}
-
-sub fetchAutocomplete {
     try {
 
-        while ( my @row = $st->fetchrow_array() ) {
-            my $log = $row[0];
+        my $st = traceDBExe("SELECT alias FROM AUTH WHERE alias='$userid' and passw='$password';");
+        my @c = $st->fetchrow_array();
+        if (@c && $c[0] eq $userid ) { return; }
 
-            #Decode escaped \\n
-            $log =~ s/\\n/\n/gs;
-            $log =~ s/''/'/g;
-
-            #Replace link to empty string
-            my @words = split( /($re_a_tag)/si, $log );
-            foreach my $ch_i (@words) {
-                next if $ch_i =~ /$re_a_tag/;
-                next if index( $ch_i, "<img" ) > -1;
-                $ch_i =~ s/https//gsi;
-                $ch_i =~ s/($RE{URI}{HTTP})//gsi;
-            }
-            $log   = join( ' ', @words );
-            @words = split( ' ', $log );
-            foreach my $word (@words) {
-
-                #remove all non alphanumerics
-                $word =~ s/[^a-zA-Z]//gs;
-                if ( length($word) > 2 ) {
-                    $word = lc $word;
-
-                    #parse for already placed words, instead of using an hash.
-                    my $idx = index( $autowords, $word, 0 );
-                    if ( $idx > 0 ) {
-                        my $end = index( $autowords, '"', $idx );
-                        my $existing =
-                            substr( $autowords, $idx, $end - $idx );
-                        next if $word eq $existing;
-                    }
-
-                    $autowords .= qq(,"$word");
-                    if ( $aw_cnt++ > &Settings::autoWordLimit ) {
-                        last;
-                    }
-                }
-            }
-
-            if ( $aw_cnt > &Settings::autoWordLimit ) {
-                last;
-            }
+        #Check if passw has been wiped for reset?
+        $st = traceDBExe("SELECT * FROM AUTH WHERE alias='$userid';");
+        @c = $st->fetchrow_array();
+        if ( @c && $c[1] == "" ) {
+            #Wiped with -> UPDATE AUTH SET passw='' WHERE alias='$userid';
+            $st = traceDBExe("UPDATE AUTH SET passw='$password' WHERE alias='$userid';");
+            return;
         }
+
+        print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
+        print $cgi->start_html(
+            -title => "Personal Log Login",
+            -BGCOLOR => $BGCOL,
+            -script =>
+                { -type => 'text/javascript', -src => 'wsrc/main.js' },
+            -style => { -type => 'text/css', -src => 'wsrc/main.css' },
+        );
+        if($DEBUG){
+                print $cgi->center(
+                    $cgi->div("<b>Access Denied!</b> alias:$userid pass:$password SQL->SELECT * FROM AUTH WHERE alias='$userid' and passw='$password'; ")
+                );
+        }
+        else{
+                print $cgi->center(
+                    $cgi->div('<h2>Sorry Access Denied!</h2><font color=red><b>You supplied wrong credentials.</b></font>'),
+                    $cgi->div('<h3>[<a href="login_ctr.cgi">Login</a>]</h3>')
+                );
+        }
+        print $cgi->end_html;
+
+        $db->disconnect();
+        $sss->flush();
+        exit;
 
     }
     catch {
-        print "<font color=red><b>SERVER ERROR</b></font>:" . $_;
+        print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
+        print $cgi->p( "PAGE ERROR:" . $_ );
+        print $cgi->end_html;
+        exit;
+    }
+}
+
+sub fetchAutocomplete {
+    my $st = traceDBExe('SELECT LOG from LOG' . $stmE );
+    while ( my @row = $st->fetchrow_array() ) {
+        my $log = $row[0];
+
+        #Decode escaped \\n
+        $log =~ s/\\n/\n/gs;
+        $log =~ s/''/'/g;
+
+        #Replace link to empty string
+        my @words = split( /($re_a_tag)/si, $log );
+        foreach my $ch_i (@words) {
+            next if $ch_i =~ /$re_a_tag/;
+            next if index( $ch_i, "<img" ) > -1;
+            $ch_i =~ s/https//gsi;
+            $ch_i =~ s/($RE{URI}{HTTP})//gsi;
+        }
+        $log   = join( ' ', @words );
+        @words = split( ' ', $log );
+        foreach my $word (@words) {
+
+            #remove all non alphanumerics
+            $word =~ s/[^a-zA-Z]//gs;
+            if ( length($word) > 2 ) {
+                $word = lc $word;
+                #parse for already placed words, instead of using an hash.
+                my $idx = index( $autowords, $word, 0 );
+                if ( $idx > 0 ) {
+                    my $end = index( $autowords, '"', $idx );
+                    my $existing =
+                        substr( $autowords, $idx, $end - $idx );
+                    next if $word eq $existing;
+                }
+
+                $autowords .= qq(,"$word");
+                if ( $aw_cnt++ > &Settings::autoWordLimit ) {
+                    last;
+                }
+            }
+        }
+
+        if ( $aw_cnt > &Settings::autoWordLimit ) {
+            last;
+        }
     }
 }
 
@@ -1338,22 +1316,22 @@ return qq(
     for your logs HTML layout.
     </p>
     <p>
-    <b>&#60;&#60;B&#60;<i>{Text To Bold}</i><b>&#62;</b>
+    <b>&#60;&#60;B&#60;<i>{Text To Bold}</i><b>&#62;&#62;</b>
     </p>
     <p>
-    <b>&#60;&#60;I&#60;<i>{Text To Italic}</i><b>&#62;</b>
+    <b>&#60;&#60;I&#60;<i>{Text To Italic}</i><b>&#62;&#62;</b>
     </p>
     <p>
-    <b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;</b>
+    <b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;&#62;</b>
     </p>
     <p>
     <b>&#60;&#60;LIST&#60;<i>{List of items delimited by new line to terminate item or with '~' otherwise.}</i><b>&#62;</b>
     </p>
     <p>
-    <b>&#60;&#60;IMG&#60;<i>{url to image}</i><b>&#62;</b>
+    <b>&#60;&#60;IMG&#60;<i>{url to image}</i><b>&#62;&#62;</b>
     </p>
     <p>
-        <b>&#60;&#60;FRM&#60;<i>{file name}_frm.png}</i><b>&#62;</b><br><br>
+        <b>&#60;&#60;FRM&#60;<i>{file name}_frm.png}</i><b>&#62;&#62;</b><br><br>
         *_frm.png images file pairs are located in the ./images folder of the cgi-bin directory.<br>
         These are manually resized by the user. Next to the original.
         Otherwise considered as stand alone icons. *_frm.png Image resized to ->  width="210" height="120"
@@ -1365,12 +1343,12 @@ return qq(
 
           For log entry, place:
 
-	  &#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;
+	  &#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;&#62;
 	  This is my pet, can you hold him for a week while I am on holiday?
             </pre>
 					</p>
 					<p>
-					<b>&#60;&#60;LNK&#60;<i>{url to image}</i><b>&#62;</b><br><br>
+					<b>&#60;&#60;LNK&#60;<i>{url to image}</i><b>&#62;&#62;</b><br><br>
 					Explicitly tag an URL in the log entry.
 					Required if using in log IMG or FRM tags.
 					Otherwise link appears as plain text.

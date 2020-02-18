@@ -5,8 +5,6 @@
 use strict;
 use warnings;
 #no warnings 'uninitialized';
-
-use Try::Tiny;
 use Switch;
 
 use CGI;
@@ -16,27 +14,22 @@ use DateTime;
 use DateTime::Format::SQLite;
 use Number::Bytes::Human qw(format_bytes);
 use IPC::Run qw( run );
+use Syntax::Keyword::Try;
 
+use lib "system/modules";
+use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
+require Settings;
 
-#SETTINGS HERE!
-my $REC_LIMIT = 25;
-my $TIME_ZONE    = 'Australia/Sydney';
-my $LOG_PATH     = '../../dbLifeLog/';
-my $RELEASE_VER  = "";
-my $THEME        = 0;
-my $TH_CSS       = 'main.css';
-my $DEBUG = 0;
-#END OF SETTINGS
 
 my $cgi = CGI->new;
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>$LOG_PATH});
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
 my $sid=$session->id();
 my $dbname  =$session->param('database');
 my $userid  =$session->param('alias');
 my $password=$session->param('passw');
 
 if(!$userid||!$dbname){
-    if ($DEBUG){
+    if (&Settings::debug){
         $userid ="admin";
         $dbname = "data_admin_log.db";
         $password = "admin";
@@ -46,45 +39,32 @@ if(!$userid||!$dbname){
     exit;
     }
 }
+my $db = "";
 
-my $database = '../../dbLifeLog/' . $dbname;
-my $dsn      = "DBI:SQLite:dbname=$database";
-my $db       = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } ) or die "<p>Error->" & $DBI::errstri & "</p>";
+try{
+
+my $database = &Settings::logPath . $dbname;
 my @stat = stat $database;
+my $dsn      = "DBI:SQLite:dbname=$database";
+$db       = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } );
 
-##################
-&getConfiguration;
-##################
+Settings::getConfiguration($db);
 
 
 my $today = DateTime->now;
-$today->set_time_zone( $TIME_ZONE );
-
-
-my $BGCOL = '#c8fff8';
-if ( $THEME eq 'Sun' ) {
-    $BGCOL = '#D4AF37';
-    $TH_CSS = "main_sun.css";
-}elsif ($THEME eq 'Moon'){
-    $TH_CSS = "main_moon.css";
-    $BGCOL = '#000000';
-
-}elsif ($THEME eq 'Earth'){
-    $TH_CSS = "main_earth.css";
-    $BGCOL = 'green';
-}
+$today->set_time_zone(&Settings::timezone);
 
 $ENV{'HOME'} = "~/";
 
 
 print $cgi->header(-expires=>"+6os", -charset=>"UTF-8");
-print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>"$BGCOL",
+print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>&Settings::bgcol,
                        -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
                                   {-type => 'text/javascript', -src => 'wsrc/jquery.js' },
-                                  { -type => 'text/javascript', -src => 'wsrc/jquery-ui.js' }],
-                       -style => [{-type => 'text/css', -src => "wsrc/$TH_CSS"},
-                                  { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
-                                  { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' }],
+                                  {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js' }],
+                       -style => [{-type => 'text/css', -src => "wsrc/".&Settings::css},
+                                  {-type => 'text/css', -src => 'wsrc/jquery-ui.css' },
+                                  {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' }],
 
                        -onload  => "onBodyLoadGeneric()"
                 );
@@ -140,7 +120,7 @@ my $year =$today->year();
 my $IPPublic  = `curl -s https://www.ifconfig.me`;
 my $IPPrivate = `hostname -I`; $IPPrivate =~ s/\s/<br>/g;
 
-$tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>$RELEASE_VER</td></tr>
+$tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>).&Settings::release.qq(</td></tr>
 	      <tr class="r0"><td>Number of Records:</td><td>$log_rc</td></tr>
           <tr class="r1"><td>No. of Records This Year:</td><td>$log_this_year_rc</td></tr>
           <tr class="r0"><td>No. of RTF Documents:</td><td>$notes_rc</td></tr>
@@ -171,16 +151,27 @@ print qq(
 </div>
 <pre>$processes</pre>);
 print $cgi->end_html;
-my $date = DateTime::Format::SQLite->parse_datetime($today);
-dbExecute(qq(  INSERT INTO LOG (ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY) VALUES(6, '$date', '$syslog', 0, 0, 0, 0); ));
+
+&Settings::toLog($db,$syslog);
 $db->disconnect();
+
+}
+ catch {
+            my $err = $@;
+            my $pwd = `pwd`;
+            $pwd =~ s/\s*$//;
+            print $cgi->header,
+            "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
+            "<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n</pre>",
+            $cgi->end_html;
+ };
+
+
 exit;
 
-sub selectSQL{
-    my ($sth,$ret) = dbExecute( @_ );
-    my @row = $sth->fetchrow_array();
-    $sth->finish;
-    $ret = $row[0];
+sub selectSQL {
+    my @row = Settings::selectRecords($db, shift)->fetchrow_array();
+    my $ret = $row[0];
     $ret = 0 if !$ret;
 return $ret;
 }
@@ -201,27 +192,4 @@ sub camm {
 return $amm;
 }
 
-sub getConfiguration {
-    try{
-        my $st = dbExecute('SELECT ID, NAME, VALUE FROM CONFIG;');
-        while (my @r=$st->fetchrow_array()){
-            switch ($r[1]) {
-                case "RELEASE_VER" { $RELEASE_VER  = $r[2] }
-                case "THEME"       {$THEME= $r[2]}
-            }
-        }
-    }
-    catch{
-        print "<font color=red><b>SERVER ERROR</b></font>:".$_;
-    }
-
-}
-
-sub dbExecute{
-    my $ret	= $db->prepare(shift);
-       $ret->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
-    return $ret;
-}
-
-
-### CGI END
+1.
