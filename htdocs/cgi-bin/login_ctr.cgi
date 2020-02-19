@@ -167,8 +167,7 @@ sub checkCreateTables {
        $today-> set_time_zone( &Settings::timezone );
     my $database = &Settings::logPath.'data_'.$alias.'_log.db';
     my $dsn= "DBI:SQLite:dbname=$database";
-    my $db = DBI->connect($dsn, $alias, $passw, { RaiseError => 1 })
-                    or LifeLogException->throw($DBI::errstri);
+    my $db = DBI->connect($dsn, $alias, $passw, { RaiseError => 1 }) or LifeLogException->throw($DBI::errstri);
     my $rv;
     my $changed = 0;
     # We live check database for available tables now only once.
