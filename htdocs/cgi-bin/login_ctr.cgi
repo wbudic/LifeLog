@@ -54,7 +54,8 @@ try{
         );
 
     my @ht = split(m/\s/,`hostname -I`);
-    my $hst = `hostname` . "($ht[0])";
+    my $hst = "";
+       $hst = `hostname` . "($ht[0])" if (@ht);
 
     $frm = qq(
         <form id="frm_login" action="login_ctr.cgi" method="post"><table border="0" width=").&Settings::pagePrcWidth.qq(%">
@@ -244,8 +245,10 @@ sub checkCreateTables {
                  }
             }
             undef %notes_ids;
-            $changed = 1;
         }
+        #Version change still detected above.
+        #Need to run slow populuate check from config file.
+        $changed = 1;
     }
 
     if(!$hasLogTbl) {
@@ -271,6 +274,7 @@ sub checkCreateTables {
     if(!$curr_tables{'VW_LOG'}) {
         $rv = $db->do(&Settings::createVW_LOGStmt);
     }
+    # TODO
     if(!$curr_tables{'CAT'}) {
         $db->do(&Settings::createCATStmt);
         $changed = 1;
@@ -279,27 +283,22 @@ sub checkCreateTables {
     $changed = 1 if Settings::countRecordsIn($db, 'CAT') == 0;
 
     if(!$curr_tables{'AUTH'}) {
-        $rv = $db->do(&Settings::createAUTHStmt);
+        $db->do(&Settings::createAUTHStmt);
         my $st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?);');
-            $st->execute($alias, $passw,"",0);
+           $st->execute($alias, $passw,"",0);
     }
     #
     # Scratch FTS4 implementation if present.
     #
     if($curr_tables{'NOTES_content'}) {
-        $rv = $db->do('DROP TABLE NOTES;');
-        $rv = $db->do('DROP NOTES_content;');
+        $db->do('DROP TABLE NOTES;');
+        $db->do('DROP NOTES_content;');
         $hasNotesTbl = 0;
     }
     #
     # New Implementation as of 1.5, cross SQLite Database compatible.
     #
-    if(!$hasNotesTbl) {
-        my $stmt = qq(
-            CREATE TABLE NOTES (LID INTEGER PRIMARY KEY NOT NULL, DOC TEXT);
-        );
-        $rv = $db->do($stmt);
-    }
+    if(!$hasNotesTbl) {$db->do(&Settings::createNOTEStmt);}
 
     if($changed){
         #It is also good to run db fix (config page) to renum if this is an release update?
