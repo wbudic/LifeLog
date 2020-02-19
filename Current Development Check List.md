@@ -9,9 +9,14 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
-* &#10004; Sticky rows bg colour, to be a shade different to other normal rows.
-* Login system log and out to be implemented. With system variable $TRACK_LOGINS to disable/enable.
+* New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
+* New CNF Development.
+  * Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
+  * CVS imports/exports are to be made obsolete in the future. It is not safe.
+    * This will be savailable via command line.
 * RTF Documents header lister page, to provide for, new log entry assignment, deletion, edits.
+* &#10004; Sticky rows bg colour, to be a shade different to other normal rows.
+* &#10004; Login system log and out to be implemented. With system variable $TRACK_LOGINS to disable/enable.
 * &#10004;Change all code to use Exceptions as project is becoming hard to manage.
   * The harder it is to foresee possible problems, the less likely you will add unnecessary complexity. -- bud@
 * &#10004; Notes to Log table should be other way in relationship direction.
@@ -20,11 +25,6 @@ This version is not compatible in data structure to prior versions. Data migrati
 * Database backup tar ball 7zipped, upload and download button on config page.
   * You must have the password you logged in to unscramble the backup.
     * Alias -> pass -> backup password. Information required.
-* New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
-* New CNF Development.
-  * Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
-  * CVS imports/exports are to be made obsolete in the future. It is not safe.
-    * This will be savailable via command line.
 * &#10004; In config page Categories section to appear after system settings. As less likelly to be changed.
   * System Configuration section is to be sorted. As in future it is more likelly to grow.
 * &#10004; New system setting, $VIEW_ALL_LMT=1000. To limit view all records displayed on huge databases.
@@ -77,6 +77,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## Bugs
 
 ### v. 1.8 Encountered/Fixed
+
 * Bug 18 - Same day datediff is displaying wrong report in time stack on the page.
 * &#10004; Issue 18 - Setting excludes for views, deliveres page but long delays with server finished exchange (page doesn't hang).
   * The page is server delivered, if sections contain external internet links, this timeouts page browser delivery if the internet is down.

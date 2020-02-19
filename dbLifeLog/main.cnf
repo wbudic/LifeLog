@@ -23,6 +23,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUT
 30|$DEBUG       = 0`Development page additional debug output, off (default) or on.
 32|$KEEP_EXCS   = 0`Cache excludes between sessions, off (default) or on.
 34|$VIEW_ALL_LMT=1000`Limit of all records displayed for large logs. Set to 0, for unlimited.
+36|$TRACK_LOGINS=1`Create system logs on login/logout of Life Log.
 <<CAT<3>
 01|Unspecified `For quick uncategorised entries.
 03|File System `Operating file system/Application short log.

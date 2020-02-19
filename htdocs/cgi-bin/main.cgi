@@ -212,7 +212,7 @@ print $cgi->start_html(
 
 my $st;
 my $str_sqlCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $str_sql    = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY = 1;";
+my $str_sql    = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY = 1 LIMIT ".&Settings::viewAllLimit.";";
 
 print qq(## Using db -> $dsn\n) if $DEBUG;
 
@@ -379,7 +379,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     buildLog(traceDBExe($str_sql));
 
     if(index ($str_sql, 'PID <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
-        $str_sql = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY != 1 ORDER BY DATE DESC;";
+        $str_sql = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY != 1  ORDER BY DATE DESC LIMIT ".&Settings::viewAllLimit.";";
         print $cgi->pre("###2 -> ".$str_sql)  if $DEBUG;
         ;
         &buildLog(traceDBExe($str_sql));
@@ -989,7 +989,7 @@ try {
 
                     }
 
-                    $str_sql = qq(SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1 $sand;);
+                    $str_sql = qq(SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1 $sand)." LIMIT ".&Settings::viewAllLimit.";";
                     return;
                 }
             }

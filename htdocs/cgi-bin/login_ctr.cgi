@@ -114,7 +114,9 @@ sub processSubmit {
                 $session->param('passw', $passw);
                 $session->param('database', 'data_'.$alias.'_log.db');
                 $session->flush();
+                ### To MAIN PAGE
                 print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
+                ###
                 return 1; #activated redirect to main, main will check credentials.
             }
     }
@@ -166,7 +168,7 @@ sub checkCreateTables {
     my $database = &Settings::logPath.'data_'.$alias.'_log.db';
     my $dsn= "DBI:SQLite:dbname=$database";
     my $db = DBI->connect($dsn, $alias, $passw, { RaiseError => 1 })
-                    or die "<p>Error->"& $DBI::errstri &"</p>";
+                    or LifeLogException->throw($DBI::errstri);
     my $rv;
     my $changed = 0;
     # We live check database for available tables now only once.
@@ -330,6 +332,7 @@ sub checkCreateTables {
     else{
         &populate($db);
     }
+    Settings::toLog($db, "Log accessed by $alias.") if(&Settings::trackLogins);
     #
         $db->disconnect();
     #
@@ -443,8 +446,31 @@ return "SELECT name FROM sqlite_master WHERE type='view' AND name='$name';"
 
 sub logout {
 
-    $session->delete();
-    $session->flush();
+    if(&Settings::trackLogins){
+    try{
+        $alias = $session->param('alias');
+        $passw = $session->param('passw');
+        my $database = &Settings::logPath.'data_'.$alias.'_log.db';
+        my $dsn= "DBI:SQLite:dbname=$database";
+        my $db = DBI->connect($dsn, $alias, $passw, { RaiseError => 1 })
+                    or LifeLogException->throw($DBI::errstri);
+        Settings::toLog($db, "Log properly loged out by $alias.");
+        $db->disconnect();
+    }catch{
+        my $err = $@;
+        my $dbg = "" ;
+        my $pwd = `pwd`;
+        $pwd =~ s/\s*$//;
+        $dbg = "--DEBUG OUTPUT--\n$debug" if $debug;
+        print $cgi->header,
+        "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
+        "<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n$dbg</pre>",
+        $cgi->end_html;
+        exit;
+    }
+    }
+
+
     print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
     print $cgi->start_html(-title => "Personal Log Login", -BGCOLOR=>"black",
                            -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
@@ -462,6 +488,11 @@ sub logout {
     );
 
     print $cgi->end_html;
+
+    $session->delete();
+    $session->flush();
+
+
     exit;
 }
 
