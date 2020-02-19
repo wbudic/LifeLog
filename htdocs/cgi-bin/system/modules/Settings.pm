@@ -247,10 +247,15 @@ sub toLog {
     my $stamp = getCurrentSQLTimeStamp();
         if(!$cat){
             my @arr = selectRecords($db,"SELECT ID FROM CAT WHERE NAME LIKE 'System';")->fetchrow_array();
-            $cat = 0 if not @arr;
+            if(@arr){
+                $cat = $arr[0];
+            }
+            else{
+                $cat = 6;
+            }
         }
        $log =~ s/'/''/g;
-       $db->do("INSERT INTO LOG (ID_CAT, DATE, LOG) VALUES(6,'$stamp', \"$log\");");
+       $db->do("INSERT INTO LOG (ID_CAT, DATE, LOG) VALUES($cat,'$stamp', \"$log\");");
 }
 
 sub countRecordsIn {
