@@ -9,6 +9,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
+* Application log needed in the background for System based logs.
 * New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
 * New CNF Development.
   * Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
