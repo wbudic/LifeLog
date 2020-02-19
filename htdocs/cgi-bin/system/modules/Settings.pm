@@ -116,7 +116,7 @@ return qq(
     ) WITHOUT ROWID;
     CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);
 )}
-
+sub createNOTEStmt {return qq(CREATE TABLE NOTES (LID INTEGER PRIMARY KEY NOT NULL, DOC TEXT);)}
 
 sub getConfiguration {
     my $db = shift;
