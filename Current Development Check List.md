@@ -79,7 +79,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v. 1.8 Encountered/Fixed
 
-* Bug 19 - Same day datediff is displaying wrong report in time stack on the page.
+* &#10004; Bug 19 - Same day datediff is displaying wrong report in time stack on the page.
 * &#10004; Issue 18 - Setting excludes for views, deliveres page but long delays with server finished exchange (page doesn't hang).
   * The page is server delivered, if sections contain external internet links, this timeouts page browser delivery if the internet is down.
 * &#10004; Bug 17 - Editing of entries on occasions, duplicates entries.

@@ -6,13 +6,14 @@
 
 use strict;
 use warnings;
-use Try::Tiny;
 use Switch;
 
 
 use CGI;
 use CGI::Session '-ip_match';
 use DBI;
+use Exception::Class ('LifeLogException');
+use Syntax::Keyword::Try;
 
 use DateTime qw();
 use DateTime::Format::SQLite;
@@ -37,14 +38,14 @@ if(!$userid||!$dbname){
 
 my $database = Settings::logPath().$dbname;
 my $dsn= "DBI:SQLite:dbname=$database";
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })  or LifeLogException->throw($DBI::errstri);
 
 #Fetch settings
 my $imgw = 210;
 my $imgh = 120;
 Settings::getConfiguration($db);
 Settings::getTheme();
-
+my $human = DateTime::Format::Human::Duration->new();
 
 
 ### Page specific settings Here
@@ -104,18 +105,21 @@ sub DisplayDateDiffs{
             $stm = $stm." OR ";
         }
     }
-    $stm .= ';';
+    $stm .= ' ORDER BY PID;';
     print $cgi->pre("###[stm:$stm]") if($DEBUG);
     $st = $db->prepare( $stm );
-    $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+    $st->execute();
 
     my ($dt,$dif,$first,$last,$tnext, $dt_prev) = (0,0,0,0,0,$today);
     while(my @row = $st->fetchrow_array()) {
-
-         $dt = DateTime::Format::SQLite->parse_datetime( $row[0] );
+         my $rdat = $row[0];
+         my $rlog = $row[1];
+         $rlog =~ m/\n/;
+         $dt  = DateTime::Format::SQLite->parse_julianday( $rdat );
+         $dt->set_time_zone(&Settings::timezone);
          $dif = dateDiff($dt_prev, $dt);
          $tbl .= '<tr class="r1"><td>'. $dt->ymd . '</td>
-                    </td><td style="text-align:left;">'.$row[1]."</td></tr>".
+                    </td><td style="text-align:left;">'.$rlog."</td></tr>".
                  '<tr class="r0"><td colspan="2">'.$dif.'</td> </tr>';
          $last = $dt_prev;
          $dt_prev = $dt;
@@ -136,18 +140,23 @@ print '<center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</
 
 
 sub dateDiff {
-    my($d1,$d2,$ff)=@_;
-    my $span = DateTime::Format::Human::Duration->new();
-    my $dur = $span->format_duration($d2 - $d1);
-    my $t = "<font color='red'> today </font>";
-       $t = "" if ($d1!=$today);
-return sprintf( "%s <br>between $t $ff %s and %s", $dur, boldDate($d1), boldDate($d2));
+    my($d1,$d2,$ff,$sw)=@_;
+    if($d1->epoch()>$d2->epoch()){
+        $sw = $d1;
+        $d1 = $d2;
+        $d2 = $sw;
+    }else{$sw="";}
+    my $dur = $human->format_duration_between($d1, $d2);
+    my ($t1,$t2) = ("","");
+    $t1 = "<font color='red'> today </font>" if ($d1->ymd() eq $today->ymd());# Notice in perl == can't be used here!
+    $t2 = "<font color='red'> today </font>" if ($d2->ymd() eq $today->ymd());
+return sprintf( "%s <br>between $ff $t1 %s and $t2 %s[%s]", $dur, boldDate($d1), boldDate($d2), $d1->ymd());
 
 }
 
 sub boldDate {
     my($d)=@_;
-return "<b>".$d->ymd."</b> ".$d->hms;
+return "<b>".$d->ymd()."</b> ".$d->hms;
 }
 
 
