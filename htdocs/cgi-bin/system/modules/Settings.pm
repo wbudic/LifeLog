@@ -33,6 +33,7 @@ our $VIEW_ALL_LMT = 1000;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
 our $THEME        = 'Standard';
+our $TRACK_LOGINS = 1;
 our $KEEP_EXCS    = 0;
 
 ### Page specific settings Here
@@ -50,23 +51,24 @@ our $DEBUG         = 1;
 sub new {
     return bless {}, shift;
 }
-sub release        {return $RELEASE_VER;}
-sub logPath        {return $LOG_PATH;}
-sub theme          {return $THEME;}
-sub language       {return $LANGUAGE;}
-sub timezone       {return $TIME_ZONE;}
-sub sessionExprs   {return $SESSN_EXPR;}
-sub imgWidthHeight {return $IMG_W_H;}
-sub pagePrcWidth   {return $PRC_WIDTH;}
-sub frameSize      {return $FRAME_SIZE;}
+sub release        {return $RELEASE_VER}
+sub logPath        {return $LOG_PATH}
+sub theme          {return $THEME}
+sub language       {return $LANGUAGE}
+sub timezone       {return $TIME_ZONE}
+sub sessionExprs   {return $SESSN_EXPR}
+sub imgWidthHeight {return $IMG_W_H}
+sub pagePrcWidth   {return $PRC_WIDTH}
+sub frameSize      {return $FRAME_SIZE}
 sub universalDate  {return $DATE_UNI;}
-sub recordLimit    {return $REC_LIMIT;}
-sub autoWordLimit  {return $AUTO_WRD_LMT;}
-sub viewAllLimit   {return $VIEW_ALL_LMT;}
-sub windowRTFSize  {return $RTF_SIZE;}
-sub keepExcludes   {return $KEEP_EXCS;}
-sub bgcol          {return $BGCOL;}
-sub css            {return $TH_CSS;}
+sub recordLimit    {return $REC_LIMIT}
+sub autoWordLimit  {return $AUTO_WRD_LMT}
+sub viewAllLimit   {return $VIEW_ALL_LMT}
+sub trackLogins    {return $TRACK_LOGINS}
+sub windowRTFSize  {return $RTF_SIZE}
+sub keepExcludes   {return $KEEP_EXCS}
+sub bgcol          {return $BGCOL}
+sub css            {return $TH_CSS}
 sub debug          {my $ret=shift; if($ret){$DEBUG = $ret;}; return $DEBUG;}
 
 sub createCONFIGStmt {
@@ -142,6 +144,7 @@ sub getConfiguration {
                 case "THEME"        { $THEME        = $r[2] }
                 case "DEBUG"        { $DEBUG        = $r[2] }
                 case "KEEP_EXCS"    { $KEEP_EXCS    = $r[2] }
+                case "TRACK_LOGINS" { $TRACK_LOGINS = $r[2] }
             }
 
         }
@@ -208,8 +211,8 @@ sub selectRecords {
                 SettingsException->throw("ERROR Argument number is wrong->db is:$db\n", show_trace=>$DEBUG);
     }
     try{
-                my $pst	= $db->prepare($sql);
-                $pst->execute() or SettingsException->throw("<p>ERROR with->$sql</p>", show_trace=>$DEBUG);
+                my $pst	= $db->prepare($sql) or SettingsException->throw("<p>ERROR with->$sql</p>", show_trace=>$DEBUG);
+                $pst->execute();
                 return 0 if(!$pst);
                 return $pst;
     }catch{
@@ -243,8 +246,8 @@ sub toLog {
     my ($db,$log,$cat) = @_;
     my $stamp = getCurrentSQLTimeStamp();
         if(!$cat){
-            $cat = selectRecords($db,"SELECT ID FROM CAT WHERE name ==  'System Log';")->fetchrow_array();
-            $cat = 0 if not $cat;
+            my @arr = selectRecords($db,"SELECT ID FROM CAT WHERE NAME LIKE 'System';")->fetchrow_array();
+            $cat = 0 if not @arr;
         }
        $log =~ s/'/''/g;
        $db->do("INSERT INTO LOG (ID_CAT, DATE, LOG) VALUES(6,'$stamp', \"$log\");");
