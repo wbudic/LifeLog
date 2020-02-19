@@ -75,10 +75,10 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## Bugs
 
 ### v. 1.8 Encountered/Fixed
-
+* Bug 18 - Same day datediff is displaying wrong report in time stack on the page.
 * &#10004; Issue 18 - Setting excludes for views, deliveres page but long delays with server finished exchange (page doesn't hang).
   * The page is server delivered, if sections contain external internet links, this timeouts page browser delivery if the internet is down.
-* &#10004; Bug 17 - Editimg of entries on occasions, duplicates entries.
+* &#10004; Bug 17 - Editing of entries on occasions, duplicates entries.
 * &#10004; Bug 16 - Saving new log entries with rtf overides previous log entries rtf.
   * Issue 16.1 - Currently importing of records linked to rtf notes is not supported.
 * &#10004; Issue 15 Date diff, showes upside down first range by current date with multiple selections.
