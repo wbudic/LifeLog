@@ -257,7 +257,7 @@ while(my @row = $dbs->fetchrow_array()) {
                    <option$s3>Earth</option>
                 </select>);
         }
-        elsif($n eq "KEEP_EXCS"){
+        elsif($n eq "KEEP_EXCS" or $n eq 'TRACK_LOGINS' or $n eq 'DEBUG'){
             my($l,$u)=("","");
             if($v == 0){
                $l = "SELECTED"
@@ -265,24 +265,12 @@ while(my @row = $dbs->fetchrow_array()) {
             else{
                $u = "SELECTED"
             }
-            $v = qq(<select id="excs" name="var$i">
+            $v = qq(<select id="onoff" name="var$i">
                    <option value="0" $l>Off</option>
                    <option value="1" $u>On</option>
                 </select>);
         }
-        elsif($n eq "DEBUG"){
-            my($l,$u)=("","");
-            if($v == 0){
-               $l = "SELECTED"
-            }
-            else{
-               $u = "SELECTED"
-            }
-            $v = qq(<select id="dbg" name="var$i">
-                   <option value="0" $l>Off</option>
-                   <option value="1" $u>On</option>
-                </select>);
-        }
+
         elsif($n ne "RELEASE_VER"){
              $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
         }
@@ -562,7 +550,6 @@ elsif ($change == 1){
 
 if($change > 1){
 
-
     my $caid  = $cgi->param('caid');
     my $canm  = $cgi->param('canm');
     my $cade  = $cgi->param('cade');
@@ -622,30 +609,30 @@ elsif($chdbfix){
         }
 
 
-       $dbs = $dbs = Settings::selectRecords($db, "SELECT rowid, ID_CAT, DATE, LOG FROM LOG WHERE $sel ORDER BY DATE;" );
+       $dbs = Settings::selectRecords($db, "SELECT rowid, ID_CAT, DATE, LOG FROM LOG WHERE $sel ORDER BY DATE;" );
        while(my @row = $dbs->fetchrow_array()) {
         my $id = $row[0];# rowid
-        my $ct  = $hshCats{$row[1]}; #ID_CAT
-        my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
-        my $log = $row[3];
+            my $ct  = $hshCats{$row[1]}; #ID_CAT
+            my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
+            my $log = $row[3];
 
-        my ( $dty, $dtf ) = $dt->ymd;
-        my $dth = $dt->hms;
-        if ( &Settings::universalDate == 1 ) {
-            $dtf = $dty;
-        }
-        else {
-            $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, &Settings::timezone );
-        }
+            my ( $dty, $dtf ) = $dt->ymd;
+            my $dth = $dt->hms;
+            if ( &Settings::universalDate == 1 ) {
+                $dtf = $dty;
+            }
+            else {
+                $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, &Settings::timezone );
+            }
 
-        $output .= qq(<tr class="r0">
-                <td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
-                <td id="t$id" width="10%" class="tbl">$dth</td>
-                <td id="v$id" class="log" width="40%">$log</td>
-                <td id="c$id" width="10%" class="tbl">$ct</td>
-                <td width="20%">
-                    <input name="chk" type="checkbox" value="$id"/>
-                </td></tr>);
+            $output .= qq(<tr class="r0">
+                    <td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
+                    <td id="t$id" width="10%" class="tbl">$dth</td>
+                    <td id="v$id" class="log" width="40%">$log</td>
+                    <td id="c$id" width="10%" class="tbl">$ct</td>
+                    <td width="20%">
+                        <input name="chk" type="checkbox" value="$id"/>
+                    </td></tr>);
        }#while
        $output .= qq(<td colspan="5" align="right">
         <button onclick="return selectAllLogs()">Select All</button>

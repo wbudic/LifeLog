@@ -326,10 +326,7 @@ sub checkCreateTables {
             &Settings::configProperty($db, 200, '^REL_RENUM',$pv);
             &Settings::configProperty($db, $did>0?$did:0, 'RELEASE_VER', $RELEASE);
             &Settings::toLog($db, "Upgraded Life Log from v.$dnm to v.$RELEASE version, this is the $pv upgrade.") if $pv;
-            &populate($db);
         }
-    }
-    else{
         &populate($db);
     }
     Settings::toLog($db, "Log accessed by $alias.") if(&Settings::trackLogins);
@@ -365,13 +362,12 @@ sub populate {
     foreach my $line (@lines) {
 
                     last if ($line =~ /<MIG<>/);
-                    my @tick = split("`",$line);
 
-                     if( index( $line, '<<CONFIG<' ) == 0 ){$table_type = 0; $inData = 0;}
+                     if( index( $line, '<<CONFIG<' ) == 0 )  {$table_type = 0; $inData = 0;}
                     elsif( index( $line, '<<CAT<' ) == 0 )   {$table_type = 1; $inData = 0;}
                     elsif( index( $line, '<<LOG<' ) == 0 )   {$table_type = 2; $inData = 0;}
                     elsif( index( $line, '<<~MIG<>' ) == 0 ) {next;} #Migration is complex main.cnf might contain SQL alter statements.
-
+                    my @tick = split("`",$line);
                     if( scalar @tick  == 2 ) {
 
                         my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
