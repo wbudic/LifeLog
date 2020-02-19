@@ -19,6 +19,7 @@ use DateTime::Format::SQLite;
 use DateTime::Duration;
 use Date::Language;
 use Text::CSV;
+use Scalar::Util qw(looks_like_number);
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
@@ -945,22 +946,26 @@ sub exportToCSV {
 
 sub importCatCSV {
     my $hndl = $cgi->upload("data_cat");
-    my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
-    while (my $line = <$hndl>) {
-        chomp $line;
-        if ($csv->parse($line)) {
-              my @fields   = $csv->fields();
-            updateCATDB(@fields);
-        }else{
-              warn "Data could not be parsed: $line\n";
-          }
+    my $csv; try{
+       $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
+        while (my $line = <$hndl>) {
+            chomp $line;
+            if ($csv->parse($line)) {
+                my @fields   = $csv->fields();
+                updateCATDB(@fields);
+            }else{
+                warn "Data could not be parsed: $line\n";
+            }
+        }
     }
+    catch{
+        LifeLogException->throw(error=>"Category update failed! CSV_STATUS->".$csv->error_diag()."\nfile_hndl->$hndl",show_trace=>&Settings::debug);
+    };
 }
 
 sub updateCATDB {
     my @fields = @_;
     if(@fields>2){
-    try{
             my $id   = $fields[0];
             my $name = $fields[1];
             my $desc = $fields[2];
@@ -975,62 +980,78 @@ sub updateCATDB {
             else{
                 #TODO Update
             }
-
     }
-    catch{
-        print "<font color=red><b>SERVER ERROR</b>->updateCATDB</font>:".$_;
-    }
+      else{
+         LifeLogException->throw("Invalid CSV data format!");
     }
 }
 
 sub importLogCSV {
     my $hndl = $cgi->upload("data_log");
-    my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
+    my $csv;
+    try{
 
-    while (my $line = <$hndl>) {
-            chomp $line;
-            if ($csv->parse($line)) {
-                  my @fields   = $csv->fields();
-                updateLOGDB(@fields);
-            }else{
-                     warn "Data could not be parsed: $line\n";
-            }
+    $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
+
+        while (my $line = <$hndl>) {
+                chomp $line;
+                if ($csv->parse($line)) {
+                    my @fields   = $csv->fields();
+                    updateLOGDB(@fields);
+                }else{
+                        warn "Data could not be parsed: $line\n";
+                }
+        }
+        &renumerate;
+        $db->disconnect();
+        print $cgi->redirect('main.cgi');
+
     }
-    &renumerate;
-    $db->disconnect();
-    print $cgi->redirect('main.cgi');
+    catch{
+        LifeLogException->throw(error=>"Log update failed! CSV_STATUS->".$csv->error_diag()."\nfile_hndl->$hndl",show_trace=>&Settings::debug);
+    };
     exit;
 }
 
 sub updateLOGDB {
     my @fields = @_;
-    if(@fields>3){
-    try{
-            my $i = 0;
-            my $id_cat = $fields[$i++];
-            my $id_rtf = $fields[$i++];
-            my $date   = $fields[$i++];
-            my $log    = $fields[$i++];
-            my $amv    = $fields[$i++];
-            my $amf    = $fields[$i++];
-            my $sticky = $fields[$i++];
-            my $pdate = DateTime::Format::SQLite->parse_datetime($date);
-            #Check if valid date log entry?
-            if($id_cat==0||$id_cat==""||!$pdate){
-                return;
-            }
-            #is it existing entry?
-            $dbs = Settings::selectRecords($db,"SELECT DATE FROM LOG WHERE DATE is '$pdate';");
-            my @rows = $dbs->fetchrow_array();
-            if(scalar @rows == 0){
-                      $dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?,?)');
-                      $dbs->execute($id_cat, $id_rtf, $pdate, $log, $amv, $amf, $sticky);
-            }
-            $dbs->finish();
+    if(scalar(@fields)>6){
+
+        my $i = 0;
+        my $id_cat = $fields[$i++];
+        my $id_rtf = $fields[$i++];
+        my $date   = $fields[$i++];
+        my $log    = $fields[$i++];
+        my $amv    = $fields[$i++];
+        my $amf    = $fields[$i++];
+        my $sticky = $fields[$i++];
+        # Is it old pre. 1.8 format -> ID, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY
+        if(!looks_like_number($id_rtf)){
+            $i = 0;
+            $id_cat = $fields[$i++];
+            $date   = $fields[$i++];
+            $log    = $fields[$i++];
+            $amv    = $fields[$i++];
+            $amf    = $fields[$i++];
+            $id_rtf = $fields[$i++];
+            $sticky = $fields[$i++];
+        }
+        my $pdate = DateTime::Format::SQLite->parse_datetime($date);
+        #Check if valid date log entry?
+        if($id_cat==0||$id_cat==""||!$pdate){
+            return;
+        }
+        #is it existing entry?
+        $dbs = Settings::selectRecords($db,"SELECT DATE FROM LOG WHERE DATE is '$pdate';");
+        my @rows = $dbs->fetchrow_array();
+        if(scalar @rows == 0){
+                    $dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?,?)');
+                    $dbs->execute($id_cat, $id_rtf, $pdate, $log, $amv, $amf, $sticky);
+        }
+        $dbs->finish();
     }
-    catch{
-        print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
-    }
+    else{
+         LifeLogException->throw("Invalid CSV data format!");
     }
 }
 
@@ -1064,14 +1085,14 @@ sub error {
 sub renumerate {
     #Renumerate Log! Copy into temp. table.
     my $sql;
-    $dbs = Settings::selectRecords($db, "CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
-    $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE RTF == 1 ORDER BY DATE;');
+    $db->do("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
+    $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE ID_RTF >0 ORDER BY DATE;');
     #update  notes with new log id
     while(my @row = $dbs->fetchrow_array()) {
         my $sql_date = $row[1];
         #$sql_date =~ s/T/ /;
         $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
-        $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE RTF = 1 AND DATE = '".$sql_date."';";
+        $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
         $dbs = Settings::selectRecords($db, $sql);
         my @new  = $dbs->fetchrow_array();
         if(scalar @new > 0){
@@ -1085,20 +1106,11 @@ sub renumerate {
     while(my @row = $dbs->fetchrow_array()) {
         $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
     }
-    $dbs = Settings::selectRecords($db, 'DROP TABLE LOG;');
-    $dbs = Settings::selectRecords($db, qq(CREATE TABLE LOG (
-                            ID_CAT TINY        NOT NULL,
-                            DATE   DATETIME    NOT NULL,
-                            LOG    VCHAR (128) NOT NULL,
-                            AMOUNT INTEGER,
-                            AFLAG TINY DEFAULT 0,
-                            RTF BOOL DEFAULT 0,
-                            STICKY BOOL DEFAULT 0
-                            );));
-    $dbs = Settings::selectRecords($db, 'INSERT INTO LOG (ID_CAT,DATE,LOG,AMOUNT,AFLAG, RTF)
-                                    SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF
-                                    FROM life_log_temp_table ORDER by DATE;');
-    $dbs = Settings::selectRecords($db, 'DROP TABLE life_log_temp_table;');
+    $db->do('DROP TABLE LOG;');
+    $db->do(&Settings::createLOGStmt);
+    $db->do(q(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT,AFLAG)
+                    SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG FROM life_log_temp_table ORDER by DATE;));
+    $db->do('DROP TABLE life_log_temp_table;');
 }
 
 1;
