@@ -158,7 +158,7 @@ sub getTheme {
         switch ($THEME){
             case "Sun"   { $BGCOL = '#D4AF37'; $TH_CSS = "main_sun.css"; }
             case "Moon"  { $BGCOL = '#000000'; $TH_CSS = "main_moon.css"; }
-            case "Earth" { $BGCOL = '#26be54'; $TH_CSS = "main_earth.css"; }
+            case "Earth" { $BGCOL = '#26ac0c'; $TH_CSS = "main_earth.css";} # Used to be $BGCOL = '#26be54';
             else{
                 # Standard;
                 $BGCOL    = '#c8fff8';

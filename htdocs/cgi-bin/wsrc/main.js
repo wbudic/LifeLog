@@ -893,8 +893,7 @@ function setPageSessionTimer(expires) {
                 var sec = ((dif % 60000) / 1000).toFixed(0);
                 var out = (min < 10 ? '0' : '') + min + ":" + (sec < 10 ? '0' : '') + sec;
                 var tim = new moment().tz(TIMEZONE).format("hh:mm:ss a");
-                $("#sss_status").html("Current Time:" + tim + " Session expires in " + out);
-                //$("#sss_status").html(" Session expires  " + timeout.from(now));//timeout.format("ddd, hA, HH:mm:ss"));
+                $("#sss_status").html("<font size='1px'>[" + tim + "]</font> Session expires in " + out);
                 if(now.isAfter(timeout)){
                     $("#sss_status").html("<span id='sss_expired'><a href='login_ctr.cgi'>Page Session has Expired!</a></span>");
                     clearInterval(timer);

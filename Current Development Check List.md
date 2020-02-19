@@ -9,6 +9,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
+* &#10004; Sticky rows bg colour, to be a shade different to other normal rows.
 * Login system log and out to be implemented. With system variable $TRACK_LOGINS to disable/enable.
 * RTF Documents header lister page, to provide for, new log entry assignment, deletion, edits.
 * &#10004;Change all code to use Exceptions as project is becoming hard to manage.
@@ -56,7 +57,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Planned New Possible Features of Minor Relevance
 
-* Make session timeot sub page page aware via JSON.
+* Make session timeot sub pages aware via JSON.
+* Multiple category assignment table (set via hashtags and end of a post).
 * Log cards Export/Import. Send log entries via email or USB, why not?
 * Provide sub alias login that sets data visible to only a set of categories.
   * View specific based login on a different password.

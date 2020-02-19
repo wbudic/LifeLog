@@ -56,12 +56,33 @@ th,
     border-right: 1px solid black;
     vertical-align: top;
 }
-
 .r1 {
-    background-color: #CFB53B;
+    background-color: #FFEA00;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
+}
+.r2 {
+    background-color: #ffdd44;
+    border: 1px solid black;
+    border-right: 1px solid black;
+    vertical-align: top;
+}
+.r3 {
+    background-color: #ffcf35;
+    border: 1px solid black;
+    border-right: 1px solid black;
+    vertical-align: top;
+}
+
+.rz {
+    border: 1px solid black;
+    text-align: left;
+    background-color: #D4AF37 vertical-align: top;
+    align-self: baseline;
+    height: auto;
+    padding: 2%;
+    margin: 0px auto;
 }
 
 .hdr {
@@ -93,15 +114,7 @@ th,
     padding-left: 5px;
 }
 
-.rz {
-    border: 1px solid black;
-    text-align: left;
-    background-color: #D4AF37 vertical-align: top;
-    align-self: baseline;
-    height: auto;
-    padding: 2%;
-    margin: 0px auto;
-}
+
 
 div#rz {
     border: 1px solid black;
@@ -237,5 +250,5 @@ img {
  font-size: large;
  font-style: normal;
  font-weight: bold;
- color:crimson; 
+ color:crimson;
 }

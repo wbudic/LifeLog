@@ -436,7 +436,7 @@ sub buildLog {
         if ( $log_rc_prev == 0 ) {
             $log_rc_prev = $id;
         }
-        if ( $tfId == 1 ) {
+        if ( $tfId > 0) {
             $tfId = 0;
         }
         else {
@@ -622,9 +622,13 @@ sub buildLog {
         }
 
         my $ssymb = "Edit";
-        $ssymb = "Edit &#10037;" if $sticky;
+        my $ssid  = $tfId;
+        if ($sticky){
+            $ssymb = "Edit &#10037;";
+            $ssid = $tfId + 2;
+        }
 
-        $log_output .= qq(<tr class="r$tfId">
+        $log_output .= qq(<tr class="r$ssid">
 		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
 		<td id="t$id" width="10%" class="tbl">$dth</td>
 		<td id="v$id" class="log" width="40%">$log</td>

@@ -1,7 +1,7 @@
 p {
     font-family: Bookman;
     margin-left: 70px;
-    font-weight: bold;    
+    font-weight: bold;
 }
 pre{
     color: #d8d8d8;
@@ -21,8 +21,8 @@ td {
 div {
     font-family: Bookman;
     text-align: center;
-    vertical-align: middle; 
-    color: #d8d8d8;  
+    vertical-align: middle;
+    color: #d8d8d8;
 }
 
 #div_srh {
@@ -42,7 +42,7 @@ th,
     padding-bottom: 5px;
     padding-left: 5px;
     margin-bottom: 0px;
-    margin-top: 5px;    
+    margin-top: 5px;
 }
 
 .tbl_rem {
@@ -62,12 +62,45 @@ th,
     border-right: 1px solid white;
     vertical-align: top;
 }
-
 .r1 {
     background-color: #272626;
     border: 1px solid white;
     border-right: 1px solid white;
     vertical-align: top;
+}
+.r2 {
+    background-color: #636969;
+    border: 1px solid white;
+    border-right: 1px solid white;
+    vertical-align: top;
+}
+.r3 {
+    background-color: #918383;
+    border: 1px solid white;
+    border-right: 1px solid white;
+    vertical-align: top;
+}
+.rz {
+    border: 1px solid white;
+    text-align: left;
+    background-color: #363531;
+    color: #cfcfe6;
+    vertical-align: top;
+    align-self: baseline;
+    height: auto;
+    margin: 0px auto;
+    padding:10px;
+}
+div#rz {
+    border: 1px solid white;
+    text-align: left;
+    background-color:#363531;
+    color:#f3f0e6;
+    vertical-align: top;
+    align-self: baseline;
+    height: auto;
+    padding: 2px;
+    margin: 0px auto;
 }
 
 .hdr {
@@ -97,30 +130,6 @@ th,
     text-align: left;
     word-wrap: break-word;
     padding-left: 5px;
-}
-
-.rz {
-    border: 1px solid white;
-    text-align: left;
-    background-color: #363531;
-    color: #cfcfe6;
-    vertical-align: top;
-    align-self: baseline;
-    height: auto;    
-    margin: 0px auto;
-    padding:10px;
-}
-
-div#rz {
-    border: 1px solid white;
-    text-align: left;
-    background-color:#363531;
-    color:#f3f0e6;
-    vertical-align: top;
-    align-self: baseline;
-    height: auto;
-    padding: 2px;
-    margin: 0px auto;
 }
 
 #tag_FRM {
@@ -153,7 +162,7 @@ img {
     margin: 0;
     border: 2px solid #9bb6c3;
     padding: 5px;
-    text-align: center;    
+    text-align: center;
     margin-left: 90%;
     color: white;
     background-color: #363531;

@@ -51,17 +51,38 @@ th,
 }
 
 .r0 {
-    background-color: #e46331;
+    background-color: #d1663c;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
 }
-
 .r1 {
     background-color: #a5682f;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
+}
+.r2 {
+    background-color: #e97f56;
+    border: 1px solid black;
+    border-right: 1px solid black;
+    vertical-align: top;
+}
+.r3 {
+    background-color: #ee9440;
+    border: 1px solid black;
+    border-right: 1px solid black;
+    vertical-align: top;
+}
+.rz {
+    border: 1px solid black;
+    text-align: left;
+    background-color: #4d9b46;
+    vertical-align: top;
+    align-self: baseline;
+    height: auto;
+    padding: 2%;
+    margin: 0px auto;
 }
 
 .hdr {
@@ -93,21 +114,10 @@ th,
     padding-left: 5px;
 }
 
-.rz {
-    border: 1px solid black;
-    text-align: left;
-    background-color: #118107;
-    vertical-align: top;
-    align-self: baseline;
-    height: auto;
-    padding: 2%;
-    margin: 0px auto;
-}
-
 div#rz {
     border: 1px solid black;
     text-align: left;
-    background-color: #08fa08;
+    background-color: #6ed16e;
     vertical-align: top;
     align-self: baseline;
     height: auto;
@@ -142,7 +152,7 @@ img {
     position: fixed;
     float: left;
     margin: 0;
-    border: 2px solid #118107;
+    border: 2px solid #23771c;
     padding: 5px;
     text-align: center;
     background: #c28a4a;
@@ -162,7 +172,7 @@ img {
 .ui-button,
 .ui-button-text .ui-button {
     font-size: 12px !important;
-    background: #b5e7a1 !important;    
+    background: #b5e7a1 !important;
 }
 
 .ui-menu {
@@ -211,12 +221,12 @@ img {
     max-height: 480px;
     border-top: 1px solid gray;
     border-right: 1px solid gray;
-    background-color: #118107;
+    background-color: #40ad36;
 }
 
 #toolbar-container {
     border: 1px solid black;
-    background-color: #118107;
+    background-color: #40ad36;
     margin-bottom: 3px;
 }
 
