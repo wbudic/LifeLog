@@ -9,16 +9,21 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
+* Login system log and out to be implemented. With system variable $TRACK_LOGINS to disable/enable.
+* RTF Documents header lister page, to provide for, new log entry assignment, deletion, edits.
 * &#10004;Change all code to use Exceptions as project is becoming hard to manage.
   * The harder it is to foresee possible problems, the less likely you will add unnecessary complexity. -- bud@
 * &#10004; Notes to Log table should be other way in relationship direction.
   * LOG.ID_RTF -> NOTES.rowid
   * This is currently causing problems when the log renumerates, or entries are imported.
-* Database backup tar ball, download button on config page.
+* Database backup tar ball 7zipped, upload and download button on config page.
+  * You must have the password you logged in to unscramble the backup.
+    * Alias -> pass -> backup password. Information required.
 * New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
 * New CNF Development.
   * Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
-  * CVS imports are to be made obsolete in the future.
+  * CVS imports/exports are to be made obsolete in the future. It is not safe.
+    * This will be savailable via command line.
 * &#10004; In config page Categories section to appear after system settings. As less likelly to be changed.
   * System Configuration section is to be sorted. As in future it is more likelly to grow.
 * &#10004; New system setting, $VIEW_ALL_LMT=1000. To limit view all records displayed on huge databases.
@@ -51,6 +56,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Planned New Possible Features of Minor Relevance
 
+* Make session timeot sub page page aware via JSON.
+* Log cards Export/Import. Send log entries via email or USB, why not?
 * Provide sub alias login that sets data visible to only a set of categories.
   * View specific based login on a different password.
 * &#10004; Table sort in config system settings by variable name.
