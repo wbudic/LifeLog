@@ -1,6 +1,8 @@
 .vscode
 .vstags
 log/thttpd.log
+*.log
+*.pid
 thttpd-2.29/
 thttpd-2.29/*
 startDevWebServer.sh
