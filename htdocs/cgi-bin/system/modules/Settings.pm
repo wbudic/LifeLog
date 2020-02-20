@@ -246,7 +246,7 @@ sub toLog {
     my ($db,$log,$cat) = @_;
     my $stamp = getCurrentSQLTimeStamp();
         if(!$cat){
-            my @arr = selectRecords($db,"SELECT ID FROM CAT WHERE NAME LIKE 'System';")->fetchrow_array();
+            my @arr = selectRecords($db,"SELECT ID FROM CAT WHERE NAME LIKE 'System Log' or NAME LIKE 'System';")->fetchrow_array();
             if(@arr){
                 $cat = $arr[0];
             }
