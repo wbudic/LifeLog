@@ -279,6 +279,10 @@ sub checkCreateTables {
     if(!$curr_tables{'CAT'}) {
         $db->do(&Settings::createCATStmt);
         $changed = 1;
+    }else{
+        # If empty something happened to it. It shouldn't be EMPTY!
+        my @ret=Settings::selectRecords($db, "SELECT count(0) from CAT;")->fetchrow_array();
+        $changed = 1 if (!$ret[0]);
     }
     #Have cats been wiped out?
     $changed = 1 if Settings::countRecordsIn($db, 'CAT') == 0;
@@ -348,7 +352,7 @@ sub populate {
     my $err = "";
     my %vars = ();
     my @lines;
-    my $table_type = 0;
+    my $ttype = 0;
 
     open(my $fh, "<:perlio", &Settings::logPath.'main.cnf' ) or die "Can't open main.cnf: $!";
     read $fh, my $content, -s $fh;
@@ -357,14 +361,14 @@ sub populate {
 
     my $insConfig = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
     my $insCat    = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
-                        $db->begin_work();
+                    $db->begin_work();
     foreach my $line (@lines) {
 
                     last if ($line =~ /<MIG<>/);
 
-                     if( index( $line, '<<CONFIG<' ) == 0 )  {$table_type = 0; $inData = 0;}
-                    elsif( index( $line, '<<CAT<' ) == 0 )   {$table_type = 1; $inData = 0;}
-                    elsif( index( $line, '<<LOG<' ) == 0 )   {$table_type = 2; $inData = 0;}
+                     if( index( $line, '<<CONFIG<' ) == 0 )  {$ttype = 0; $inData = 0;}
+                    elsif( index( $line, '<<CAT<' ) == 0 )   {$ttype = 1; $inData = 0;}
+                    elsif( index( $line, '<<LOG<' ) == 0 )   {$ttype = 2; $inData = 0;}
                     elsif( index( $line, '<<~MIG<>' ) == 0 ) {next;} #Migration is complex main.cnf might contain SQL alter statements.
                     my @tick = split("`",$line);
                     if( scalar @tick  == 2 ) {
@@ -395,10 +399,10 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
 
                                                 }#rof
                                     }
-                                    elsif($table_type==0){
+                                    elsif($ttype==0){
                                                         $err .= "Invalid, spec'd entry -> $line\n";
-                                    }elsif($table_type==1){
-                                                            my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+)]g;
+                                    }elsif($ttype==1){
+                                                            my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+\s*\S*)]g;
                                                             if ( scalar(@pair)==2 ) {
                                                                     my $st = $db->prepare("SELECT ID FROM CAT WHERE NAME LIKE '$pair[1]';");
                                                                         $st->execute();
@@ -410,7 +414,7 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
                                                             else {
 $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
                                                             }
-                                    }elsif($table_type==2){
+                                    }elsif($ttype==2){
                                             #TODO Do we really want this?
                                     }
                     }elsif($inData && length($line)>0){
@@ -424,7 +428,7 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
 
                     }
         }
-    die "Configuration script ".&Settings::logPath."/main.cnf [$fh] contains errors." if $err;
+    LifeLogException->throw(error=>"Configuration script ".&Settings::logPath."/main.cnf [$fh] contains errors. Err:$err", show_trace=>1) if $err;
     $db->commit();
 }
 
