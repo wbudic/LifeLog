@@ -751,7 +751,7 @@ try{
 
         $db->do('COMMIT;');
         $db->disconnect();
-        $db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+        $db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or LifeLogException->throw($DBI::errstri);
         $dbs = $db->do("VACUUM;");
 
 
@@ -763,7 +763,7 @@ try{
 }
 catch{
     $db->do('ROLLBACK;');
-    die qq(@&processDBFix error -> $_ with statement->$sql for $date update counter:$cntr_upd);
+    LifeLogException->throw(error=>qq(@&processDBFix error -> $_ with statement->[$sql] for $date update counter:$cntr_upd \nERROR->$@),show_trace=>1);
 }
 }
 
