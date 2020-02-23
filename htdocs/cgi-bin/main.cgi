@@ -233,41 +233,13 @@ print qq(## Using db -> $dsn\n) if $DEBUG;
 $st = $db->prepare($sqlCAT);
 $st->execute() or LifeLogException->throw($DBI::errstri);
 
-my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec"
- onFocus="show('#cat_desc');"
- onBlur="helpSelCategory(this);"
- onScroll="helpSelCategory(this);updateSelCategory(this)"
- onChange="updateSelCategory(this)">
- <option value="0">---</option>\n);
 my %hshCats;
 my %hshDesc = {};
 my $c_sel   = 1;
-my $cats_v  = $cats;
-my $cats_x  = $cats;
 my $data_cats = "";
 my $td_cat = "<tr><td><ul>";
 my $td_itm_cnt =0;
-$cats_v =~ s/\"ec\"/\"vc\"/g;
-$cats_x =~ s/\"ec\"/\"xc\"/g;
 while ( my @row = $st->fetchrow_array() ) {
-    if ( $row[0] == $c_sel ) {
-        $cats .= qq(<option selected value="$row[0]">$row[1]</option>\n);
-    }
-    else {
-        $cats .= qq(<option value="$row[0]">$row[1]</option>\n);
-    }
-    if ( $row[0] == $prm_vc ) {
-        $cats_v .= qq(<option selected value="$row[0]">$row[1]</option>\n);
-    }
-    else {
-        $cats_v .= qq(<option value="$row[0]">$row[1]</option>\n);
-    }
-    if ( $row[0] == $prm_xc ) {
-        $cats_x .= qq(<option selected value="$row[0]">$row[1]</option>\n);
-    }
-    else {
-        $cats_x .= qq(<option value="$row[0]">$row[1]</option>\n);
-    }
     my $n = $row[1];
     $n =~ s/\s*$//g;
     $hshCats{$row[0]} = $n;
@@ -286,9 +258,7 @@ if($td_itm_cnt<5){#fill spacing.
     }
 }
 $td_cat .= "</ul></td></tr>";
-$cats   .= '</select>';
-$cats_v .= '</select>';
-$cats_x .= '</select>';
+
 
 for my $key ( keys %hshDesc ) {
     my $kv = $hshDesc{$key};
@@ -843,6 +813,12 @@ _TXT
     );
     my $sss_checked = 'checked' if &isInViewMode;
     my $divxc = '<td id="divxc_lbl" align="right" style="display:none"><b>Excludes:</b></td><td align="left" id="divxc"></td>';
+    my ($catselected, $idx_cat) =  '<i><font size=1>-- Select --</font></i>', 0;
+    if($rs_cat_idx){
+        $catselected = $hshCats{$rs_cat_idx};
+        $idx_cat = $rs_cat_idx;
+
+    }
     if(@xc_lst){#Do list of excludes, past from browser in form of category id's.
         my $xcls ="";
         foreach(@xc_lst){ $xcls .= $hshCats{$_}.','}
@@ -855,7 +831,7 @@ _TXT
      <td align="right"><b>View by Category:</b></td>
      <td align="left">
 
-                 <span id="lcat_v" class="span_cat"><i><font size=1>--Select --</font></i></span>
+                 <span id="lcat_v" class="span_cat">$catselected</span>
                  <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
 
             <div id="dropdown-standard-v" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
@@ -864,7 +840,7 @@ _TXT
      <!--
     \$cats_v&nbsp;&nbsp;   -->
         <button id="btn_cat" onclick="viewByCategory(this);">View</button>
-        <input id="idx_cat" name="category" type="hidden" value="0"/>
+        <input id="idx_cat" name="category" type="hidden" value="$idx_cat"/>
      </td>
    </tr>
    <tr class="collpsd">
