@@ -202,6 +202,7 @@ sub checkCreateTables {
     #
     if($hasLogTbl && $DEF_VERSION > $DB_VERSION && $DB_VERSION < 1.8){
         # We must upgrade now. If existing LOG table is now invalid old version containing boolean RTF.
+        Settings::debug(1);
         my @names = @{Settings::getTableColumnNames($db, 'LOG')};
         #perl 5.28+ <--
         #if ( 'RTF' ~~ @names ) {
