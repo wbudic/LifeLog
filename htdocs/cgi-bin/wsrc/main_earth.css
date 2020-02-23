@@ -137,15 +137,26 @@ img {
     padding: 0 10px
 }
 
+
 #cat_desc {
     position: absolute;
     border: 2px solid #7a3d03;
     padding: 5px;
     text-align: center;
     background: #c28a4a;
-    margin-top: 15px;
+
+    margin-top: 20px;
+    margin-left: 200px;
     width: 280px;
     text-decoration-style: wavy;
+
+}
+.span_cat {
+    border:1px solid #7a3d03;
+    border-style: outset;
+    padding: 2px;
+    padding-right: 5px;
+    width: 180px;
 }
 
 #menu {

@@ -10,7 +10,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 ### v.1.7 Encountered
 
 * Application log needed in the background for System based logs.
-* New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
+* &#10004; New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
 * New CNF Development.
   * Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
   * CVS imports/exports are to be made obsolete in the future. It is not safe.
@@ -58,6 +58,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Planned New Possible Features of Minor Relevance
 
+* Fit to page log. Making log subpage scrollable rather than whole page to see the bottom.
 * Make session timeot sub pages aware via JSON.
 * Multiple category assignment table (set via hashtags and end of a post).
 * Log cards Export/Import. Send log entries via email or USB, why not?

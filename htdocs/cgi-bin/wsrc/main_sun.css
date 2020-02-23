@@ -139,16 +139,27 @@ img {
     padding: 0 10px
 }
 
+
 #cat_desc {
     position: absolute;
     border: 2px solid black;
     padding: 5px;
     text-align: center;
     background: #D4AF37;
-    margin-top: 15px;
+    margin-top: 20px;
+    margin-left: 200px;
     width: 280px;
     text-decoration-style: wavy;
+
 }
+.span_cat {
+    border:1px solid #b2f8ef;
+    border-style: outset;
+    padding: 2px;
+    padding-right: 5px;
+    width: 180px;
+}
+
 
 #menu {
     position: fixed;

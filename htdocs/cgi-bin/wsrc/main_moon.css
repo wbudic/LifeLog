@@ -151,9 +151,18 @@ img {
     text-align: center;
     background: #0f0f0f;
     color: #d8d8d8;
-    margin-top: 15px;
+    margin-top: 20px;
+    margin-left: 200px;
     width: 280px;
     text-decoration-style: wavy;
+
+}
+.span_cat {
+    border:1px solid #9bb6c3;
+    border-style: outset;
+    padding: 2px;
+    padding-right: 5px;
+    width: 180px;
 }
 
 #menu {

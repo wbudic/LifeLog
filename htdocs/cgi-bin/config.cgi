@@ -128,7 +128,7 @@ my  $frmCats = qq(
         </tr>
       <tr class="r1">
          <td colspan="2"><a href="#bottom">&#x21A1;</a>&nbsp;&nbsp;&nbsp;<input type="submit" value="Add New Category First" onclick="return submitNewCategory()"/> or <input type="submit" value="Change"/></td>
-         <td colspan="1" align="right"><b>Categories Configuration In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
+         <td colspan="1" align="right"><b>Categories Configuration In -> $dbname</b>&nbsp;<input type="submit" value="Change" onclick="return checkConfigCatsChange()"/></td>
         </tr>
         <tr class="r1">
           <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font>
@@ -1054,7 +1054,7 @@ sub cats {
 
 
 sub error {
-    my $url = $cgi->url();
+    my $url = $cgi->url(-path_info => 1);
     print qq(<h2>Sorry Encountered Errors</h2><p>Page -> $url</p><p>$ERROR</p>);
     print qq(<h3>CGI Parameters</h3>);
     print "<ol>\n";

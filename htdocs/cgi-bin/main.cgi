@@ -84,8 +84,9 @@ my $lang  = Date::Language->new(Settings::language());
 my $today = DateTime->now;
    $today -> set_time_zone(Settings::timezone());
 
-#Excludes can be now set as permanent to page view excluded, visible if view searched.
+#Excludes can be now be set as permanent to page view excluded, visible if view searched.
 #http://localhost:8080/cgi-bin/main.cgi?vc=0&category=0&xc=0&idx_cat_x=0&v_from=&v_to=&keywords=&srch_reset=0
+
 if(!$prm_vc && &Settings::keepExcludes){
     if($prm_xc_lst){
         &Settings::configProperty($db, 201, '^EXCLUDES', $prm_xc_lst);
@@ -94,6 +95,10 @@ if(!$prm_vc && &Settings::keepExcludes){
        $prm_xc_lst = &Settings::obtainProperty($db, '^EXCLUDES');
        $prm_xc = $prm_xc_lst if (!$prm_xc && !$cgi->param('srch_reset'));
     }
+}
+elsif(!$prm_xc && $prm_xc_lst){
+#view call only
+    $prm_xc = $prm_xc_lst;
 }
 
 if ( !$rs_dat_to && $rs_dat_from ) {
@@ -145,6 +150,13 @@ if($prm_xc){
        $prm_xc = $sss->param('sss_xc');
 }
 
+
+
+#TODO (2020-02-23) It gets too complicated. should not have both $prm_xc and $prm_xc_lst;
+       if(!$prm_xc_lst && index($prm_xc, ',') > 0){
+           $prm_xc_lst =  $prm_xc;
+       }
+##
 my @xc_lst = split /\,/, $prm_xc_lst;
 
 
@@ -183,6 +195,7 @@ print $cgi->start_html(
         { -type => 'text/css', -src => 'wsrc/quill/katex.min.css' },
         { -type => 'text/css', -src => 'wsrc/quill/monokai-sublime.min.css' },
         { -type => 'text/css', -src => 'wsrc/quill/quill.snow.css' },
+        { -type => 'text/css', -src => 'wsrc/jquery.sweet-dropdown.css' },
 
     ],
     -script => [
@@ -205,18 +218,19 @@ print $cgi->start_html(
         { -type => 'text/javascript', -src => 'wsrc/jscolor.js' },
         { -type => 'text/javascript', -src => 'wsrc/moment.js' },
         { -type => 'text/javascript', -src => 'wsrc/moment-timezone-with-data.js' },
+        { -type => 'text/javascript', -src => 'wsrc/jquery.sweet-dropdown.js'}
 
     ],
 );
 
 
 my $st;
-my $str_sqlCat = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $str_sql    = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY = 1 LIMIT ".&Settings::viewAllLimit.";";
+my $sqlCAT = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
+my $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY = 1 LIMIT ".&Settings::viewAllLimit.";";
 
 print qq(## Using db -> $dsn\n) if $DEBUG;
 
-$st = $db->prepare($str_sqlCat);
+$st = $db->prepare($sqlCAT);
 $st->execute() or LifeLogException->throw($DBI::errstri);
 
 my $cats = qq(<select   class="ui-widget-content" id="ec" name="ec"
@@ -230,7 +244,9 @@ my %hshDesc = {};
 my $c_sel   = 1;
 my $cats_v  = $cats;
 my $cats_x  = $cats;
-my $cat_desc = "";
+my $data_cats = "";
+my $td_cat = "<tr><td><ul>";
+my $td_itm_cnt =0;
 $cats_v =~ s/\"ec\"/\"vc\"/g;
 $cats_x =~ s/\"ec\"/\"xc\"/g;
 while ( my @row = $st->fetchrow_array() ) {
@@ -252,18 +268,33 @@ while ( my @row = $st->fetchrow_array() ) {
     else {
         $cats_x .= qq(<option value="$row[0]">$row[1]</option>\n);
     }
-    $hshCats{ $row[0] } = $row[1];
-    $hshDesc{ $row[0] } = $row[2];
-}
+    my $n = $row[1];
+    $n =~ s/\s*$//g;
+    $hshCats{$row[0]} = $n;
+    $hshDesc{$row[0]} = $row[2];
+    if($td_itm_cnt>4){
+        $td_cat .= "</ul></td><td><ul>";
+        $td_itm_cnt = 0;
+    }
+    $td_cat .= "<li id='$row[0]'><a href='#'>$row[1]</a></li>";
+    $td_itm_cnt++;
 
-$cats .= '</select>';
+}
+if($td_itm_cnt<5){#fill spacing.
+    for (my $i=0;$i<5-$td_itm_cnt;$i++){
+        $td_cat .= "<li><a href='#'></a>&nbsp;</li>";
+    }
+}
+$td_cat .= "</ul></td></tr>";
+$cats   .= '</select>';
 $cats_v .= '</select>';
 $cats_x .= '</select>';
 
 for my $key ( keys %hshDesc ) {
     my $kv = $hshDesc{$key};
-    if ( $kv ne ".." ) {
-        $cat_desc .= qq(<li id="$key">$kv</li>\n);
+    if ( $kv ne ".." && index($key,'HASH(0x')!=0) {
+        my $n = $hshCats{$key};
+        $data_cats .= qq(<meta id="$key" name="$n" content="$kv">\n);
     }
 }
 my $log_output =
@@ -308,16 +339,16 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
                     $stmS = $stmS . " OR ";
                 }
             }
-            $str_sql = $stmS . $stmE;
+            $sqlVWL = $stmS . $stmE;
         }
     }
     elsif ($rs_cat_idx && $rs_cat_idx != $prm_xc) {
 
         if ($stmD) {
-            $str_sql = $stmS . $stmD . " AND ID_CAT='" . $rs_cat_idx . "'" . $stmE;
+            $sqlVWL = $stmS . $stmD . " AND ID_CAT='" . $rs_cat_idx . "'" . $stmE;
         }
         else {
-            $str_sql = $stmS . " ID_CAT=" . $rs_cat_idx . ";" . $stmE;
+            $sqlVWL = $stmS . " ID_CAT=" . $rs_cat_idx . ";" . $stmE;
         }
     }
     else {
@@ -329,17 +360,17 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
                             $ands .= " ID_CAT!=$_ AND";
                     }
                     $ands =~ s/AND$//g;
-                    $str_sql = $stmS . $ands . $stmE;
+                    $sqlVWL = $stmS . $ands . $stmE;
                 }
                 else{
-                    $str_sql = $stmS . " ID_CAT!=$prm_xc;" . $stmE;
+                    $sqlVWL = $stmS . " ID_CAT!=$prm_xc;" . $stmE;
                 }
 
 
 
         }
         if ($stmD) {
-            $str_sql = $stmS . $stmD . $stmE;
+            $sqlVWL = $stmS . $stmD . $stmE;
         }
     }
 
@@ -349,10 +380,10 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 
     my $tfId      = 0;
     my $id        = 0;
-    my $log_start = index $str_sql, "<=";
+    my $log_start = index $sqlVWL, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
 
-    print $cgi->pre("###[Session PARAMS->vc=$prm_vc|xc=$prm_xc|xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$str_sql) if $DEBUG;
+    print $cgi->pre("###[Session PARAMS->vc=$prm_vc|xc=$prm_xc|xc_lst=$prm_xc_lst|xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
@@ -376,13 +407,13 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 
 
     #place sticky or view param.ed entries first!
-    buildLog(traceDBExe($str_sql));
+    buildLog(traceDBExe($sqlVWL));
 
-    if(index ($str_sql, 'PID <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
-        $str_sql = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY != 1  ORDER BY DATE DESC LIMIT ".&Settings::viewAllLimit.";";
-        print $cgi->pre("###2 -> ".$str_sql)  if $DEBUG;
+    if(index ($sqlVWL, 'PID <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
+        $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY != 1  ORDER BY DATE DESC LIMIT ".&Settings::viewAllLimit.";";
+        print $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
         ;
-        &buildLog(traceDBExe($str_sql));
+        &buildLog(traceDBExe($sqlVWL));
     }
 
 
@@ -399,7 +430,7 @@ sub traceDBExe {
 
 sub buildLog {
     my $pst = shift;
-    #print "## str_sql: $str_sql\n";
+    #print "## sqlVWL: $sqlVWL\n";
     while ( my @row = $pst->fetchrow_array() ) {
         my $i = 0;
         $id = $row[$i++]; #ID must be rowid in LOG.
@@ -748,10 +779,20 @@ _TXT
       . $today->ymd . " " . $today->hms . qq(">
 
 	&nbsp;<button type="button" onclick="return setNow();">Now</button>
-			&nbsp;<button type="reset"  onclick="setNow();resetDoc(); return true;">Reset</button></td>
-			<td style="text-align:top; vertical-align:top">Category:
-    $cats
-				<br><br><div id="cat_desc" name="cat_desc"></div>
+			&nbsp;<button type="reset"  onclick="setNow();resetDoc(); return true;">Reset</button>
+
+
+                <span id="cat_desc" name="cat_desc">Enter log...</span>
+
+            </td>
+			<td style="text-align:top; vertical-align:top">Category:&nbsp;
+            <span id="lcat" class="span_cat"><i><font size=1>--Select --</font></i></span>
+                <button class="bordered" data-dropdown="#dropdown-standard">&#171;</button>
+
+            <div class="dropdown-menu dropdown-anchor-top-right dropdown-has-anchor" id="dropdown-standard">
+                        <table class="tbl">$td_cat</table>
+            </div>
+<!-- OLD -> \$cats was here -->
 			</td>
 	</tr>
 	<tr class="collpsd"><td style="text-align:right; vertical-align:top">Log:</td>
@@ -778,6 +819,7 @@ _TXT
 	</tr>
 	<tr class="collpsd"><td colspan="3"></td></tr>
 	</table>
+    <input type="hidden" name="ec" id="ec" value="0"/>
 	<input type="hidden" name="submit_is_edit" id="submit_is_edit" value="0"/>
 	<input type="hidden" name="submit_is_view" id="submit_is_view" value="0"/>
 	<input type="hidden" name="rs_all" value="0"/>
@@ -811,17 +853,38 @@ _TXT
     qq(
     <tr class="collpsd">
      <td align="right"><b>View by Category:</b></td>
-     <td align="left">$cats_v&nbsp;&nbsp;
+     <td align="left">
+
+                 <span id="lcat_v" class="span_cat"><i><font size=1>--Select --</font></i></span>
+                 <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
+
+            <div id="dropdown-standard-v" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
+                        <table class="tbl">$td_cat</table>
+            </div>
+     <!--
+    \$cats_v&nbsp;&nbsp;   -->
         <button id="btn_cat" onclick="viewByCategory(this);">View</button>
         <input id="idx_cat" name="category" type="hidden" value="0"/>
      </td>
    </tr>
    <tr class="collpsd">
      <td align="right"><b>Exclude Category:</b></td>
-     <td align="left">$cats_x&nbsp;&nbsp;
+     <td align="left">
+
+
+                 <span id="lcat_x" class="span_cat"><i><font size=1>--Select --</font></i></span>
+                 <button class="bordered" data-dropdown="#dropdown-standard-x">&#171;</button>
+
+            <div id="dropdown-standard-x" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
+                        <table class="tbl">$td_cat</table>
+            </div>
+
+     <!-- \$cats_x&nbsp;&nbsp;   -->
         <input id="idx_cat_x" name="idx_cat_x" type="hidden" value="0"/>
+
         <button id="btnxca" onClick="return addExclude()"/>Add</button>&nbsp;&nbsp;
-        <button id="btnxrc" type="button" onClick="return removeExclude()">Remove</button>&nbsp;&nbsp;
+        <button id="btnxrc" type="button" onClick="return removeExclude()">Remove</button>&nbsp;
+        <button id="btnxrc" type="button" onClick="return resetExclude()">Reset</button>&nbsp;&nbsp;&nbsp;
         <button id="btn_cat" onclick="return viewExcludeCategory(this);">View</button>&nbsp;&nbsp;
         <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked/> Keep In Seession
      </td>
@@ -859,7 +922,8 @@ _TXT
  #   Page printout from here!   #
 ################################
 
-print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
+print qq(
+<div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
 <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
@@ -882,7 +946,7 @@ $sm_reset_all
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br>
 <span style="font-size: x-small;">$vmode</span><br>
 </div>
-	  <div id="div_log">$frm</div>\n
+	  <div id="div_log">$frm</div>
 	  <div id="div_srh">$srh</div>
       $quill
       <div id="div_hlp">$help</div>
@@ -890,9 +954,10 @@ $sm_reset_all
 	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
 	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
 	  <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"/></div>
-<ul id="cat_lst">
-	$cat_desc
-</ul>
+<div id="cat_lst">
+	$data_cats
+</div>
+<!-- Page Settings Specifics date:20200222 -->
 <script type="text/javascript">
     \$( function() {
         var tags = [$autowords];
@@ -903,13 +968,12 @@ $sm_reset_all
 </script>
 );
 
+
 print $cgi->end_html;
 $st->finish;
 $db->disconnect();
 undef($sss);
 exit;
-
-
 
 
 sub processSubmit {
@@ -985,11 +1049,11 @@ try {
                                         $sand .= "and ID_CAT!=$_ ";
                                 }
                         }
-                        else{        $sand = "and ID_CAT != $prm_xc"; }
+                        else{ $sand = "and ID_CAT != $prm_xc"; }
 
                     }
 
-                    $str_sql = qq(SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1 $sand)." LIMIT ".&Settings::viewAllLimit.";";
+                    $sqlVWL = qq(SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1 $sand)." LIMIT ".&Settings::viewAllLimit.";";
                     return;
                 }
             }
