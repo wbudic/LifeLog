@@ -287,6 +287,11 @@ sub checkCreateTables {
     #Have cats been wiped out?
     $changed = 1 if Settings::countRecordsIn($db, 'CAT') == 0;
 
+    #TODO Multiple cats per log future table.
+    if(!$curr_tables{'LOGCATSREF'}) {
+        $db->do(&Settings::createLOGCATSREFStmt);
+    }
+
     if(!$curr_tables{'AUTH'}) {
         $db->do(&Settings::createAUTHStmt);
         my $st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?);');

@@ -119,6 +119,7 @@ return qq(
     CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);
 )}
 sub createNOTEStmt {return qq(CREATE TABLE NOTES (LID INTEGER PRIMARY KEY NOT NULL, DOC TEXT);)}
+sub createLOGCATSREFStmt {return qq(CREATE TABLE LOGCATSREF (LID INTEGER NOT NULL, CID TINY NOT NULL);)}
 
 sub getConfiguration {
     my $db = shift;
