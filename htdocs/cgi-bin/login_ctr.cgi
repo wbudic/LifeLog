@@ -409,12 +409,15 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
                                     }elsif($ttype==1){
                                                             my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+\s*\S*)]g;
                                                             if ( scalar(@pair)==2 ) {
-                                                                    my $st = $db->prepare("SELECT ID FROM CAT WHERE NAME LIKE '$pair[1]';");
-                                                                        $st->execute();
-                                                                        $inData = 1;
-                                                                        if(!$st->fetchrow_array()) {
-                                                                            $insCat->execute($pair[0],$pair[1],$tick[1]);
+                                                                        # In older DB versions the Category name could be different, user modified.
+                                                                        # The unique id and name interwined, changed. Hence we check on name first.
+                                                                        # Then check if the  ID is available. If not just skip, the import. Reseting can fix that latter.
+                                                                        if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE NAME LIKE '$pair[1]';")->fetchrow_array()) {
+                                                                            if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE ID = $pair[0];")->fetchrow_array()){
+                                                                               $insCat->execute($pair[0],$pair[1],$tick[1]);
+                                                                            }
                                                                         }
+                                                                        $inData = 1;
                                                             }
                                                             else {
 $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
