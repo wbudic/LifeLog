@@ -2,8 +2,10 @@
  Programed by: Will Budic
  Open Source License -> https://choosealicense.com/licenses/isc/
 */
-
-var _MAP = new Map();
+//TODO This mapping is not really necassary twice. Data objects should be mapped not strings.
+//
+var _CATS_DESC_MAP = new Map();
+var _CATS_NAME_MAP = new Map();
 var MNU_SCROLLING = false;
 
 var QUILL, QUILL_PNL;
@@ -128,7 +130,8 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
 
     var kidz = $("#cat_lst").children();
     for (var i = 0; i < kidz.length; i++) {
-        _MAP.set(kidz[i].id, kidz[i].innerHTML);
+        _CATS_NAME_MAP.set(kidz[i].id, kidz[i].name);
+        _CATS_DESC_MAP.set(kidz[i].id, kidz[i].content);
     }
 
     $('#ec').show();
@@ -173,9 +176,83 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
             }
           }});
     }
-    setPageSessionTimer(expires);
-}
 
+
+    $("#dropdown-standard a").click(function(e){
+        e.preventDefault();
+        var ci = $(event.target).parent(); ci = ci.attr('id');
+        var lbl = $(e.target).text();
+        lbl = lbl.replace(/\s*$/g, "");
+        //$("#ec option:contains(" + lbl + ")").prop('selected', true);
+        $("#lcat").html(lbl);
+        $("#ec").val(ci);
+        $("#cat_desc").show();
+    }).mouseenter(function(e){
+        var pr = $(event.target).parent(); pr = pr.attr('id');
+        if(pr){
+            var pnl = $("#cat_desc");
+            pnl.html(_CATS_DESC_MAP.get(pr));
+            pnl.show();
+        }
+    }).mouseleave(function(e){$("#cat_desc").hide();});
+
+
+    $("#dropdown-standard-v a").click(function(e){
+        e.preventDefault();
+        var ci = $(event.target).parent(); ci = ci.attr('id');
+        var lbl = $(e.target).text();
+        lbl = lbl.replace(/\s*$/g, "");
+        //$("#ec option:contains(" + lbl + ")").prop('selected', true);
+        $("#lcat_v").html(lbl);
+        $("#idx_cat").val(ci);
+        $("#cat_desc").show();
+    }).mouseenter(function(e){
+        var pr = $(event.target).parent(); pr = pr.attr('id');
+        if(pr){
+            var pnl = $("#cat_desc");
+            pnl.html(_CATS_DESC_MAP.get(pr));
+            pnl.show();
+        }
+    }).mouseleave(function(e){$("#cat_desc").hide();});
+
+
+
+    $("#dropdown-standard-x a").click(function(e){
+        e.preventDefault();
+        var ci = $(event.target).parent(); ci = ci.attr('id');
+        var lbl = $(e.target).text();
+        lbl = lbl.replace(/\s*$/g, "");
+        //$("#ec option:contains(" + lbl + ")").prop('selected', true);
+        $("#lcat_x").html(lbl);
+        $("#idx_cat_x").val(ci);
+        $("#cat_desc").show();
+    }).mouseenter(function(e){
+        var pr = $(event.target).parent(); pr = pr.attr('id');
+        if(pr){
+            var pnl = $("#cat_desc");
+            pnl.html(_CATS_DESC_MAP.get(pr));
+            pnl.show();
+        }
+    }).mouseleave(function(e){$("#cat_desc").hide();});
+
+    $( "#dlgValidation" ).dialog({
+        dialogClass: "alert",
+        buttons: [
+          {
+            text: "OK",
+            click: function() {
+              $( this ).dialog( "close" );
+            }
+          }
+        ]
+      });
+
+
+    setPageSessionTimer(expires);
+
+    display("Log page is ready!");
+
+}
 
 function encodeText(el){
     var el = $("#frm_entry [name=log]");
@@ -184,7 +261,6 @@ function encodeText(el){
     txt = txt.replace(/\n/g, "\\n");
     el.val(txt);
 }
-
 
 function formValidation() {
     if ($("#ec option:selected").val() == 0) {
@@ -197,62 +273,82 @@ function formValidation() {
         dt = dt.substring(0, i-1);
         $("#frm_entry [name='date']").val(dt);
     }
-    return validDate(dt) && validLog($("#frm_entry [name='log']").val());
+    return validate(dt, $("#frm_entry [name='log']").val());
 }
-
 function formDelValidation() {
 
 }
 
 
-function validDate(dt) {
+function validate(dt, log) {
+    var tm, msg;
     if (!Date.parse(dt)) {
-        alert("Date -> '" + dt + "' is Invalid can't submit!");
-        return false;
+        msg = "<b>Date</b> field entry -> " + dt + " is Invalid can't submit!<br>";
     }
-    return validTime(dt.substring(dt.indexOf(" ") + 1));
+    else{
+        tm = validTime(dt.substring(dt.indexOf(" ") + 1));
+        if(tm){
+            msg = "<b>Date</b> field entry wrong time -> " + tm;
+        }
+        else{
+            msg = "";
+        }
+    }
+    if ($("#ec").val() == 0) {
+        msg =  msg + "<b>Category</b> field selection hasn't been made!<br>";
+    }
+    if (!log) {
+        msg = msg + "<b>Log</b> field entry can't be empty, can't submit!<br>";
+    }
+    if(msg){
+            $('<div></div>').dialog({
+                modal: true,
+                title: "Sorry Form Validation Failed",
+                width: "40%",
+                show: { effect: "clip", duration: 800 },
+                open: function() {
+                  var markup = msg;
+                  $(this).html(markup);
+                },
+                buttons: {
+                  Ok: function() {
+                    $( this ).dialog( "close" );
+                  }
+                }
+            });
+            return false;
+    }
 }
 
 function validTime(val) {
     // regular expression to match required time format
     re = /^(\d{2}):(\d{2}):(\d{2})([ap]m)?$/;
     var fld = $("frm_entry").date;
+    var msg;
     if (val != '') {
         if (regs = val.match(re)) {
             // 12-hour value between 0 and 24
             if (regs[1] < 0 || regs[1] > 23) {
-                alert("Invalid value for hours: " + regs[1]);
+                msg += " Invalid value for hours: " + regs[1];
                 fld.focus();
-                return false;
             }
             // minute value between 0 and 59
             if (regs[2] > 59) {
-                alert("Invalid value for minutes: " + regs[2]);
+                msg += " Invalid value for minutes: " + regs[2];
                 fld.focus();
-                return false;
             }
             // seconds value between 0 and 59
             if (regs[3] > 59) {
-                alert("Invalid value for seconds: " + regs[2]);
-                fld.focus();
-                return false;
+                msg += " Invalid value for seconds: " + regs[2];
             }
         } else {
-            alert("Invalid time format: " + val);
+            msg = "Invalid time format: " + val;
             fld.focus();
-            return false;
         }
-        return true;
+        return msg;
     }
 }
 
-function validLog(log) {
-    if (log == "") {
-        alert("Log -> entry can't be empty, can't submit!");
-        return false;
-    }
-    return true;
-}
 
 
 function setNow() {
@@ -334,12 +430,17 @@ function edit(row) {
     $("#STICKY").prop('checked', isSticky);
 
     if(isRTF){
+        display("Loading RTF: "+ ed_v.val() );
         loadRTF(false, row);
-    }
+    }else{display("Editing: "+ ed_v.val(),3);}
 
     //Select category
     var ec_v = $("#c" + row).text();
-    $("#ec option:contains(" + ec_v + ")").prop('selected', true);
+    //$("#ec option:contains(" + ec_v + ")").prop('selected', true);
+    $("#lcat").html(ec_v);
+    $("#ec").val(row);
+
+
     $("#submit_is_edit").val(row);
 
     //Amount type
@@ -596,18 +697,21 @@ function showAll() {
 
 function helpSelCategory(sel) {
 
-    var desc = _MAP.get(sel.options[sel.selectedIndex].value);
+    var desc = _CATS_DESC_MAP.get(sel.options[sel.selectedIndex].value);
     if (!desc) {
         desc = "<font color='red'>Please select a Category!</font>";
     }
     display(desc);
 }
 
-function display(desc){
+function display(desc, times){
     var pnl = $("#cat_desc");
+    if(!times){
+        times = 1;
+    }
     pnl.html(desc);
     pnl.show();
-    pnl.fadeOut(5000);
+    pnl.fadeOut(1000*times);
 }
 
 function viewByCategory(btn) {
@@ -619,44 +723,50 @@ function viewExcludeCategory(btn) {
     $("#vc").value = "0";
     var tagged = $('#divxc').text();
     if(tagged.length>0){
-        var opts = $("#xc option");
         var ids = "";
-        for(var i =0; i < opts.length; i++){
-                var lbl = opts[i].innerText;
-                if(tagged.match(lbl)){
-                    ids += opts[i].value + ',';
-                }
+        var kidz = $("#cat_lst").children();
+        for (var i = 0; i < kidz.length; i++) {
+
+            if(tagged.match(kidz[i].name)){
+                ids += kidz[i].id + ',';
+            }
 
         }
+
+
         $("#idx_cat_x").val(ids.replace(/^\,+|\,+$/g,''));
     }
 }
+
 function addExclude() {
-    var sel = $('#xc option:selected');
+    var ix = $("#idx_cat_x");
+    var sel = _CATS_NAME_MAP.get(ix.val());//$('#xc option:selected');
     var div = $('#divxc');
     var tagged = $('#divxc').text();
-    var reg = new RegExp(sel.text());
+    var reg = new RegExp(sel);
     if($('#xc').val() == 0){
         alert("Must select a category to add to list of excludes.");
     }
     else if(!tagged.match(reg)){
         if(tagged.length>0){
-            div.text(tagged + ',' + sel.text());
+            div.text(tagged + ',' + sel);
         }
         else{
-            $('#divxc_lbl').toggle();
-            div.text(sel.text());
+            div.text(sel);
         }
+        $('#divxc_lbl').show();
     }
-
 
 return false;
 }
+
 function removeExclude() {
-    var sel = $('#xc option:selected');
+    var ix = $("#idx_cat_x");
+    var sel = _CATS_NAME_MAP.get(ix.val());
+    //var sel = $('#xc option:selected');
     var div = $('#divxc');
     var tagged = $('#divxc').text();
-    var reg = new RegExp(sel.text());
+    var reg = new RegExp(sel);
 
     if($('#xc').val() == 0){
         alert("Must select a category to remove from list of excludes.");
@@ -667,11 +777,17 @@ function removeExclude() {
             tagged = tagged.replace(/^\,+|\,+$/g,'');
             div.text(tagged);
             if(tagged.length==0){
-                $('#divxc_lbl').toggle();
+                $('#divxc_lbl').hide();
             }
     }
 
 return false;
+}
+
+function resetExclude(){
+    $('#divxc').text("");
+    $('#divxc_lbl').hide();
+
 }
 
 function viewByDate(btn) {
@@ -825,7 +941,7 @@ function loadRTFResult(content, result, prms, quill) {
     else{
         var id = json.content.lid;
         var css = $("#q-scroll"+id).prop('style');
-        css.backgroundColor = json.content.bg
+        if(css){css.backgroundColor = json.content.bg}
     }
     //alert(obj.response);
 }
@@ -903,3 +1019,29 @@ function setPageSessionTimer(expires) {
 
 	}
 
+ function  checkConfigCatsChange(){
+     var e1 = $('#frm_config input[name="caid"]').val();
+     var e2 = $('#frm_config input[name="canm"]').val();
+     if(e1.length>0 && e2.length>0){
+
+         $('<div></div>').dialog({
+            modal: true,
+            title: "Sorry Categories Config Validation Failed",
+            width: "40%",
+            show: { effect: "clip", duration: 800 },
+            open: function() {
+              var markup = "Did you fail to clear or add a new category first? ->" + e2;
+              $(this).html(markup);
+            },
+            buttons: {
+              Ok: function() {
+                $( this ).dialog( "close" );
+              }
+            }
+        });
+
+
+        return false;
+     }
+     return true;
+ }
