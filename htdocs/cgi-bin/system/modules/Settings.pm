@@ -231,7 +231,7 @@ sub selectRecords {
                 return 0 if(!$pst);
                 return $pst;
     }catch{
-                SettingsException->throw(error=>"Database error encountered.", show_trace=>$DEBUG);
+                SettingsException->throw(error=>"Database error encountered. Settings::selectRecords[sql]", show_trace=>$DEBUG);
     };
 }
 

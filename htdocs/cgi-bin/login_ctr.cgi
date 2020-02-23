@@ -206,7 +206,7 @@ sub checkCreateTables {
         #perl 5.28+ <--
         #if ( 'RTF' ~~ @names ) {
         if(grep( /RTF/, @names)){
-            #$db->begin_work();
+            $db->do('DROP TABLE life_log_login_ctr_temp_table;') if($curr_tables{'life_log_login_ctr_temp_table'});
             $db->do('CREATE TABLE life_log_login_ctr_temp_table AS SELECT * FROM LOG;');
             my %notes_ids = ();
             if($hasNotesTbl){
