@@ -186,9 +186,15 @@ sub renumerate {
         #$sql_date =~ s/T/ /;
         $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
         $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
-        my @new  = selectRecords($db, $sql);
+        my @new  = selectRecords($db, $sql)->fetchrow_array();
         if(scalar @new > 0){
-            $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
+             try{#can fail here, for various reasons.
+                $sql="UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";";
+                $db->do($sql);
+             }
+             catch{
+                 SettingsException->throw(error=>"Database error encountered. sql->$sql", show_trace=>$DEBUG);
+             };
         }
     }
 
@@ -217,7 +223,7 @@ sub selectRecords {
                 return $pst;
     }catch{
                 SettingsException->throw(error=>"Database error encountered.", show_trace=>$DEBUG);
-    }
+    };
 }
 
 sub getTableColumnNames {
