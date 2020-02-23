@@ -8,6 +8,7 @@ thttpd-2.29/*
 startDevWebServer.sh
 thttpd.conf
 cgisess_*
+*.pid
 # Compiled source #
 ###################
 *.com
@@ -51,3 +52,4 @@ log/thttpd.log
 .gitignore
 htdocs/thttpd.pid
 htdocs/cgi-bin/wsrc/examples.css
+dbLifeLog/*.db-journal
