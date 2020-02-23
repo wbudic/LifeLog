@@ -49,3 +49,5 @@ cgisess_*
 
 log/thttpd.log
 .gitignore
+htdocs/thttpd.pid
+htdocs/cgi-bin/wsrc/examples.css
