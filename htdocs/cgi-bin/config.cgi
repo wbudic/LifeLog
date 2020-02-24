@@ -20,6 +20,9 @@ use DateTime::Duration;
 use Date::Language;
 use Text::CSV;
 use Scalar::Util qw(looks_like_number);
+use Sys::Syslog qw(:DEFAULT :standard :macros);
+use IO::Zlib;
+use Archive::Tar;
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
@@ -61,7 +64,10 @@ my $csvp   = $cgi->param('csv');
 
 &exportToCSV if ($csvp);
 
-if($cgi->param('data_cat')){
+if($cgi->param('bck')){
+    &backup;
+}
+elsif($cgi->param('data_cat')){
     &importCatCSV;
 }elsif($cgi->param('data_log')){
     &importLogCSV;
@@ -150,8 +156,8 @@ $tbl = qq(<table id="cnf_sys" class="tbl" border="1" width=").&Settings::pagePrc
                         </tr>
        );
 my $stm = 'SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG ORDER BY NAME;';
-$dbs = Settings::selectRecords($db, $stm );
-
+   $dbs = Settings::selectRecords($db, $stm);
+my $REL ="";
 while(my @row = $dbs->fetchrow_array()) {
 
          my $n = $row[1]; next if($n =~ m/^\^/); #skip private tagged settings
@@ -271,8 +277,14 @@ while(my @row = $dbs->fetchrow_array()) {
                 </select>);
         }
 
-        elsif($n ne "RELEASE_VER"){
-             $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
+        elsif($n eq "RELEASE_VER"){
+            $REL = qq(<td>$n</td>
+                      <td>$v</td>
+                      <td>$d</td>);
+            next;
+        }
+        else{
+            $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
         }
 
 
@@ -285,6 +297,7 @@ while(my @row = $dbs->fetchrow_array()) {
         </tr>);
 }
 
+$tbl = qq($tbl<tr class="r1" align="left">$REL</tr>); #RELEASE VERSION we make outstand last, can't be changed. :)
 
 my  $frmVars = qq(
      <form id="frm_vars" action="config.cgi">$tbl
@@ -351,6 +364,8 @@ print qq(
     <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:).&Settings::bgcol.qq(">
             <form action="config.cgi" method="post" enctype="multipart/form-data">
             <table border="0" width="100%">
+                <tr><td><H3>Backup File Format</H3></td></tr>
+                <tr><td><input type="button" onclick="return fetchBackup();" value="Fetch"/></td></tr>
                 <tr><td><H3>CSV File Format</H3></td></tr>
                 <tr style="border-left: 1px solid black;"><td>
                         <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr>
@@ -505,6 +520,13 @@ if($passch){
             print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
         }
     }
+
+    openlog($dsn, 'cons,pid', "user");
+        syslog('info', 'Status:%s', $status);
+        syslog('info', 'Password change request for %s', $$userid);
+    closelog();
+
+
 }
 elsif ($change == 1){
 
@@ -672,6 +694,11 @@ catch{
 
 
 }
+
+    openlog($dsn, 'cons,pid', "user");
+        syslog('info', 'Status:%s', $status);
+        syslog('err', '%s', $ERROR) if ($ERROR);
+    closelog();
 }
 
 sub confirmExistingPass {
@@ -892,6 +919,26 @@ sub updCnf {
     catch{
         print "<font color=red><b>SERVER ERROR</b>->updCnf[$s]</font>:".$_;
     }
+}
+
+sub backup {
+
+    my $ball = $today->strftime('%Y%m%d%H%M%S_')."$dbname.tgz";
+    my $tar = Archive::Tar->new();
+    my @fls =(&Settings::logPath.'main.cnf',$database);
+       $tar-> add_files(@fls);
+       $tar->write(Settings::logPath().$ball,9);
+    # Not allowed following for now
+    #
+    # print $cgi->header(-type=>"application/octet-stream", -attachment=>"$ball");
+    # select(STDOUT); $| = 1;   #unbuffer STDOUT
+    # binmode STDOUT;
+    # open (TAR, '<', Settings::logPath().$ball);
+    # print <TAR>;
+    # close TAR;
+
+    LifeLogException->throw("Backup feature currently under development! Serverside created files is -> $ball");
+
 }
 
 

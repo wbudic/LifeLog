@@ -54,3 +54,4 @@ htdocs/thttpd.pid
 htdocs/cgi-bin/wsrc/examples.css
 dbLifeLog/*.db-journal
 log/*.log
+dbLifeLog/*.db.tgz

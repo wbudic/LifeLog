@@ -976,6 +976,9 @@ function RGBToHex(rgb) {
     return "#" + r + g + b;
 }
 
+function fetchBackup() {
+    window.location = "config.cgi?bck=1";
+}
 
 function exportToCSV(dat, view){
     var csv;
