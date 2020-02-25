@@ -105,7 +105,7 @@ $hardware_status =~ s/\n/<br\/>/g;
 $hardware_status =~ s/Memory:/<b>Memory:/g;
 $hardware_status =~ s/Init:/<\/b>Initial:/g;
 $hardware_status =~ s/up\s/<b>Server is up: /g;
-$hardware_status .= qq(</b><div style='position: absolute bottom;'>$HS</div>);
+$hardware_status .= '</b>';
 
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 my  $processes = `$prc | sort -u -r -`;
@@ -145,6 +145,7 @@ print qq(
     <span style="text-align:left; margin:1px; padding-right:15px; float:none;"><h2>Server Info</h2><hr><br>
     $hardware_status</span><hr>
 </div>
+<div>$HS</div>
 <div class="tbl" style="text-align:left; border: 0px; padding:5px;">
     <b>Server Side Processes</b><hr>
 </div>
