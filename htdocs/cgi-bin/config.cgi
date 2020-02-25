@@ -21,8 +21,6 @@ use Date::Language;
 use Text::CSV;
 use Scalar::Util qw(looks_like_number);
 use Sys::Syslog qw(:DEFAULT :standard :macros);
-use IO::Zlib;
-use Archive::Tar;
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
@@ -117,7 +115,7 @@ my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.&Settings::pageP
           ';
 $dbs = Settings::selectRecords($db, $stmtCat);
 while(my @row = $dbs->fetchrow_array()) {
-    if($row[0]>0){
+    if( $row[0]>0 ){
        $tbl .= '<tr class="r0"><td>'.$row[0].'</td>
             <td><input name="nm'.$row[0].'" type="text" value="'.$row[1].'" size="12"></td>
             <td align="left"><input name="ds'.$row[0].'" type="text" value="'.$row[2].'" size="64"></td>
@@ -365,13 +363,20 @@ print qq(
             <form action="config.cgi" method="post" enctype="multipart/form-data">
             <table border="0" width="100%">
                 <tr><td><H3>Backup File Format</H3></td></tr>
-                <tr><td><input type="button" onclick="return fetchBackup();" value="Fetch"/></td></tr>
+                <tr><td><input type="button" onclick="return fetchBackup();" value="Fetch"/><hr></td></tr>
+
+                <tr><td><p>Restore will bring back and merge log entries from the time of backup.</p><hr></td></tr>
+                <tr><td><input type="file" name="data_bck" /><input type="button" onclick="return restoreBackup();" value="Restore"/><hr></td></tr>
+
+
                 <tr><td><H3>CSV File Format</H3></td></tr>
+
                 <tr style="border-left: 1px solid black;"><td>
                         <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr>
                 <tr style="border-left: 1px solid black;"><td style="text-align:right;">
                         <input type="submit" name="Submit" value="Submit"/></td>
                 </tr>
+
                 </form>
                 <form action="config.cgi" method="post" enctype="multipart/form-data">
                 <tr><td><b>Export Categories:</b>
@@ -921,23 +926,48 @@ sub updCnf {
     }
 }
 
+
 sub backup {
 
-    my $ball = $today->strftime('%Y%m%d%H%M%S_')."$dbname.tgz";
-    my $tar = Archive::Tar->new();
-    my @fls =(&Settings::logPath.'main.cnf',$database);
-       $tar-> add_files(@fls);
-       $tar->write(Settings::logPath().$ball,9);
+   # my $ball2 = qwq(tar -czf - data_*_log.db | openssl enc -e -des-ede3-cfb -out secured.tgz);
+   #openssl enc -d -des-ede3-cfb -in secured.tar.gz | tar xz -C test
+
+   my $ball = $today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
+   my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ."$database | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball;
+   `$pipe`;
+
+    # my $ball = $today->strftime('%Y%m%d%H%M%S_')."$dbname.tgz";
+    # my $pipe = new IO::File("| openssl enc -k $pass:$userid -e -des-ede3-cfb | gzip -c >".Settings::logPath().$ball);
+    # my @fls =(&Settings::logPath.'main.cnf',$database);
+    # my $tar = Archive::Tar->new();
+    #    $tar-> add_files(@fls);
+    #    $tar->write($pipe);
+    #    $pipe->close;
+
+    # my @tar = qw("tar -czf ");
+    # push @tar, &Settings::logPath. "data_*_log.db";
+    # push @tar, qw(|openssl enc -e -pbkdf2 -out);
+    # push @tar, $ball;
+    # my $res = run @tar;
+
+
+
+
+    # my $tar = Archive::Tar->new();
+    # my @fls =(&Settings::logPath.'main.cnf',$database);
+    #    $tar-> add_files(@fls);
+    #    $tar->write(Settings::logPath().$ball,9);
+
     # Not allowed following for now
     #
-    # print $cgi->header(-type=>"application/octet-stream", -attachment=>"$ball");
-    # select(STDOUT); $| = 1;   #unbuffer STDOUT
-    # binmode STDOUT;
-    # open (TAR, '<', Settings::logPath().$ball);
-    # print <TAR>;
-    # close TAR;
+    print $cgi->header(-type=>"application/octet-stream", -attachment=>"$ball");
+    select(STDOUT); $| = 1;   #unbuffer STDOUT
+    binmode STDOUT;
+    open (TAR, '<', Settings::logPath().$ball);
+    print <TAR>;
+    close TAR;
 
-    LifeLogException->throw("Backup feature currently under development! Serverside created files is -> $ball");
+    # LifeLogException->throw("Backup feature currently under development! Serverside created files is -> $ball");
 
 }
 
