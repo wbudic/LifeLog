@@ -12,11 +12,9 @@ use Exception::Class ('SettingsException');
 use Syntax::Keyword::Try;
 
 use DBI;
-use DateTime::Format::SQLite;
 
 #This is the default developer release key, replace on istallation. As it is not secure.
 use constant CIPHER_KEY => '95d7a85ba891da';
-
 
 #DEFAULT SETTINGS HERE!
 our $RELEASE_VER  = '1.8';
