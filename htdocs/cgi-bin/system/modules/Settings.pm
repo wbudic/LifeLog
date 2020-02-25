@@ -12,6 +12,7 @@ use Exception::Class ('SettingsException');
 use Syntax::Keyword::Try;
 
 use DBI;
+use DateTime::Format::SQLite;
 
 #This is the default developer release key, replace on istallation. As it is not secure.
 use constant CIPHER_KEY => '95d7a85ba891da';
@@ -287,9 +288,12 @@ sub countRecordsIn {
 }
 
 sub getCurrentSQLTimeStamp {
-    my $dat = DateTime->now;
-       $dat -> set_time_zone(timezone());
-    return DateTime::Format::SQLite->format_datetime($dat);
+
+     my $dt = DateTime->from_epoch(epoch => time(), time_zone=> $TIME_ZONE);
+     # 20200225  Found that SQLite->format_datetime, changes internally to UTC timezone, which is wrong.
+     # Strange that this format_datetime will work from time to time, during day and some dates. (A Pitfall)
+    #return DateTime::Format::SQLite->format_datetime($dt);
+    return join ' ', $dt->ymd('-'), $dt->hms(':');
 }
 
 sub removeOldSessions {
