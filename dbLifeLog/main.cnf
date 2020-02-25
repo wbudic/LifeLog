@@ -39,6 +39,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUT
 55|Cars        `Car(s) related entry.
 60|Online      `Online purchases (ebay, or received/ordered from online source).
 88|Diary       `Diary specific log and entry. Your daily yaddi-yadda that have decided to place here.
+90|Fitness     `Fitness steps, news, info, and usefull links. Ammount is steps.
 <<MIG<>
 NOTES|DROP TABLE NOTES;' ver. 1.5 fts4 virtual tables have been scratched as they require special SQLite compilation.
 LOG<5>|Run Query ' ver. 1.5
