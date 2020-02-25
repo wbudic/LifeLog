@@ -47,6 +47,7 @@ cgisess_*
 .Trashes
 *.db
 *.swp
+*.log
 
 log/thttpd.log
 .gitignore
@@ -54,4 +55,8 @@ htdocs/thttpd.pid
 htdocs/cgi-bin/wsrc/examples.css
 dbLifeLog/*.db-journal
 log/*.log
+/home/will/dev/LifeLog/log/thttpd.log
 dbLifeLog/*.db.tgz
+dbLifeLog/*.db.toz
+
+*.db.osz
