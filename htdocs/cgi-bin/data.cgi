@@ -62,9 +62,9 @@ $today->set_time_zone(&Settings::timezone);
 my $tbl_rc =0;
 my ($stm,$st, $rv);
 
-my $tbl = '<form name="frm_log_del" action="data.cgi" onSubmit="return formDelValidation();">
+my $tbl = '<a name="top"></a><form name="frm_log_del" action="data.cgi" onSubmit="return formDelValidation();">
            <table class="tbl_rem" width="'.$PRC_WIDTH.'%">
-           <tr class="hdr" style="text-align:left;"><th>Date</th> <th>Time</th><th>Log</th><th>Category</th></tr>';
+           <tr class="hdr" style="text-align:left;"><th>Date <a href="#bottom">&#x21A1;</a></th> <th>Time</th> <th>Log</th> <th>Category</th></tr>';
 
 
 my $datediff = $cgi->param("datediff");
@@ -135,7 +135,7 @@ sub DisplayDateDiffs{
     }
     $tbl .= '</table>';
 
-print '<center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</a></div></center>';
+print '<a name="top"></a><center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</a></div></center>';
 }
 
 
@@ -236,7 +236,7 @@ sub NotConfirmed {
         $plural = "s";
     }
 
- $tbl = $tbl .  '<tr class="r0"><td colspan="4">
+ $tbl = $tbl .  '<tr class="r0"><td colspan="4"><a name="bottom"></a><a href="#top">&#x219F;</a>
  <center>
  <h2>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h2>
  (Or hit you Browsers Back Button!)</center>

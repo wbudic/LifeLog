@@ -78,6 +78,7 @@ my $status = "Ready for change!";
 my $cats;
 my %hshCats = {};
 &cats;
+
 ###############
 &processSubmit;
 ###############
@@ -131,8 +132,10 @@ my  $frmCats = qq(
          <td align="left"><input type="text" name="cade" value="" size="64"/></td>
         </tr>
       <tr class="r1">
-         <td colspan="2"><a href="#bottom">&#x21A1;</a>&nbsp;&nbsp;&nbsp;<input type="submit" value="Add New Category First" onclick="return submitNewCategory()"/> or <input type="submit" value="Change"/></td>
-         <td colspan="1" align="right"><b>Categories Configuration In -> $dbname</b>&nbsp;<input type="submit" value="Change" onclick="return checkConfigCatsChange()"/></td>
+         <td colspan="2"><a href="#bottom">&#x21A1;</a>&nbsp;&nbsp;&nbsp;
+         <input type="submit" value="Add New Category First" onclick="return submitNewCategory()"/> or <input type="submit" value="Change"/></td>
+         <td colspan="1" align="right"><b>Categories Configuration In -> $dbname</b>&nbsp;
+         <input type="submit" value="Change" onclick="return checkConfigCatsChange()"/></td>
         </tr>
         <tr class="r1">
           <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font>
@@ -345,6 +348,26 @@ my  $frmPASS = qq(
         );
 
 
+my @backups = ();
+my ($file,$bck_list) ="";
+opendir my $dir, &Settings::logPath;
+while($file = readdir $dir){
+next if $file eq '.' or $file eq '..' or index ($file , 'bck_') == -1;
+  push @backups, $file;
+}
+close $dir;
+foreach $file (sort @backups){
+    #my $n = substr $file, length(&Settings::logPath);
+    $bck_list .=  "<input name='bck_file' type='radio' value='$file'>$file</input><br>";
+}
+if(length $bck_list == 0){
+$bck_list = '<p>Restore will bring back and merge log entries from the time of backup.</p>';
+}
+else{
+    $bck_list = qq(<p>Tick Select Backup to Restore or Delete</p><p>$bck_list</p>);
+}
+
+
 #
 #  Page printout from here!
 #
@@ -365,8 +388,8 @@ print qq(
                 <tr><td><H3>Backup File Format</H3></td></tr>
                 <tr><td><input type="button" onclick="return fetchBackup();" value="Fetch"/><hr></td></tr>
 
-                <tr><td><p>Restore will bring back and merge log entries from the time of backup.</p><hr></td></tr>
-                <tr><td><input type="file" name="data_bck" /><input type="button" onclick="return restoreBackup();" value="Restore"/><hr></td></tr>
+                <tr><td><div id="div_backups">$bck_list</div><hr></td></tr>
+                <tr><td><input type="button" onclick="return deleteBackup();" value="Delete"/> <input type="file" name="data_bck" /><input type="button" onclick="return restoreBackup();" value="Restore"/><hr></td></tr>
 
 
                 <tr><td><H3>CSV File Format</H3></td></tr>
@@ -908,58 +931,20 @@ sub changeSystemSettings {
     while (my @r=$dbs->fetchrow_array()){
         my $var = $cgi->param('var'.$r[0]);
         if(defined $var){
-            updCnf($r[0],$var);
+            Settings::configProperty($db, $r[0], undef, $var);
             $updated = 1;
         }
     }
     Settings::getConfiguration($db) if($updated);
 }
 
-sub updCnf {
-    my ($id, $val, $s) = @_;
-    $s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";";
-    try{
-          Settings::selectRecords($db, $s);
-    }
-    catch{
-        print "<font color=red><b>SERVER ERROR</b>->updCnf[$s]</font>:".$_;
-    }
-}
-
-
 sub backup {
 
-   # my $ball2 = qwq(tar -czf - data_*_log.db | openssl enc -e -des-ede3-cfb -out secured.tgz);
-   #openssl enc -d -des-ede3-cfb -in secured.tar.gz | tar xz -C test
 
-   my $ball = $today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
+   my $ball = 'bck_'.$today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
    my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ."$database | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball;
    `$pipe`;
 
-    # my $ball = $today->strftime('%Y%m%d%H%M%S_')."$dbname.tgz";
-    # my $pipe = new IO::File("| openssl enc -k $pass:$userid -e -des-ede3-cfb | gzip -c >".Settings::logPath().$ball);
-    # my @fls =(&Settings::logPath.'main.cnf',$database);
-    # my $tar = Archive::Tar->new();
-    #    $tar-> add_files(@fls);
-    #    $tar->write($pipe);
-    #    $pipe->close;
-
-    # my @tar = qw("tar -czf ");
-    # push @tar, &Settings::logPath. "data_*_log.db";
-    # push @tar, qw(|openssl enc -e -pbkdf2 -out);
-    # push @tar, $ball;
-    # my $res = run @tar;
-
-
-
-
-    # my $tar = Archive::Tar->new();
-    # my @fls =(&Settings::logPath.'main.cnf',$database);
-    #    $tar-> add_files(@fls);
-    #    $tar->write(Settings::logPath().$ball,9);
-
-    # Not allowed following for now
-    #
     print $cgi->header(-type=>"application/octet-stream", -attachment=>"$ball");
     select(STDOUT); $| = 1;   #unbuffer STDOUT
     binmode STDOUT;
@@ -967,7 +952,7 @@ sub backup {
     print <TAR>;
     close TAR;
 
-    # LifeLogException->throw("Backup feature currently under development! Serverside created files is -> $ball");
+     #LifeLogException->throw("Backup feature currently under development! Serverside created files is -> $ball");
 
 }
 

@@ -325,17 +325,43 @@ sub obtainProperty {
 sub configProperty {
     my($db, $id, $name, $value) = @_;
     $id = '0' if not $id;
-    if(!$db || !$name|| not defined $value){
+    if($db eq undef || $value eq undef){
         SettingsException->throw(
             error => "ERROR Invalid number of arguments in call -> Settings::configProperty('$db',$id,'$name','$value')\n",  show_trace=>$DEBUG
             );
     };
-    my $dbs = selectRecords($db, "SELECT ID, NAME FROM CONFIG WHERE NAME IS '$name';");
-    if($dbs->fetchrow_array()){
-       $db->do("UPDATE CONFIG SET VALUE = '$value' WHERE NAME IS '$name';");
+    if($name eq undef && $id){
+
+        my $sql = "UPDATE CONFIG SET VALUE='".$value."' WHERE ID=".$id.";";
+        try{
+            $db->do($sql);
+        }
+        catch{
+
+            SettingsException->throw(
+                error => "ERROR with $sql -> Settings::configProperty('$db',$id,'$name','$value')\n",
+                show_trace=>$DEBUG
+                );
+        }
     }
     else{
-       $db->do("INSERT INTO CONFIG (ID, NAME, VALUE) VALUES ($id, '$name', '$value');");
+        my $dbs = selectRecords($db, "SELECT ID, NAME FROM CONFIG WHERE NAME IS '$name';");
+        if($dbs->fetchrow_array()){
+            $db->do("UPDATE CONFIG SET VALUE = '$value' WHERE NAME IS '$name';");
+        }
+        else{
+            my $sql = "INSERT INTO CONFIG (ID, NAME, VALUE) VALUES ($id, '$name', '$value');";
+            try{
+                $db->do($sql);
+            }
+            catch{
+
+                SettingsException->throw(
+                    error => "ERROR $@ with $sql -> Settings::configProperty('$db',$id,'$name','$value')\n",
+                    show_trace=>$DEBUG
+                    );
+            }
+        }
     }
 }
 
