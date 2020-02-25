@@ -145,7 +145,7 @@ print qq(
     <span style="text-align:left; margin:1px; padding-right:15px; float:none;"><h2>Server Info</h2><hr><br>
     $hardware_status</span><hr>
 </div>
-<div>$HS</div>
+$HS
 <div class="tbl" style="text-align:left; border: 0px; padding:5px;">
     <b>Server Side Processes</b><hr>
 </div>
