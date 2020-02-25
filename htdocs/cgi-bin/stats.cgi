@@ -20,7 +20,6 @@ use lib "system/modules";
 use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
 require Settings;
 
-
 my $cgi = CGI->new;
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
 my $sid=$session->id();
@@ -45,11 +44,11 @@ try{
 
 my $database = &Settings::logPath . $dbname;
 my @stat = stat $database;
-my $dsn      = "DBI:SQLite:dbname=$database";
-$db       = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } );
+my $dsn  = "DBI:SQLite:dbname=$database";
+$db      = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } );
 
 Settings::getConfiguration($db);
-
+Settings::getTheme();
 
 my $today = DateTime->now;
 $today->set_time_zone(&Settings::timezone);
@@ -100,13 +99,13 @@ run \@cmd, '>&', \$HS; #instead of -> system("inxi",'-b', '-c0');
 my $hardware_status = $HS;#`inxi -b -c0; uptime -p`;
 my $syslog = "<b>".substr $HS, index($HS, 'Host:'), index($HS, 'Console:');
    $syslog .= "</b>\n".substr $HS, rindex($HS, 'Info:');
-   $HS = "<pre>".`df -h -l -x tmpfs`."</pre>";
+   $HS = "<pre>\n".`df -h -l -x tmpfs`."</pre>";
    $syslog .= $HS;
 $hardware_status =~ s/\n/<br\/>/g;
 $hardware_status =~ s/Memory:/<b>Memory:/g;
 $hardware_status =~ s/Init:/<\/b>Initial:/g;
 $hardware_status =~ s/up\s/<b>Server is up: /g;
-$hardware_status .= "</b><p>$HS</p>";
+$hardware_status .= qq(</b><div style='position: absolute bottom;'>$HS</div>);
 
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 my  $processes = `$prc | sort -u -r -`;
