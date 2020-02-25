@@ -9,6 +9,9 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
+* Database backup tgz ball, upload and download button on config page.
+  * You must have the password you logged in to unscramble the backup.
+    * Alias -> pass -> backup password. Information required.
 * Application log needed in the background for System based logs.
 * &#10004; New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
 * New CNF Development.
@@ -23,9 +26,6 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Notes to Log table should be other way in relationship direction.
   * LOG.ID_RTF -> NOTES.rowid
   * This is currently causing problems when the log renumerates, or entries are imported.
-* Database backup tar ball 7zipped, upload and download button on config page.
-  * You must have the password you logged in to unscramble the backup.
-    * Alias -> pass -> backup password. Information required.
 * &#10004; In config page Categories section to appear after system settings. As less likelly to be changed.
   * System Configuration section is to be sorted. As in future it is more likelly to grow.
 * &#10004; New system setting, $VIEW_ALL_LMT=1000. To limit view all records displayed on huge databases.
