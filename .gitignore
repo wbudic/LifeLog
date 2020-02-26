@@ -60,3 +60,4 @@ dbLifeLog/*.db.tgz
 dbLifeLog/*.db.toz
 
 *.db.osz
+dbLifeLog/bck/*
