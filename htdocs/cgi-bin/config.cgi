@@ -65,6 +65,9 @@ my $csvp   = $cgi->param('csv');
 if($cgi->param('bck')){
     &backup;
 }
+elsif($cgi->param('data_bck')){
+    &restore;
+}
 elsif($cgi->param('data_cat')){
     &importCatCSV;
 }elsif($cgi->param('data_log')){
@@ -389,7 +392,7 @@ print qq(
                 <tr><td><input type="button" onclick="return fetchBackup();" value="Fetch"/><hr></td></tr>
 
                 <tr><td><div id="div_backups">$bck_list</div><hr></td></tr>
-                <tr><td><input type="button" onclick="return deleteBackup();" value="Delete"/> <input type="file" name="data_bck" /><input type="button" onclick="return restoreBackup();" value="Restore"/><hr></td></tr>
+                <tr><td><input type="button" onclick="return deleteBackup();" value="Delete"/> <input type="file" name="data_bck" />&nbsp;&nbsp;<input type="Submit" onclick="return true;restoreBackup();" value="Restore"/><hr></td></tr>
 
 
                 <tr><td><H3>CSV File Format</H3></td></tr>
@@ -941,21 +944,48 @@ sub changeSystemSettings {
 sub backup {
 
 
-   my $ball = 'bck_'.$today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
-   my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ."$database | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball;
-   `$pipe`;
+   my $ball = 'bck__'.$today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
+   my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." $database | openssl enc -k $pass:$userid -e -des-ede3-cfb -pbkdf2 -out ".Settings::logPath().$ball;
+   my $rez = `$pipe`;
 
-    print $cgi->header(-type=>"application/octet-stream", -attachment=>"$ball");
-    select(STDOUT); $| = 1;   #unbuffer STDOUT
-    binmode STDOUT;
-    open (TAR, '<', Settings::logPath().$ball);
-    print <TAR>;
-    close TAR;
+  print $cgi->header;
+            print $cgi->start_html;
 
-     #LifeLogException->throw("Backup feature currently under development! Serverside created files is -> $ball");
+   print $pipe;
+
+
+
+            print $cgi->end_html;
+       exit;
 
 }
 
+sub restore {
+
+    my $hndl = $cgi->upload("data_bck");
+    my $pipe;
+    try{
+
+
+        print $cgi->header;
+            print $cgi->start_html;
+
+
+        my $pipe;
+        open ($pipe,  "| openssl enc -k $pass:$userid -d -des-ede3-cfb -pbkdf2 -in /dev/stdin 2>/dev/null | tar zt");#1>/dev/null");
+            while(<$hndl>){print $pipe $_;};
+        close $pipe;
+
+            print $cgi->end_html;
+       exit;
+
+
+    }
+    catch{
+        LifeLogException->throw(error=>"Restore failed! hndl->$hndl",show_trace=>&Settings::debug);
+    };
+
+}
 
 sub exportToCSV {
     try{

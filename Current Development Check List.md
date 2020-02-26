@@ -58,6 +58,11 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Planned New Possible Features of Minor Relevance
 
+* Plugin subpages.
+  * Configured in main.cnf
+  * Appear on menu or as dropdouwn in the header.
+  * Downloaded/Configurated from the configuration page.
+* View save feature. Where you name and save to config or session a dropdown of views.
 * Fit to page log. Making log subpage scrollable rather than whole page to see the bottom.
 * Make session timeot sub pages aware via JSON.
 * Multiple category assignment table (set via hashtags and end of a post).
