@@ -968,21 +968,51 @@ sub restore {
 
 
         print $cgi->header;
-            print $cgi->start_html;
-
-
+        print $cgi->start_html;
+        my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
+        my $tar = $dbck .$hndl; $tar =~ s/osz$/tar/;
         my $pipe;
-        open ($pipe,  "| openssl enc -k $pass:$userid -d -des-ede3-cfb -pbkdf2 -in /dev/stdin 2>/dev/null | tar zt");#1>/dev/null");
+        open ($pipe,  "| openssl enc -k $pass:$userid -d -des-ede3-cfb -pbkdf2 -in /dev/stdin 2>/dev/null > $tar");#| tar zt");#1>/dev/null");
             while(<$hndl>){print $pipe $_;};
         close $pipe;
+        print "<pre>\n";
+        print "Created->$tar\n";
+       # my $cmd = "tar xz * $file";
+        #`$cmd`;
+        print "Contents->".`tar tvf $tar`."\n";
+        print "Extracted->".`tar xzvf $tar -C $dbck --strip-components 1`."\n";
 
+        my $b_base = $dbck.$dbname;
+        my $dsn= "DBI:SQLite:dbname=$b_base";
+        my $b_db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
+        print "Connected to -> $dsn\n";
+        print "Merging from backup log table...\n";
+
+        my $insLOG   = $db->prepare('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES(?,?,?,?,?,?,?);');
+        my $b_pst = Settings::selectRecords($b_db,'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG;');
+
+        while ( my @brecord = $b_pst->fetchrow_array() ) {
+            my $pst = Settings::selectRecords($db,"SELECT DATE FROM VW_LOG WHERE DATE='".$brecord[3]."';");
+            my @ext = $pst->fetchrow_array();
+            if(scalar(@ext)==0){
+                $insLOG->execute($brecord[1],$brecord[2],$brecord[3],$brecord[4],$brecord[5],$brecord[6],$brecord[7]);
+                print "Added->".$brecord[0]."|".$brecord[3]."|".$brecord[4]."\n";
+            }
+
+        }
+        print "\nFinished with merging log table.\n";
+        $b_db->disconnect();
+        print "Done!";
+        print "\n</pre>";
+        my $back = $cgi->url( -relative => 1 );
+        print qq(<a href="$back"><hr>Go Back</a>);
             print $cgi->end_html;
        exit;
 
 
     }
     catch{
-        LifeLogException->throw(error=>"Restore failed! hndl->$hndl",show_trace=>&Settings::debug);
+        LifeLogException->throw(error=>"Restore failed! hndl->$hndl [$@]",show_trace=>&Settings::debug);
     };
 
 }
@@ -1169,13 +1199,15 @@ sub renumerate {
     #update  notes with new log id
     while(my @row = $dbs->fetchrow_array()) {
         my $sql_date = $row[1];
-        #$sql_date =~ s/T/ /;
-        $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
-        $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
-        $dbs = Settings::selectRecords($db, $sql);
-        my @new  = $dbs->fetchrow_array();
-        if(scalar @new > 0){
-            $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
+        if($sql_date){#could be an improperly deleted record in there? Skip if there is!
+                        #$sql_date =~ s/T/ /;
+                        $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
+                        $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
+                        $dbs = Settings::selectRecords($db, $sql);
+                        my @new  = $dbs->fetchrow_array();
+                        if(scalar @new > 0){
+                            $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
+                        }
         }
     }
 
