@@ -352,8 +352,9 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $id        = 0;
     my $log_start = index $sqlVWL, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
+    my $isView = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0;
 
-    print $cgi->pre("###[Session PARAMS->vc=$prm_vc|xc=$prm_xc|xc_lst=$prm_xc_lst|xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
+    print $cgi->pre("###[Session PARAMS->isV:$isView|vc=$prm_vc|xc=$prm_xc|xc_lst=$prm_xc_lst|xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
@@ -378,8 +379,8 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 
     #place sticky or view param.ed entries first!
     buildLog(traceDBExe($sqlVWL));
-
-    if(index ($sqlVWL, 'PID <=') < 1 && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from){
+    #Following is saying is in page selection, not view selection, or accounting on type of sticky entries.
+    if( !$isView && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from ){
         $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY != 1  ORDER BY DATE DESC LIMIT ".&Settings::viewAllLimit.";";
         print $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
         ;
@@ -1029,7 +1030,7 @@ try {
 
                     }
 
-                    $sqlVWL = qq(SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG where PID <= $rs_cur and STICKY != 1 $sand)." LIMIT ".&Settings::viewAllLimit.";";
+                    $sqlVWL = qq(SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG where PID<=$rs_cur and STICKY!=1 $sand)." LIMIT ".&Settings::viewAllLimit.";";
                     return;
                 }
             }

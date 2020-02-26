@@ -64,7 +64,7 @@ th,
 }
 .span_cat {
     border:1px solid #b2f8ef;
-    border-style: inset; 
+    border-style: inset;
     padding: 2px;
     padding-right: 5px;
     width: 180px;
@@ -73,9 +73,9 @@ th,
 .r0 {
     background-color: #e6ffff;
     border: 1px solid black;
-    border-right: 2px solid black;
+    border-right: 1px solid black;
     vertical-align: top;
-    padding:2px;
+    apadding:2px;
 }
 .r1 {
     background-color: #ccffff;
