@@ -32,6 +32,7 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
     TIMEZONE   = tz;
     TIME_STAMP = new Date(today);
     onBodyLoadGeneric();
+
     if (toggle) {
         this.toggle("#div_srh", false);
     }
@@ -170,6 +171,16 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
           }});
     }
 
+    jQuery.fn.dispPos = function () {
+        this.css("position","absolute");
+        this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight())-320 ) +
+                                                    $(window).scrollTop()) + "px");
+        this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 6) - 100 +
+                                                    $(window).scrollLeft()) + "px");
+        this.css( "zIndex", 8 );
+        return this;
+    }
+
 
     $("#dropdown-standard a").click(function(e){
         e.preventDefault();
@@ -244,9 +255,7 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
 
 
     setPageSessionTimer(expires);
-
     display("Log page is ready!");
-
 }
 
 function encodeText(el){
@@ -700,12 +709,14 @@ function showAll() {
 //     display(desc);
 // }
 
+
 function display(desc, times){
     var pnl = $("#cat_desc");
     if(!times){
         times = 1;
     }
     pnl.html(desc);
+    pnl.dispPos(true);
     pnl.show();
     pnl.fadeOut(1000*times);
 }
