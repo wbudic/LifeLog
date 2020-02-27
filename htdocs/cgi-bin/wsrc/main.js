@@ -4,8 +4,8 @@
 */
 //TODO This mapping is not really necassary twice. Data objects should be mapped not strings.
 //
-var _CATS_DESC_MAP = new Map();
-var _CATS_NAME_MAP = new Map();
+//var _CATS_DESC_MAP = new Map();
+//var _CATS_NAME_MAP = new Map();
 var MNU_SCROLLING = false;
 
 var QUILL, QUILL_PNL;
@@ -127,13 +127,6 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
 
     $("#log_submit").click(encodeText);
 
-
-    var kidz = $("#cat_lst").children();
-    for (var i = 0; i < kidz.length; i++) {
-        _CATS_NAME_MAP.set(kidz[i].id, kidz[i].name);
-        _CATS_DESC_MAP.set(kidz[i].id, kidz[i].content);
-    }
-
     $('#ec').show();
 
     $("#RTF").prop("checked", false);
@@ -183,7 +176,6 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var ci = $(event.target).parent(); ci = ci.attr('id');
         var lbl = $(e.target).text();
         lbl = lbl.replace(/\s*$/g, "");
-        //$("#ec option:contains(" + lbl + ")").prop('selected', true);
         $("#lcat").html(lbl);
         $("#ec").val(ci);
         $("#cat_desc").show();
@@ -191,7 +183,8 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var pr = $(event.target).parent(); pr = pr.attr('id');
         if(pr){
             var pnl = $("#cat_desc");
-            pnl.html(_CATS_DESC_MAP.get(pr));
+            var desc = $("meta[id='cats["+pr+"]']").attr('content');
+            pnl.html(desc);
             pnl.show();
         }
     }).mouseleave(function(e){$("#cat_desc").hide();});
@@ -210,7 +203,8 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var pr = $(event.target).parent(); pr = pr.attr('id');
         if(pr){
             var pnl = $("#cat_desc");
-            pnl.html(_CATS_DESC_MAP.get(pr));
+            var desc = $("meta[id='cats["+pr+"]']").attr('content');
+            pnl.html(desc);
             pnl.show();
         }
     }).mouseleave(function(e){$("#cat_desc").hide();});
@@ -230,7 +224,8 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var pr = $(event.target).parent(); pr = pr.attr('id');
         if(pr){
             var pnl = $("#cat_desc");
-            pnl.html(_CATS_DESC_MAP.get(pr));
+            var desc = $("meta[id='cats["+pr+"]']").attr('content');
+            pnl.html(desc);
             pnl.show();
         }
     }).mouseleave(function(e){$("#cat_desc").hide();});
@@ -263,10 +258,10 @@ function encodeText(el){
 }
 
 function formValidation() {
-    if ($("#ec option:selected").val() == 0) {
-        alert("Category -> has not been selected!");
-        return false;
-    }
+    // if ($("#ec option:selected").val() == 0) {
+    //     alert("Category -> has not been selected!");
+    //     return false;
+    // }
     var dt = $("#frm_entry [name='date']").val();
     var i = dt.indexOf('id=');
     if(i>0){
@@ -435,10 +430,11 @@ function edit(row) {
     }else{display("Editing: "+ ed_v.val(),3);}
 
     //Select category
-    var ec_v = $("#c" + row).text();
+    var ec_lb = $("#c" + row).text();
+    var ec_id = $("meta[name='"+ec_lb+"]']").attr('id');
     //$("#ec option:contains(" + ec_v + ")").prop('selected', true);
-    $("#lcat").html(ec_v);
-    $("#ec").val(row);
+    $("#lcat").html(ec_lb);
+    $("#ec").val(ec_id);
 
 
     $("#submit_is_edit").val(row);
@@ -695,14 +691,14 @@ function showAll() {
     return false;
 }
 
-function helpSelCategory(sel) {
+// function helpSelCategory(sel) {
 
-    var desc = _CATS_DESC_MAP.get(sel.options[sel.selectedIndex].value);
-    if (!desc) {
-        desc = "<font color='red'>Please select a Category!</font>";
-    }
-    display(desc);
-}
+//     var desc = _CATS_DESC_MAP.get(sel.options[sel.selectedIndex].value);
+//     if (!desc) {
+//         desc = "<font color='red'>Please select a Category!</font>";
+//     }
+//     display(desc);
+// }
 
 function display(desc, times){
     var pnl = $("#cat_desc");
@@ -738,9 +734,11 @@ function viewExcludeCategory(btn) {
     }
 }
 
+
+
 function addExclude() {
     var ix = $("#idx_cat_x");
-    var sel = _CATS_NAME_MAP.get(ix.val());//$('#xc option:selected');
+    var sel = $("meta[id='cats["+ix.val()+"]']").attr('name'); //_CATS_NAME_MAP.get(ix.val());//$('#xc option:selected');
     var div = $('#divxc');
     var tagged = $('#divxc').text();
     var reg = new RegExp(sel);
@@ -762,7 +760,7 @@ return false;
 
 function removeExclude() {
     var ix = $("#idx_cat_x");
-    var sel = _CATS_NAME_MAP.get(ix.val());
+    var sel = $("meta[id='cats["+ix.val()+"]']").attr('name'); //_CATS_NAME_MAP.get(ix.val());
     //var sel = $('#xc option:selected');
     var div = $('#divxc');
     var tagged = $('#divxc').text();
