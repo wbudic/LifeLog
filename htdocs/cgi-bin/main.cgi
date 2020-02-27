@@ -264,7 +264,7 @@ for my $key ( keys %hshDesc ) {
     my $kv = $hshDesc{$key};
     if ( $kv ne ".." && index($key,'HASH(0x')!=0) {
         my $n = $hshCats{$key};
-        $data_cats .= qq(<meta id="$key" name="$n" content="$kv">\n);
+        $data_cats .= qq(<meta id="cats[$key]" name="$n" content="$kv">\n);
     }
 }
 my $log_output =
@@ -405,7 +405,8 @@ sub buildLog {
     while ( my @row = $pst->fetchrow_array() ) {
         my $i = 0;
         $id = $row[$i++]; #ID must be rowid in LOG.
-        my $ct  = $hshCats{$row[$i++]}; #ID_CAT
+        my $cid = $row[$i++]; #CID ID_CAT not used.
+        my $ct  = $hshCats{$cid}; #ID_CAT
         my $rtf = $row[$i++];           #ID_RTF since v.1.8
         my $dt  = DateTime::Format::SQLite->parse_datetime( $row[$i++] ); #LOG.DATE
         my $log = $row[$i++]; #LOG.LOG
@@ -931,9 +932,11 @@ $sm_reset_all
 	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
 	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
 	  <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"/></div>
-<div id="cat_lst">
+<!-- Cat Data Start-->
+<span id="meta_cats">
 	$data_cats
-</div>
+</span>
+<!--Cat Data End->
 <!-- Page Settings Specifics date:20200222 -->
 <script type="text/javascript">
     \$( function() {
@@ -951,6 +954,17 @@ $st->finish;
 $db->disconnect();
 undef($sss);
 exit;
+
+
+# http://localhost:8080/cgi-bin/main.cgi?
+# date=2020-02-27+11%3A05%3A28&
+# log=new
+# &am=
+# &amf=0
+# &ec=92
+
+
+# &submit_is_edit=0&submit_is_view=0&rs_all=0&rs_cur=0&rs_prev=332
 
 
 sub processSubmit {
@@ -1061,15 +1075,15 @@ try {
                    if(scalar @lid > 0){
             #By Notes.LID constraint, there should NOT be an already existing log rowid entry just submitted in the Notes table!
             #What happened? We must check and delete, regardles. As data is renumerated and shuffled from perl in database. :(
-                      $st = traceDBExe("SELECT LID FROM NOTES WHERE LID = '$lid[0]';");
+                      $st = traceDBExe("SELECT LID FROM NOTES WHERE LID=".$lid[0].";");
                       if($st->fetchrow_array()){
-                          $st = $db->do("DELETE FROM NOTES WHERE LID = '$lid[0]';");
+                          $st = $db->do("DELETE FROM NOTES WHERE LID=".$lid[0].";");
                           print qq(<p>Warning deleted (possible old) NOTES.LID[$lid[0]] -> lid:@lid</p>);
                       }
                       $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
                       $st->execute($lid[0], $gzero[0]);
                        #Flatten ground zero
-                      $st = $db->prepare("UPDATE NOTES SET DOC='' WHERE LID = 0;");
+                      $st = $db->prepare("UPDATE NOTES SET DOC='' WHERE LID=0;");
                       $st->execute();
                    }
                 }
