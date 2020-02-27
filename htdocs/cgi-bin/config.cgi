@@ -579,7 +579,7 @@ elsif ($change == 1){
            $d->execute();
 
             while(my @r = $d->fetchrow_array()) {
-                     $s = "  LOG SET ID_CAT=1 WHERE rowid=".$r[0].";";
+                     $s = "UPDATE LOG SET ID_CAT=1 WHERE rowid=".$r[0].";";
                      $d = $db->prepare($s);
                      $d->execute();
              }
