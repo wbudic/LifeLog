@@ -56,6 +56,8 @@ Which is pretty much welcomed and encouraged.
     2.  CNF Constants can be declared only once during parsing of script files.
     3.  CNF Anons can overide in contrast previously assigned value.
 21. A CNF Anon is similar to constants but a more simpler property and value only pair.
+    1. Anons are so called because they are unknown or unexpected by the configuration framework.
+    2. Also constants that turn up in the anon list, are a good indicator that they are not handled from script. Forgotten become anons.
 22. Anon is not instruction processed. Hence anonymous in nature for its value.
 23. Anon has no signifier, and doesn't need to have an application default.
 24. Anon value is global to the application and its value can be modified.
