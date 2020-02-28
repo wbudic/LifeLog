@@ -20,7 +20,7 @@ use DateTime::Duration;
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
 require Settings;
-
+my $BACKUP_ENABLED = 0;
 
 my $cgi = CGI->new;
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
@@ -98,7 +98,7 @@ try{
             $pwd =~ s/\s*$//;
             $dbg = "--DEBUG OUTPUT--\n$debug" if $debug;
             print $cgi->header,
-            "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
+            "<hr><font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
             "<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n$dbg</pre>",
             $cgi->end_html;
  };
@@ -130,23 +130,29 @@ sub processSubmit {
 sub checkAutologinSet {
 
     #We don't need to slurp as it is expected setting in header.
-    my @cre;
-    open(my $fh, '<', &Settings::logPath.'main.cnf' ) or die "Can't open main.cnf: $!";
+    my (@cre, $end,$crest);
+    open(my $fh, '<', &Settings::logPath.'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");
     while (my $line = <$fh>) {
                 chomp $line;
                 if(rindex ($line, "<<AUTO_LOGIN<", 0)==0){
-                        my $end = index $line, ">", 14;
-                        my $crest = substr $line, 13, $end - 13;
+                        $end = index $line, ">", 14;
+                        $crest = substr $line, 13, $end - 13;
                         @cre = split '/', $crest;
-                        last;
+                       next;
                 }
+                elsif(rindex ($line, "<<BACKUP_ENABLED<", 0)==0){
+                        $end = index $line, ">", 18;
+                        $BACKUP_ENABLED = substr $line, 18, $end - 17;
+                    last; #we expect as last anon to be set.
+                }
+                elsif(rindex ($line, "<<CONFIG<",0) == 0){last;}
     }
     close $fh;
-    if(@cre &&scalar(@cre)>1){
+    if(@cre &&scalar(@cre)>1){##TODO we already connected here to the db, why do it again later?
             my $database = &Settings::logPath.'data_'.$cre[0].'_log.db';
             my $dsn= "DBI:SQLite:dbname=$database";
             my $db = DBI->connect($dsn, $cre[0], $cre[1], { RaiseError => 1 })
-                            or die "<p>Error->"& $DBI::errstri &"</p>";
+                       or LifeLogException->throw("<p>Error->"& $DBI::errstri &"</p>");
                 #check if enabled.
             my $st = $db->prepare("SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");
             $st->execute();
@@ -177,9 +183,8 @@ sub checkCreateTables {
     while(my @r = $pst->fetchrow_array()){
         $curr_tables{$r[0]} = 1;
     }
-
     if($curr_tables{'CONFIG'}) {
-        #Has configuration data been wiped out?
+        #Set changed if has configuration data been wiped out.
         $changed = 1 if Settings::countRecordsIn($db, 'CONFIG') == 0;
     }
     else{
@@ -191,12 +196,14 @@ sub checkCreateTables {
     # Now we got a db with CONFIG, lets get settings from there.
     # Default version is the scripted current one, which could have been updated.
     # We need to maybe update further, if these versions differ.
-    # Source default and the one from the CONFIG table.
+    # Source default and the one from the CONFIG table in the (present) database.
     my $DEF_VERSION = Settings::release();
-                      Settings::getConfiguration($db);
+                      Settings::getConfiguration($db,{backup_enabled=>$BACKUP_ENABLED});
     my $DB_VERSION  = Settings::release();
     my $hasLogTbl   = $curr_tables{'LOG'};
     my $hasNotesTbl = $curr_tables{'NOTES'};
+    my @annons = Settings::anons();
+    LifeLogException -> throw("Annons!") if (@annons==0);#We added above the backup_enabled anon if missing in script.
     #
     # From v.1.8 Log has changed, to have LOG to NOTES relation.
     #
@@ -360,7 +367,7 @@ sub populate {
     my @lines;
     my $ttype = 0;
 
-    open(my $fh, "<:perlio", &Settings::logPath.'main.cnf' ) or die "Can't open main.cnf: $!";
+    open(my $fh, "<:perlio", &Settings::logPath.'main.cnf' ) or LifeLogException->throw( "Can't open main.cnf: $!");
     read $fh, my $content, -s $fh;
              @lines  = split '\n', $content;
     close $fh;
