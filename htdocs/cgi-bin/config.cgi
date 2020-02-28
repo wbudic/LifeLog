@@ -945,7 +945,7 @@ sub backup {
 
 
    my $ball = 'bck__'.$today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
-   my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." $database | openssl enc -k $pass:$userid -e -des-ede3-cfb -pbkdf2 -out ".Settings::logPath().$ball;
+   my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." $database | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball;
    my $rez = `$pipe`;
 
   print $cgi->header;

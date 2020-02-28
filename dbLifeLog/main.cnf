@@ -5,6 +5,7 @@ https://github.com/wbudic/LifeLog
 This is an Open Source License project -> https://choosealicense.com/licenses/isc/
 Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUTO_LOGIN option bellow, use config in app.
 <<AUTO_LOGIN</>
+<<BACKUP_ENABLED<0>
 <<CONFIG<4>
 00|$RELEASE_VER = 1.8`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
