@@ -67,7 +67,10 @@ th,
     border-style: inset;
     padding: 2px;
     padding-right: 5px;
-    width: 180px;
+    width: 5cm;
+}
+#cat_lst {
+    visibility: hidden;
 }
 
 .r0 {
@@ -169,10 +172,6 @@ img {
     text-align: center;
     background: #ccffff;
     margin-left: 90%;
-}
-
-#cat_lst {
-    visibility: hidden;
 }
 
 #frm_login {

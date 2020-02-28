@@ -44,7 +44,7 @@ if ( !$userid || !$dbname ) {
 my $database = &Settings::logPath . $dbname;
 my $dsn      = "DBI:SQLite:dbname=$database";
 my $db       = DBI->connect( $dsn, $userid, $password, { PrintError => 0, RaiseError => 1 } )
-                      or LifeLogException->throw("Execute failed [$DBI::errstri]");
+                      or LifeLogException->throw("Connection failed [$DBI::errstri]");
 my ( $imgw, $imgh );
 #Fetch settings
  Settings::getConfiguration($db);

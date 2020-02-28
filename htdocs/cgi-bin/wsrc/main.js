@@ -181,6 +181,27 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         return this;
     }
 
+    jQuery.fn.dropdownPos = function (e,desc) {
+        var pnl = $("#cat_desc");
+        var top = e.css('top');
+        var height= e.css('height');
+        var width = e.css('width');
+        var left = e.css('left');
+        var pwidth = pnl.css('width');
+            top = parseInt(top.replace(/px/, ""));
+            height = parseInt(height.replace(/px/, ""));
+            width = parseInt(width.replace(/px/, ""));
+            left = parseInt(left.replace(/px/, ""));
+            pwidth = parseInt(pwidth.replace(/px/, ""));
+            top += height - 5;
+            left -= (pwidth/2);
+            //pnl.html("["+left+","+top+","+height+","+width+"]"+desc);
+            pnl.html(desc);
+            pnl.css('top', top+'px');
+            pnl.css('left', left+'px');
+            pnl.show();
+    }
+
 
     $("#dropdown-standard a").click(function(e){
         e.preventDefault();
@@ -195,8 +216,7 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         if(pr){
             var pnl = $("#cat_desc");
             var desc = $("meta[id='cats["+pr+"]']").attr('content');
-            pnl.html(desc);
-            pnl.show();
+            $.fn.dropdownPos($("#dropdown-standard"), desc);
         }
     }).mouseleave(function(e){$("#cat_desc").hide();});
 
@@ -215,8 +235,7 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         if(pr){
             var pnl = $("#cat_desc");
             var desc = $("meta[id='cats["+pr+"]']").attr('content');
-            pnl.html(desc);
-            pnl.show();
+            $.fn.dropdownPos($("#dropdown-standard-v"), desc);
         }
     }).mouseleave(function(e){$("#cat_desc").hide();});
 
@@ -236,8 +255,7 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         if(pr){
             var pnl = $("#cat_desc");
             var desc = $("meta[id='cats["+pr+"]']").attr('content');
-            pnl.html(desc);
-            pnl.show();
+            $.fn.dropdownPos($("#dropdown-standard-x"), desc);
         }
     }).mouseleave(function(e){$("#cat_desc").hide();});
 
