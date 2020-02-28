@@ -35,6 +35,9 @@ our $THEME        = 'Standard';
 our $TRACK_LOGINS = 1;
 our $KEEP_EXCS    = 0;
 
+#Annons here, variables that could be overiden in  code or database, per need.
+my %anons = ();
+
 ### Page specific settings Here
 our $TH_CSS        = 'main.css';
 our $BGCOL         = '#c8fff8';
@@ -46,10 +49,9 @@ our $DEBUG         = 1;
 #200 -> '^REL_RENUM' : this.$RELEASE_VER (Used in login_ctr.cgi)
 #201 -> '^EXCLUDES'  : 0 (Used in main.cgi)
 
-##Not to be used, Settings are static.
-sub new {
-    return bless {}, shift;
-}
+sub anons {return sort keys %anons}
+sub anon {my $n=shift; return $anons{$n}}
+
 sub release        {return $RELEASE_VER}
 sub logPath        {return $LOG_PATH}
 sub theme          {return $THEME}
@@ -74,7 +76,7 @@ sub createCONFIGStmt {
 return qq(
     CREATE TABLE CONFIG(
         ID TINY             PRIMARY KEY NOT NULL,
-        NAME VCHAR(16),
+        NAME VCHAR(16)      UNIQUE,
         VALUE VCHAR(28),
         DESCRIPTION VCHAR(128)
     );
@@ -129,38 +131,58 @@ return qq(
 )}
 
 sub getConfiguration {
-    my $db = shift;
+    my ($db, $hsh) = @_;
     try {
         my $st = $db->prepare("SELECT ID, NAME, VALUE FROM CONFIG;");
         $st->execute();
-
-        while ( my @r = $st->fetchrow_array() ) {
-
-            switch ( $r[1] ) {
-                case "RELEASE_VER"  { $RELEASE_VER  = $r[2] }
-                case "TIME_ZONE"    { $TIME_ZONE    = $r[2] }
-                case "PRC_WIDTH"    { $PRC_WIDTH    = $r[2] }
-                case "SESSN_EXPR"   { $SESSN_EXPR   = $r[2] }
-                case "DATE_UNI"     { $DATE_UNI     = $r[2] }
-                case "LANGUAGE"     { $LANGUAGE     = $r[2] }
-                case "IMG_W_H"      { $IMG_W_H      = $r[2] }
-                case "REC_LIMIT"    { $REC_LIMIT    = $r[2] }
-                case "AUTO_WRD_LMT" { $AUTO_WRD_LMT = $r[2] }
-                case "VIEW_ALL_LMT" { $VIEW_ALL_LMT = $r[2] }
-                case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2] }
-                case "RTF_SIZE"     { $RTF_SIZE     = $r[2] }
-                case "THEME"        { $THEME        = $r[2] }
-                case "DEBUG"        { $DEBUG        = $r[2] }
-                case "KEEP_EXCS"    { $KEEP_EXCS    = $r[2] }
-                case "TRACK_LOGINS" { $TRACK_LOGINS = $r[2] }
-            }
-
+        while ( my @r = $st->fetchrow_array() ){
+                switch ( $r[1] ) {
+                case "RELEASE_VER"  { $RELEASE_VER  = $r[2];}
+                case "TIME_ZONE"    { $TIME_ZONE    = $r[2];}
+                case "PRC_WIDTH"    { $PRC_WIDTH    = $r[2];}
+                case "SESSN_EXPR"   { $SESSN_EXPR   = $r[2];}
+                case "DATE_UNI"     { $DATE_UNI     = $r[2];}
+                case "LANGUAGE"     { $LANGUAGE     = $r[2];}
+                case "LOG_PATH"     {} #ommited and code static can't change for now.
+                case "IMG_W_H"      { $IMG_W_H      = $r[2];}
+                case "REC_LIMIT"    { $REC_LIMIT    = $r[2];}
+                case "AUTO_WRD_LMT" { $AUTO_WRD_LMT = $r[2];}
+                case "VIEW_ALL_LMT" { $VIEW_ALL_LMT = $r[2];}
+                case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2];}
+                case "RTF_SIZE"     { $RTF_SIZE     = $r[2];}
+                case "THEME"        { $THEME        = $r[2];}
+                case "DEBUG"        { $DEBUG        = $r[2];}
+                case "KEEP_EXCS"    { $KEEP_EXCS    = $r[2];}
+                case "TRACK_LOGINS" { $TRACK_LOGINS = $r[2];}
+                else                { $anons{$r[1]} = $r[2];}
+                }
         }
-        return &new;
+        #Anons are murky grounds. -- @bud
+        if($hsh){
+            my $stIns = $db->prepare("INSERT INTO CONFIG (ID, NAME, VALUE) VALUES(?,?,?)");
+            foreach my $key (keys %{$hsh}){
+                if(index($key,'$')!=0){#per spec. anons are not prefixed with an '$' as signifier.
+                    my $val = %{$hsh}{$key};
+                    my $existing = $anons{$key};
+                    #exists? Overwrite for $self config but not in DB! (dynamic code base set anon)
+                    $anons{$key} = $val;
+                    if(not defined $existing){
+                        #Make it now config global. Note another source latter calling this subroutine
+                        #can overwrite this, but not in the database. Where it is now set here.
+                        #Find free ID.
+                        my @res = selectRecords($db,"SELECT MAX(ID) FROM CONFIG;")->fetchrow_array();
+                        #ID's under 300 are reserved, for constants.
+                        my $id = $res[0]+1;
+                        while($id<300){ $id += ($id*1.61803398875); }#Golden ratio step it to best next available.
+                        $stIns->execute(int($id), $key, $val);
+                    }
+                }
+            }
+        }
     }
     catch {
-        print "<font color=red><b>SERVER ERROR</b></font>:" . $_;
-    }
+        SettingsException->throw(error=>$@, show_trace=>$DEBUG);
+    };
 }
 
 
