@@ -208,6 +208,7 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var ci = $(event.target).parent(); ci = ci.attr('id');
         var lbl = $(e.target).text();
         lbl = lbl.replace(/\s*$/g, "");
+        lbl = lbl + "&nbsp;".repeat(16-lbl.length);
         $("#lcat").html(lbl);
         $("#ec").val(ci);
         $("#cat_desc").show();
@@ -226,9 +227,10 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var ci = $(event.target).parent(); ci = ci.attr('id');
         var lbl = $(e.target).text();
         lbl = lbl.replace(/\s*$/g, "");
+        lbl = lbl + "&nbsp;".repeat(16-lbl.length);
         //$("#ec option:contains(" + lbl + ")").prop('selected', true);
         $("#lcat_v").html(lbl);
-        $("#idx_cat").val(ci);
+        $("#vc").val(ci);
         $("#cat_desc").show();
     }).mouseenter(function(e){
         var pr = $(event.target).parent(); pr = pr.attr('id');
@@ -246,9 +248,10 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var ci = $(event.target).parent(); ci = ci.attr('id');
         var lbl = $(e.target).text();
         lbl = lbl.replace(/\s*$/g, "");
+        lbl = lbl + "&nbsp;".repeat(16-lbl.length);
         //$("#ec option:contains(" + lbl + ")").prop('selected', true);
         $("#lcat_x").html(lbl);
-        $("#idx_cat_x").val(ci);
+        $("#xc").val(ci);
         $("#cat_desc").show();
     }).mouseenter(function(e){
         var pr = $(event.target).parent(); pr = pr.attr('id');
@@ -301,7 +304,6 @@ function formDelValidation() {
 
 }
 
-
 function validate(dt, log) {
     var tm, msg;
     if (!Date.parse(dt)) {
@@ -323,22 +325,7 @@ function validate(dt, log) {
         msg = msg + "<b>Log</b> field entry can't be empty, can't submit!<br>";
     }
     if(msg){
-            $('<div></div>').dialog({
-                modal: true,
-                title: "Sorry Form Validation Failed",
-                width: "40%",
-                show: { effect: "clip", duration: 800 },
-                open: function() {
-                  var markup = msg;
-                  $(this).html(markup);
-                },
-                buttons: {
-                  Ok: function() {
-                    $( this ).dialog( "close" );
-                  }
-                }
-            });
-            return false;
+        return dialogModal( "Sorry Form Validation Failed", msg);
     }
 }
 
@@ -746,75 +733,69 @@ function viewByCategory(btn) {
 function viewExcludeCategory(btn) {
     $("#rs_keys").value = "";
     $("#vc").value = "0";
-    var tagged = $('#divxc').text();
-    if(tagged.length>0){
-        var ids = "";
-        var kidz = $("#cat_lst").children();
-        for (var i = 0; i < kidz.length; i++) {
-
-            if(tagged.match(kidz[i].name)){
-                ids += kidz[i].id + ',';
-            }
-
-        }
-
-
-        $("#idx_cat_x").val(ids.replace(/^\,+|\,+$/g,''));
-    }
 }
 
-
-
 function addExclude() {
-    var ix = $("#idx_cat_x");
-    var sel = $("meta[id='cats["+ix.val()+"]']").attr('name'); //_CATS_NAME_MAP.get(ix.val());//$('#xc option:selected');
+    var xc = $("#xc").val();
+    var xlst = $("#xclst");
+    if(xc == 0){
+        return dialogModal("Can't add exclude!", "Must select a category to add to list of excludes.");
+    }
+
+    var sel = $("meta[id='cats["+xc+"]']").attr('name'); //_CATS_NAME_MAP.get(ix.val());//$('#xc option:selected');
     var div = $('#divxc');
     var tagged = $('#divxc').text();
     var reg = new RegExp(sel);
-    if($('#xc').val() == 0){
-        alert("Must select a category to add to list of excludes.");
-    }
-    else if(!tagged.match(reg)){
+
+    if(!tagged.match(reg)){
+        $('#divxc_lbl').show();
         if(tagged.length>0){
             div.text(tagged + ',' + sel);
+            xlst.val(xlst.val() + ',' + xc);
         }
         else{
             div.text(sel);
+            xlst.val(xc);
         }
-        $('#divxc_lbl').show();
     }
 
 return false;
 }
 
 function removeExclude() {
-    var ix = $("#idx_cat_x");
-    var sel = $("meta[id='cats["+ix.val()+"]']").attr('name'); //_CATS_NAME_MAP.get(ix.val());
+    var xc = $("#xc").val();
+    var xlst = $("#xclst");
+    if(xc == 0){
+        return dialogModal("Can't remove exclude!", "Must select a category to add to list of excludes.");
+    }
+    var sel = $("meta[id='cats["+xc+"]']").attr('name'); //_CATS_NAME_MAP.get(xc.val());
     //var sel = $('#xc option:selected');
     var div = $('#divxc');
     var tagged = $('#divxc').text();
+    var tagids = xlst.val();
     var reg = new RegExp(sel);
-
-    if($('#xc').val() == 0){
-        alert("Must select a category to remove from list of excludes.");
-    }
-    else if(tagged.match(reg)){
+    if(tagged.match(reg)){
             tagged = tagged.replace(reg,'');
             tagged = tagged.replace(/\,\,/,'\,');
             tagged = tagged.replace(/^\,+|\,+$/g,'');
-            div.text(tagged);
+            tagids = tagids.replace(xc,'');
+            tagids = tagids.replace(/\,\,/,'\,');
+            tagids = tagids.replace(/^\,+|\,+$/g,'');
             if(tagged.length==0){
                 $('#divxc_lbl').hide();
             }
+            div.text(tagged);
+            xlst.val(tagids);
     }
 
 return false;
 }
 
 function resetExclude(){
+    $("#xc").val(0);
     $('#divxc').text("");
-    $('#divxc_lbl').hide();
-
+    $("#lcat_x").html("&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font></i>&nbsp;&nbsp;&nbsp;");
+    $("#xclst").val("");
 }
 
 function viewByDate(btn) {
@@ -1053,25 +1034,26 @@ function setPageSessionTimer(expires) {
      var e1 = $('#frm_config input[name="caid"]').val();
      var e2 = $('#frm_config input[name="canm"]').val();
      if(e1.length>0 && e2.length>0){
-
-         $('<div></div>').dialog({
-            modal: true,
-            title: "Sorry Categories Config Validation Failed",
-            width: "40%",
-            show: { effect: "clip", duration: 800 },
-            open: function() {
-              var markup = "Did you fail to clear or add a new category first? ->" + e2;
-              $(this).html(markup);
-            },
-            buttons: {
-              Ok: function() {
-                $( this ).dialog( "close" );
-              }
-            }
-        });
-
-
-        return false;
+     return dialogModal("Sorry Categories Config Validation Failed",
+                        "Did you fail to clear or add a new category first? ->" + e2);
      }
      return true;
+ }
+
+ function dialogModal(title, message) {
+    $('<div></div>').dialog({
+        modal: true,
+        title: title,
+        width: "40%",
+        show: { effect: "clip", duration: 800 },
+        open: function() {
+          $(this).html(message);
+        },
+        buttons: {
+          Ok: function() {
+            $( this ).dialog( "close" );
+          }
+        }
+    });
+return false;
  }

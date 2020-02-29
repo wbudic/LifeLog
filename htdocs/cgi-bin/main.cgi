@@ -22,6 +22,7 @@ use Date::Parse;
 use Time::localtime;
 
 use Regexp::Common qw /URI/;
+use List::MoreUtils qw(uniq);
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
@@ -57,10 +58,9 @@ my $log_rc_prev = 0;
 my $log_cur_id  = 0;
 my $log_top     = 0;
 my $rs_keys     = $cgi->param('keywords');
-my $rs_cat_idx  = $cgi->param('category');
 my $prm_vc      = $cgi->param("vc");
 my $prm_xc      = $cgi->param("xc");
-my $prm_xc_lst  = $cgi->param("idx_cat_x");
+my $prm_xc_lst  = $cgi->param("xclst");
 my $rs_dat_from = $cgi->param('v_from');
 my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
@@ -96,10 +96,6 @@ if(!$prm_vc && &Settings::keepExcludes){
        $prm_xc = $prm_xc_lst if (!$prm_xc && !$cgi->param('srch_reset'));
     }
 }
-elsif(!$prm_xc && $prm_xc_lst){
-#view call only
-    $prm_xc = $prm_xc_lst;
-}
 
 if ( !$rs_dat_to && $rs_dat_from ) {
     my $dur = $today;
@@ -113,7 +109,7 @@ if ( $rs_dat_from && $rs_dat_to ) {
 
 #Toggle if search deployed.
 my $toggle = "";
-if ( $rs_keys || $rs_cat_idx || $stmD || $prm_vc > 0 || $prm_xc > 0) { $toggle = 1; }
+if ( $rs_keys || $stmD || $prm_vc > 0 || $prm_xc > 0) { $toggle = 1; }
 
 
 ##Handle Session Keeps
@@ -129,35 +125,43 @@ if($cgi->param('srch_reset') == 1){
    $sss->clear('sss_xc');
 }
 
-if($prm_vc){
+
+if($prm_xc &&$prm_xc ne ""){
+#TODO (2020-02-23) It gets too complicated. should not have both $prm_xc and $prm_xc_lst;
+       $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
+       if(!$prm_xc_lst||$prm_xc_lst==0){#} && index($prm_xc, ',') > 0){
+           $prm_xc_lst =  $prm_xc;
+       }else{
+            my $f;
+            my @xc_lst = split /\,/, $prm_xc_lst; @xc_lst = uniq(sort { $a <=> $b }  @xc_lst);
+            foreach my $n(@xc_lst){
+                if($n == $prm_xc){ $f=1; last; }
+            }
+            if(!$f){#not found view was clicked changing category but not adding it to ex list. Let's add it to the list.
+                $prm_xc_lst .= ",$prm_xc";
+            }
+            $prm_xc_lst=~ s/\,$//g;$prm_xc_lst=~ s/\,\,/\,/g;
+       }
+
+
    if ($cgi->param('sss_xc') eq 'on'){
-       $sss->param('sss_vc', $prm_vc)
-   }
-   else{
-        $sss->clear('sss_vc');
-   }
-}else{
-       $prm_vc = $sss->param('sss_vc');
-}
-if($prm_xc){
-   if ($cgi->param('sss_xc') eq 'on'){
-       $sss->param('sss_xc', $prm_xc)
+       $sss->param('sss_xc', $prm_xc);
+       $sss->param('sss_xc_lst', $prm_xc_lst);
    }
    else{
         $sss->clear('sss_xc');
+        $sss->clear('sss_xc_lst');
    }
+
+
 }else{
        $prm_xc = $sss->param('sss_xc');
+       $prm_xc_lst = $sss->param('sss_xc_lst');
 }
 
 
-
-#TODO (2020-02-23) It gets too complicated. should not have both $prm_xc and $prm_xc_lst;
-       if(!$prm_xc_lst && index($prm_xc, ',') > 0){
-           $prm_xc_lst =  $prm_xc;
-       }
 ##
-my @xc_lst = split /\,/, $prm_xc_lst;
+my @xc_lst = split /\,/, $prm_xc_lst; @xc_lst = uniq(sort { $a <=> $b }  @xc_lst);
 
 
 $sss->flush();
@@ -278,15 +282,12 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     <th>Edit</th>
 </tr>);
 
-    if ( defined $prm_vc ) {    #view category form selection
-        $rs_cat_idx = $prm_vc;
-    }
 
     if ( $rs_keys && $rs_keys ne '*' ) {
 
         my @keywords = split / /, $rs_keys;
-        if ($rs_cat_idx && $rs_cat_idx != $prm_xc) {
-            $stmS .= " ID_CAT='" . $rs_cat_idx . "' AND";
+        if ($prm_vc && $prm_vc != $prm_xc) {
+            $stmS .= " ID_CAT='" . $prm_vc . "' AND";
         }
         else {
             if($prm_xc>0){
@@ -312,13 +313,13 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
             $sqlVWL = $stmS . $stmE;
         }
     }
-    elsif ($rs_cat_idx && $rs_cat_idx != $prm_xc) {
+    elsif ($prm_vc && $prm_vc != $prm_xc) {
 
         if ($stmD) {
-            $sqlVWL = $stmS . $stmD . " AND ID_CAT='" . $rs_cat_idx . "'" . $stmE;
+            $sqlVWL = $stmS . $stmD . " AND ID_CAT='" . $prm_vc . "'" . $stmE;
         }
         else {
-            $sqlVWL = $stmS . " ID_CAT=" . $rs_cat_idx . ";" . $stmE;
+            $sqlVWL = $stmS . " ID_CAT=" . $prm_vc . ";" . $stmE;
         }
     }
     else {
@@ -352,9 +353,10 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $id        = 0;
     my $log_start = index $sqlVWL, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
+    #TODO implement isView instead of quering params over and over again.
     my $isView = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0;
 
-    print $cgi->pre("###[Session PARAMS->isV:$isView|vc=$prm_vc|xc=$prm_xc|xc_lst=$prm_xc_lst|xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
+    print $cgi->pre("###[Session PARAMS->isV:$isView|vc=$prm_vc|xc=$prm_xc|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
@@ -699,8 +701,8 @@ sub buildLog {
         }
         elsif ($rs_keys) {
             my $criter = "";
-            if ( $rs_cat_idx > 0 ) {
-                $criter = "->Criteria[" . $hshCats{$rs_cat_idx} . "]";
+            if ( $prm_vc > 0 ) {
+                $criter = "->Criteria[" . $hshCats{$prm_vc} . "]";
             }
             $log_output .= qq(<tr><td colspan="5">
 			<b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td></tr>);
@@ -758,7 +760,7 @@ _TXT
 
             </td>
 			<td style="text-align:top; vertical-align:top">Category:&nbsp;
-            <span id="lcat" class="span_cat"><i><font size=1>--Select --</font></i></span>
+            <span id="lcat" class="span_cat">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
                 <button class="bordered" data-dropdown="#dropdown-standard">&#171;</button>
 
             <div class="dropdown-menu dropdown-anchor-top-right dropdown-has-anchor" id="dropdown-standard">
@@ -814,18 +816,30 @@ _TXT
       </tr>
     );
     my $sss_checked = 'checked' if &isInViewMode;
-    my $divxc = '<td id="divxc_lbl" align="right" style="display:none"><b>Excludes:</b></td><td align="left" id="divxc"></td>';
-    my ($catselected, $idx_cat) =  '<i><font size=1>-- Select --</font></i>', 0;
-    if($rs_cat_idx){
-        $catselected = $hshCats{$rs_cat_idx};
-        $idx_cat = $rs_cat_idx;
-
+    my $tdivxc = '<td id="divxc_lbl" align="right" style="display:none"><b>Excludes:</b></td><td align="left" id="divxc"></td>';
+    my $catselected  = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
+    my $xcatselected = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
+    my $xc_lst = '';
+    if($prm_vc){
+        $catselected = $hshCats{$prm_vc};
+         my $n = 16 - length($catselected);
+        $catselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
     }
+
     if(@xc_lst){#Do list of excludes, past from browser in form of category id's.
         my $xcls ="";
-        foreach(@xc_lst){ $xcls .= $hshCats{$_}.','}
-        $xcls =~ s/\,$//g;
-        $divxc = '<td id="divxc_lbl" align="right"><b>Excludes:</b></td><td align="left" id="divxc">'.$xcls.'</td>';
+        foreach(@xc_lst){ $xcls .= $hshCats{$_}.',';$xc_lst.=$_.','}
+        $xcls =~ s/\,$//g; $xcls =~ s/\,\,/\,/g; $xc_lst=~ s/^0\,$//g;
+        $xcatselected = $hshCats{$prm_xc};
+        my $n = 16 - length($xcatselected);
+        $xcatselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
+        $tdivxc = '<td id="divxc_lbl" align="right"><b>Excludes:</b></td><td align="left" id="divxc">'.$xcls.'</td>';
+    }
+    elsif($prm_xc){
+        $xcatselected = $hshCats{$prm_xc};
+         my $n = 16 - length($xcatselected);
+        $xcatselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
+        $tdivxc = '<td id="divxc_lbl" align="right"><b>Excludes:</b></td><td align="left" id="divxc">'.$hshCats{$prm_xc}.'</td>';
     }
     $srh .=
     qq(
@@ -833,24 +847,22 @@ _TXT
      <td align="right"><b>View by Category:</b></td>
      <td align="left">
 
-                 <span id="lcat_v" class="span_cat">$catselected</span>
-                 <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
+             <span id="lcat_v" class="span_cat">$catselected</span>
+             <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
 
             <div id="dropdown-standard-v" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
                         <table class="tbl">$td_cat</table>
             </div>
-     <!--
-    \$cats_v&nbsp;&nbsp;   -->
-        <button id="btn_cat" onclick="viewByCategory(this);">View</button>
-        <input id="idx_cat" name="category" type="hidden" value="$idx_cat"/>
+
+            <input id="vc" name="vc" type="hidden" value="$prm_vc"/>
+            <button id="btn_cat" onclick="viewByCategory(this);">View</button>
      </td>
    </tr>
    <tr class="collpsd">
      <td align="right"><b>Exclude Category:</b></td>
      <td align="left">
 
-
-                 <span id="lcat_x" class="span_cat"><i><font size=1>--Select --</font></i></span>
+                 <span id="lcat_x" class="span_cat">$xcatselected</span>
                  <button class="bordered" data-dropdown="#dropdown-standard-x">&#171;</button>
 
             <div id="dropdown-standard-x" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
@@ -858,7 +870,9 @@ _TXT
             </div>
 
      <!-- \$cats_x&nbsp;&nbsp;   -->
-        <input id="idx_cat_x" name="idx_cat_x" type="hidden" value="0"/>
+
+        <input id="xc" name="xc" type="hidden" value="$prm_xc"/>
+        <input id="xclst" name="xclst" type="hidden" value="$xc_lst"/>
 
         <button id="btnxca" onClick="return addExclude()"/>Add</button>&nbsp;&nbsp;
         <button id="btnxrc" type="button" onClick="return removeExclude()">Remove</button>&nbsp;
@@ -867,7 +881,7 @@ _TXT
         <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked/> Keep In Seession
      </td>
    </tr>
-   <tr class="collpsd">$divxc</tr>
+   <tr class="collpsd">$tdivxc</tr>
    <tr class="collpsd">
     <td align="right"><b>View by Date:</b></td>
 	<td align="left">
@@ -884,7 +898,7 @@ _TXT
     </td>
     );
 
-    if ( ( $rs_keys && $rs_keys ne '*' ) || $rs_cat_idx || $stmD || $prm_xc ) {
+    if ( ( $rs_keys && $rs_keys ne '*' ) || $prm_vc || $stmD || $prm_xc ) {
         $sm_reset_all = '<a class="a_" onclick="resetView();">Reset View</a><hr>';
         $srh .= '<tr class="collpsd"><td align="right" colspan="2">
         <input id="srch_reset" name="srch_reset" type="hidden" value="0"/>

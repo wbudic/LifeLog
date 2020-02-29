@@ -64,10 +64,12 @@ th,
 }
 .span_cat {
     border:1px solid #b2f8ef;
+    border-bottom:solid  #42e4fa 1px;
     border-style: inset;
     padding: 2px;
-    padding-right: 5px;
-    width: 5cm;
+    padding-right: 10px;
+    padding-left: 10px;
+    width:unset;
 }
 #cat_lst {
     visibility: hidden;
