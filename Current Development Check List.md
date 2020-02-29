@@ -9,17 +9,18 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
-* Use the pages cat_list meta data elements for dealing with categories in java scripts.
 * Database backup tgz ball, upload and download button on config page.
   * You must have the password you logged in to unscramble the backup.
     * Alias -> pass -> backup password. Information required.
 * Application log needed in the background for System based logs.
-* &#10004; New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
 * New CNF Development.
   * Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
   * CVS imports/exports are to be made obsolete in the future. It is not safe.
     * This will be savailable via command line.
 * RTF Documents header lister page, to provide for, new log entry assignment, deletion, edits.
+  * There isnt and shouldn't be a full relationship to docs. Hence new log entries can link to existing, docs.
+* &#10004;Use the pages cat_list meta data elements for dealing with categories in java scripts.
+* &#10004; New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
 * &#10004; Sticky rows bg colour, to be a shade different to other normal rows.
 * &#10004; Login system log and out to be implemented. With system variable $TRACK_LOGINS to disable/enable.
 * &#10004;Change all code to use Exceptions as project is becoming hard to manage.
