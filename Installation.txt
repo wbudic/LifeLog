@@ -103,6 +103,9 @@ NOTICE -> Above Perl installation and modules can take time as they build (compi
           using your computers configuration and hardware for optimal performance.
           The Perl::LanguageServer, can fail in tests, as it development specific, can be ignored.
 
+#Install OpenSSL (Optional)
+https://www.openssl.org/
+sudo apt install openssl
 
 
 # LifeLog Required Perl modules.
