@@ -194,7 +194,7 @@ sub NotConfirmed {
     #Get ids and build confirm table and check
     my $stm = $stmS ." ";
         foreach my $id ($cgi->param('chk')){
-            $stm = $stm . "ID = " . $id . " OR ";
+            $stm = $stm . "PID = " . $id . " OR ";
         }
         $stm =~ s/ OR $//; $stm .= $stmE;
 
