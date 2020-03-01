@@ -65,6 +65,9 @@ my $csvp   = $cgi->param('csv');
 if($cgi->param('bck')){
     &backup;
 }
+elsif($cgi->param('bck_del')){
+    &backupDelete;
+}
 elsif($cgi->param('data_bck')){
     &restore;
 }
@@ -105,7 +108,8 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <a href="#categories">Categories</a><br>
 <a href="#vars">System</a><br>
 <a href="#dbsets">DB Fix</a><br>
-<a href="#passets">Pass</a>
+<a href="#passets">Pass</a><br>
+<a href="#backup">Backup</a>
 </font>
 <hr>
 <br>
@@ -370,7 +374,6 @@ else{
     $bck_list = qq(<p>Tick Select Backup to Restore or Delete</p><p>$bck_list</p>);
 }
 
-
 #
 #  Page printout from here!
 #
@@ -386,9 +389,9 @@ print qq(
     </div>
     <br>
     <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:).&Settings::bgcol.qq(">
-            <form action="config.cgi" method="post" enctype="multipart/form-data">
+            <form id="bck" action="config.cgi" method="post" enctype="multipart/form-data">
             <table border="0" width="100%">
-                <tr><td><H3>Backup File Format</H3></td></tr>
+                <tr><td><a name="backup"></a><H3>Backup File Format</H3></td></tr>
                 <tr><td><input type="button" onclick="return fetchBackup();" value="Fetch"/><hr></td></tr>
 
                 <tr><td><div id="div_backups">$bck_list</div><hr></td></tr>
@@ -941,24 +944,49 @@ sub changeSystemSettings {
     Settings::getConfiguration($db) if($updated);
 }
 
+
+sub backupDelete {
+    my $n = $cgi->param('bck_del');
+    my $f = &Settings::logPath.$n;
+try{
+    if (-e $f) {
+         LifeLogException->throw("File -> <i>[$n]</i> is not a backup file or it doesn't belong to $userid (you)!") if(index ($file , /bck_\d+$userid\_log/) == -1 );
+         unlink($f) or LifeLogException->throw("Failed to delete $n! -> $!");
+         print $cgi->redirect("config.cgi?CGISESSID=$sid");
+    exit;
+    } else {
+        LifeLogException->throw( "File $n does not exist!");
+    }
+}catch{
+        my $err = $@;
+        &getHeader;
+        print $cgi->start_html;
+        print qq(<div class=r0><b>Delete Has Failed!<br>[$err]</div>
+                 <div class=r2><a href="config.cgi?CGISESSID=$sid"><br>Go Back</a> or <a href="main.cgi"><br>Go to main LOG</a></div>
+        );
+        print $cgi->end_html;
+        exit;
+};
+}
 sub backup {
 
 
    my $ball = 'bck__'.$today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
-   my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." $database | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball;
+   my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." $database | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball." 2>/dev/null";
    my $rez = `$pipe`;
 
-  print $cgi->header;
-            print $cgi->start_html;
+    #print $cgi->header;
+    #print $cgi->start_html;
+    print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>$ball);
+    open (TAR, "<".Settings::logPath().$ball) or die "";
+    while(<TAR>){print <TAR>}
+    close TAR;
 
-   print $pipe;
-
-
-
-            print $cgi->end_html;
-       exit;
+    #print $cgi->end_html;
+    exit;
 
 }
+
 
 sub restore {
 
@@ -972,25 +1000,44 @@ sub restore {
         my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
         my $tar = $dbck .$hndl; $tar =~ s/osz$/tar/;
         my $pipe;
-        open ($pipe,  "| openssl enc -k $pass:$userid -d -des-ede3-cfb -pbkdf2 -in /dev/stdin 2>/dev/null > $tar");#| tar zt");#1>/dev/null");
+        open ($pipe,  "| openssl enc -k $pass:$userid -d -des-ede3-cfb -in /dev/stdin 2>/dev/null > $tar");#| tar zt");#1>/dev/null");
             while(<$hndl>){print $pipe $_;};
         close $pipe;
         print "<pre>\n";
-        print "Created->$tar\n";
+        print "Produced->$tar\n";
        # my $cmd = "tar xz * $file";
         #`$cmd`;
         print "Contents->".`tar tvf $tar`."\n";
-        print "Extracted->".`tar xzvf $tar -C $dbck --strip-components 1`."\n";
+        print "Extracted->\n".`tar xzvf $tar -C $dbck --strip-components 1`."\n";
 
         my $b_base = $dbck.$dbname;
         my $dsn= "DBI:SQLite:dbname=$b_base";
         my $b_db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
         print "Connected to -> $dsn\n";
-        print "Merging from backup log table...\n";
 
-        my $insLOG   = $db->prepare('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES(?,?,?,?,?,?,?);');
-        my $b_pst = Settings::selectRecords($b_db,'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG;');
+        print "Merging from backup categories table...\n";
+        my $insCAT   = $db->prepare('INSERT INTO CAT (ID, NAME, DESCRIPTION) VALUES(?,?,?);') or die "Failed CAT prepare.";
 
+        my $b_pst = Settings::selectRecords($b_db,'SELECT ID, NAME, DESCRIPTION FROM CAT;');
+        while ( my @brecord = $b_pst->fetchrow_array() ) {
+            my $pst = Settings::selectRecords($db, "SELECT ID,NAME,DESCRIPTION FROM CAT WHERE ID='".$brecord[0]."';");
+            my @ext = $pst->fetchrow_array();
+            if(scalar(@ext)==0){
+                $insCAT->execute($brecord[0],$brecord[1],$brecord[2]);
+                print "Added CAT->".$brecord[0]."|".$brecord[1]."\n";
+            }
+            elsif($brecord[0] ne $ext[0] or $brecord[1] ne $ext[1]){
+                $db->do("UPDATE CAT SET NAME='".$brecord[1]."', DESCRIPTION='".$brecord[2]."' WHERE ID=?;") or die "Cat update failed!";
+                print "Updated->".$brecord[0]."|".$brecord[1]."|".$brecord[2]."\n";
+            }
+
+        }
+        print "\nFinished with merging CAT table.\n";
+
+        print "\n\nMerging from backup LOG table...\n";
+        my $insLOG   = $db->prepare('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES(?,?,?,?,?,?,?);')or die "Failed LOG prepare.";
+
+        $b_pst = Settings::selectRecords($b_db,'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG;');
         while ( my @brecord = $b_pst->fetchrow_array() ) {
             my $pst = Settings::selectRecords($db,"SELECT DATE FROM VW_LOG WHERE DATE='".$brecord[3]."';");
             my @ext = $pst->fetchrow_array();
@@ -1000,12 +1047,29 @@ sub restore {
             }
 
         }
-        print "\nFinished with merging log table.\n";
+        print "\nFinished with merging LOG table.\n";
+
+        print "\n\nMerging from backup NOTES table...\n";
+        my $insNOTES   = $db->prepare('INSERT INTO NOTES (LID, DOC) VALUES(?,?);')or die "Failed NOTESprepare.";
+
+        $b_pst = Settings::selectRecords($b_db,'SELECT LID, DOC FROM NOTES;');
+        while ( my @brecord = $b_pst->fetchrow_array() ) {
+            my $pst = Settings::selectRecords($db,"SELECT LID FROM NOTES WHERE LID='".$brecord[0]."';");
+            my @ext = $pst->fetchrow_array();
+            if(scalar(@ext)==0&&$brecord[0]&&$brecord[1]){
+                $insNOTES->execute($brecord[0],$brecord[1]);
+                print "Added NOTES->".$brecord[0]."\n";
+            }
+
+        }
+        print "\nFinished with merging NOTES table.\n";
+
         $b_db->disconnect();
+        $db->disconnect();
         print "Done!";
         print "\n</pre>";
         my $back = $cgi->url( -relative => 1 );
-        print qq(<a href="$back"><hr>Go Back</a>);
+        print qq(<a href="config.cgi?CGISESSID=$sid"><hr>Go Back</a> or <a href="main.cgi"><hr>Go to LOG</a>);
             print $cgi->end_html;
        exit;
 

@@ -987,6 +987,35 @@ function RGBToHex(rgb) {
 function fetchBackup() {
     window.location = "config.cgi?bck=1";
 }
+function deleteBackup() {
+    $('<div></div>').dialog({
+        modal: true,
+        title: "Please Confirm?",
+        width: "40%",
+        show: { effect: "clip", duration: 1000 },
+        hide: { effect: "explode", duration: 1000},
+        open: function() {
+            var sel = $("#bck input[type=radio]:checked").val();
+          $(this).html("Are you sure you want to delete file:<br><b>"+sel+"</b>");
+        },
+        buttons: [
+             {  text: "Yes",
+                icon: "ui-icon-trash",
+                click: function() {
+                  $( this ).dialog( "close" );
+                    var sel = $( "#bck input[type=radio]:checked").val();
+                    window.location = "config.cgi?bck_del="+sel;
+                }
+              },
+
+            { text: "Cancel",
+                click: function() { $( this ).dialog( "close" );
+                return false;
+                }
+            }
+        ]
+    });
+}
 
 function exportToCSV(dat, view){
     var csv;

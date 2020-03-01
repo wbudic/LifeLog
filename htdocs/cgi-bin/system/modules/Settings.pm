@@ -82,6 +82,15 @@ return qq(
     );
     CREATE INDEX idx_config_name ON CONFIG (NAME);
 )}
+sub createCATStmt {
+return qq(
+    CREATE TABLE CAT(
+        ID TINY             PRIMARY KEY NOT NULL,
+        NAME                VCHAR(16),
+        DESCRIPTION         VCHAR(64)
+    );
+    CREATE INDEX idx_cat_name ON CAT (NAME);
+)}
 sub createLOGStmt {
 return qq(
     CREATE TABLE LOG (
@@ -99,15 +108,6 @@ return qq(
 CREATE VIEW VW_LOG AS
     SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
         FROM LOG as a ORDER BY DATE DESC;'
-)}
-sub createCATStmt {
-return qq(
-    CREATE TABLE CAT(
-        ID TINY             PRIMARY KEY NOT NULL,
-        NAME                VCHAR(16),
-        DESCRIPTION         VCHAR(64)
-    );
-    CREATE INDEX idx_cat_name ON CAT (NAME);
 )}
 sub createAUTHStmt {
 return qq(
