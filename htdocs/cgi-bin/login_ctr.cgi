@@ -241,7 +241,9 @@ sub checkCreateTables {
                                 SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG FROM life_log_login_ctr_temp_table ORDER by DATE;');
             $db->do('DROP TABLE life_log_login_ctr_temp_table;');
 
-            #Experimenentla sofar NOTES table has LID changed to proper number type.
+            #Experimental sofar NOTES table has LID changed to proper number type.
+            $db->do(qq(CREATE TABLE life_log_rename_column_new_table (
+        	            LID	INTEGER NOT NULL PRIMARY KEY,    DOC	TEXT);));
             $db->do('INSERT INTO life_log_rename_column_new_table SELECT `LID`,`DOC` FROM `NOTES`;');
             $db->do('DROP TABLE `NOTES`;');
             $db->do('ALTER TABLE `life_log_rename_column_new_table` RENAME TO `NOTES`');
