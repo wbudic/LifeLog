@@ -241,6 +241,12 @@ sub checkCreateTables {
                                 SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG FROM life_log_login_ctr_temp_table ORDER by DATE;');
             $db->do('DROP TABLE life_log_login_ctr_temp_table;');
 
+            #Experimenentla sofar NOTES table has LID changed to proper number type.
+            $db->do('INSERT INTO life_log_rename_column_new_table SELECT `LID`,`DOC` FROM `NOTES`;');
+            $db->do('DROP TABLE `NOTES`;');
+            $db->do('ALTER TABLE `life_log_rename_column_new_table` RENAME TO `NOTES`');
+
+
             #Update new LOG with notes RTF ids, in future versions, this will never be required anymore.
             foreach my $date (keys %notes_ids){
                 #next if(ref($notes_ids{$date}) eq 'HASH');

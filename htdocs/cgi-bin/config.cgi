@@ -978,8 +978,8 @@ sub backup {
     #print $cgi->header;
     #print $cgi->start_html;
     print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>$ball);
-    open (TAR, "<".Settings::logPath().$ball) or die "";
-    while(<TAR>){print <TAR>}
+    open (TAR, "<".Settings::logPath().$ball) or die "Failed creating backup -> $ball";
+    while(<TAR>){print $_;}
     close TAR;
 
     #print $cgi->end_html;
@@ -991,7 +991,7 @@ sub backup {
 sub restore {
 
     my $hndl = $cgi->upload("data_bck");
-    my $pipe;
+    my ($pipe,@br);
     try{
 
 
@@ -1007,7 +1007,7 @@ sub restore {
 
         print "<pre>\n";
         my $cmd = `tar tvf $tar 2>/dev/null`  or die "(SECURITY) FAILED READING $tar [$pass:$userid]";
-        print "Contents->".$cmd."\n";
+        print "Contents->".$cmd."\n\n";
         $cmd = `tar xzvf $tar -C $dbck --strip-components 1 2>/dev/null` or die "Failed extracting $tar";
         print "Extracted->\n".$cmd."\n" or die "Failed extracting $tar";;
 
@@ -1020,16 +1020,16 @@ sub restore {
         my $insCAT   = $db->prepare('INSERT INTO CAT (ID, NAME, DESCRIPTION) VALUES(?,?,?);') or die "Failed CAT prepare.";
 
         my $b_pst = Settings::selectRecords($b_db,'SELECT ID, NAME, DESCRIPTION FROM CAT;');
-        while ( my @brecord = $b_pst->fetchrow_array() ) {
-            my $pst = Settings::selectRecords($db, "SELECT ID,NAME,DESCRIPTION FROM CAT WHERE ID='".$brecord[0]."';");
+        while ( @br = $b_pst->fetchrow_array() ) {
+            my $pst = Settings::selectRecords($db, "SELECT ID,NAME,DESCRIPTION FROM CAT WHERE ID='".$br[0]."';");
             my @ext = $pst->fetchrow_array();
             if(scalar(@ext)==0){
-                $insCAT->execute($brecord[0],$brecord[1],$brecord[2]);
-                print "Added CAT->".$brecord[0]."|".$brecord[1]."\n";
+                $insCAT->execute($br[0],$br[1],$br[2]);
+                print "Added CAT->".$br[0]."|".$br[1]."\n";
             }
-            elsif($brecord[0] ne $ext[0] or $brecord[1] ne $ext[1]){
-                $db->do("UPDATE CAT SET NAME='".$brecord[1]."', DESCRIPTION='".$brecord[2]."' WHERE ID=?;") or die "Cat update failed!";
-                print "Updated->".$brecord[0]."|".$brecord[1]."|".$brecord[2]."\n";
+            elsif($br[0] ne $ext[0] or $br[1] ne $ext[1]){
+                $db->do("UPDATE CAT SET NAME='".$br[1]."', DESCRIPTION='".$br[2]."' WHERE ID=?;") or die "Cat update failed!";
+                print "Updated->".$br[0]."|".$br[1]."|".$br[2]."\n";
             }
 
         }
@@ -1039,12 +1039,12 @@ sub restore {
         my $insLOG   = $db->prepare('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES(?,?,?,?,?,?,?);')or die "Failed LOG prepare.";
 
         $b_pst = Settings::selectRecords($b_db,'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG;');
-        while ( my @brecord = $b_pst->fetchrow_array() ) {
-            my $pst = Settings::selectRecords($db,"SELECT DATE FROM VW_LOG WHERE DATE='".$brecord[3]."';");
+        while ( @br = $b_pst->fetchrow_array() ) {
+            my $pst = Settings::selectRecords($db,"SELECT DATE FROM VW_LOG WHERE DATE='".$br[3]."';");
             my @ext = $pst->fetchrow_array();
             if(scalar(@ext)==0){
-                $insLOG->execute($brecord[1],$brecord[2],$brecord[3],$brecord[4],$brecord[5],$brecord[6],$brecord[7]);
-                print "Added->".$brecord[0]."|".$brecord[3]."|".$brecord[4]."\n";
+                $insLOG->execute($br[1],$br[2],$br[3],$br[4],$br[5],$br[6],$br[7]);
+                print "Added->".$br[0]."|".$br[3]."|".$br[4]."\n";
             }
 
         }
@@ -1052,14 +1052,13 @@ sub restore {
 
         print "\n\nMerging from backup NOTES table...\n";
         my $insNOTES   = $db->prepare('INSERT INTO NOTES (LID, DOC) VALUES(?,?);')or die "Failed NOTESprepare.";
-
         $b_pst = Settings::selectRecords($b_db,'SELECT LID, DOC FROM NOTES;');
-        while ( my @brecord = $b_pst->fetchrow_array() ) {
-            my $pst = Settings::selectRecords($db,"SELECT LID FROM NOTES WHERE LID='".$brecord[0]."';");
+        while ( @br = $b_pst->fetchrow_array() ) {
+            my $pst = Settings::selectRecords($db,"SELECT LID FROM NOTES WHERE LID=".$br[0].";");
             my @ext = $pst->fetchrow_array();
-            if(scalar(@ext)==0&&$brecord[0]&&$brecord[1]){
-                $insNOTES->execute($brecord[0],$brecord[1]);
-                print "Added NOTES->".$brecord[0]."\n";
+            if(@ext==0&&$br[0]&&$br[1]){
+                $insNOTES->execute($br[0], $br[1]) or die "Failed NOTES INSERT[".$br[0]."]";
+                print "Added NOTES->".$br[0]."\n";
             }
 
         }
@@ -1077,7 +1076,7 @@ sub restore {
 
     }
     catch{
-        LifeLogException->throw(error=>"Restore failed! hndl->$hndl $@");#,show_trace=>&Settings::debug);
+        LifeLogException->throw(error=>"Restore failed! hndl->$hndl $@  \nbr:[@br]");#,show_trace=>&Settings::debug);
     };
 
 }
