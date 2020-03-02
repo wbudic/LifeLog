@@ -50,6 +50,7 @@ our $DEBUG         = 1;
 #201 -> '^EXCLUDES'  : 0 (Used in main.cgi)
 
 sub anons {return sort keys %anons}
+#Check call with defined(Settings::anon('my_anon'))
 sub anon {my $n=shift; return $anons{$n}}
 
 sub release        {return $RELEASE_VER}
@@ -136,7 +137,7 @@ sub getConfiguration {
     my ($db, $hsh) = @_;
     try {
         my $st = $db->prepare("SELECT ID, NAME, VALUE FROM CONFIG;");
-        $st->execute();
+           $st->execute();
         while ( my @r = $st->fetchrow_array() ){
                 switch ( $r[1] ) {
                 case "RELEASE_VER"  { $RELEASE_VER  = $r[2];}
@@ -161,7 +162,7 @@ sub getConfiguration {
         }
         #Anons are murky grounds. -- @bud
         if($hsh){
-            my $stIns = $db->prepare("INSERT INTO CONFIG (ID, NAME, VALUE) VALUES(?,?,?)");
+            my $stIns = $db->prepare("INSERT INTO CONFIG (ID, NAME, VALUE, DESCRIPTION) VALUES(?,?,?,?)");
             foreach my $key (keys %{$hsh}){
                 if(index($key,'$')!=0){#per spec. anons are not prefixed with an '$' as signifier.
                     my $val = %{$hsh}{$key};
@@ -170,13 +171,13 @@ sub getConfiguration {
                     $anons{$key} = $val;
                     if(not defined $existing){
                         #Make it now config global. Note another source latter calling this subroutine
-                        #can overwrite this, but not in the database. Where it is now set here.
+                        #can overwrite this, but not in the database. Where it is now set by the following.
                         #Find free ID.
                         my @res = selectRecords($db,"SELECT MAX(ID) FROM CONFIG;")->fetchrow_array();
                         #ID's under 300 are reserved, for constants.
                         my $id = $res[0]+1;
                         while($id<300){ $id += ($id*1.61803398875); }#Golden ratio step it to best next available.
-                        $stIns->execute(int($id), $key, $val);
+                        $stIns->execute(int($id), $key, $val, "Anonymous application setting.");
                     }
                 }
             }
@@ -388,5 +389,6 @@ sub configProperty {
         }
     }
 }
+
 
 1;

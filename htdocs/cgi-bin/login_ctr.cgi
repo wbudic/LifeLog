@@ -142,7 +142,7 @@ sub checkAutologinSet {
                 }
                 elsif(rindex ($line, "<<BACKUP_ENABLED<", 0)==0){
                         $end = index $line, ">", 18;
-                        $BACKUP_ENABLED = substr $line, 18, $end - 17;
+                        $BACKUP_ENABLED = substr $line, 17, $end - 17;
                     last; #we expect as last anon to be set.
                 }
                 elsif(rindex ($line, "<<CONFIG<",0) == 0){last;}
@@ -174,8 +174,7 @@ sub checkCreateTables {
     my $database = &Settings::logPath.'data_'.$alias.'_log.db';
     my $dsn= "DBI:SQLite:dbname=$database";
     my $db = DBI->connect($dsn, $alias, $passw, { RaiseError => 1 }) or LifeLogException->throw($DBI::errstri);
-    my $rv;
-    my $changed = 0;
+    my ($pst, $sql,$rv, $changed) = 0;
     # We live check database for available tables now only once.
     # If brand new database, this sill returns fine an empty array.
     my $pst = Settings::selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");
@@ -203,7 +202,16 @@ sub checkCreateTables {
     my $hasLogTbl   = $curr_tables{'LOG'};
     my $hasNotesTbl = $curr_tables{'NOTES'};
     my @annons = Settings::anons();
-    LifeLogException -> throw("Annons!") if (@annons==0);#We added above the backup_enabled anon if missing in script.
+    LifeLogException -> throw("Annons!") if (@annons==0);#We even added above the backup_enabled anon, so WTF?
+
+    # Reflect anons to db config.
+    $sql = "SELECT ID, NAME, VALUE FROM CONFIG WHERE";
+    foreach my $ana(@annons){$sql .=  " NAME LIKE '$ana' OR";};$sql =~ s/OR$//; $sql .=';';
+    $pst =  Settings::selectRecords($db, $sql);
+    while(my @row = $pst->fetchrow_array()) {
+        my ($vid,$n,$sv, $dv) = ($row[0], $row[1], Settings::anon($row[1]), $row[2]);
+        $db->do("UPDATE CONFIG SET VALUE='$sv' WHERE ID=$vid;") if($dv ne $sv);
+    }
     #
     # From v.1.8 Log has changed, to have LOG to NOTES relation.
     #
@@ -218,7 +226,7 @@ sub checkCreateTables {
             $db->do('CREATE TABLE life_log_login_ctr_temp_table AS SELECT * FROM LOG;');
             my %notes_ids = ();
             if($hasNotesTbl){
-                my $pst =  Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE RTF > 0 ORDER BY DATE;');
+                $pst =  Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE RTF > 0 ORDER BY DATE;');
                 while(my @row = $pst->fetchrow_array()) {
                         my $sql_date = $row[1];;
                         $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
@@ -287,11 +295,10 @@ sub checkCreateTables {
     }
 
     # From v.1.6 view use server side views, for pages and correct record by ID and PID lookups.
-    # This should make queries faster, less convulsed, and log renumeration less needed, for accurate pagination.
+    # This should make queries faster, less convulsed, and log renumeration less needed for accurate pagination.
     if(!$curr_tables{'VW_LOG'}) {
         $rv = $db->do(&Settings::createVW_LOGStmt);
     }
-    # TODO
     if(!$curr_tables{'CAT'}) {
         $db->do(&Settings::createCATStmt);
         $changed = 1;
@@ -329,7 +336,7 @@ sub checkCreateTables {
     if($changed){
         #It is also good to run db fix (config page) to renum if this is an release update?
         #Release in software might not be what is in db, which counts.
-        #This here newxt we now update.
+        #This here next we now update.
         my @r = Settings::selectRecords($db, 'SELECT ID, VALUE FROM CONFIG WHERE NAME IS "RELEASE_VER";')->fetchrow_array();
         my $did = $r[0];
         my $dnm = $r[1];
@@ -373,7 +380,7 @@ sub populate {
     my $err = "";
     my %vars = ();
     my @lines;
-    my $ttype = 0;
+    my $tt = 0;
 
     open(my $fh, "<:perlio", &Settings::logPath.'main.cnf' ) or LifeLogException->throw( "Can't open main.cnf: $!");
     read $fh, my $content, -s $fh;
@@ -385,12 +392,12 @@ sub populate {
                     $db->begin_work();
     foreach my $line (@lines) {
 
-                    last if ($line =~ /<MIG<>/);
+                    last if ($line =~ /<MIG<>/);#Not doing it with CNF1.0
 
-                     if( index( $line, '<<CONFIG<' ) == 0 )  {$ttype = 0; $inData = 0;}
-                    elsif( index( $line, '<<CAT<' ) == 0 )   {$ttype = 1; $inData = 0;}
-                    elsif( index( $line, '<<LOG<' ) == 0 )   {$ttype = 2; $inData = 0;}
-                    elsif( index( $line, '<<~MIG<>' ) == 0 ) {next;} #Migration is complex main.cnf might contain SQL alter statements.
+                       if( index( $line, '<<CONFIG<' ) == 0 )  {$tt = 0; $inData = 0;}
+                    elsif( index( $line, '<<CAT<'    ) == 0 )  {$tt = 1; $inData = 0;}
+                    elsif( index( $line, '<<LOG<'    ) == 0 )  {$tt = 2; $inData = 0;}
+
                     my @tick = split("`",$line);
                     if( scalar @tick  == 2 ) {
 
@@ -420,9 +427,9 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
 
                                                 }#rof
                                     }
-                                    elsif($ttype==0){
-                                                        $err .= "Invalid, spec'd entry -> $line\n";
-                                    }elsif($ttype==1){
+                                     elsif($tt==0){
+$err .= "Invalid, spec'd entry -> $line\n";
+                                    }elsif($tt==1){
                                                             my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+\s*\S*)]g;
                                                             if ( scalar(@pair)==2 ) {
                                                                         # In older DB versions the Category name could be different, user modified.
@@ -438,8 +445,8 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
                                                             else {
 $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
                                                             }
-                                    }elsif($ttype==2){
-                                            #TODO Do we really want this?
+                                    }elsif($tt==2){
+                                            #TODO Do we really want this? Insert into log from config script.
                                     }
                     }elsif($inData && length($line)>0){
 
