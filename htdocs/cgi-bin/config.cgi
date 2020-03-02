@@ -997,18 +997,19 @@ sub restore {
 
         print $cgi->header;
         print $cgi->start_html;
+        print "<pre>Reading->$hndl</pre>";
         my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
-        my $tar = $dbck .$hndl; $tar =~ s/osz$/tar/;
+        my $tar = $dbck.$hndl; $tar =~ s/osz$/tar/;
         my $pipe;
-        open ($pipe,  "| openssl enc -k $pass:$userid -d -des-ede3-cfb -in /dev/stdin 2>/dev/null > $tar");#| tar zt");#1>/dev/null");
+        open ($pipe,  "| openssl enc -k $pass:$userid -d -des-ede3-cfb -in /dev/stdin 2>/dev/null > $tar"); #| tar zt");#1>/dev/null");
             while(<$hndl>){print $pipe $_;};
         close $pipe;
+
         print "<pre>\n";
-        print "Produced->$tar\n";
-       # my $cmd = "tar xz * $file";
-        #`$cmd`;
-        print "Contents->".`tar tvf $tar`."\n";
-        print "Extracted->\n".`tar xzvf $tar -C $dbck --strip-components 1`."\n";
+        my $cmd = `tar tvf $tar 2>/dev/null`  or die "(SECURITY) FAILED READING $tar [$pass:$userid]";
+        print "Contents->".$cmd."\n";
+        $cmd = `tar xzvf $tar -C $dbck --strip-components 1 2>/dev/null` or die "Failed extracting $tar";
+        print "Extracted->\n".$cmd."\n" or die "Failed extracting $tar";;
 
         my $b_base = $dbck.$dbname;
         my $dsn= "DBI:SQLite:dbname=$b_base";
@@ -1076,7 +1077,7 @@ sub restore {
 
     }
     catch{
-        LifeLogException->throw(error=>"Restore failed! hndl->$hndl [$@]",show_trace=>&Settings::debug);
+        LifeLogException->throw(error=>"Restore failed! hndl->$hndl $@");#,show_trace=>&Settings::debug);
     };
 
 }
