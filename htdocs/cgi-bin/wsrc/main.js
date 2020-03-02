@@ -228,7 +228,6 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var lbl = $(e.target).text();
         lbl = lbl.replace(/\s*$/g, "");
         lbl = lbl + "&nbsp;".repeat(16-lbl.length);
-        //$("#ec option:contains(" + lbl + ")").prop('selected', true);
         $("#lcat_v").html(lbl);
         $("#vc").val(ci);
         $("#cat_desc").show();
@@ -249,7 +248,6 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var lbl = $(e.target).text();
         lbl = lbl.replace(/\s*$/g, "");
         lbl = lbl + "&nbsp;".repeat(16-lbl.length);
-        //$("#ec option:contains(" + lbl + ")").prop('selected', true);
         $("#lcat_x").html(lbl);
         $("#xc").val(ci);
         $("#cat_desc").show();
@@ -445,8 +443,9 @@ function edit(row) {
 
     //Select category
     var ec_lb = $("#c" + row).text();
-    var ec_id = $("meta[name='"+ec_lb+"]']").attr('id');
-    //$("#ec option:contains(" + ec_v + ")").prop('selected', true);
+    var ec_id = $("meta[name='"+ec_lb+"']").attr('id');
+    ec_id = ec_id.replace(/^cats\[/g,'');
+    ec_id = ec_id.replace(/\]$/g,'');
     $("#lcat").html(ec_lb);
     $("#ec").val(ec_id);
 
