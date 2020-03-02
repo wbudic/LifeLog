@@ -63,20 +63,11 @@ my $csvp   = $cgi->param('csv');
 
 &exportToCSV if ($csvp);
 
-if($cgi->param('bck')){
-    &backup;
-}
-elsif($cgi->param('bck_del')){
-    &backupDelete;
-}
-elsif($cgi->param('data_bck')){
-    &restore;
-}
-elsif($cgi->param('data_cat')){
-    &importCatCSV;
-}elsif($cgi->param('data_log')){
-    &importLogCSV;
-}
+if($cgi->param('bck'))        {&backup;}
+elsif($cgi->param('bck_del')) {&backupDelete;}
+elsif($cgi->param('data_bck')){&restore;}
+elsif($cgi->param('data_cat')){&importCatCSV;}
+elsif($cgi->param('data_log')){&importLogCSV;}
 
 
 
@@ -85,7 +76,6 @@ my $status = "Ready for change!";
 my $cats;
 my %hshCats = {};
 &cats;
-
 ###############
 &processSubmit;
 ###############
@@ -154,7 +144,6 @@ my  $frmCats = qq(
             </td>
         </tr>
         </table><input type="hidden" name="cchg" value="1"/></form><br>);
-
 
 $tbl = qq(<table id="cnf_sys" class="tbl" border="1" width=").&Settings::pagePrcWidth.qq(%">
               <tr class="r0"><td colspan="3"><b>* SYSTEM CONFIGURATION *</b></td></tr>
@@ -285,18 +274,15 @@ while(my @row = $dbs->fetchrow_array()) {
                    <option value="1" $u>On</option>
                 </select>);
         }
-
         elsif($n eq "RELEASE_VER"){
             $REL = qq(<td>$n</td>
                       <td>$v</td>
                       <td>$d</td>);
             next;
         }
-        else{
+        elsif(!defined(Settings::anon($n))){ #change into settable field to us found here unknown and not anon.
             $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
         }
-
-
 
        $tbl = qq($tbl
        <tr class="r0" align="left">
@@ -306,7 +292,7 @@ while(my @row = $dbs->fetchrow_array()) {
         </tr>);
 }
 
-$tbl = qq($tbl<tr class="r1" align="left">$REL</tr>); #RELEASE VERSION we make outstand last, can't be changed. :)
+$tbl = qq($tbl<tr class="r1" align="left">$REL</tr>); #RELEASE VERSION we make to outstand last, can't be changed. :)
 
 my  $frmVars = qq(
      <form id="frm_vars" action="config.cgi">$tbl
@@ -375,6 +361,14 @@ else{
     $bck_list = qq(<p>Tick Select Backup to Restore or Delete</p><p>$bck_list</p>);
 }
 
+my $inpRestore = qq(<input type="button" onclick="return deleteBackup();" value="Delete"/>
+<input type="file" name="data_bck" />&nbsp;&nbsp;<input type="Submit" onclick="return true;restoreBackup();" value="Restore"/>);
+my $inpCVS = qq(<input type="button" onclick="return exportToCSV('log',0);" value="Export"/>&nbsp;
+<input type="button" onclick="return exportToCSV('log',1);" value="View"/>);
+if((Settings::anon("backup_enabled") == 0)){
+    $inpRestore = $inpCVS = '&nbsp;<i><b>Sorry this feature has been dissabled!</b></i>';
+}
+
 #
 #  Page printout from here!
 #
@@ -396,8 +390,9 @@ print qq(
                 <tr><td><input type="button" onclick="return fetchBackup();" value="Fetch"/><hr></td></tr>
 
                 <tr><td><div id="div_backups">$bck_list</div><hr></td></tr>
-                <tr><td><input type="button" onclick="return deleteBackup();" value="Delete"/> <input type="file" name="data_bck" />&nbsp;&nbsp;<input type="Submit" onclick="return true;restoreBackup();" value="Restore"/><hr></td></tr>
-
+                <tr><td>
+                $inpRestore
+                <hr></td></tr>
 
                 <tr><td><H3>CSV File Format</H3></td></tr>
 
@@ -410,17 +405,15 @@ print qq(
                 </form>
                 <form action="config.cgi" method="post" enctype="multipart/form-data">
                 <tr><td><b>Export Categories:</b>
-                                           <input type="button" onclick="return exportToCSV('cat',0);" value="Export"/>&nbsp;
-                                           <input type="button" onclick="return exportToCSV('cat',1);" value="View"/>
+                       <input type="button" onclick="return exportToCSV('cat',0);" value="Export"/>&nbsp;
+                       <input type="button" onclick="return exportToCSV('cat',1);" value="View"/>
                 </td></tr>
                 <tr style="border-top: 1px solid black;border-right: 1px solid black;"><td>
                         <b>Import Log</b>: <input type="file" name="data_log" /></td></tr>
                 <tr style="border-right: 1px solid black;"><td style="text-align:right;">
                         <input type="submit" name="Submit" value="Submit"/></td></tr>
                 </form>
-                <tr><td><b>Export Log:</b>
-                                           <input type="button" onclick="return exportToCSV('log',0);" value="Export"/>&nbsp;
-                                           <input type="button" onclick="return exportToCSV('log',1);" value="View"/>
+                <tr><td><b>Export Log:</b>$inpCVS
                 </td></tr>
                 <tr><td style="text-align:right"><H3>For Server -> $sys -> $dbname</H3></td></tr>
             </table><br><a href="#top">&#x219F;&nbsp;Go to Top of page</a>
@@ -649,19 +642,19 @@ elsif($chdbfix){
 
     if( $isByCat || $isByDate){
 
-        my $output = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
+        my $output = qq(<a name="top"></a><form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
                     <TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
-                    <tr class="hdr"><td colspan="5"><h2>Select Categories To Delete</h2></td></tr>
-                    <tr class="r0">
-                        <th>Date</th>
+                    <tr class="hdr"><td colspan="5" class="r1"><h3>Select Categories To Delete</h3></td></tr>
+                    <tr class="r2">
+                        <th><a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a> Date</th>
                         <th>Time</th>
                         <th>Log</th><th>#</th>
                         <th>Category</th>
                     </tr>);
         my $sel ="";
-        if ($isByCat){$sel = "ID_CAT ='$category'"}
+        if($isByCat){$sel = "ID_CAT ='$category'"}
         if($isByDate){
-            if ($isByCat){ $sel .= " AND ";}
+            $sel .= " AND " if ($isByCat);
             $sel .= "DATE<='$del_date_from'";
         }
 
@@ -672,7 +665,6 @@ elsif($chdbfix){
             my $ct  = $hshCats{$row[1]}; #ID_CAT
             my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
             my $log = $row[3];
-
             my ( $dty, $dtf ) = $dt->ymd;
             my $dth = $dt->hms;
             if ( &Settings::universalDate == 1 ) {
@@ -682,7 +674,10 @@ elsif($chdbfix){
                 $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, &Settings::timezone );
             }
 
-            $output .= qq(<tr class="r0">
+                $log =~ s/''/'/g;
+                $log =~ s/\\n/<br>/gs;
+
+            $output .= qq(<tr class="r2">
                     <td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
                     <td id="t$id" width="10%" class="tbl">$dth</td>
                     <td id="v$id" class="log" width="40%">$log</td>
@@ -691,14 +686,18 @@ elsif($chdbfix){
                         <input name="chk" type="checkbox" value="$id"/>
                     </td></tr>);
        }#while
-       $output .= qq(<td colspan="5" align="right">
-        <button onclick="return selectAllLogs()">Select All</button>
+       $output .= qq(<tr class="r3"><td style="text-align:left;">
+       <a id="to_top" href="#top" title="Go to top of page.">To Top<span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>
+       <a href="config.cgi?CGISESSID=$sid#dbsets">Go Back</a></td>
+       <td colspan="4" align="right">
+        <a name="bottom"></a><button onclick="return selectAllLogs()">Select All</button>
         <input type="reset" value="Unselect All"/>
+        <input type="hidden" name="confirmed" value="1">
         <input id="del_sel" type="submit" value="Delete Selected"/>
         </td></tr>
         </form></TABLE>);
 
-        &getTheme;
+        &Settings::getTheme;
         &getHeader;
 
         print "<div>$output</div>";
