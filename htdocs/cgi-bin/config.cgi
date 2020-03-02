@@ -55,8 +55,9 @@ my $db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or die "<p>Erro
 
 my $rv;
 my $dbs;
-my $today  = DateTime->now;
 my $lang   = Date::Language->new(&Settings::language);
+my $today  = DateTime->now;
+   $today->set_time_zone( &Settings::timezone );
 my $tz     = $cgi->param('tz');
 my $csvp   = $cgi->param('csv');
 
@@ -77,7 +78,7 @@ elsif($cgi->param('data_cat')){
     &importLogCSV;
 }
 
-$today->set_time_zone( &Settings::timezone );
+
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 my $status = "Ready for change!";
@@ -969,7 +970,6 @@ try{
 };
 }
 sub backup {
-
 
    my $ball = 'bck__'.$today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
    my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." $database | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball." 2>/dev/null";
