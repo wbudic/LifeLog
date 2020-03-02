@@ -14,25 +14,31 @@ use Text::CSV;
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
-
 use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
-require CNFParser;
+require Settings;
 
-my $cnf = CNFParser->new();
-$cnf->parse($ENV{'PWD'}."/dbLifeLog/database.cnf");
+my $today  = DateTime->now;
+$today->set_time_zone( &Settings::timezone );
+print $today;
 
-foreach ($cnf->SQLStatments()){
-    print "$_\n";
-}
-foreach my $p ($cnf->constants()){
+# use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
+# require CNFParser;
 
-    print "$p=", $cnf->constant($p),"\n";
-}
-print "\n---ANNONS---\n";
-my %anons = $cnf->anons();
-foreach my $k (%anons){
-    print "$k=", $anons{$k},"\n" if $k;
-}
+# my $cnf = CNFParser->new();
+# $cnf->parse($ENV{'PWD'}."/dbLifeLog/database.cnf");
+
+# foreach ($cnf->SQLStatments()){
+#     print "$_\n";
+# }
+# foreach my $p ($cnf->constants()){
+
+#     print "$p=", $cnf->constant($p),"\n";
+# }
+# print "\n---ANNONS---\n";
+# my %anons = $cnf->anons();
+# foreach my $k (%anons){
+#     print "$k=", $anons{$k},"\n" if $k;
+# }
 # foreach (sort keys %ENV) {
 #   print "$_= $ENV{$_}\n";
 # }

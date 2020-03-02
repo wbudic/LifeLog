@@ -20,17 +20,16 @@ my $db       = DBI->connect( $dsn, "admin", "admin", { PrintError => 0, RaiseErr
                       or Exception->throw("Connect failed [$_]");
 
 Settings::getConfiguration($db,{backup_enabled=>1});
-
 print "backup_enabled1:[".Settings::anon('backup_enabled')."]\n";
 my @r = Settings::anons();
 print "anon_size:[".@r."]@r\n";
 
 
-Settings::getConfiguration($db);
+Settings::getConfiguration($db);#in file set to 0
 print "backup_enabled2:[".Settings::anon('backup_enabled')."]\n";
-Settings::getConfiguration($db,{backup_enabled=>1});
+Settings::getConfiguration($db,{backup_enabled=>1});#this is later, code set.
 print "backup_enabled3:[".Settings::anon('backup_enabled')."]\n";
-Settings::getConfiguration($db);#Murky waters, can't update an anon later through code.
+Settings::getConfiguration($db);#Murky waters, can't update an anon later through code. Config initially set.
 print "backup_enabled4:[".Settings::anon('backup_enabled')."]\n";
 
 # my $s1 ="`1`2`3`te\\`s\\`t`the best`";
