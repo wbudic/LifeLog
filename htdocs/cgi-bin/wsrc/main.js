@@ -1004,7 +1004,7 @@ function deleteBackup() {
                 click: function() {
                   $( this ).dialog( "close" );
                     var sel = $( "#bck input[type=radio]:checked").val();
-                    window.location = "config.cgi?bck_del="+sel;
+                    window.location = "config.cgi?bck_del="+sel+"#backup";
                 }
               },
 
