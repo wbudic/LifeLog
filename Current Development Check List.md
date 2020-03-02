@@ -9,7 +9,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
-* Database backup tgz ball, upload and download button on config page.
+* &#10004; Database backup tgz ball, upload and download button on config page.
   * You must have the password you logged in to unscramble the backup.
     * Alias -> pass -> backup password. Information required.
 * Application log needed in the background for System based logs.
