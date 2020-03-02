@@ -995,7 +995,7 @@ sub restore {
     try{
 
 
-        print $cgi->header;
+        &getHeader;
         print $cgi->start_html;
         print "<pre>Reading->$hndl</pre>";
         my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
@@ -1006,7 +1006,11 @@ sub restore {
         close $pipe;
 
         print "<pre>\n";
-        my $cmd = `tar tvf $tar 2>/dev/null`  or die "(SECURITY) FAILED READING $tar [$pass:$userid]";
+        my $m1 = "it is not permitted to restore another aliases log backup.";
+        $m1= "has your log password changed?" if ($tar=~/_data_$userid/);
+
+        my $cmd = `tar tvf $tar 2>/dev/null`  or die qq(, possible an security issue, $m1\nFAILED READING $tar. \nYour alias is: <b>$userid</b>.\n);
+
         print "Contents->".$cmd."\n\n";
         $cmd = `tar xzvf $tar -C $dbck --strip-components 1 2>/dev/null` or die "Failed extracting $tar";
         print "Extracted->\n".$cmd."\n" or die "Failed extracting $tar";;
@@ -1067,17 +1071,17 @@ sub restore {
         $b_db->disconnect();
         $db->disconnect();
         print "Done!";
-        print "\n</pre>";
-        my $back = $cgi->url( -relative => 1 );
-        print qq(<a href="config.cgi?CGISESSID=$sid"><hr>Go Back</a> or <a href="main.cgi"><hr>Go to LOG</a>);
-            print $cgi->end_html;
-       exit;
-
-
     }
     catch{
-        LifeLogException->throw(error=>"Restore failed! hndl->$hndl $@  \nbr:[@br]");#,show_trace=>&Settings::debug);
+        $ERROR = "<font color='red'><b>Restore failed!</b></font> hndl->$hndl $@ \nbr:[@br]";#,show_trace=>&Settings::debug);
     };
+
+    my $back = $cgi->url( -relative => 1 );
+    print $ERROR if($ERROR);
+    print "\n</pre><code>";
+    print qq(<a href="config.cgi?CGISESSID=$sid"><hr>Go Back</a> or <a href="main.cgi"><brr>Go to LOG</a></code>);
+    print $cgi->end_html;
+       exit;
 
 }
 
