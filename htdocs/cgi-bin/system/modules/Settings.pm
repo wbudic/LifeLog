@@ -239,8 +239,8 @@ sub renumerate {
     }
     $db->do('DROP TABLE LOG;');
     $db->do(&createLOGStmt);
-    $db->do('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT,AFLAG)
-                       SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG FROM life_log_temp_table ORDER by DATE;');
+    $db->do('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT,AFLAG,STICKY)
+                       SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM life_log_temp_table ORDER by DATE;');
     $db->do('DROP TABLE life_log_temp_table;');
 }
 

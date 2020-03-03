@@ -345,9 +345,9 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
         }
     }
 
-    ###################
-      &processSubmit;
-    ###################
+###################
+    &processSubmit;
+###################
 
     my $tfId      = 0;
     my $id        = 0;
@@ -393,6 +393,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 sub traceDBExe {
     my $sql = shift;
     try{
+        print "do:$sql" if ($DEBUG);
         my $st = $db->prepare($sql);
            $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
         return $st;
@@ -1013,9 +1014,9 @@ try {
                 $stm = qq( UPDATE LOG SET ID_CAT='$cat', ID_RTF='$rtf',
                                              DATE='$date',
                                              LOG='$log',
-                                             AMOUNT='$am',
-                                             AFLAG = '$af',
-                                             STICKY='$sticky' WHERE rowid="$edit_mode";
+                                             AMOUNT=$am,
+                                             AFLAG = $af,
+                                             STICKY=$sticky WHERE rowid="$edit_mode";
                     <br>);
                 #
                 print $stm if $DEBUG;
@@ -1065,6 +1066,14 @@ try {
 
             if ( $log && $date && $cat ) {
 
+                                #
+                # After Insert renumeration check
+                #
+                my $dt    = DateTime::Format::SQLite->parse_datetime($date);
+                my $dtCur = DateTime->now();
+                $dtCur->set_time_zone(&Settings::timezone);
+                $dtCur = $dtCur - DateTime::Duration->new( days => 1 );
+
                 #check for double entry
                 #
                 $date = DateTime::Format::SQLite->parse_datetime($date);
@@ -1073,8 +1082,8 @@ try {
                 if ($st->fetchrow_array() ) {
                     return;
                 }
-
-                $stm = qq(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES($cat, $rtf, '$date', '$log', $am, $af, $sticky););
+                if ($dtCur > $dt){$sticky = 1; print $cgi->p("<b>Insert forced to be sticky, it is in the past!</b>");}
+                $stm = qq(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES ($cat,$rtf,'$date','$log',$am,$af,$sticky););
                 $st = traceDBExe($stm);
                 if($sssCDB){
                     #Allow further new database creation, it is not an login infinite db creation attack.
@@ -1101,18 +1110,7 @@ try {
                       $st->execute();
                    }
                 }
-                #
-                # After Insert renumeration check
-                #
-                my $dt    = DateTime::Format::SQLite->parse_datetime($date);
-                my $dtCur = DateTime->now();
-                $dtCur->set_time_zone(&Settings::timezone);
-                $dtCur = $dtCur - DateTime::Duration->new( days => 1 );
-
-                if ( $dtCur > $dt ) {
-                    print $cgi->p('<b>Insert is in the past!</b>');
-                   Settings::renumerate($db);
-                }
+                Settings::renumerate($db) if ( $dtCur > $dt );
             }
 }
  catch {
