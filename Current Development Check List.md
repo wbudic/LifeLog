@@ -7,7 +7,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## LifeLog Development
 
-### v.1.8 This is v.1.8 SUN STABLE.
+### v.1.8 SUN STABLE
 
 * Automated install module script **`./install_modules.sh `**
 * Has Secure Backup/Restore. Providing accurate full data restore and merging with existing for live databases.
