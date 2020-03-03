@@ -11,7 +11,7 @@ Latest  version is **1.8 release** in **Sun** stable stage, requiring some Perl 
 https://www.sqlite.org/index.html database is required to run this web application.
 
 
-### New in v.1.8 
+## New in v.1.8 
 
 * Automated install module script **`./install_modules.sh `**
 * Has Secure Backup/Restore. Providing accurate full data restore and merging with existing for live databases.
