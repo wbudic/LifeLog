@@ -383,7 +383,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     buildLog(traceDBExe($sqlVWL));
     #Following is saying is in page selection, not view selection, or accounting on type of sticky entries.
     if( !$isView && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from ){
-        $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY != 1  ORDER BY DATE DESC LIMIT ".&Settings::viewAllLimit.";";
+        $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY != 1 LIMIT ".&Settings::viewAllLimit.";";
         print $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
         ;
         &buildLog(traceDBExe($sqlVWL));
