@@ -108,7 +108,7 @@ sub createVW_LOGStmt {
 return qq(
 CREATE VIEW VW_LOG AS
     SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
-        FROM LOG as a ORDER BY DATE DESC;'
+        FROM LOG as a ORDER BY Date(DATE) DESC;'
 )}
 sub createAUTHStmt {
 return qq(

@@ -244,6 +244,8 @@ sub checkCreateTables {
 
             }
             $db->do('DROP TABLE LOG;');
+            #v.1.8 Has fixes, time also properly to take into the sort. Not crucial to drop.
+            $db->do('DROP TABLE VW_LOG;');delete($curr_tables{'VW_LOG'});
             $db->do(&Settings::createLOGStmt);
             $db->do('INSERT INTO LOG (ID_CAT, DATE, LOG, AMOUNT,AFLAG)
                                 SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG FROM life_log_login_ctr_temp_table ORDER by DATE;');
