@@ -6,12 +6,21 @@ Preferably on a small inexpensive server connected to your local network.
 
 Written in Perl, easy to implement and modify.
 
-Latest  version is **1.7 release** in **Sun** stable stage, requiring some Perl knowledge to install and enable, tweak. The main application sources are located in the ../htdocs/cgi-bin directory. Current unstable, development ver. 1.6 is in the GIT branch. The development and features are stable progressive, starting from Moon, Sun and finally Earth stable stage. This application was and is usable since its Moon stage.
+Latest  version is **1.8 release** in **Sun** stable stage, requiring some Perl knowledge to install and enable, tweak. The main application sources are located in the ../htdocs/cgi-bin directory. Current unstable, development ver. 1.6 is in the GIT branch. The development and features are stable progressive, starting from Moon, Sun and finally Earth stable stage. This application was and is usable since its Moon stage.
 
 https://www.sqlite.org/index.html database is required to run this web application.
 
 
-## New in Life Log version 1.7
+### New in v.1.8 
+
+* Automated install module script **`./install_modules.sh `**
+* Has Secure Backup/Restore. Providing accurate full data restore and merging with existing for live databases.
+* Now with a distinct data page and view mode.
+* New category selection, storing approuch.
+* Better and more efficient application configuration and setup.
+* Numerous fixes, and better exception handling.
+
+## Life Log version 1.7
 
 - Views updated, having option to exlude by category now, during the session logging.
 - New system configuration options. i.e. $DEBUG for some sql statements.
