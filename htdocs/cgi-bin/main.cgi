@@ -316,7 +316,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     elsif ($prm_vc && $prm_vc != $prm_xc) {
 
         if ($stmD) {
-            $sqlVWL = $stmS . $stmD . " AND ID_CAT='" . $prm_vc . "'" . $stmE;
+            $sqlVWL = $stmS . $stmD . " AND ID_CAT=" . $prm_vc . $stmE;
         }
         else {
             $sqlVWL = $stmS . " ID_CAT=" . $prm_vc . ";" . $stmE;

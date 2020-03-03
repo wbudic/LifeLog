@@ -14,9 +14,10 @@ This version is not compatible in data structure to prior versions. Data migrati
     * Alias -> pass -> backup password. Information required.
 * Application log needed in the background for System based logs.
 * New CNF Development.
-  * Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
+  * &#10004; Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
+  * &#10004; Anons to be enabled.
   * CVS imports/exports are to be made obsolete in the future. It is not safe.
-    * This will be savailable via command line.
+    * This will be still available via command line.
 * RTF Documents header lister page, to provide for, new log entry assignment, deletion, edits.
   * There isnt and shouldn't be a full relationship to docs. Hence new log entries can link to existing, docs.
 * &#10004;Use the pages cat_list meta data elements for dealing with categories in java scripts.
@@ -54,9 +55,9 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Urgent FIXES and Known Issuses
 
-* Expired sessions, swallow submits into void.
+* &#10004; Expired sessions, swallow submits into void.
 * CVS Export and Import has not been implemented for RTF type log entries.
-&#10004; Dynamic toggle of page sections, interaction fixed, bettered.
+* &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 
 ## Planned New Possible Features of Minor Relevance
 
