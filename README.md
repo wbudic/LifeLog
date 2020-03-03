@@ -8,7 +8,7 @@ Written in Perl, easy to implement and modify.
 
 Latest  version is **1.8 release** in **Sun** stable stage, requiring some Perl knowledge to install and enable, tweak. The main application sources are located in the ../htdocs/cgi-bin directory. Current unstable, development ver. 1.6 is in the GIT branch. The development and features are stable progressive, starting from Moon, Sun and finally Earth stable stage. This application was and is usable since its Moon stage.
 
-https://www.sqlite.org/index.html database is required to run this web application.
+https://www.sqlite.org/index.html database is required to run this web application. Note this isn't a full on blown database server requirment, that runs in your background and uses your computers resources.
 
 
 ## New in v.1.8 
