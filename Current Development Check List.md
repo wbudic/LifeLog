@@ -7,6 +7,13 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## LifeLog Development
 
+### v.1.8 This is v.1.8 SUN STABLE.
+
+* Has Secure Backup/Restore. Providing accurate full data restore and merging with existing for live databases.
+* New category selection, storing approuch.
+* Better and more efficient application configuration and setup.
+* Numerous fixes, and better exception handling.
+
 ### v.1.7 Encountered
 
 * &#10004; Database backup tgz ball, upload and download button on config page.
