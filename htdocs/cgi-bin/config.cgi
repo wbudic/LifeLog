@@ -5,27 +5,27 @@
 #
 use strict;
 use warnings;
-use Try::Tiny;
 use Switch;
 
 use CGI;
 use CGI::Session '-ip_match';
 use CGI::Carp qw ( fatalsToBrowser );
 use DBI;
+use Exception::Class ('LifeLogException');
+use Syntax::Keyword::Try;
 
 use DateTime;
 use DateTime::Format::SQLite;
 use DateTime::Duration;
 use Date::Language;
 use Text::CSV;
+use Scalar::Util qw(looks_like_number);
+use Sys::Syslog qw(:DEFAULT :standard :macros);
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
 require Settings;
 ##
-
-#This is the OS developer release key, replace on istallation. As it is not secure.
-my $cipher_key = '95d7a85ba891da';
 
 #15mg data post limit
 $CGI::POST_MAX = 1024 * 15000;
@@ -35,8 +35,8 @@ my $session = new CGI::Session("driver:File", $cgi, {Directory=>&Settings::logPa
 my $sid=$session->id();
 my $dbname  =$session->param('database');
 my $userid  =$session->param('alias');
-my $password=$session->param('passw');
-my $sys = `uname -n`;
+my $pass    =$session->param('passw');
+my $sys     = `uname -n`;
 #my $acumululator="";
 
 if(!$userid||!$dbname){
@@ -46,7 +46,7 @@ if(!$userid||!$dbname){
 
 my $database = &Settings::logPath.$dbname;
 my $dsn= "DBI:SQLite:dbname=$database";
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+my $db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
 
 ### Fetch settings
     Settings::getConfiguration($db);
@@ -55,20 +55,21 @@ my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>
 
 my $rv;
 my $dbs;
-my $today  = DateTime->now;
 my $lang   = Date::Language->new(&Settings::language);
+my $today  = DateTime->now;
+   $today->set_time_zone( &Settings::timezone );
 my $tz     = $cgi->param('tz');
 my $csvp   = $cgi->param('csv');
 
 &exportToCSV if ($csvp);
 
-if($cgi->param('data_cat')){
-    &importCatCSV;
-}elsif($cgi->param('data_log')){
-    &importLogCSV;
-}
+if($cgi->param('bck'))        {&backup;}
+elsif($cgi->param('bck_del')) {&backupDelete;}
+elsif($cgi->param('data_bck')){&restore;}
+elsif($cgi->param('data_cat')){&importCatCSV;}
+elsif($cgi->param('data_log')){&importLogCSV;}
 
-$today->set_time_zone( &Settings::timezone );
+
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 my $status = "Ready for change!";
@@ -95,10 +96,11 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="main.cgi">Log</a><hr>
 <font size="2"><b>Jump to Sections</b><br>
-<a href="#top">Categories</a><br>
+<a href="#categories">Categories</a><br>
 <a href="#vars">System</a><br>
 <a href="#dbsets">DB Fix</a><br>
-<a href="#passets">Password</a>
+<a href="#passets">Pass</a><br>
+<a href="#backup">Backup</a>
 </font>
 <hr>
 <br>
@@ -110,9 +112,9 @@ my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.&Settings::pageP
               <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
             <tr class="r1"><th>ID</th><th>Category</th><th  align="left">Description</th></tr>
           ';
-$dbs = dbExecute($stmtCat);
+$dbs = Settings::selectRecords($db, $stmtCat);
 while(my @row = $dbs->fetchrow_array()) {
-    if($row[0]>0){
+    if( $row[0]>0 ){
        $tbl .= '<tr class="r0"><td>'.$row[0].'</td>
             <td><input name="nm'.$row[0].'" type="text" value="'.$row[1].'" size="12"></td>
             <td align="left"><input name="ds'.$row[0].'" type="text" value="'.$row[2].'" size="64"></td>
@@ -120,7 +122,7 @@ while(my @row = $dbs->fetchrow_array()) {
     }
  }
 
-my  $frm = qq(
+my  $frmCats = qq(
      <form id="frm_config" action="config.cgi">).$tbl.qq(
       <tr class="r1">
          <td><input type="text" name="caid" value="" size="3"/></td>
@@ -128,8 +130,10 @@ my  $frm = qq(
          <td align="left"><input type="text" name="cade" value="" size="64"/></td>
         </tr>
       <tr class="r1">
-         <td colspan="2"><a href="#bottom">&#x21A1;</a>&nbsp;&nbsp;&nbsp;<input type="submit" value="Add New Category" onclick="return submitNewCategory()"/></td>
-         <td colspan="1" align="right"><b>Categories Configuration In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
+         <td colspan="2"><a href="#bottom">&#x21A1;</a>&nbsp;&nbsp;&nbsp;
+         <input type="submit" value="Add New Category First" onclick="return submitNewCategory()"/> or <input type="submit" value="Change"/></td>
+         <td colspan="1" align="right"><b>Categories Configuration In -> $dbname</b>&nbsp;
+         <input type="submit" value="Change" onclick="return checkConfigCatsChange()"/></td>
         </tr>
         <tr class="r1">
           <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font>
@@ -141,19 +145,17 @@ my  $frm = qq(
         </tr>
         </table><input type="hidden" name="cchg" value="1"/></form><br>);
 
-
 $tbl = qq(<table id="cnf_sys" class="tbl" border="1" width=").&Settings::pagePrcWidth.qq(%">
               <tr class="r0"><td colspan="3"><b>* SYSTEM CONFIGURATION *</b></td></tr>
             <tr class="r1" align="left">
                             <th width="20%">Variable</th>
                             <th width="20%">Value</th>
-                                <th width="60%">Description</th>
+                            <th width="60%">Description <input type="submit" value="Change" style="float:right"/></th>
                         </tr>
        );
-my $stm = 'SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG;';
-$dbs = $db->prepare( $stm );
-$rv = $dbs->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
-
+my $stm = 'SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG ORDER BY NAME;';
+   $dbs = Settings::selectRecords($db, $stm);
+my $REL ="";
 while(my @row = $dbs->fetchrow_array()) {
 
          my $n = $row[1]; next if($n =~ m/^\^/); #skip private tagged settings
@@ -259,7 +261,7 @@ while(my @row = $dbs->fetchrow_array()) {
                    <option$s3>Earth</option>
                 </select>);
         }
-        elsif($n eq "KEEP_EXCS"){
+        elsif($n eq "KEEP_EXCS" or $n eq 'TRACK_LOGINS' or $n eq 'DEBUG'){
             my($l,$u)=("","");
             if($v == 0){
                $l = "SELECTED"
@@ -267,29 +269,20 @@ while(my @row = $dbs->fetchrow_array()) {
             else{
                $u = "SELECTED"
             }
-            $v = qq(<select id="excs" name="var$i">
+            $v = qq(<select id="onoff" name="var$i">
                    <option value="0" $l>Off</option>
                    <option value="1" $u>On</option>
                 </select>);
         }
-        elsif($n eq "DEBUG"){
-            my($l,$u)=("","");
-            if($v == 0){
-               $l = "SELECTED"
-            }
-            else{
-               $u = "SELECTED"
-            }
-            $v = qq(<select id="dbg" name="var$i">
-                   <option value="0" $l>Off</option>
-                   <option value="1" $u>On</option>
-                </select>);
+        elsif($n eq "RELEASE_VER"){
+            $REL = qq(<td>$n</td>
+                      <td>$v</td>
+                      <td>$d</td>);
+            next;
         }
-        elsif($n ne "RELEASE_VER"){
-             $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
+        elsif(!defined(Settings::anon($n))){ #change into settable field to us found here unknown and not anon.
+            $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
         }
-
-
 
        $tbl = qq($tbl
        <tr class="r0" align="left">
@@ -299,14 +292,14 @@ while(my @row = $dbs->fetchrow_array()) {
         </tr>);
 }
 
+$tbl = qq($tbl<tr class="r1" align="left">$REL</tr>); #RELEASE VERSION we make to outstand last, can't be changed. :)
 
 my  $frmVars = qq(
      <form id="frm_vars" action="config.cgi">$tbl
       <tr class="r1">
          <td colspan="3" align=right><b>System Settings In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
         </tr>
-        <input type="hidden" name="sys" value="1"/>
-        </table></form><br>);
+        </table><input type="hidden" name="sys" value="1"/></form><br>);
 
 
 
@@ -332,33 +325,58 @@ my  $frmDB = qq(
                                  <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
                                                   of your changes. Please, export/backup first.</td>
         </tr>
-        <input type="hidden" name="db_fix" value="1"/>
-        </table></form><br>
+        </table><input type="hidden" name="db_fix" value="1"/></form><br>
         );
 $tbl = qq(<table id="cnf_fix" class="tbl" border="1" width=").&Settings::pagePrcWidth.qq(%">
-              <tr class="r0"><td colspan="2"><b>* CHANGE PASSWORD *</b></td></tr>
+              <tr class="r0"><td colspan="2"><b>* CHANGE PASS *</b></td></tr>
              );
 my  $frmPASS = qq(
      <form id="frm_PASS" action="config.cgi">$tbl
-        <tr class="r1" align="left"><td style="width:100px">Existing:</td><td><input type="password" name="existing" value="" size="12"/></td></tr>
-        <tr class="r1" align="left"><td>New:</td><td><input type="password" name="new" value="" size="12"/></td></tr>
-        <tr class="r1" align="left"><td>Confirmation:</td><td><input type="password" name="confirm" value="" size="12"/></td></tr>
+        <tr class="r1" align="left"><td style="width:100px">Existing:</td><td><input type="pass" name="existing" value="" size="12"/></td></tr>
+        <tr class="r1" align="left"><td>New:</td><td><input type="pass" name="new" value="" size="12"/></td></tr>
+        <tr class="r1" align="left"><td>Confirmation:</td><td><input type="pass" name="confirm" value="" size="12"/></td></tr>
         <tr class="r1">
-         <td colspan="2" align="right"><b>Password change for -> $userid</b>&nbsp;<input type="submit" value="Change"/></td>
+         <td colspan="2" align="right"><b>Pass change for -> $userid</b>&nbsp;<input type="submit" value="Change"/></td>
         </tr>
-        <input type="hidden" name="pass_change" value="1"/>
-        </table></form><br>
+        </table><input type="hidden" name="pass_change" value="1"/></form><br>
         );
 
 
+my @backups = ();
+my ($file,$bck_list) ="";
+opendir my $dir, &Settings::logPath;
+while($file = readdir $dir){
+next if $file eq '.' or $file eq '..' or index ($file , 'bck_') == -1;
+  push @backups, $file;
+}
+close $dir;
+foreach $file (sort @backups){
+    #my $n = substr $file, length(&Settings::logPath);
+    $bck_list .=  "<input name='bck_file' type='radio' value='$file'>$file</input><br>";
+}
+if(length $bck_list == 0){
+$bck_list = '<p>Restore will bring back and merge log entries from the time of backup.</p>';
+}
+else{
+    $bck_list = qq(<p>Tick Select Backup to Restore or Delete</p><p>$bck_list</p>);
+}
+
+my $inpRestore = qq(<input type="button" onclick="return deleteBackup();" value="Delete"/>
+<input type="file" name="data_bck" />&nbsp;&nbsp;<input type="Submit" onclick="return true;restoreBackup();" value="Restore"/>);
+my $inpCVS = qq(<input type="button" onclick="return exportToCSV('log',0);" value="Export"/>&nbsp;
+<input type="button" onclick="return exportToCSV('log',1);" value="View"/>);
+if((Settings::anon("backup_enabled") == 0)){
+    $inpRestore = $inpCVS = '&nbsp;<i><b>Sorry this feature has been dissabled!</b></i>';
+}
+
 #
-#Page printout from here!
+#  Page printout from here!
 #
 
 print qq(
 <a name="top"></a><center>
-    <div>$frm</div>
     <div><a name="vars"></a>$frmVars</div>
+    <div><a name="categories"></a>$frmCats</div>
     <div><a name="dbsets"></a>$frmDB</div>
     <div><a name="passets"></a>$frmPASS</div>
     <div id="rz" style="text-align:center;width:).&Settings::pagePrcWidth.qq(%;">
@@ -366,28 +384,36 @@ print qq(
     </div>
     <br>
     <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:).&Settings::bgcol.qq(">
+            <form id="bck" action="config.cgi" method="post" enctype="multipart/form-data">
             <table border="0" width="100%">
+                <tr><td><a name="backup"></a><H3>Backup File Format</H3></td></tr>
+                <tr><td><input type="button" onclick="return fetchBackup();" value="Fetch"/><hr></td></tr>
+
+                <tr><td><div id="div_backups">$bck_list</div><hr></td></tr>
+                <tr><td>
+                $inpRestore
+                <hr></td></tr>
+
                 <tr><td><H3>CSV File Format</H3></td></tr>
-                <form action="config.cgi" method="post" enctype="multipart/form-data">
+
                 <tr style="border-left: 1px solid black;"><td>
                         <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr>
                 <tr style="border-left: 1px solid black;"><td style="text-align:right;">
                         <input type="submit" name="Submit" value="Submit"/></td>
                 </tr>
+
                 </form>
-                <tr><td><b>Export Categories:</b>
-                                           <input type="button" onclick="return exportToCSV('cat',0);" value="Export"/>&nbsp;
-                                           <input type="button" onclick="return exportToCSV('cat',1);" value="View"/>
-                </td></tr>
                 <form action="config.cgi" method="post" enctype="multipart/form-data">
+                <tr><td><b>Export Categories:</b>
+                       <input type="button" onclick="return exportToCSV('cat',0);" value="Export"/>&nbsp;
+                       <input type="button" onclick="return exportToCSV('cat',1);" value="View"/>
+                </td></tr>
                 <tr style="border-top: 1px solid black;border-right: 1px solid black;"><td>
                         <b>Import Log</b>: <input type="file" name="data_log" /></td></tr>
                 <tr style="border-right: 1px solid black;"><td style="text-align:right;">
                         <input type="submit" name="Submit" value="Submit"/></td></tr>
                 </form>
-                <tr><td><b>Export Log:</b>
-                                           <input type="button" onclick="return exportToCSV('log',0);" value="Export"/>&nbsp;
-                                           <input type="button" onclick="return exportToCSV('log',1);" value="View"/>
+                <tr><td><b>Export Log:</b>$inpCVS
                 </td></tr>
                 <tr><td style="text-align:right"><H3>For Server -> $sys -> $dbname</H3></td></tr>
             </table><br><a href="#top">&#x219F;&nbsp;Go to Top of page</a>
@@ -401,22 +427,22 @@ print qq(
                     for your logs HTML layout.
                     </p>
                     <p>
-                    <b>&#60;&#60;B&#60;<i>{Text To Bold}</i><b>&#62;</b>
+                    <b>&#60;&#60;B&#60;<i>{Text To Bold}</i><b>&#62;&#62;</b>
                     </p>
                     <p>
-                    <b>&#60;&#60;I&#60;<i>{Text To Italic}</i><b>&#62;</b>
+                    <b>&#60;&#60;I&#60;<i>{Text To Italic}</i><b>&#62;&#62;</b>
                     </p>
                     <p>
-                    <b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;</b>
+                    <b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;&#62;</b>
                     </p>
                     <p>
-                    <b>&#60;&#60;LIST&#60;<i>{List of items delimited by new line to terminate item or with '~' otherwise.}</i><b>&#62;</b>
+                    <b>&#60;&#60;LIST&#60;<i>{List of items delimited by new line to terminate item or with '~' otherwise.}</i><b>&#62;&#62;</b>
                     </p>
                     <p>
-                    <b>&#60;&#60;IMG&#60;<i>{url to image}</i><b>&#62;</b>
+                    <b>&#60;&#60;IMG&#60;<i>{url to image}</i><b>&#62;&#62;</b>
                     </p>
                     <p>
-                        <b>&#60;&#60;FRM&#60;<i>{file name}_frm.png}</i><b>&#62;</b><br><br>
+                        <b>&#60;&#60;FRM&#60;<i>{file name}_frm.png}</i><b>&#62;&#62;</b><br><br>
                         *_frm.png images file pairs are located in the ./images folder of the cgi-bin directory.<br>
                         These are manually resized by the user. Next to the original.
                         Otherwise considered as stand alone icons. *_frm.png Image resized to ->  width="210" height="120"
@@ -428,22 +454,20 @@ print qq(
 
           For log entry, place:
 
-      &#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;
+      &#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;&#62;
       This is my pet, can you hold him for a week while I am on holiday?
-            </pre>
+                        </pre>
                     </p>
-                    <p>
-                    <b>&#60;&#60;LNK&#60;<i>{url to image}</i><b>&#62;</b><br><br>
+
+                    <p><b>&#60;&#60;LNK&#60;<i>{url to image}</i><b>&#62;&#62;</b><br><br></p>
+                     <p>
                     Explicitly tag an URL in the log entry.
                     Required if using in log IMG or FRM tags.
                     Otherwise link appears as plain text.
                     </p>
                     <hr>
-          </p>
                         <h3>Log Page Particulars</h3>
                         &#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly.
-                    </p>
-                    </div>
                     </center><a name="bottom"></a><a href="#top">&#x219F;</a>
                     <hr>
 </div>
@@ -507,26 +531,30 @@ my $del_date_from = $cgi->param("date_from");
 my ($s, $d);
 
 try{
-
-$dbs = $db->prepare( $stmtCat );
-$rv = $dbs->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
-
+$dbs = Settings::selectRecords($db, $stmtCat );
 if($passch){
     my ($ex,$ne,$cf) = ($cgi->param("existing"),$cgi->param("new"),$cgi->param("confirm"));
     if($ne ne $cf){
-         $status = "New password must match confirmation!";
+         $status = "New pass must match confirmation!";
          print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
     }
     else{
-        if(&confirmExistingPassword($ex)){
-             &changePassword($ne);
-             $status = "Password Has Been Changed";
+        if(&confirmExistingPass($ex)){
+             &changePass($ne);
+             $status = "Pass Has Been Changed";
         }
         else{
-            $status = "Wrong existing password was entered, are you user by alias: $userid ?";
+            $status = "Wrong existing pass was entered, are you user by alias: $userid ?";
             print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
         }
     }
+
+    openlog($dsn, 'cons,pid', "user");
+        syslog('info', 'Status:%s', $status);
+        syslog('info', 'Password change request for %s', $$userid);
+    closelog();
+
+
 }
 elsif ($change == 1){
 
@@ -548,7 +576,7 @@ elsif ($change == 1){
            $d->execute();
 
             while(my @r = $d->fetchrow_array()) {
-                     $s = "  LOG SET ID_CAT=1 WHERE rowid=".$r[0].";";
+                     $s = "UPDATE LOG SET ID_CAT=1 WHERE rowid=".$r[0].";";
                      $d = $db->prepare($s);
                      $d->execute();
              }
@@ -571,7 +599,6 @@ elsif ($change == 1){
 
 
 if($change > 1){
-
 
     my $caid  = $cgi->param('caid');
     my $canm  = $cgi->param('canm');
@@ -615,57 +642,62 @@ elsif($chdbfix){
 
     if( $isByCat || $isByDate){
 
-        my $output = qq(<form id="frm_log" action="remove.cgi" onSubmit="return formDelValidation();">
+        my $output = qq(<a name="top"></a><form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
                     <TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
-                    <tr class="hdr"><td colspan="5"><h2>Select Categories To Delete</h2></td></tr>
-                    <tr class="r0">
-                        <th>Date</th>
+                    <tr class="hdr"><td colspan="5" class="r1"><h3>Select Categories To Delete</h3></td></tr>
+                    <tr class="r2">
+                        <th><a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a> Date</th>
                         <th>Time</th>
                         <th>Log</th><th>#</th>
                         <th>Category</th>
                     </tr>);
         my $sel ="";
-        if ($isByCat){$sel = "ID_CAT ='$category'"}
+        if($isByCat){$sel = "ID_CAT ='$category'"}
         if($isByDate){
-            if ($isByCat){ $sel .= " AND ";}
+            $sel .= " AND " if ($isByCat);
             $sel .= "DATE<='$del_date_from'";
         }
 
 
-       $dbs = $db->prepare( "SELECT rowid, ID_CAT, DATE, LOG FROM LOG WHERE $sel ORDER BY DATE;" );
-       $rv = $dbs->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
+       $dbs = Settings::selectRecords($db, "SELECT rowid, ID_CAT, DATE, LOG FROM LOG WHERE $sel ORDER BY DATE;" );
        while(my @row = $dbs->fetchrow_array()) {
         my $id = $row[0];# rowid
-        my $ct  = $hshCats{$row[1]}; #ID_CAT
-        my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
-        my $log = $row[3];
+            my $ct  = $hshCats{$row[1]}; #ID_CAT
+            my $dt  = DateTime::Format::SQLite->parse_datetime( $row[2] );
+            my $log = $row[3];
+            my ( $dty, $dtf ) = $dt->ymd;
+            my $dth = $dt->hms;
+            if ( &Settings::universalDate == 1 ) {
+                $dtf = $dty;
+            }
+            else {
+                $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, &Settings::timezone );
+            }
 
-        my ( $dty, $dtf ) = $dt->ymd;
-        my $dth = $dt->hms;
-        if ( &Settings::universalDate == 1 ) {
-            $dtf = $dty;
-        }
-        else {
-            $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, &Settings::timezone );
-        }
+                $log =~ s/''/'/g;
+                $log =~ s/\\n/<br>/gs;
 
-        $output .= qq(<tr class="r0">
-                <td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
-                <td id="t$id" width="10%" class="tbl">$dth</td>
-                <td id="v$id" class="log" width="40%">$log</td>
-                <td id="c$id" width="10%" class="tbl">$ct</td>
-                <td width="20%">
-                    <input name="chk" type="checkbox" value="$id"/>
-                </td></tr>);
+            $output .= qq(<tr class="r2">
+                    <td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
+                    <td id="t$id" width="10%" class="tbl">$dth</td>
+                    <td id="v$id" class="log" width="40%">$log</td>
+                    <td id="c$id" width="10%" class="tbl">$ct</td>
+                    <td width="20%">
+                        <input name="chk" type="checkbox" value="$id"/>
+                    </td></tr>);
        }#while
-       $output .= qq(<td colspan="5" align="right">
-        <button onclick="return selectAllLogs()">Select All</button>
+       $output .= qq(<tr class="r3"><td style="text-align:left;">
+       <a id="to_top" href="#top" title="Go to top of page.">To Top<span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>
+       <a href="config.cgi?CGISESSID=$sid#dbsets">Go Back</a></td>
+       <td colspan="4" align="right">
+        <a name="bottom"></a><button onclick="return selectAllLogs()">Select All</button>
         <input type="reset" value="Unselect All"/>
+        <input type="hidden" name="confirmed" value="1">
         <input id="del_sel" type="submit" value="Delete Selected"/>
         </td></tr>
         </form></TABLE>);
 
-        &getTheme;
+        &Settings::getTheme;
         &getHeader;
 
         print "<div>$output</div>";
@@ -684,33 +716,46 @@ elsif($chdbfix){
 
 }
 catch{
-    $ERROR = qq(<p><font color=red><b>SERVER ERROR</b></font> -> $_</p>);
-}
+
+        my $err = $@;
+        my $pwd = `pwd`;
+           $pwd =~ s/\s*$//;
+
+        $ERROR =
+        "<hr><font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
+        "<hr><pre>".$pwd."/$0 -> &".caller." -> [$err]","</pre>",
+
+
+
 }
 
-sub confirmExistingPassword {
+    openlog($dsn, 'cons,pid', "user");
+        syslog('info', 'Status:%s', $status);
+        syslog('err', '%s', $ERROR) if ($ERROR);
+    closelog();
+}
+
+sub confirmExistingPass {
         my $pass = $_[0];
-      my $crypt = encryptPassw($pass);
+        my $crypt = encryptPassw($pass);
         my $sql = "SELECT ALIAS, PASSW from AUTH WHERE ALIAS='$userid' AND PASSW='$crypt';";
     #		print "<center><div><p><font color=red><b>DEBUG</b></font>:[$pass]<br>$sql</p></div></center>";
-        $dbs = $db->prepare($sql);
-        $dbs->execute();
+        $dbs = Settings::selectRecords($db, $stmtCat );
         if($dbs->fetchrow_array()){
             return 1;
         }
         return 0;
 }
-sub changePassword {
+sub changePass {
       my $pass = encryptPassw($_[0]);
-        $dbs = $db->prepare("UPDATE AUTH SET PASSW='$pass' WHERE ALIAS='$userid';");
-        $dbs->execute();
+        $dbs = Settings::selectRecords($db, "UPDATE AUTH SET PASSW='$pass' WHERE ALIAS='$userid';");
         if($dbs->fetchrow_array()){
             return 1;
         }
         return 0;
 }
 sub encryptPassw {
-    return uc crypt $_[0], hex $cipher_key;
+    return uc crypt $_[0], hex Settings->CIPHER_KEY;
 }
 
 
@@ -738,7 +783,7 @@ try{
 
         $db->do('BEGIN TRANSACTION;');
         #Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
-        $dbs = dbExecute('SELECT rowid, DATE FROM LOG ORDER BY DATE;');
+        $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG ORDER BY DATE;');
         while(@row = $dbs->fetchrow_array()) {
             my $existing = $dates{$row[0]};
             if($existing && $existing eq $row[1]){
@@ -767,7 +812,7 @@ try{
 
         $db->do('COMMIT;');
         $db->disconnect();
-        $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+        $db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or LifeLogException->throw($DBI::errstri);
         $dbs = $db->do("VACUUM;");
 
 
@@ -779,7 +824,7 @@ try{
 }
 catch{
     $db->do('ROLLBACK;');
-    die qq(@&processDBFix error -> $_ with statement->$sql for $date update counter:$cntr_upd);
+    LifeLogException->throw(error=>qq(@&processDBFix error -> $_ with statement->[$sql] for $date update counter:$cntr_upd \nERROR->$@),show_trace=>1);
 }
 }
 
@@ -827,14 +872,14 @@ try{
                             $err .= "UID{$id} taken by $vars{$id}-> $line\n";
                                                                 }
                                                                 else{
-                                                                    $dbs = dbExecute(
+                                                                    $dbs = Settings::selectRecords($db,
                                                                         "SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG WHERE NAME LIKE '$name';");
                                                                     $inData = 1;
                                                                     my @row = $dbs->fetchrow_array();
                                                                     if(scalar @row == 0){
                                                                        #The id in config file has precedence to the one in the db,
                                                                        #from a ppossible previous version.
-                                                                       $dbs = dbExecute("SELECT ID FROM CONFIG WHERE ID = $id;");
+                                                                       $dbs = Settings::selectRecords($db, "SELECT ID FROM CONFIG WHERE ID = $id;");
                                                                        @row = $dbs->fetchrow_array();
                                                                        if(scalar @row == 0){
                                                                             $insert->execute($id,$name,$value,$tick[1]);
@@ -887,43 +932,166 @@ sub logout {
 }
 
 sub changeSystemSettings {
+    my $updated;
+    $dbs = Settings::selectRecords($db, "SELECT ID, NAME FROM CONFIG;");
+    while (my @r=$dbs->fetchrow_array()){
+        my $var = $cgi->param('var'.$r[0]);
+        if(defined $var){
+            Settings::configProperty($db, $r[0], undef, $var);
+            $updated = 1;
+        }
+    }
+    Settings::getConfiguration($db) if($updated);
+}
+
+
+sub backupDelete {
+    my $n = $cgi->param('bck_del');
+    my $f = &Settings::logPath.$n;
+try{
+    if (-e $f) {
+         LifeLogException->throw("File -> <i>[$n]</i> is not a backup file or it doesn't belong to $userid (you)!") if(index ($file , /bck_\d+$userid\_log/) == -1 );
+         unlink($f) or LifeLogException->throw("Failed to delete $n! -> $!");
+         print $cgi->redirect("config.cgi?CGISESSID=$sid");
+    exit;
+    } else {
+        LifeLogException->throw( "File $n does not exist!");
+    }
+}catch{
+        my $err = $@;
+        &getHeader;
+        print $cgi->start_html;
+        print qq(<div class=r0><b>Delete Has Failed!<br>[$err]</div>
+                 <div class=r2><a href="config.cgi?CGISESSID=$sid"><br>Go Back</a> or <a href="main.cgi"><br>Go to main LOG</a></div>
+        );
+        print $cgi->end_html;
+        exit;
+};
+}
+sub backup {
+
+   my $ball = 'bck__'.$today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
+   my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." $database | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball." 2>/dev/null";
+   my $rez = `$pipe`;
+
+    #print $cgi->header;
+    #print $cgi->start_html;
+    print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>$ball);
+    open (TAR, "<".Settings::logPath().$ball) or die "Failed creating backup -> $ball";
+    while(<TAR>){print $_;}
+    close TAR;
+
+    #print $cgi->end_html;
+    exit;
+
+}
+
+
+sub restore {
+
+    my $hndl = $cgi->upload("data_bck");
+    my ($pipe,@br);
     try{
-            my $updated;
-            $dbs = dbExecute("SELECT ID, NAME FROM CONFIG;");
-            while (my @r=$dbs->fetchrow_array()){
-                my $var = $cgi->param('var'.$r[0]);
-                if(defined $var){
-                    updCnf($r[0],$var);
-                    $updated = 1;
-                }
+
+
+        &getHeader;
+        print $cgi->start_html;
+        print "<pre>Reading->$hndl</pre>";
+        my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
+        my $tar = $dbck.$hndl; $tar =~ s/osz$/tar/;
+        my $pipe;
+        open ($pipe,  "| openssl enc -k $pass:$userid -d -des-ede3-cfb -in /dev/stdin 2>/dev/null > $tar"); #| tar zt");#1>/dev/null");
+            while(<$hndl>){print $pipe $_;};
+        close $pipe;
+
+        print "<pre>\n";
+        my $m1 = "it is not permitted to restore another aliases log backup.";
+        $m1= "has your log password changed?" if ($tar=~/_data_$userid/);
+
+        my $cmd = `tar tvf $tar 2>/dev/null`  or die qq(, possible an security issue, $m1\nFAILED READING $tar. \nYour alias is: <b>$userid</b>.\n);
+
+        print "Contents->".$cmd."\n\n";
+        $cmd = `tar xzvf $tar -C $dbck --strip-components 1 2>/dev/null` or die "Failed extracting $tar";
+        print "Extracted->\n".$cmd."\n" or die "Failed extracting $tar";;
+
+        my $b_base = $dbck.$dbname;
+        my $dsn= "DBI:SQLite:dbname=$b_base";
+        my $b_db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
+        print "Connected to -> $dsn\n";
+
+        print "Merging from backup categories table...\n";
+        my $insCAT   = $db->prepare('INSERT INTO CAT (ID, NAME, DESCRIPTION) VALUES(?,?,?);') or die "Failed CAT prepare.";
+
+        my $b_pst = Settings::selectRecords($b_db,'SELECT ID, NAME, DESCRIPTION FROM CAT;');
+        while ( @br = $b_pst->fetchrow_array() ) {
+            my $pst = Settings::selectRecords($db, "SELECT ID,NAME,DESCRIPTION FROM CAT WHERE ID='".$br[0]."';");
+            my @ext = $pst->fetchrow_array();
+            if(scalar(@ext)==0){
+                $insCAT->execute($br[0],$br[1],$br[2]);
+                print "Added CAT->".$br[0]."|".$br[1]."\n";
             }
-            Settings::getConfiguration($db) if($updated);
+            elsif($br[0] ne $ext[0] or $br[1] ne $ext[1]){
+                $db->do("UPDATE CAT SET NAME='".$br[1]."', DESCRIPTION='".$br[2]."' WHERE ID=?;") or die "Cat update failed!";
+                print "Updated->".$br[0]."|".$br[1]."|".$br[2]."\n";
+            }
+
+        }
+        print "\nFinished with merging CAT table.\n";
+
+        print "\n\nMerging from backup LOG table...\n";
+        my $insLOG   = $db->prepare('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES(?,?,?,?,?,?,?);')or die "Failed LOG prepare.";
+
+        $b_pst = Settings::selectRecords($b_db,'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG;');
+        while ( @br = $b_pst->fetchrow_array() ) {
+            my $pst = Settings::selectRecords($db,"SELECT DATE FROM VW_LOG WHERE DATE='".$br[3]."';");
+            my @ext = $pst->fetchrow_array();
+            if(scalar(@ext)==0){
+                $insLOG->execute($br[1],$br[2],$br[3],$br[4],$br[5],$br[6],$br[7]);
+                print "Added->".$br[0]."|".$br[3]."|".$br[4]."\n";
+            }
+
+        }
+        print "\nFinished with merging LOG table.\n";
+
+        print "\n\nMerging from backup NOTES table...\n";
+        my $insNOTES   = $db->prepare('INSERT INTO NOTES (LID, DOC) VALUES(?,?);')or die "Failed NOTESprepare.";
+        $b_pst = Settings::selectRecords($b_db,'SELECT LID, DOC FROM NOTES;');
+        while ( @br = $b_pst->fetchrow_array() ) {
+            my $pst = Settings::selectRecords($db,"SELECT LID FROM NOTES WHERE LID=".$br[0].";");
+            my @ext = $pst->fetchrow_array();
+            if(@ext==0&&$br[0]&&$br[1]){
+                $insNOTES->execute($br[0], $br[1]) or die "Failed NOTES INSERT[".$br[0]."]";
+                print "Added NOTES->".$br[0]."\n";
+            }
+
+        }
+        print "\nFinished with merging NOTES table.\n";
+
+        $b_db->disconnect();
+        $db->disconnect();
+        print "Done!";
     }
     catch{
-        print "<font color=red><b>SERVER ERROR->changeSystemSettings</b></font>:".$_;
-    }
-}
+        $ERROR = "<font color='red'><b>Restore failed!</b></font> hndl->$hndl $@ \nbr:[@br]";#,show_trace=>&Settings::debug);
+    };
 
-sub updCnf {
-    my ($id, $val, $s) = @_;
-    $s = "UPDATE CONFIG SET VALUE='".$val."' WHERE ID=".$id.";";
-    try{
-          dbExecute($s);
-    }
-    catch{
-        print "<font color=red><b>SERVER ERROR</b>->updCnf[$s]</font>:".$_;
-    }
-}
+    my $back = $cgi->url( -relative => 1 );
+    print $ERROR if($ERROR);
+    print "\n</pre><code>";
+    print qq(<a href="config.cgi?CGISESSID=$sid"><hr>Go Back</a> or <a href="main.cgi"><brr>Go to LOG</a></code>);
+    print $cgi->end_html;
+       exit;
 
+}
 
 sub exportToCSV {
     try{
         my $csv = Text::CSV->new ( { binary => 1, strict => 1,eol => $/ } );
         if($csvp > 2){
-           $dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
+           $dbs = Settings::selectRecords($db, "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;");
         }
         else{
-           $dbs = dbExecute("SELECT * FROM LOG;");
+           $dbs = Settings::selectRecords($db, "SELECT * FROM LOG;");
         }
 
         if($csvp==2 || $csvp==4){
@@ -954,29 +1122,33 @@ sub exportToCSV {
 
 sub importCatCSV {
     my $hndl = $cgi->upload("data_cat");
-    my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
-    while (my $line = <$hndl>) {
-        chomp $line;
-        if ($csv->parse($line)) {
-              my @flds   = $csv->fields();
-            updateCATDB(@flds);
-        }else{
-              warn "Data could not be parsed: $line\n";
-          }
+    my $csv; try{
+       $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
+        while (my $line = <$hndl>) {
+            chomp $line;
+            if ($csv->parse($line)) {
+                my @fields   = $csv->fields();
+                updateCATDB(@fields);
+            }else{
+                warn "Data could not be parsed: $line\n";
+            }
+        }
     }
+    catch{
+        LifeLogException->throw(error=>"Category update failed! CSV_STATUS->".$csv->error_diag()."\nfile_hndl->$hndl",show_trace=>&Settings::debug);
+    };
 }
 
 sub updateCATDB {
-    my @flds = @_;
-    if(@flds>2){
-    try{
-            my $id   = $flds[0];
-            my $name = $flds[1];
-            my $desc = $flds[2];
+    my @fields = @_;
+    if(@fields>2){
+            my $id   = $fields[0];
+            my $name = $fields[1];
+            my $desc = $fields[2];
 
             #is it existing entry?
-            $dbs = dbExecute("SELECT ID, NAME, DESCRIPTION FROM CAT WHERE ID = '$id';");
-            if(not defined $dbs->fetchrow_array()){
+            $dbs = Settings::selectRecords($db, "SELECT ID FROM CAT WHERE ID = '$id';");
+            if(!$dbs->fetchrow_array()){
                     $dbs = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
                     $dbs->execute($id, $name, $desc);
                     $dbs->finish;
@@ -984,69 +1156,84 @@ sub updateCATDB {
             else{
                 #TODO Update
             }
-
     }
-    catch{
-        print "<font color=red><b>SERVER ERROR</b>->updateCATDB</font>:".$_;
-    }
+      else{
+         LifeLogException->throw("Invalid CSV data format!");
     }
 }
 
 sub importLogCSV {
     my $hndl = $cgi->upload("data_log");
-    my $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
+    my $csv;
+    try{
 
-    while (my $line = <$hndl>) {
-            chomp $line;
-            if ($csv->parse($line)) {
-                  my @flds   = $csv->fields();
-                updateLOGDB(@flds);
-            }else{
-                     warn "Data could not be parsed: $line\n";
-            }
+    $csv = Text::CSV->new ( { binary => 1, strict => 1, eol => $/ } );
+
+        while (my $line = <$hndl>) {
+                chomp $line;
+                if ($csv->parse($line)) {
+                    my @fields   = $csv->fields();
+                    updateLOGDB(@fields);
+                }else{
+                        warn "Data could not be parsed: $line\n";
+                }
+        }
+        &renumerate;
+        $db->disconnect();
+        print $cgi->redirect('main.cgi');
+
     }
-    &renumerate;
-    $db->disconnect();
-    print $cgi->redirect('main.cgi');
+    catch{
+        LifeLogException->throw(error=>"Log update failed! CSV_STATUS->".$csv->error_diag()."\nfile_hndl->$hndl",show_trace=>&Settings::debug);
+    };
     exit;
 }
 
 sub updateLOGDB {
-    my @flds = @_;
-    if(@flds>3){
-    try{
-            my $id_cat = $flds[0];
-            my $date   = $flds[1];
-            my $log    = $flds[2];
-            my $amv    = $flds[3];
-            my $amf    = $flds[4];
-            my $rtf    = $flds[5];
-            my $sticky = $flds[6];
-            my $pdate = DateTime::Format::SQLite->parse_datetime($date);
-            #Check if valid date log entry?
-            if($id_cat==0||$id_cat==""||!$pdate){
-                return;
-            }
-            #is it existing entry?
-            my $sql = "SELECT DATE FROM LOG WHERE DATE is '$pdate';";
-            $dbs = $db->prepare($sql);
-            $dbs->execute();
-            my @rows = $dbs->fetchrow_array();
-            if(scalar @rows == 0){
-                      $dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?,?)');
-                      $dbs->execute( $id_cat, $pdate, $log, $amv, $amf, $rtf, $sticky);
-            }
-            $dbs->finish();
+    my @fields = @_;
+    if(scalar(@fields)>6){
+
+        my $i = 0;
+        my $id_cat = $fields[$i++];
+        my $id_rtf = $fields[$i++];
+        my $date   = $fields[$i++];
+        my $log    = $fields[$i++];
+        my $amv    = $fields[$i++];
+        my $amf    = $fields[$i++];
+        my $sticky = $fields[$i++];
+        # Is it old pre. 1.8 format -> ID, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY
+        if(!looks_like_number($id_rtf)){
+            $i = 0;
+            $id_cat = $fields[$i++];
+            $date   = $fields[$i++];
+            $log    = $fields[$i++];
+            $amv    = $fields[$i++];
+            $amf    = $fields[$i++];
+            $id_rtf = $fields[$i++];
+            $sticky = $fields[$i++];
+        }
+        my $pdate = DateTime::Format::SQLite->parse_datetime($date);
+        #Check if valid date log entry?
+        if($id_cat==0||$id_cat==""||!$pdate){
+            return;
+        }
+        #is it existing entry?
+        $dbs = Settings::selectRecords($db,"SELECT DATE FROM LOG WHERE DATE is '$pdate';");
+        my @rows = $dbs->fetchrow_array();
+        if(scalar @rows == 0){
+                    $dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?,?)');
+                    $dbs->execute($id_cat, $id_rtf, $pdate, $log, $amv, $amf, $sticky);
+        }
+        $dbs->finish();
     }
-    catch{
-        print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
-    }
+    else{
+         LifeLogException->throw("Invalid CSV data format!");
     }
 }
 
 sub cats {
         $cats = qq(<select id="cats" name="cats"><option value="0">---</option>\n);
-        $dbs = dbExecute("SELECT ID, NAME FROM CAT ORDER BY ID;");
+        $dbs = Settings::selectRecords($db, "SELECT ID, NAME FROM CAT ORDER BY ID;");
         while ( my @row = $dbs->fetchrow_array() ) {
                 $cats .= qq(<option value="$row[0]">$row[1]</option>\n);
                 $hshCats{ $row[0] } = $row[1];
@@ -1054,14 +1241,9 @@ sub cats {
         $cats .= '</select>';
 }
 
-sub dbExecute {
-    my $ret	= $db->prepare(shift);
-       $ret->execute() or die "<p>ERROR->"& $DBI::errstri &"</p>";
-    return $ret;
-}
 
 sub error {
-    my $url = $cgi->url();
+    my $url = $cgi->url(-path_info => 1);
     print qq(<h2>Sorry Encountered Errors</h2><p>Page -> $url</p><p>$ERROR</p>);
     print qq(<h3>CGI Parameters</h3>);
     print "<ol>\n";
@@ -1079,41 +1261,34 @@ sub error {
 sub renumerate {
     #Renumerate Log! Copy into temp. table.
     my $sql;
-    $dbs = dbExecute("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
-    $dbs = dbExecute('SELECT rowid, DATE FROM LOG WHERE RTF == 1 ORDER BY DATE;');
+    $db->do("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
+    $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE ID_RTF >0 ORDER BY DATE;');
     #update  notes with new log id
     while(my @row = $dbs->fetchrow_array()) {
         my $sql_date = $row[1];
-        #$sql_date =~ s/T/ /;
-        $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
-        $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE RTF = 1 AND DATE = '".$sql_date."';";
-        $dbs = dbExecute($sql);
-        my @new  = $dbs->fetchrow_array();
-        if(scalar @new > 0){
-            $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
+        if($sql_date){#could be an improperly deleted record in there? Skip if there is!
+                        #$sql_date =~ s/T/ /;
+                        $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
+                        $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
+                        $dbs = Settings::selectRecords($db, $sql);
+                        my @new  = $dbs->fetchrow_array();
+                        if(scalar @new > 0){
+                            $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
+                        }
         }
     }
 
     # Delete Orphaned Notes entries.
-    $dbs = dbExecute("SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
+    $dbs = Settings::selectRecords($db, "SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
                                     NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
     while(my @row = $dbs->fetchrow_array()) {
         $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
     }
-    $dbs = dbExecute('DROP TABLE LOG;');
-    $dbs = dbExecute(qq(CREATE TABLE LOG (
-                            ID_CAT TINY        NOT NULL,
-                            DATE   DATETIME    NOT NULL,
-                            LOG    VCHAR (128) NOT NULL,
-                            AMOUNT INTEGER,
-                            AFLAG TINY DEFAULT 0,
-                            RTF BOOL DEFAULT 0,
-                            STICKY BOOL DEFAULT 0
-                            );));
-    $dbs = dbExecute('INSERT INTO LOG (ID_CAT,DATE,LOG,AMOUNT,AFLAG, RTF)
-                                    SELECT ID_CAT, DATE, LOG, AMOUNT, AFLAG, RTF
-                                    FROM life_log_temp_table ORDER by DATE;');
-    $dbs = dbExecute('DROP TABLE life_log_temp_table;');
+    $db->do('DROP TABLE LOG;');
+    $db->do(&Settings::createLOGStmt);
+    $db->do(q(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT,AFLAG)
+                    SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG FROM life_log_temp_table ORDER by DATE;));
+    $db->do('DROP TABLE life_log_temp_table;');
 }
 
 1;

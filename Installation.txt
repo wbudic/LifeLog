@@ -8,7 +8,7 @@
  -- Note - Perl and some modules might take time to install
            as their fetched and tested for your computer.
 
-           
+
 
 ## Install tiny thttpd web server. ##
 
@@ -65,7 +65,7 @@ git clone https://github.com/wbudic/LifeLog.git
 
 
 
-#Install cpanm to make installing other modules easier (you'll thank us later). 
+#Install cpanm to make installing other modules easier (you'll thank us later).
 #You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
 
 sudo apt install cpanminus
@@ -103,26 +103,34 @@ NOTICE -> Above Perl installation and modules can take time as they build (compi
           using your computers configuration and hardware for optimal performance.
           The Perl::LanguageServer, can fail in tests, as it development specific, can be ignored.
 
+#Install OpenSSL (Optional)
+https://www.openssl.org/
+sudo apt install openssl
 
 
-# LifeLOg Required Perl modules.
- 
-sudo cpanm DateTime;
-sudo cpanm DateTime::Format::Human::Duration
-sudo cpanm DateTime::Format::SQLite;
-sudo cpanm Text::CSV;
-sudo cpanm Number::Bytes::Human;
-sudo cpanm CGI::Session;
-sudo cpanm Try::Tiny;
-sudo cpanm Number/Bytes/Human.pm;
-sudo cpanm Regexp::Common;
-sudo cpanm JSON;
-sudo cpanm Switch;
-sudo cpanm install IPC::Run
+# LifeLog Required Perl modules.
+
+###
+# since 1.8 switched to:
+# before was -> sudo cpanm Try::Tiny;
+sudo cpan Log::Log4per
+sudo cpan Syntax::Keyword::Try
+
+sudo cpan DateTime;
+sudo cpan DateTime::Format::Human::Duration
+sudo cpan DateTime::Format::SQLite;
+sudo cpan Text::CSV;
+sudo cpan Number::Bytes::Human;
+sudo cpan CGI::Session;
+sudo cpan Number/Bytes/Human.pm;
+sudo cpan Regexp::Common;
+sudo cpan JSON;
+sudo cpan Switch;
+sudo cpan install IPC::Run
 
 #Install DBI module
-sudo cpanm DBI;
-sudo cpanm DBD::SQLite;
+sudo cpan DBI;
+sudo cpan DBD::SQLite;
 
 #Final Perl Installation Notes
 
@@ -130,7 +138,7 @@ This perl setup might take time and efforts. But, it is worth it.
 You get it build and tested professionally, based on your hardware.
 Platforms supported, Windows, Unix (all), Mac.
 
-Installing perl as an developer, requires no sudo. 
+Installing perl as an developer, requires no sudo.
 But hence can't run server (system level) like.
 
 If developer and running perlbrew, recommended is to use
@@ -145,7 +153,7 @@ cd /home/{user}/thttpd_dev/dbLifeLog
 sqlite3 -csv data_log.db "select * from LOG;" > current_log.csv
 
 ##Install LifeLog Independently
-cd /home/{user}/ 
+cd /home/{user}/
 git clone https://github.com/wbudic/LifeLog
 mkdir /home/{user}/thttpd_dev/dbLifeLog
 chmod +x /home/{user}/thttpd_dev/cgi-bin/*.cgi
@@ -157,7 +165,7 @@ Access the webserver cgi-bin. http://localhost:8080/cgi-bin/main.cgi
 (this might redirect to login.cgi or config.cgi in the future)
 
 ##Install LifeLog Dependably (not automatic, manual developer way)
-cd /home/{user}/ 
+cd /home/{user}/
 git clone https://github.com/wbudic/LifeLog
 run thttpd with:
 cd LifeLog; ./startDevWebServer.sh
@@ -168,7 +176,7 @@ Once created you must import the from above example current_log.csv
 cd /home/{user}/thttpd_dev/dbLifeLog
 see: http://www.sqlitetutorial.net/sqlite-import-csv/
 
-Example (data_dev1_2_log.db would be created as the latest version by the CGI created): 
+Example (data_dev1_2_log.db would be created as the latest version by the CGI created):
 cd /home/{user}/thttpd_dev/dbLifeLog
 sqlite3 data_dev1_2_log.db
 sqlite> .mode csv
@@ -189,7 +197,7 @@ can be installed to start on reboot.
 
 sudo cp startDevWebServer.sh  /etc/init.d/
 
-Modify the following to the path of your development environment 
+Modify the following to the path of your development environment
 where thttpd.conf file is in /etc/init.d/startDevWebServer.sh
 
 Modify line -> cd /home/will/thttpd_dev
@@ -225,7 +233,7 @@ You can export and modify your added categories via an CSV file.
 Making sure the ID first column across all entries has a unique number.
 
 #Install AUTO_LOGIN
-On a personal network or small network, you might prefere to auto login when browsing to the LifeLog, 
+On a personal network or small network, you might prefere to auto login when browsing to the LifeLog,
 instead of entering every time user name and password. It makese sense, as you are the only one using it,
 don't need that extra security.
 

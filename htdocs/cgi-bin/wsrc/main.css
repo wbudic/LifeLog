@@ -50,18 +50,65 @@ th,
     text-align: left;
 }
 
+#cat_desc {
+    position: absolute;
+    border: 2px solid #94cde7;
+    padding: 5px;
+    text-align: center;
+    background: #ccffff;
+    margin-top: 15px;
+    margin-left: 200px;
+    width: 400px;
+    text-decoration-style: wavy;
+
+}
+.span_cat {
+    border:1px solid #b2f8ef;
+    border-bottom:solid  #42e4fa 1px;
+    border-style: inset;
+    padding: 2px;
+    padding-right: 10px;
+    padding-left: 10px;
+    width:unset;
+}
+#cat_lst {
+    visibility: hidden;
+}
+
 .r0 {
     background-color: #e6ffff;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
+    apadding:2px;
 }
-
 .r1 {
     background-color: #ccffff;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
+}
+.r2 {
+    background-color: #ccfff0;
+    border: 1px solid black;
+    border-right: 1px solid black;
+    vertical-align: top;
+}
+.r3 {
+    background-color: #b2f8ef;
+    border: 1px solid black;
+    border-right: 1px solid black;
+    vertical-align: top;
+}
+.rz {
+    border: 1px solid black;
+    text-align: left;
+    background-color: #e6ffff;
+    vertical-align: top;
+    align-self: baseline;
+    height: auto;
+    padding: 2%;
+    margin: 0px auto;
 }
 
 .hdr {
@@ -93,16 +140,7 @@ th,
     padding-left: 5px;
 }
 
-.rz {
-    border: 1px solid black;
-    text-align: left;
-    background-color: #e6ffff;
-    vertical-align: top;
-    align-self: baseline;
-    height: auto;
-    padding: 2%;
-    margin: 0px auto;
-}
+
 
 div#rz {
     border: 1px solid black;
@@ -116,7 +154,7 @@ div#rz {
 }
 
 #tag_FRM {
-    border: 2px solid rgb(148, 205, 231);
+    border: 2px solid #94cde7;
     padding: 5px;
     text-align: right;
     vertical-align: top;
@@ -125,17 +163,6 @@ div#rz {
 img {
     float: left;
     padding: 0 10px
-}
-
-#cat_desc {
-    position: absolute;
-    border: 2px solid #94cde7;
-    padding: 5px;
-    text-align: center;
-    background: #ccffff;
-    margin-top: 15px;
-    width: 280px;
-    text-decoration-style: wavy;
 }
 
 #menu {
@@ -147,10 +174,6 @@ img {
     text-align: center;
     background: #ccffff;
     margin-left: 90%;
-}
-
-#cat_lst {
-    visibility: hidden;
 }
 
 #frm_login {
@@ -253,5 +276,5 @@ a:hover {
     font-size: large;
     font-style: normal;
     font-weight: bold;
-    color:crimson; 
+    color:crimson;
 }

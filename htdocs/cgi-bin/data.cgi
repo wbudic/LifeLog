@@ -6,13 +6,14 @@
 
 use strict;
 use warnings;
-use Try::Tiny;
 use Switch;
 
- 
+
 use CGI;
 use CGI::Session '-ip_match';
 use DBI;
+use Exception::Class ('LifeLogException');
+use Syntax::Keyword::Try;
 
 use DateTime qw();
 use DateTime::Format::SQLite;
@@ -37,14 +38,14 @@ if(!$userid||!$dbname){
 
 my $database = Settings::logPath().$dbname;
 my $dsn= "DBI:SQLite:dbname=$database";
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })  or LifeLogException->throw($DBI::errstri);
 
 #Fetch settings
 my $imgw = 210;
 my $imgh = 120;
 Settings::getConfiguration($db);
 Settings::getTheme();
-
+my $human = DateTime::Format::Human::Duration->new();
 
 
 ### Page specific settings Here
@@ -52,52 +53,35 @@ my $PRC_WIDTH = &Settings::pagePrcWidth;
 my $TH_CSS = &Settings::css;
 my $BGCOL  = &Settings::bgcol;
 #Set to 1 to get debug help. Switch off with 0.
-my $DEBUG        = &Settings::debug;
+my $DEBUG  = &Settings::debug;
 #END OF SETTINGS
 
 my $today = DateTime->now;
 $today->set_time_zone(&Settings::timezone);
 
-my %hshCats ={};
 my $tbl_rc =0;
-my $stm;
-my $stmtCat = "SELECT ID, NAME FROM CAT;";
-my $st = $db->prepare( $stmtCat );
-my $rv = $st->execute();
+my ($stm,$st, $rv);
 
-
-while(my @row = $st->fetchrow_array()) {
-    $hshCats{$row[0]} = $row[1];
-}
-
-
-my $tbl = '<form name="frm_log_del" action="remove.cgi" onSubmit="return formDelValidation();">
+my $tbl = '<a name="top"></a><form name="frm_log_del" action="data.cgi" onSubmit="return formDelValidation();">
            <table class="tbl_rem" width="'.$PRC_WIDTH.'%">
-           <tr class="hdr" style="text-align:left;"><th>Date</th> <th>Time</th><th>Log</th><th>Category</th></tr>';
+           <tr class="hdr" style="text-align:left;"><th>Date <a href="#bottom">&#x21A1;</a></th> <th>Time</th> <th>Log</th> <th>Category</th></tr>';
 
 
 my $datediff = $cgi->param("datediff");
 my $confirmed = $cgi->param('confirmed');
 if ($datediff){
-         print $cgi->header(-expires=>"+6os");    
+         print $cgi->header(-expires=>"+6os");
          print $cgi->start_html(-title => "Date Difference Report", -BGCOLOR => $BGCOL,
                  -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
                  -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
 
-        );	  
+        );
         &DisplayDateDiffs;
-}elsif (!$confirmed){
-         print $cgi->header(-expires=>"+6os");    
-         print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
-                 -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-                 -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
-
-        );	  
-
-
-        &NotConfirmed;
+}elsif ($confirmed){
+    &ConfirmedDelition;
 }else{
-        &ConfirmedDelition;
+    print $cgi->redirect('main.cgi') if not $cgi->param('chk');
+    &NotConfirmed;
 }
 
 
@@ -106,104 +90,136 @@ $db->disconnect();
 exit;
 
 sub DisplayDateDiffs{
+
     $tbl = '<table class="tbl" width="'.$PRC_WIDTH.'%">
         <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
-    $stm = 'SELECT DATE, LOG FROM LOG WHERE '; 
+    $stm = 'SELECT DATE, LOG FROM VW_LOG WHERE ';
     my  @ids = $cgi->param('chk');
 
+     @ids = reverse @ids;
+
     foreach (@ids){
-        $stm .= "rowid = '" . $_ ."'";
+        $stm .= "PID = " . $_ ."";
         if(  \$_ != \$ids[-1]  ) {
             $stm = $stm." OR ";
         }
     }
-    $stm .= ';';
+    $stm .= ' ORDER BY PID;';
+    print $cgi->pre("###[stm:$stm]") if($DEBUG);
     $st = $db->prepare( $stm );
-    $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+    $st->execute();
 
-    my $dt_prev = $today;
+    my ($dt,$dif,$first,$last,$tnext, $dt_prev) = (0,0,0,0,0,$today);
     while(my @row = $st->fetchrow_array()) {
-
-         my $dt = DateTime::Format::SQLite->parse_datetime( $row[0] );
-         my $dif = dateDiff($dt_prev, $dt);
-         $tbl .= '<tr class="r1"><td>'. $dt->ymd . '</td> 
-                    </td><td style="text-align:left;">'.$row[1]."</td></tr>".
-                 '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';	
-        $dt_prev = $dt;
+         my $rdat = $row[0];
+         my $rlog = $row[1];
+         $rlog =~ m/\n/;
+         $dt  = DateTime::Format::SQLite->parse_julianday( $rdat );
+         $dt->set_time_zone(&Settings::timezone);
+         $dif = dateDiff($dt_prev, $dt);
+         $tbl .= '<tr class="r1"><td>'. $dt->ymd . '</td>
+                    </td><td style="text-align:left;">'.$rlog."</td></tr>".
+                 '<tr class="r0"><td colspan="2">'.$dif.'</td> </tr>';
+         $last = $dt_prev;
+         $dt_prev = $dt;
+         if($tnext){
+             $dif = dateDiff($today, $dt,'');
+             $tbl .= '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';
+         }
+         else{$tnext=1; $first = $dt;}
+    }
+    if($first != $last){
+        $dif = dateDiff($first, $dt_prev,'(first above)');
+        $tbl .= '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';
     }
     $tbl .= '</table>';
 
-print '<center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</a></div></center>';
+print '<a name="top"></a><center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</a></div></center>';
 }
 
 
-sub dateDiff{
-    my($d1,$d2)=@_;
-    my $span = DateTime::Format::Human::Duration->new();
-    my $dur = $span->format_duration($d2 - $d1);
-return sprintf( "%s <br>between %s and %s", $dur, boldDate($d1), boldDate($d2));
+sub dateDiff {
+    my($d1,$d2,$ff,$sw)=@_;
+    if($d1->epoch()>$d2->epoch()){
+        $sw = $d1;
+        $d1 = $d2;
+        $d2 = $sw;
+    }else{$sw="";}
+    my $dur = $human->format_duration_between($d1, $d2);
+    my ($t1,$t2) = ("","");
+    $t1 = "<font color='red'> today </font>" if ($d1->ymd() eq $today->ymd());# Notice in perl == can't be used here!
+    $t2 = "<font color='red'> today </font>" if ($d2->ymd() eq $today->ymd());
+return sprintf( "%s <br>between $ff $t1 %s and $t2 %s[%s]", $dur, boldDate($d1), boldDate($d2), $d1->ymd());
 
 }
 
-sub boldDate{
+sub boldDate {
     my($d)=@_;
-return "<b>".$d->ymd."</b> ".$d->hms;
+return "<b>".$d->ymd()."</b> ".$d->hms;
 }
 
 
-sub ConfirmedDelition{
+sub ConfirmedDelition {
 
+try{
 
     foreach my $id ($cgi->param('chk')){
-        
+        print $cgi->p("###[deleting:$id]")  if(Settings::debug());
         $st = $db->prepare("DELETE FROM LOG WHERE rowid = '$id';");
         $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
         $st = $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$id';");
         $rv = $st->execute();
 
-        if($rv < 0) {
-             print "<p>Error->"& $DBI::errstri &"</p>";
-             exit;
-        }
-        
+       # if($rv == 0) {
+          #   die "<p>Error->"& $DBI::errstri &"</p>";
+       # }
+
     }
-    
-    
     $st->finish;
 
     print $cgi->redirect('main.cgi');
 
+}catch{
+    print $cgi->p("<font color=red><b>ERROR</b></font>  " . $_);
 }
 
-sub NotConfirmed{
+}
 
-    my $stmS = "SELECT rowid, ID_CAT, DATE, LOG from LOG WHERE";
-    my $stmE = " ORDER BY DATE DESC, rowid DESC;";
+sub NotConfirmed {
+
+    my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT == CAT.ID) as CAT, DATE, LOG from VW_LOG WHERE";
+    my $stmE = " ORDER BY DATE DESC, ID DESC;";
 
     #Get ids and build confirm table and check
     my $stm = $stmS ." ";
         foreach my $id ($cgi->param('chk')){
-            $stm = $stm . "rowid = '" . $id . "' OR ";
+            $stm = $stm . "PID = " . $id . " OR ";
         }
-    #OR end to rid=0 hack! ;)
-        $stm = $stm . "rowid = '0' " . $stmE;
-    #
+        $stm =~ s/ OR $//; $stm .= $stmE;
+
     $st = $db->prepare( $stm );
-    $rv = $st->execute() or die "<p>Error->"& $DBI::errstri &"</p>";
-    if($rv < 0) {
-            print "<p>Error->"& $DBI::errstri &"</p>";
-    }
+    $rv = $st->execute();
+    print $cgi->header(-expires=>"+6os");
+    print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
+            -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+            -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
+
+    );
+
+    print $cgi->pre("###NotConfirmed($rv,$st)->[stm:$stm]")  if($DEBUG);
 
     my $r_cnt = 0;
     my $rs = "r1";
+
+
     while(my @row = $st->fetchrow_array()) {
 
-        my $ct = $hshCats{$row[1]};
-        my $dt = DateTime::Format::SQLite->parse_datetime( $row[2] );
-        my $log = log2html($row[3]);
-        
-        $tbl = $tbl . '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" . 
+        my $ct = $row[2];
+        my $dt = DateTime::Format::SQLite->parse_datetime( $row[3] );
+        my $log = log2html($row[4]);
+
+        $tbl = $tbl . '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" .
             '<td class="'.$rs.'">' . $dt->hms . "</td>" .
             '<td class="'.$rs.'" style="font-weight:bold; color:maroon;">'."$log</td>\n".
             '<td class="'.$rs.'">' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';
@@ -220,9 +236,9 @@ sub NotConfirmed{
         $plural = "s";
     }
 
- $tbl = $tbl .  '<tr class="r0"><td colspan="4">
+ $tbl = $tbl .  '<tr class="r0"><td colspan="4"><a name="bottom"></a><a href="#top">&#x219F;</a>
  <center>
- <h2>Please Confirm You Want <br/>The Above Record'.$plural.' Deleted?</h2>
+ <h2>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h2>
  (Or hit you Browsers Back Button!)</center>
  </td></tr>
  <tr class="r0"><td colspan="4"><center>
@@ -240,7 +256,7 @@ print '<center><div>' . $tbl .'</div></center>';
 sub log2html{
     my $log = shift;
     my ($re_a_tag, $sub)  = qr/<a\s+.*?>.*<\/a>/si;
-    $log =~ s/''/'/g;    
+    $log =~ s/''/'/g;
     $log =~ s/\r\n/<br>/gs;
     $log =~ s/\\n/<br>/gs;
 
@@ -249,7 +265,7 @@ sub log2html{
         my $len = index( $log, '>', $idx );
         $sub = substr( $log, $idx + 1, $len - $idx - 1 );
         my $url = qq(<a href="$sub" target=_blank>$sub</a>);
-        $log =~ s/<<LNK<(.*?)>/$url/osi;
+        $log =~ s/<<LNK<(.*?)>+/$url/osi;
     }
 
     if ( $log =~ /<<IMG</ ) {
@@ -257,7 +273,7 @@ sub log2html{
             my $len = index( $log, '>', $idx );
             $sub = substr( $log, $idx + 1, $len - $idx - 1 );
             my $url = qq(<img src="$sub"/>);
-            $log =~ s/<<IMG<(.*?)>/$url/osi;
+            $log =~ s/<<IMG<(.*?)>+/$url/osi;
     }
     elsif ( $log =~ /<<FRM</ ) {
             my $idx = $-[0] + 5;
@@ -281,7 +297,7 @@ sub log2html{
                 #TODO fetch from web locally the original image.
                 $lnk =  qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
             }
-            $log =~ s/<<FRM<(.*?)>/$lnk/o;
+            $log =~ s/<<FRM<(.*?)>+/$lnk/o;
         }
 
     #Replace with a full link an HTTP URI
@@ -300,7 +316,7 @@ sub log2html{
         $log =~ s/$a/$b/o;
         $a = q(</iframe>);
         $b = q(</iframe></div>);
-        $log =~ s/$a/$b/o;        
+        $log =~ s/$a/$b/o;
     }
     else {
         my @chnks = split( /($re_a_tag)/si, $log );

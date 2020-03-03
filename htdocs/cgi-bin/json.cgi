@@ -26,25 +26,13 @@ use IO::Compress::Gzip qw(gzip $GzipError);
 use Compress::Zlib;
 
 
-#DEFAULT SETTINGS HERE!
-our $REC_LIMIT    = 25;
-our $TIME_ZONE    = 'Australia/Sydney';
-our $LANGUAGE     = 'English';
-our $PRC_WIDTH    = '60';
-our $LOG_PATH     = '../../dbLifeLog/';
-our $SESSN_EXPR   = '+30m';
-our $DATE_UNI     = '0';
-our $RELEASE_VER  = '1.5';
-our $AUTHORITY    = '';
-our $IMG_W_H      = '210x120';
-our $AUTO_WRD_LMT = 200;
+use lib "system/modules";
+require Settings;
 
-#END OF SETTINGS
 
 my $cgi = CGI->new;
-my $session =
-  new CGI::Session( "driver:File", $cgi, { Directory => $LOG_PATH } );
-my $sid      = $session->id();
+my $session = new CGI::Session("driver:File",$cgi, {Directory => Settings::logPath()});
+my $sid=$session->id();
 my $dbname   = $session->param('database');
 my $userid   = $session->param('alias');
 my $password = $session->param('passw');
@@ -53,17 +41,14 @@ my $lid      = $cgi->param('id');
 my $doc      = $cgi->param('doc');
 my $bg       = $cgi->param('bg');
 my $error    = "";
-my ($response, $json) = 'Session Expired';
+my ($nid,$response, $json) = 'Session Expired';
 
-my $lang  = Date::Language->new($LANGUAGE);
+#my $lang  = Date::Language->new($LANGUAGE);
 my $today = DateTime->now;
-$today->set_time_zone($TIME_ZONE);
+$today->set_time_zone(&Settings::timezone);
 
-if ($AUTHORITY) {
-    $userid = $password = $AUTHORITY;
-    $dbname = 'data_' . $userid . '_log.db';
-}
-elsif ( !$userid || !$dbname ) {   
+
+if  ( !$userid || !$dbname ) {
 
     &defaultJSON;
     print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
@@ -72,18 +57,17 @@ elsif ( !$userid || !$dbname ) {
    exit;
 }
 
-my $database = '../../dbLifeLog/' . $dbname;
-my $dsn      = "DBI:SQLite:dbname=$database";
-my $db = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } );
+my $database = Settings::logPath().$dbname;
+my $dsn= "DBI:SQLite:dbname=$database";
+my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 });
 
-### Authenticate session to alias password
-#&authenticate;
+Settings::getConfiguration($db);
 
 
 my $strp = DateTime::Format::Strptime->new(
     pattern   => '%F %T',
     locale    => 'en_AU',
-    time_zone => $TIME_ZONE,
+    time_zone => Settings::timezone(),
     on_error  => 'croak',
 );
 
@@ -102,56 +86,55 @@ undef($session);
 exit;
 
 
-sub defaultJSON(){
+sub defaultJSON {
 
-     my $content = ""; 
+     my $content = "";
      if($action eq 'load' && !$error){
-         $content = JSON->new->utf8->decode($doc);         
+         $content = JSON->new->utf8->decode($doc);
      }
      $json = JSON->new->utf8->space_after->pretty->allow_blessed->encode
-     ({date => $strp->format_datetime($today), 
-       response_origin => "LifeLog.".$RELEASE_VER,       
+     ({date => $strp->format_datetime($today),
+       response_origin =>  "LifeLog.".Settings::release(),
        alias => $userid, log_id => $lid, database=>$database, action => $action, error=>$error,
-       response=>$response,       
+       response=>$response,
        content=>$content
-       #received => $doc     
-   });   
+       #received => $doc
+   });
 }
 
 sub processSubmit {
 
      # my $date = $cgi->param('date');
      my $st;
-  
-      try {
+
+    try {
         if($action eq 'store'){
 
-$doc = qq({
-"lid":"$lid",
-"bg":"$bg",           
-"doc":$doc
-});
+           $doc = qq({
+                        "lid":"$lid",
+                        "bg":"$bg",
+                        "doc":$doc
+                 });
            my $zip = compress($doc, Z_BEST_COMPRESSION);
-           $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = '$lid';"); 
-           $st -> execute();
+              $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = $lid;");
+              $st -> execute();
            if($st->fetchrow_array() eq undef) {
-               $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");               
+               $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
                $st->execute($lid, $zip);
                $response = "Stored Document (id:$lid)!";
            }
            else{
-               $st = $db->prepare("UPDATE NOTES SET DOC = ? WHERE LID = '$lid';");
+               $st = $db->prepare("UPDATE NOTES SET DOC = ? WHERE LID = $lid;");
                $st->execute($zip);
                $response = "Updated Document (id:$lid)!";
            }
-
         }
         elsif($action eq 'load'){
-           $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '$lid';"); 
+           $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = $lid;");
            $st -> execute();
            my @arr = $st->fetchrow_array();
-           if(!@arr){
-               $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';"); 
+           if(@arr eq undef){
+               $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';");
                $st -> execute();
                @arr = $st->fetchrow_array();
            }
@@ -167,23 +150,17 @@ $doc = qq({
             $error = "Your action ($action) sux's a lot!";
         }
 
-      }
-      catch {
-          $error = ":LID[$lid]-> ".$_;
+    }catch {
+        $error = ":LID[$lid]-> ".$_;
     }
 }
 
 
 sub authenticate {
-      try {
+    try {
 
-          if ($AUTHORITY) {
-              return;
-          }
 
-          my $st = $db->prepare(
-              "SELECT * FROM AUTH WHERE alias='$userid' and passw='$password';"
-          );
+          my $st = $db->prepare("SELECT * FROM AUTH WHERE alias='$userid' and passw='$password';");
           $st->execute();
           if ( $st->fetchrow_array() ) { return; }
 
@@ -200,7 +177,7 @@ sub authenticate {
               return;
           }
 
-          
+
 
           print $cgi->center( $cgi->div("<b>Access Denied!</b> alias:$userid pass:$password") );
 
@@ -209,15 +186,11 @@ sub authenticate {
           $session->flush();
           exit;
 
-      }
-      catch {
-          print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
-          print $cgi->p( "ERROR:" . $_ );
-          print $cgi->end_html;
-          exit;
+    }catch {
+        print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
+        print $cgi->p( "ERROR:" . $_ );
+        print $cgi->end_html;
+        exit;
     }
 }
-
-
-
-
+1;

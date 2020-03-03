@@ -2,8 +2,10 @@
  Programed by: Will Budic
  Open Source License -> https://choosealicense.com/licenses/isc/
 */
-
-var _MAP = new Map();
+//TODO This mapping is not really necassary twice. Data objects should be mapped not strings.
+//
+//var _CATS_DESC_MAP = new Map();
+//var _CATS_NAME_MAP = new Map();
 var MNU_SCROLLING = false;
 
 var QUILL, QUILL_PNL;
@@ -30,6 +32,7 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
     TIMEZONE   = tz;
     TIME_STAMP = new Date(today);
     onBodyLoadGeneric();
+
     if (toggle) {
         this.toggle("#div_srh", false);
     }
@@ -125,12 +128,6 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
 
     $("#log_submit").click(encodeText);
 
-
-    var kidz = $("#cat_lst").children();
-    for (var i = 0; i < kidz.length; i++) {
-        _MAP.set(kidz[i].id, kidz[i].innerHTML);
-    }
-
     $('#ec').show();
 
     $("#RTF").prop("checked", false);
@@ -173,9 +170,112 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
             }
           }});
     }
-    setPageSessionTimer(expires);
-}
 
+    jQuery.fn.dispPos = function () {
+        this.css("position","absolute");
+        this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight())-320 ) +
+                                                    $(window).scrollTop()) + "px");
+        this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 6) - 100 +
+                                                    $(window).scrollLeft()) + "px");
+        this.css( "zIndex", 8 );
+        return this;
+    }
+
+    jQuery.fn.dropdownPos = function (e,desc) {
+        var pnl = $("#cat_desc");
+        var top = e.css('top');
+        var height= e.css('height');
+        var width = e.css('width');
+        var left = e.css('left');
+        var pwidth = pnl.css('width');
+            top = parseInt(top.replace(/px/, ""));
+            height = parseInt(height.replace(/px/, ""));
+            width = parseInt(width.replace(/px/, ""));
+            left = parseInt(left.replace(/px/, ""));
+            pwidth = parseInt(pwidth.replace(/px/, ""));
+            top += height - 5;
+            left -= (pwidth/2);
+            //pnl.html("["+left+","+top+","+height+","+width+"]"+desc);
+            pnl.html(desc);
+            pnl.css('top', top+'px');
+            pnl.css('left', left+'px');
+            pnl.show();
+    }
+
+
+    $("#dropdown-standard a").click(function(e){
+        e.preventDefault();
+        var ci = $(event.target).parent(); ci = ci.attr('id');
+        var lbl = $(e.target).text();
+        lbl = lbl.replace(/\s*$/g, "");
+        lbl = lbl + "&nbsp;".repeat(16-lbl.length);
+        $("#lcat").html(lbl);
+        $("#ec").val(ci);
+        $("#cat_desc").show();
+    }).mouseenter(function(e){
+        var pr = $(event.target).parent(); pr = pr.attr('id');
+        if(pr){
+            var pnl = $("#cat_desc");
+            var desc = $("meta[id='cats["+pr+"]']").attr('content');
+            $.fn.dropdownPos($("#dropdown-standard"), desc);
+        }
+    }).mouseleave(function(e){$("#cat_desc").hide();});
+
+
+    $("#dropdown-standard-v a").click(function(e){
+        e.preventDefault();
+        var ci = $(event.target).parent(); ci = ci.attr('id');
+        var lbl = $(e.target).text();
+        lbl = lbl.replace(/\s*$/g, "");
+        lbl = lbl + "&nbsp;".repeat(16-lbl.length);
+        $("#lcat_v").html(lbl);
+        $("#vc").val(ci);
+        $("#cat_desc").show();
+    }).mouseenter(function(e){
+        var pr = $(event.target).parent(); pr = pr.attr('id');
+        if(pr){
+            var pnl = $("#cat_desc");
+            var desc = $("meta[id='cats["+pr+"]']").attr('content');
+            $.fn.dropdownPos($("#dropdown-standard-v"), desc);
+        }
+    }).mouseleave(function(e){$("#cat_desc").hide();});
+
+
+
+    $("#dropdown-standard-x a").click(function(e){
+        e.preventDefault();
+        var ci = $(event.target).parent(); ci = ci.attr('id');
+        var lbl = $(e.target).text();
+        lbl = lbl.replace(/\s*$/g, "");
+        lbl = lbl + "&nbsp;".repeat(16-lbl.length);
+        $("#lcat_x").html(lbl);
+        $("#xc").val(ci);
+        $("#cat_desc").show();
+    }).mouseenter(function(e){
+        var pr = $(event.target).parent(); pr = pr.attr('id');
+        if(pr){
+            var pnl = $("#cat_desc");
+            var desc = $("meta[id='cats["+pr+"]']").attr('content');
+            $.fn.dropdownPos($("#dropdown-standard-x"), desc);
+        }
+    }).mouseleave(function(e){$("#cat_desc").hide();});
+
+    $( "#dlgValidation" ).dialog({
+        dialogClass: "alert",
+        buttons: [
+          {
+            text: "OK",
+            click: function() {
+              $( this ).dialog( "close" );
+            }
+          }
+        ]
+      });
+
+
+    setPageSessionTimer(expires);
+    display("Log page is ready!");
+}
 
 function encodeText(el){
     var el = $("#frm_entry [name=log]");
@@ -185,68 +285,77 @@ function encodeText(el){
     el.val(txt);
 }
 
-
 function formValidation() {
-    if ($("#ec option:selected").val() == 0) {
-        alert("Category -> has not been selected!");
-        return false;
+    // if ($("#ec option:selected").val() == 0) {
+    //     alert("Category -> has not been selected!");
+    //     return false;
+    // }
+    var dt = $("#frm_entry [name='date']").val();
+    var i = dt.indexOf('id=');
+    if(i>0){
+        dt = dt.substring(0, i-1);
+        $("#frm_entry [name='date']").val(dt);
     }
-    return validDate($("#frm_entry [name='date']").val()) && validLog($("#frm_entry [name='log']").val());
+    return validate(dt, $("#frm_entry [name='log']").val());
 }
-
 function formDelValidation() {
 
 }
 
-
-function validDate(dt) {
+function validate(dt, log) {
+    var tm, msg;
     if (!Date.parse(dt)) {
-        alert("Date -> '" + dt + "' is Invalid can't submit!");
-        return false;
+        msg = "<b>Date</b> field entry -> " + dt + " is Invalid can't submit!<br>";
     }
-    return validTime(dt.substring(dt.indexOf(" ") + 1));
+    else{
+        tm = validTime(dt.substring(dt.indexOf(" ") + 1));
+        if(tm){
+            msg = "<b>Date</b> field entry wrong time -> " + tm;
+        }
+        else{
+            msg = "";
+        }
+    }
+    if ($("#ec").val() == 0) {
+        msg =  msg + "<b>Category</b> field selection hasn't been made!<br>";
+    }
+    if (!log) {
+        msg = msg + "<b>Log</b> field entry can't be empty, can't submit!<br>";
+    }
+    if(msg){
+        return dialogModal( "Sorry Form Validation Failed", msg);
+    }
 }
 
 function validTime(val) {
     // regular expression to match required time format
     re = /^(\d{2}):(\d{2}):(\d{2})([ap]m)?$/;
     var fld = $("frm_entry").date;
+    var msg;
     if (val != '') {
         if (regs = val.match(re)) {
             // 12-hour value between 0 and 24
             if (regs[1] < 0 || regs[1] > 23) {
-                alert("Invalid value for hours: " + regs[1]);
+                msg += " Invalid value for hours: " + regs[1];
                 fld.focus();
-                return false;
             }
             // minute value between 0 and 59
             if (regs[2] > 59) {
-                alert("Invalid value for minutes: " + regs[2]);
+                msg += " Invalid value for minutes: " + regs[2];
                 fld.focus();
-                return false;
             }
             // seconds value between 0 and 59
             if (regs[3] > 59) {
-                alert("Invalid value for seconds: " + regs[2]);
-                fld.focus();
-                return false;
+                msg += " Invalid value for seconds: " + regs[2];
             }
         } else {
-            alert("Invalid time format: " + val);
+            msg = "Invalid time format: " + val;
             fld.focus();
-            return false;
         }
-        return true;
+        return msg;
     }
 }
 
-function validLog(log) {
-    if (log == "") {
-        alert("Log -> entry can't be empty, can't submit!");
-        return false;
-    }
-    return true;
-}
 
 
 function setNow() {
@@ -328,12 +437,19 @@ function edit(row) {
     $("#STICKY").prop('checked', isSticky);
 
     if(isRTF){
+        display("Loading RTF: "+ ed_v.val() );
         loadRTF(false, row);
-    }
+    }else{display("Editing: "+ ed_v.val(),3);}
 
     //Select category
-    var ec_v = $("#c" + row).text();
-    $("#ec option:contains(" + ec_v + ")").prop('selected', true);
+    var ec_lb = $("#c" + row).text();
+    var ec_id = $("meta[name='"+ec_lb+"']").attr('id');
+    ec_id = ec_id.replace(/^cats\[/g,'');
+    ec_id = ec_id.replace(/\]$/g,'');
+    $("#lcat").html(ec_lb);
+    $("#ec").val(ec_id);
+
+
     $("#submit_is_edit").val(row);
 
     //Amount type
@@ -588,20 +704,25 @@ function showAll() {
     return false;
 }
 
-function helpSelCategory(sel) {
+// function helpSelCategory(sel) {
 
-    var desc = _MAP.get(sel.options[sel.selectedIndex].value);
-    if (!desc) {
-        desc = "<font color='red'>Please select a Category!</font>";
-    }
-    display(desc);
-}
+//     var desc = _CATS_DESC_MAP.get(sel.options[sel.selectedIndex].value);
+//     if (!desc) {
+//         desc = "<font color='red'>Please select a Category!</font>";
+//     }
+//     display(desc);
+// }
 
-function display(desc){
+
+function display(desc, times){
     var pnl = $("#cat_desc");
+    if(!times){
+        times = 1;
+    }
     pnl.html(desc);
+    pnl.dispPos(true);
     pnl.show();
-    pnl.fadeOut(5000);
+    pnl.fadeOut(1000*times);
 }
 
 function viewByCategory(btn) {
@@ -611,61 +732,69 @@ function viewByCategory(btn) {
 function viewExcludeCategory(btn) {
     $("#rs_keys").value = "";
     $("#vc").value = "0";
-    var tagged = $('#divxc').text();
-    if(tagged.length>0){
-        var opts = $("#xc option");
-        var ids = "";
-        for(var i =0; i < opts.length; i++){
-                var lbl = opts[i].innerText;
-                if(tagged.match(lbl)){
-                    ids += opts[i].value + ',';
-                }
-
-        }
-        $("#idx_cat_x").val(ids.replace(/^\,+|\,+$/g,''));
-    }
 }
+
 function addExclude() {
-    var sel = $('#xc option:selected');
+    var xc = $("#xc").val();
+    var xlst = $("#xclst");
+    if(xc == 0){
+        return dialogModal("Can't add exclude!", "Must select a category to add to list of excludes.");
+    }
+
+    var sel = $("meta[id='cats["+xc+"]']").attr('name'); //_CATS_NAME_MAP.get(ix.val());//$('#xc option:selected');
     var div = $('#divxc');
     var tagged = $('#divxc').text();
-    var reg = new RegExp(sel.text());
-    if($('#xc').val() == 0){
-        alert("Must select a category to add to list of excludes.");
-    }
-    else if(!tagged.match(reg)){
+    var reg = new RegExp(sel);
+
+    if(!tagged.match(reg)){
+        $('#divxc_lbl').show();
         if(tagged.length>0){
-            div.text(tagged + ',' + sel.text());
+            div.text(tagged + ',' + sel);
+            xlst.val(xlst.val() + ',' + xc);
         }
         else{
-            $('#divxc_lbl').toggle();
-            div.text(sel.text());
+            div.text(sel);
+            xlst.val(xc);
         }
     }
-
 
 return false;
 }
+
 function removeExclude() {
-    var sel = $('#xc option:selected');
+    var xc = $("#xc").val();
+    var xlst = $("#xclst");
+    if(xc == 0){
+        return dialogModal("Can't remove exclude!", "Must select a category to add to list of excludes.");
+    }
+    var sel = $("meta[id='cats["+xc+"]']").attr('name'); //_CATS_NAME_MAP.get(xc.val());
+    //var sel = $('#xc option:selected');
     var div = $('#divxc');
     var tagged = $('#divxc').text();
-    var reg = new RegExp(sel.text());
-
-    if($('#xc').val() == 0){
-        alert("Must select a category to remove from list of excludes.");
-    }
-    else if(tagged.match(reg)){
+    var tagids = xlst.val();
+    var reg = new RegExp(sel);
+    if(tagged.match(reg)){
             tagged = tagged.replace(reg,'');
             tagged = tagged.replace(/\,\,/,'\,');
             tagged = tagged.replace(/^\,+|\,+$/g,'');
-            div.text(tagged);
+            tagids = tagids.replace(xc,'');
+            tagids = tagids.replace(/\,\,/,'\,');
+            tagids = tagids.replace(/^\,+|\,+$/g,'');
             if(tagged.length==0){
-                $('#divxc_lbl').toggle();
+                $('#divxc_lbl').hide();
             }
+            div.text(tagged);
+            xlst.val(tagids);
     }
 
 return false;
+}
+
+function resetExclude(){
+    $("#xc").val(0);
+    $('#divxc').text("");
+    $("#lcat_x").html("&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font></i>&nbsp;&nbsp;&nbsp;");
+    $("#xclst").val("");
 }
 
 function viewByDate(btn) {
@@ -819,7 +948,7 @@ function loadRTFResult(content, result, prms, quill) {
     else{
         var id = json.content.lid;
         var css = $("#q-scroll"+id).prop('style');
-        css.backgroundColor = json.content.bg
+        if(css){css.backgroundColor = json.content.bg}
     }
     //alert(obj.response);
 }
@@ -854,6 +983,38 @@ function RGBToHex(rgb) {
     return "#" + r + g + b;
 }
 
+function fetchBackup() {
+    window.location = "config.cgi?bck=1";
+}
+function deleteBackup() {
+    $('<div></div>').dialog({
+        modal: true,
+        title: "Please Confirm?",
+        width: "40%",
+        show: { effect: "clip", duration: 1000 },
+        hide: { effect: "explode", duration: 1000},
+        open: function() {
+            var sel = $("#bck input[type=radio]:checked").val();
+          $(this).html("Are you sure you want to delete file:<br><b>"+sel+"</b>");
+        },
+        buttons: [
+             {  text: "Yes",
+                icon: "ui-icon-trash",
+                click: function() {
+                  $( this ).dialog( "close" );
+                    var sel = $( "#bck input[type=radio]:checked").val();
+                    window.location = "config.cgi?bck_del="+sel+"#backup";
+                }
+              },
+
+            { text: "Cancel",
+                click: function() { $( this ).dialog( "close" );
+                return false;
+                }
+            }
+        ]
+    });
+}
 
 function exportToCSV(dat, view){
     var csv;
@@ -887,8 +1048,7 @@ function setPageSessionTimer(expires) {
                 var sec = ((dif % 60000) / 1000).toFixed(0);
                 var out = (min < 10 ? '0' : '') + min + ":" + (sec < 10 ? '0' : '') + sec;
                 var tim = new moment().tz(TIMEZONE).format("hh:mm:ss a");
-                $("#sss_status").html("Current Time:" + tim + " Session expires in " + out);
-                //$("#sss_status").html(" Session expires  " + timeout.from(now));//timeout.format("ddd, hA, HH:mm:ss"));
+                $("#sss_status").html("<font size='1px'>[" + tim + "]</font> Session expires in " + out);
                 if(now.isAfter(timeout)){
                     $("#sss_status").html("<span id='sss_expired'><a href='login_ctr.cgi'>Page Session has Expired!</a></span>");
                     clearInterval(timer);
@@ -898,3 +1058,30 @@ function setPageSessionTimer(expires) {
 
 	}
 
+ function  checkConfigCatsChange(){
+     var e1 = $('#frm_config input[name="caid"]').val();
+     var e2 = $('#frm_config input[name="canm"]').val();
+     if(e1.length>0 && e2.length>0){
+     return dialogModal("Sorry Categories Config Validation Failed",
+                        "Did you fail to clear or add a new category first? ->" + e2);
+     }
+     return true;
+ }
+
+ function dialogModal(title, message) {
+    $('<div></div>').dialog({
+        modal: true,
+        title: title,
+        width: "40%",
+        show: { effect: "clip", duration: 800 },
+        open: function() {
+          $(this).html(message);
+        },
+        buttons: {
+          Ok: function() {
+            $( this ).dialog( "close" );
+          }
+        }
+    });
+return false;
+ }

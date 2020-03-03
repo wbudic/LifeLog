@@ -1,4 +1,4 @@
-# Branch Development LifeLog in Perl - Sun Stage v. 1.7
+# Branch Development LifeLog in Perl
 
 *This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
@@ -9,7 +9,29 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.7 Encountered
 
+* &#10004; Database backup tgz ball, upload and download button on config page.
+  * You must have the password you logged in to unscramble the backup.
+    * Alias -> pass -> backup password. Information required.
+* Application log needed in the background for System based logs.
 * New CNF Development.
+  * &#10004; Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
+  * &#10004; Anons to be enabled.
+  * CVS imports/exports are to be made obsolete in the future. It is not safe.
+    * This will be still available via command line.
+* RTF Documents header lister page, to provide for, new log entry assignment, deletion, edits.
+  * There isnt and shouldn't be a full relationship to docs. Hence new log entries can link to existing, docs.
+* &#10004;Use the pages cat_list meta data elements for dealing with categories in java scripts.
+* &#10004; New Categories dropdown, grouping in ascending order and presenting in columns of five at a time.
+* &#10004; Sticky rows bg colour, to be a shade different to other normal rows.
+* &#10004; Login system log and out to be implemented. With system variable $TRACK_LOGINS to disable/enable.
+* &#10004;Change all code to use Exceptions as project is becoming hard to manage.
+  * The harder it is to foresee possible problems, the less likely you will add unnecessary complexity. -- bud@
+* &#10004; Notes to Log table should be other way in relationship direction.
+  * LOG.ID_RTF -> NOTES.rowid
+  * This is currently causing problems when the log renumerates, or entries are imported.
+* &#10004; In config page Categories section to appear after system settings. As less likelly to be changed.
+  * System Configuration section is to be sorted. As in future it is more likelly to grow.
+* &#10004; New system setting, $VIEW_ALL_LMT=1000. To limit view all records displayed on huge databases.
 * &#10004; Provide system logs on stats page runs.
 * &#10004; Menus updated in other pages to have button look.
 * &#10004; main.cnf newer versions should have precedence to id and entry name to previously set or stored in db.
@@ -20,8 +42,6 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Mutli new alias access flood attack security trigger implementation.
 * &#10004; Debug system settings implementaiton.
 * &#10004; Delete page updated to show better display of entries.
-* Provide sub alias login that sets data visible to only a set of categories.
-  * View specific based login on a different password.
 * &#10004; Login page to indentify host.
 * &#10004; Session cleanup on autologin not clearing properly.
   * A dbfix, should clear older entries as well.
@@ -29,18 +49,31 @@ This version is not compatible in data structure to prior versions. Data migrati
 ### v.1.6 and less
 
 * $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
-* Some System settings to be stored in session. As these are  known even before logon.
+* &#10004; Some System settings to be stored in session. As these are  known even before logon.
   * i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
 * &#10004; Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
 
 ## Urgent FIXES and Known Issuses
 
-* Expired sessions, swallow submits into void.
+* &#10004; Expired sessions, swallow submits into void.
 * CVS Export and Import has not been implemented for RTF type log entries.
-&#10004; Dynamic toggle of page sections, interaction fixed, bettered.
+* &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 
-## New Features of Minor Relevance
+## Planned New Possible Features of Minor Relevance
 
+* Plugin subpages.
+  * Configured in main.cnf
+  * Appear on menu or as dropdouwn in the header.
+  * Downloaded/Configurated from the configuration page.
+* View save feature. Where you name and save to config or session a dropdown of views.
+* Fit to page log. Making log subpage scrollable rather than whole page to see the bottom.
+* Make session timeot sub pages aware via JSON.
+* Multiple category assignment table (set via hashtags and end of a post).
+* Log cards Export/Import. Send log entries via email or USB, why not?
+* Provide sub alias login that sets data visible to only a set of categories.
+  * View specific based login on a different password.
+* &#10004; Table sort in config system settings by variable name.
+* Enable automatic bold title heading for specified cattegories.
 * Theme colours to be revisited, bettered
 * Enable file attachment to log entries.
 * Enable Armour Mode
@@ -53,8 +86,16 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Bugs
 
-### v. 1.7 Encountered/Fixed
+### v. 1.8 Encountered/Fixed
 
+* &#10004; Bug 19 - Same day datediff is displaying wrong report in time stack on the page.
+* &#10004; Issue 18 - Setting excludes for views, deliveres page but long delays with server finished exchange (page doesn't hang).
+  * The page is server delivered, if sections contain external internet links, this timeouts page browser delivery if the internet is down.
+* &#10004; Bug 17 - Editing of entries on occasions, duplicates entries.
+* &#10004; Bug 16 - Saving new log entries with rtf overides previous log entries rtf.
+  * Issue 16.1 - Currently importing of records linked to rtf notes is not supported.
+* &#10004; Issue 15 Date diff, showes upside down first range by current date with multiple selections.
+  * Range should be selected from date in selected latest to current date last as inbetween difference.
 * &#10004; Issue 14 Subpages pages links to main, restart main page session counter, making the main page fully usable.
   * Not really a bug. Session will expire but time remaining will be displayed wrong on the main page.
   * All subpages need either to inherit the counter, and jump user to the login screen if expired.
@@ -77,11 +118,13 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Bug - 04, Local not picked up properly on current date.
 * &#10004; Bug - 03, Keyword search not working on words as they are categorized wrongly by other dropdown in the background.
 * &#10004; Bug - 02, Record set paging to previous page not always working. Getting stuck.
-   * This occurs on new records placed in the far past. Complex problem.
+  * This occurs on new records placed in the far past. Complex problem.
 * &#10004; Bug - 01, date validation for proper entered time, there is no 24 h.
 
 ***
 
-     Checked (&#10004;) Are items that have been done and submitted to the branch.
+   Document is from project ->  <https://github.com/wbudic/LifeLog/>
 
-     Project ->  <https://github.com/wbudic/LifeLog/>
+   An open source application.
+
+<center>Sun Stage v.1.8 - 2020</center>

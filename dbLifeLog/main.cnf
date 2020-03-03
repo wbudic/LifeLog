@@ -1,11 +1,14 @@
 
+!CNF1.0
 This is the main configuration file for the LifeLog applications settings.
 https://github.com/wbudic/LifeLog
 This is an Open Source License project -> https://choosealicense.com/licenses/isc/
 Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUTO_LOGIN option bellow, use config in app.
 <<AUTO_LOGIN</>
+# BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
+<<BACKUP_ENABLED<1>
 <<CONFIG<4>
-00|$RELEASE_VER = 1.7`LifeLog Application Version.
+00|$RELEASE_VER = 1.8`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
 03|$TIME_ZONE   = Australia/Sydney`Time zone of your country.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.
@@ -21,6 +24,8 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUT
 28|$THEME       = Standard`Theme to applay, Standard, Sun, Moon, Earth.
 30|$DEBUG       = 0`Development page additional debug output, off (default) or on.
 32|$KEEP_EXCS   = 0`Cache excludes between sessions, off (default) or on.
+34|$VIEW_ALL_LMT=1000`Limit of all records displayed for large logs. Set to 0, for unlimited.
+36|$TRACK_LOGINS=1`Create system logs on login/logout of Life Log.
 <<CAT<3>
 01|Unspecified `For quick uncategorised entries.
 03|File System `Operating file system/Application short log.
@@ -35,6 +40,8 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUT
 52|Sport/Club  `Sport or Social related entry.
 55|Cars        `Car(s) related entry.
 60|Online      `Online purchases (ebay, or received/ordered from online source).
+88|Diary       `Diary specific log and entry. Your daily yaddi-yadda that have decided to place here.
+90|Fitness     `Fitness steps, news, info, and usefull links. Ammount is steps.
 <<MIG<>
 NOTES|DROP TABLE NOTES;' ver. 1.5 fts4 virtual tables have been scratched as they require special SQLite compilation.
 LOG<5>|Run Query ' ver. 1.5
@@ -79,3 +86,9 @@ UPDATE LOG SET AFLAG=2 WHERE ID_CAT=%EXPENSE_ID%;
 LOG<6>|Run Query ' ver. 1.6
 ALTER TABLE LOG ADD STICKY BOOL DEFAULT 0;
 
+LOG<6>|Run Query ' ver. 1.8
+
+CREATE TABLE notes_temp_table (LID INTEGER PRIMARY KEY NOT NULL, DOC TEXT);
+INSERT INTO notes_temp_table SELECT `LID`,`DOC` FROM `NOTES`;
+DROP TABLE `NOTES`;
+ALTER TABLE `notes_temp_table` RENAME TO `NOTES`;

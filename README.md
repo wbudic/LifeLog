@@ -11,12 +11,15 @@ Latest  version is **1.7 release** in **Sun** stable stage, requiring some Perl 
 https://www.sqlite.org/index.html database is required to run this web application.
 
 
-## New in Life Log version 1.7 
+## New in Life Log version 1.7
+
 - Views updated, having option to exlude by category now, during the session logging.
-- New system configuration options.
+- New system configuration options. i.e. $DEBUG for some sql statements.
 - Server system based snapshot logs, on stats invocation.
 - Server indentifier on login.
+
 ## Life Log version 1.5+
+
 - Ritch Text Documents can be attached to Logs.
 - Theme support. Change the look and feel. From the congiguration page.
 - Expenses and Income totals, various new calculations.

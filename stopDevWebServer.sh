@@ -1,3 +1,3 @@
-#!/bin/bash                                                                                        
-kill -9 $(./htdocs/thttpd.pid)
+#!/bin/bash
+sudo kill -9 $(./log/thttpd.pid)
 
