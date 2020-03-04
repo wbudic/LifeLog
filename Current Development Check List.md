@@ -9,17 +9,14 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.8 SUN STABLE
 
-* Automated install module script **`./install_modules.sh `**
-* Has Secure Backup/Restore. Providing accurate full data restore and merging with existing for live databases.
-* New category selection, storing approuch.
-* Better and more efficient application configuration and setup.
-* Numerous fixes, and better exception handling.
+* &#10004 Autologin bypasses actual wanted login.
+  * This is bug 20.
 
 ### v.1.7 Encountered
 
 * &#10004; Database backup tgz ball, upload and download button on config page.
   * You must have the password you logged in to unscramble the backup.
-   * Alias -> pass -> backup password. Information required.
+    * Alias -> pass -> backup password. Information required.
 * Application log needed in the background for System based logs.
 * New CNF Development.
   * &#10004; Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
@@ -93,6 +90,10 @@ This version is not compatible in data structure to prior versions. Data migrati
 * Deal with export/import of RTF Documents.
 
 ## Bugs
+
+### v. 1.9 Encountered/Fixed
+
+* &#10004 Bug 20 - Autologin bypasses, wanted new alias login (on logoff).
 
 ### v. 1.8 Encountered/Fixed
 

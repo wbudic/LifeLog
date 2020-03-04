@@ -149,6 +149,11 @@ sub checkAutologinSet {
     }
     close $fh;
     if(@cre &&scalar(@cre)>1){##TODO we already connected here to the db, why do it again later?
+
+            if($alias && $passw && $alias ne $cre[0]){ # Is this an new alias login attempt?
+                return;                                # Note, we do assign entered password even passw as autologin is set. Not entering one bypasses this.
+            }                                          # If stricter access is required set it to zero in main.cnf, or disable in config.
+            $passw = $cre[1] if (!$passw);
             my $database = &Settings::logPath.'data_'.$cre[0].'_log.db';
             my $dsn= "DBI:SQLite:dbname=$database";
             my $db = DBI->connect($dsn, $cre[0], $cre[1], { RaiseError => 1 })
@@ -159,7 +164,7 @@ sub checkAutologinSet {
             my @set = $st->fetchrow_array();
             if(@set && $set[0]=="1"){
                     $alias = $cre[0];
-                    $passw = $cre[1];
+                    $passw = $passw; #same as entered, by the not knowing to leave it blank.
                     &Settings::removeOldSessions;
             }
             $db->disconnect();
