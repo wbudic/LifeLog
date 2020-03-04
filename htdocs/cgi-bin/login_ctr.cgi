@@ -182,7 +182,7 @@ sub checkCreateTables {
     my ($pst, $sql,$rv, $changed) = 0;
     # We live check database for available tables now only once.
     # If brand new database, this sill returns fine an empty array.
-    my $pst = Settings::selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");
+    $pst = Settings::selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");
     my %curr_tables = ();
     while(my @r = $pst->fetchrow_array()){
         $curr_tables{$r[0]} = 1;
