@@ -9,7 +9,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.8 SUN STABLE
 
-* &#10004 Autologin bypasses actual wanted login.
+* Introduce a new column header background colour.
+* &#10004; Autologin bypasses actual wanted login.
   * This is bug 20.
 
 ### v.1.7 Encountered
