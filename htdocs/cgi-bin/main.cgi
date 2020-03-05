@@ -274,7 +274,7 @@ for my $key ( keys %hshDesc ) {
 my $log_output =
 qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 <TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
-<tr class="r0">
+<tr class="hdr">
 	<th>Date</th>
 	<th>Time</th>
 	<th>Log</th><th>#</th>
