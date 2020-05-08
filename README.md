@@ -10,7 +10,12 @@ Latest  version is **1.8 release** in **Sun** stable stage, requiring some Perl 
 
 https://www.sqlite.org/index.html database is required to run this web application. Note this isn't a full on blown database server requirment, that runs in your background and uses your computers resources.
 
+## PC Requirments
 
+* Any Operating System
+* Processor Celeron 1.2+ GHZ or any better, 2+ cores.
+* RAM from 2 GB+, to allow for OS. For this application 125KB+ reserved, is recommended.
+  
 ## New in v.1.8 
 
 * Automated install module script **`./install_modules.sh `**
