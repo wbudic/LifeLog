@@ -74,14 +74,29 @@ my $log_rc = selectSQL('select count(rowid) from LOG;');
 my ($stm1,$stm2) = "SELECT count(date) from LOG where date>=date('now','start of year');";
 my $log_this_year_rc = selectSQL($stm1);
 my $notes_rc = selectSQL('select count(LID) from NOTES where DOC is not null;');
+my $id;
 
 #INCOME
-$stm1 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 1;';
+$stm1 = 'select ID from CAT where NAME like "Income"';
+$id = selectSQL($stm1);
+if($id){
+    $stm1 = "SELECT sum(AMOUNT) from LOG where date>=date('now','start of year') AND (ID_CAT =$id or AFLAG=1);";
+}
+else{
+    $stm1 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 1;';
+}
 #EXPENSE
-$stm2 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 2;';
+$stm2 = 'select ID from CAT where NAME like "Expense"';
+$id = selectSQL($stm2);
+if($id){
+    $stm2 = "SELECT sum(AMOUNT) from LOG where date>=date('now','start of year') AND (ID_CAT =$id or AFLAG=2);";
+}
+else{
+    $stm2 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 2;';
+}
 
-my $expense = selectSQL($stm1);
-my $income  = selectSQL($stm2);
+my $income = selectSQL($stm1);
+my $expense= selectSQL($stm2);
 my $gross   = big_money($income - $expense);
 $expense    = big_money(sprintf("%.2f",$expense));
 $income     = big_money(sprintf("%.2f",$income));
