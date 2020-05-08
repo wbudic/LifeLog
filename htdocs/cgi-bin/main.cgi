@@ -227,7 +227,7 @@ print $cgi->start_html(
 
 my $st;
 my $sqlCAT = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY = 1 LIMIT ".&Settings::viewAllLimit.";";
+my $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY, PID FROM VW_LOG WHERE STICKY = 1 LIMIT ".&Settings::viewAllLimit.";";
 
 print qq(## Using db -> $dsn\n) if $DEBUG;
 
@@ -380,7 +380,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     buildLog(traceDBExe($sqlVWL));
     #Following is saying is in page selection, not view selection, or accounting on type of sticky entries.
     if( !$isView && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from ){
-        $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG WHERE STICKY != 1 LIMIT ".&Settings::viewAllLimit.";";
+        $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY, PID FROM VW_LOG WHERE STICKY != 1 LIMIT ".&Settings::viewAllLimit.";";
         print $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
         ;
         &buildLog(traceDBExe($sqlVWL));
@@ -413,6 +413,7 @@ sub buildLog {
         my $am  = $row[$i++]; #LOG.AMOUNT
         my $af  = $row[$i++]; #AFLAG -> Asset as 0, Income as 1, Expense as 2
         my $sticky = $row[$i++]; #Sticky to top
+        my $pid = $row[$i++]; #PID actual log ID in View.
 
         if ( $af == 1 ) { #AFLAG Income
             $sum += $am;
@@ -641,8 +642,8 @@ sub buildLog {
         <input id="r$id" type="hidden" value="$rtf"/>
         <input id="s$id" type="hidden" value="$sticky"/>
         <input id="f$id" type="hidden" value="$af"/>
-			<button class="edit" value="Edit" onclick="return edit($id);">$ssymb</button>
-			<input name="chk" type="checkbox" value="$id"/>
+        	<button class="edit" value="Edit" onclick="return edit($id);">$ssymb</button>
+			<input name="chk" type="checkbox" value="$pid"/>
 		</td></tr>);
 
         if ( $rtf > 0 ) {
