@@ -9,7 +9,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.1.8 SUN STABLE
 
-* Introduce a new column header background colour.
+* &#10004; Introduce a new column header background colour.
 * &#10004; Autologin bypasses actual wanted login.
   * This is bug 20.
 
@@ -93,7 +93,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## Bugs
 
 ### v. 1.9 Encountered/Fixed
-
+* Bug 22 - Delete selection of entries not working after a while, db fix in config page required.
+* Bug 21 - Income sum for year in stats is displayed wrong.
 * &#10004 Bug 20 - Autologin bypasses, wanted new alias login (on logoff).
 
 ### v. 1.8 Encountered/Fixed

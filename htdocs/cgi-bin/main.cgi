@@ -84,9 +84,6 @@ my $lang  = Date::Language->new(Settings::language());
 my $today = DateTime->now;
    $today -> set_time_zone(Settings::timezone());
 
-#Excludes can be now be set as permanent to page view excluded, visible if view searched.
-#http://localhost:8080/cgi-bin/main.cgi?vc=0&category=0&xc=0&idx_cat_x=0&v_from=&v_to=&keywords=&srch_reset=0
-
 if(!$prm_vc && &Settings::keepExcludes){
     if($prm_xc_lst){
         &Settings::configProperty($db, 201, '^EXCLUDES', $prm_xc_lst);
