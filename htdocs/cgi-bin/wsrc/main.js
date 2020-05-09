@@ -155,17 +155,18 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         var amf = $( "#amf" );//Amount Field Type dropdown
         var ec = $( "#ec" );  //Category dropdown
 
-        $( amf ).selectmenu({style: "dropdown", width:120,
+        $( "#amf2" ).selectmenu({style: "dropdown", width:100});
+
+         amf.selectmenu({style: "dropdown", width:100,
           change: function( event, data ) {
             var evv =ec.val();
             if(ec.val()<2||evv==32||evv==35||data.item.value == 0){
                 var sel = null;
                 if(data.item.label == "Income"){ sel = 35; }
                 else if(data.item.label == "Expense"){sel = 32; }
-                else if(data.item.value == 0 && (evv == 35||evv==32)){sel = 1; }
+                else if(data.item.value == 0 && (evv == 35||evv==32)){sel = 1;}
                 if(sel){
                     ec.val(sel);
-                   // ec.selectmenu("refresh");
                 }
             }
           }});
@@ -456,7 +457,7 @@ function edit(row) {
     ec_v = amt.val();
     $("#amf").focus();
     $("#amf").val(ec_v);
-    //$("#amf").selectmenu('refresh');
+    $("#amf").selectmenu('refresh');
 
     $("#el").focus();
 
@@ -723,6 +724,11 @@ function display(desc, times){
     pnl.dispPos(true);
     pnl.show();
     pnl.fadeOut(1000*times);
+}
+
+function viewByAmountType(btn) {
+    var aa = $("#amf2 option:selected");
+        aa.val(parseInt(aa.val())+1);
 }
 
 function viewByCategory(btn) {
