@@ -58,6 +58,7 @@ my $log_rc_prev = 0;
 my $log_cur_id  = 0;
 my $log_top     = 0;
 my $rs_keys     = $cgi->param('keywords');
+my $prm_aa      = $cgi->param("aa");
 my $prm_vc      = $cgi->param("vc");
 my $prm_xc      = $cgi->param("xc");
 my $prm_xc_lst  = $cgi->param("xclst");
@@ -66,8 +67,9 @@ my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
 my $rs_cur      = $cgi->param('rs_cur');
 my $rs_page     = $cgi->param('rs_page');
-my $stmS        = 'SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG WHERE';
-my $stmE        = "";
+my $sqlView     = 'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY, PID FROM VW_LOG';#Only to be found here, the main SQL select statement.
+my $stmS        = $sqlView." WHERE";
+my $stmE        = ' LIMIT '.&Settings::viewAllLimit.';';
 my $stmD        = "";
 my $sm_reset_all;
 my $rec_limit   = &Settings::recordLimit;
@@ -106,7 +108,7 @@ if ( $rs_dat_from && $rs_dat_to ) {
 
 #Toggle if search deployed.
 my $toggle = "";
-if ( $rs_keys || $stmD || $prm_vc > 0 || $prm_xc > 0) { $toggle = 1; }
+if ( $rs_keys || $stmD || $prm_vc > 0 || $prm_xc > 0 || $prm_aa > 0) { $toggle = 1; }
 
 
 ##Handle Session Keeps
@@ -227,7 +229,7 @@ print $cgi->start_html(
 
 my $st;
 my $sqlCAT = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY, PID FROM VW_LOG WHERE STICKY = 1 LIMIT ".&Settings::viewAllLimit.";";
+my $sqlVWL = "$stmS STICKY = 1 $stmE";
 
 print qq(## Using db -> $dsn\n) if $DEBUG;
 
@@ -278,26 +280,28 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 	<th>Category</th>
     <th>Edit</th>
 </tr>);
-
+    #We use js+perl, trickery to filter by amount type, as well.
+    if ($prm_aa >0){my $s = $prm_aa - 1;$prm_aa = " AFLAG=$s AND";}else{$prm_aa=""}
 
     if ( $rs_keys && $rs_keys ne '*' ) {
 
         my @keywords = split / /, $rs_keys;
         if ($prm_vc && $prm_vc != $prm_xc) {
-            $stmS .= " ID_CAT='" . $prm_vc . "' AND";
+            $stmS .= $prm_aa . " ID_CAT='" . $prm_vc . "' AND";
         }
         else {
             if($prm_xc>0){
                 if(@xc_lst){
                     foreach (@xc_lst){
-                            $stmS .= " ID_CAT!=$_ AND";
+                            $stmS .= $prm_aa . " ID_CAT!=$_ AND";
                     }
                 }
-                else{       $stmS .= " ID_CAT!=$prm_xc AND"; }
+                else{       $stmS .= $prm_aa . " ID_CAT!=$prm_xc AND"; }
             }
         }
+
         if ($stmD) {
-            $stmS = $stmS . $stmD . " AND";
+            $stmS = $stmS .$prm_aa . $stmD . " AND";
         }
 
         if (@keywords) {
@@ -313,13 +317,15 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     elsif ($prm_vc && $prm_vc != $prm_xc) {
 
         if ($stmD) {
-            $sqlVWL = $stmS . $stmD . " AND ID_CAT=" . $prm_vc . $stmE;
+            $sqlVWL = $stmS . $prm_aa . $stmD . " AND ID_CAT=" . $prm_vc .$prm_aa. $stmE;
         }
         else {
-            $sqlVWL = $stmS . " ID_CAT=" . $prm_vc . ";" . $stmE;
+            $sqlVWL = $stmS . $prm_aa . " ID_CAT=" . $prm_vc . $stmE;
         }
     }
     else {
+
+
         if($prm_xc>0){
 
                 if(@xc_lst){
@@ -327,20 +333,26 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
                     foreach (@xc_lst){
                             $ands .= " ID_CAT!=$_ AND";
                     }
+
                     $ands =~ s/AND$//g;
-                    $sqlVWL = $stmS . $ands . $stmE;
+                    $sqlVWL = $stmS .$prm_aa. $ands . $stmE;
                 }
                 else{
-                    $sqlVWL = $stmS . " ID_CAT!=$prm_xc;" . $stmE;
+                    $sqlVWL = $stmS . $prm_aa." ID_CAT!=$prm_xc;" . $stmE;
                 }
 
-
-
         }
+
         if ($stmD) {
-            $sqlVWL = $stmS . $stmD . $stmE;
+            $sqlVWL = $stmS . $prm_aa.' '. $stmD . $stmE;
+        }
+        elsif($prm_aa){
+                    $prm_aa =~ s/AND$//g;
+                    $sqlVWL = $stmS .$prm_aa.' '.$stmE;
         }
     }
+
+
 
 ###################
     &processSubmit;
@@ -350,10 +362,9 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $id        = 0;
     my $log_start = index $sqlVWL, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
-    #TODO implement isView instead of quering params over and over again.
-    my $isView = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0;
+    my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa;
 
-    print $cgi->pre("###[Session PARAMS->isV:$isView|vc=$prm_vc|xc=$prm_xc|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
+    print $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
@@ -379,8 +390,8 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     #place sticky or view param.ed entries first!
     buildLog(traceDBExe($sqlVWL));
     #Following is saying is in page selection, not view selection, or accounting on type of sticky entries.
-    if( !$isView && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from ){
-        $sqlVWL = "SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY, PID FROM VW_LOG WHERE STICKY != 1 LIMIT ".&Settings::viewAllLimit.";";
+    if( !$isInViewMode && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from ){
+        $sqlVWL = "$stmS STICKY != 1 $stmE";
         print $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
         ;
         &buildLog(traceDBExe($sqlVWL));
@@ -707,7 +718,7 @@ sub buildLog {
 			<b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td></tr>);
         }
         else {
-            if (&isInViewMode) { $log_output .= '<tr><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>' }
+            if ($isInViewMode) { $log_output .= '<tr><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>' }
             else{ $log_output .= '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>'}
         }
     }
@@ -777,7 +788,7 @@ _TXT
 		<td id="al">
 			<input id="am" name="am" type="text">&nbsp;
             Marks as:
-            <select id="amf" name="amf">
+            <select id="amf" name="amf" class="ui-button" data-dropdown="#dropdown-standard">
                 <option value="0" selected>Asset</option>
                 <option value="1">Income</option>
                 <option value="2">Expense</option>
@@ -814,7 +825,7 @@ _TXT
         </td>
       </tr>
     );
-    my $sss_checked = 'checked' if &isInViewMode;
+    my $sss_checked = 'checked' if $isInViewMode;
     my $tdivxc = '<td id="divxc_lbl" align="right" style="display:none"><b>Excludes:</b></td><td align="left" id="divxc"></td>';
     my $catselected  = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
     my $xcatselected = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
@@ -840,6 +851,16 @@ _TXT
         $xcatselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
         $tdivxc = '<td id="divxc_lbl" align="right"><b>Excludes:</b></td><td align="left" id="divxc">'.$hshCats{$prm_xc}.'</td>';
     }
+    #select options of $prm_aa in dropdown.
+    my $aopts = "";
+    my ($s,$i) = ("",0);
+    my $aa = $cgi->param('aa');
+    if(!$prm_aa){$aa = 0}else{$aa--};
+    foreach ('Asset','Income','Expense') {
+        if($aa == $i){$s='selected'}else{$s=""}
+        $aopts .= "\t<option value=\"$i\" $s>$_</option>\n";
+        $i++;
+    }
     $srh .=
     qq(
     <tr class="collpsd">
@@ -855,6 +876,13 @@ _TXT
 
             <input id="vc" name="vc" type="hidden" value="$prm_vc"/>
             <button id="btn_cat" onclick="viewByCategory(this);">View</button>
+&nbsp;&nbsp;
+            <b>View by Amount Type:</b>
+&nbsp;&nbsp;
+            <select id="amf2" name="aa" class="ui-button">
+                $aopts
+            </select>&nbsp;<button id="btn_amt" onclick="viewByAmountType(this);">View</button>
+
      </td>
    </tr>
    <tr class="collpsd">
@@ -1057,7 +1085,7 @@ try {
 
                     }
 
-                    $sqlVWL = qq(SELECT PID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY from VW_LOG where PID<=$rs_cur and STICKY!=1 $sand)." LIMIT ".&Settings::viewAllLimit.";";
+                    $sqlVWL = qq($stmS PID<=$rs_cur and STICKY!=1 $sand $stmE);
                     return;
                 }
             }
@@ -1148,7 +1176,7 @@ print $cgi->header,
         }
 
         $vmode = "[In Page Mode]&nbsp;";
-        $vmode = "<font color='red'>[In View Mode]</font>&nbsp;" if &isInViewMode;
+        $vmode = "<font color='red'>[In View Mode]</font>&nbsp;" if$isInViewMode;
 
         if($rec_limit == 0){
             $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3">
@@ -1289,12 +1317,6 @@ sub cam {
     1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
     return $am;
 }
-
-
-sub isInViewMode {
-    return $sss->param('sss_vc') || $sss->param('sss_xc');
-}
-
 
 sub quill{
 

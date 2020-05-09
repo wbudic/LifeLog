@@ -93,8 +93,8 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <a id="menu_close" href="#" onclick="return hide('menu_close');"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 </div>
 <hr>
-<a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="main.cgi">Log</a><hr>
+<a class="a_" href="stats.cgi">Stats</a><hr>
 <font size="2"><b>Jump to Sections</b><br>
 <a href="#categories">Categories</a><br>
 <a href="#vars">System</a><br>
