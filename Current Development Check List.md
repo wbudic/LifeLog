@@ -8,7 +8,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 ## LifeLog Development
 
 ### v.1.8 SUN STABLE
-
+* Implement View by Amount Type, reset button for categories.
 * &#10004; Introduce a new column header background colour.
 * &#10004; Autologin bypasses actual wanted login.
   * This is bug 20.
@@ -94,6 +94,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v. 1.9 Encountered/Fixed
 
+* Bug 24 - Logs row sum calculation not working/wrong, with negative and positive values.
 * &#10004; Bug 23 - Delete not working in view mode.
 * &#10004; Bug 22 - Delete selection of entries not working after a while, db fix in config page required.
 * &#10004; Bug 21 - Income sum for year in stats is displayed wrong.
