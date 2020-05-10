@@ -135,9 +135,8 @@ $tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>).&Settings::release.
 
 
 print qq(<div id="menu" title="To close this menu click on its heart, and wait." style="border: 1px solid black;padding: 5px;margin-top: 25px;">
-<a class="a_" href="config.cgi">Config</a><hr>
 <a class="a_" href="main.cgi">Log</a><hr>
-<br>
+<a class="a_" href="config.cgi">Config</a><hr>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>);
 

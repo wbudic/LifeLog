@@ -362,7 +362,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $id        = 0;
     my $log_start = index $sqlVWL, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
-    my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa;
+    my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, 'REGEXP')>0;
 
     print $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
@@ -426,7 +426,7 @@ sub buildLog {
         my $sticky = $row[$i++]; #Sticky to top
         my $pid = $row[$i++]; #PID actual log ID in View.
 
-        if ( $af == 1 ) { #AFLAG Income
+        if ( $af == 1 ) { #AFLAG Income, assets are neutral.
             $sum += $am;
         }
         elsif ( $af == 2 ) {
@@ -677,18 +677,19 @@ sub buildLog {
 
     if   ( $tfId == 1 ) { $tfId = 0; }
     else                { $tfId = 1; }
-    my ($tot,$tas);
-    $tot = $sum - $exp;
-    $sum = &cam($sum);
+    my ($tot,$tin);
+    $tot = $sum + $ass - abs($exp);
+    $tin = &cam($sum);
     $exp = &cam($exp);
-    $tas = &cam($ass);
+    $ass = &cam($ass);
     $tot = &cam($tot);
+    $tot = "<font color='red'>$tot</font>" if($tot<0);
 
     $log_output .= qq(
     <tr class="r$tfId">
 		<td></td>
 		<td></td>
-		<td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets[$tas] Gross[<b><i>$tot</i></b> &lt;-- $sum (<font color="red">$exp</font>)]</td>
+		<td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets [ $ass ] Inc [ $tin ] Exp [ <font color="red">$exp</font> ] <b>&#8594; Gross [<i>$tot</i> ] </b></td>
 	</tr>);
 
     ###
@@ -962,8 +963,8 @@ print qq(
 <a class="a_" href="config.cgi">Config</a><hr>
 <a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></a><hr>
 $sm_reset_all
-<a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br>
-<span style="font-size: x-small;">$vmode</span><br>
+<a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br><hr>
+<span style="font-size: x-small; font-weight: bold;">$vmode</span><br>
 </div>
 	  <div id="div_log">$frm</div>
 	  <div id="div_srh">$srh</div>
