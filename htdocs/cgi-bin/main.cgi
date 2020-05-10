@@ -876,6 +876,7 @@ _TXT
             </div>
 
             <input id="vc" name="vc" type="hidden" value="$prm_vc"/>
+            <button id="btnxrc" type="button" onClick="return resetViewByCategory()">Reset</button>&nbsp;&nbsp;&nbsp;
             <button id="btn_cat" onclick="viewByCategory(this);">View</button>
 &nbsp;&nbsp;
             <b>View by Amount Type:</b>

@@ -796,6 +796,11 @@ function removeExclude() {
 return false;
 }
 
+function resetViewByCategory(){
+  $("#vc").val(0);
+  $("#lcat_v").html("&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font></i>&nbsp;&nbsp;&nbsp;");
+}
+
 function resetExclude(){
     $("#xc").val(0);
     $('#divxc').text("");
