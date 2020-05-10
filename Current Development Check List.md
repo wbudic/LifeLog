@@ -7,7 +7,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## LifeLog Development
 
-### v.1.8 SUN STABLE
+### v.1.8 SUN STABLE Encountered
+
 * Implement View by Amount Type, reset button for categories.
 * &#10004; Introduce a new column header background colour.
 * &#10004; Autologin bypasses actual wanted login.
