@@ -900,7 +900,7 @@ _TXT
         $xcatselected = $hshCats{$prm_xc};
         my $n = 16 - length($xcatselected);
         $xcatselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
-        $tdivxc = '<td id="divxc_lbl" align="right">Excludes:</td><td align="left" id="lst">'.$xcls.'</td>';
+        $tdivxc = '<td id="divxc_lbl" align="right">Excludes:</td><td align="left" id="divxc">'.$xcls.'</td>';
     }
     elsif($prm_xc){
         $xcatselected = $hshCats{$prm_xc};

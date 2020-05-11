@@ -1,11 +1,10 @@
-# Branch Development LifeLog in Perl
+# Branch Development Life Log in Perl
 
 *This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
-
-## LifeLog Development
+## Life Log Development
 
 ### v.1.8 SUN STABLE Encountered
 
@@ -87,7 +86,7 @@ This version is not compatible in data structure to prior versions. Data migrati
   * In this mode settings page is disabled. And can be enabled only by System Admin.
 * Provide About button and info.
 
-## LifeLog RTF Documents using Quill Javascript RTF API
+## Life Log RTF Documents using Quill Javascript RTF API
 
 * Deal with export/import of RTF Documents.
 
@@ -142,4 +141,4 @@ This version is not compatible in data structure to prior versions. Data migrati
 
    An open source application.
 
-<center>Sun Stage v.1.8 - 2020</center>
+<center>Life Log - Sun Stable Stage v.1.8 (2020)</center>

@@ -2,10 +2,6 @@
  Programed by: Will Budic
  Open Source License -> https://choosealicense.com/licenses/isc/
 */
-//TODO This mapping is not really necassary twice. Data objects should be mapped not strings.
-//
-//var _CATS_DESC_MAP = new Map();
-//var _CATS_NAME_MAP = new Map();
 var MNU_SCROLLING = false;
 
 var QUILL, QUILL_PNL;
