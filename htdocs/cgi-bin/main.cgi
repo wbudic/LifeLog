@@ -60,6 +60,7 @@ my $log_top     = 0;
 my $rs_keys     = $cgi->param('keywords');
 my $prm_aa      = $cgi->param("aa");
 my $prm_vc      = $cgi->param("vc");
+my $prm_vc_lst  = $cgi->param("vclst");
 my $prm_xc      = $cgi->param("xc");
 my $prm_xc_lst  = $cgi->param("xclst");
 my $rs_dat_from = $cgi->param('v_from');
@@ -160,6 +161,7 @@ if($prm_xc &&$prm_xc ne ""){
 
 
 ##
+my @vc_lst = split /\,/, $prm_vc_lst; @vc_lst = uniq(sort { $a <=> $b }  @vc_lst);
 my @xc_lst = split /\,/, $prm_xc_lst; @xc_lst = uniq(sort { $a <=> $b }  @xc_lst);
 
 
@@ -771,7 +773,7 @@ _TXT
 
             </td>
 			<td style="text-align:top; vertical-align:top">Category:&nbsp;
-            <span id="lcat" class="span_cat">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
+            <span id="lcat" class="ui-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
                 <button class="bordered" data-dropdown="#dropdown-standard">&#171;</button>
 
             <div class="dropdown-menu dropdown-anchor-top-right dropdown-has-anchor" id="dropdown-standard">
@@ -827,10 +829,12 @@ _TXT
       </tr>
     );
     my $sss_checked = 'checked' if $isInViewMode;
-    my $tdivxc = '<td id="divxc_lbl" align="right" style="display:none"><b>Excludes:</b></td><td align="left" id="divxc"></td>';
+    my ($vc_lst,$xc_lst) = ("","");
+    my $tdivvc = '<td id="divvc_lbl" align="right" style="display:none">Includes:</td><td align="left" id="divvc"></td>';
+    my $tdivxc = '<td id="divxc_lbl" align="right" style="display:none">Excludes:</td><td align="left" id="divxc"></td>';
     my $catselected  = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
     my $xcatselected = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
-    my $xc_lst = '';
+
     if($prm_vc){
         $catselected = $hshCats{$prm_vc};
          my $n = 16 - length($catselected);
@@ -844,13 +848,13 @@ _TXT
         $xcatselected = $hshCats{$prm_xc};
         my $n = 16 - length($xcatselected);
         $xcatselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
-        $tdivxc = '<td id="divxc_lbl" align="right"><b>Excludes:</b></td><td align="left" id="divxc">'.$xcls.'</td>';
+        $tdivxc = '<td id="divxc_lbl" align="right">Excludes:</td><td align="left" id="lst">'.$xcls.'</td>';
     }
     elsif($prm_xc){
         $xcatselected = $hshCats{$prm_xc};
          my $n = 16 - length($xcatselected);
         $xcatselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
-        $tdivxc = '<td id="divxc_lbl" align="right"><b>Excludes:</b></td><td align="left" id="divxc">'.$hshCats{$prm_xc}.'</td>';
+        $tdivxc = '<td id="divxc_lbl" align="right">Excludes:</td><td align="left" id="divxc">'.$hshCats{$prm_xc}.'</td>';
     }
     #select options of $prm_aa in dropdown.
     my $aopts = "";
@@ -865,21 +869,24 @@ _TXT
     $srh .=
     qq(
     <tr class="collpsd">
-     <td align="right"><b>View by Category:</b></td>
+     <td align="right">View by Category:</td>
      <td align="left">
 
-             <span id="lcat_v" class="span_cat">$catselected</span>
-             <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
-
+            <span id="lcat_v" class="ui-button">$catselected</span>
+            <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
             <div id="dropdown-standard-v" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
                         <table class="tbl">$td_cat</table>
             </div>
 
             <input id="vc" name="vc" type="hidden" value="$prm_vc"/>
-            <button id="btnxrc" type="button" onClick="return resetViewByCategory()">Reset</button>&nbsp;&nbsp;&nbsp;
+            <input id="vclst" name="vclst" type="hidden" value="$vc_lst"/>
+
+            <button id="btnxca" onClick="return addInclude()"/>Add</button>&nbsp;&nbsp;
+            <button id="btnxca" type="button" onClick="return removeInclude()">Remove</button>&nbsp;
+            <button id="btnxrc" type="button" onClick="return resetInclude()">Reset</button>&nbsp;&nbsp;&nbsp;
             <button id="btn_cat" onclick="viewByCategory(this);">View</button>
 &nbsp;&nbsp;
-            <b>View by Amount Type:</b>
+            View by Amount Type:
 &nbsp;&nbsp;
             <select id="amf2" name="aa" class="ui-button">
                 $aopts
@@ -887,13 +894,13 @@ _TXT
 
      </td>
    </tr>
+   <tr class="collpsd">$tdivvc</tr>
    <tr class="collpsd">
-     <td align="right"><b>Exclude Category:</b></td>
+     <td align="right">Exclude Category:</td>
      <td align="left">
 
-                 <span id="lcat_x" class="span_cat">$xcatselected</span>
-                 <button class="bordered" data-dropdown="#dropdown-standard-x">&#171;</button>
-
+            <span id="lcat_x" class="ui-button">$xcatselected</span>
+            <button class="bordered" data-dropdown="#dropdown-standard-x">&#171;</button>
             <div id="dropdown-standard-x" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
                         <table class="tbl">$td_cat</table>
             </div>
@@ -904,15 +911,15 @@ _TXT
         <input id="xclst" name="xclst" type="hidden" value="$xc_lst"/>
 
         <button id="btnxca" onClick="return addExclude()"/>Add</button>&nbsp;&nbsp;
-        <button id="btnxrc" type="button" onClick="return removeExclude()">Remove</button>&nbsp;
-        <button id="btnxrc" type="button" onClick="return resetExclude()">Reset</button>&nbsp;&nbsp;&nbsp;
+        <button id="btnxca" type="button" onClick="return removeExclude()">Remove</button>&nbsp;
+        <button id="btnxca type="button" onClick="return resetExclude()">Reset</button>&nbsp;&nbsp;&nbsp;
         <button id="btn_cat" onclick="return viewExcludeCategory(this);">View</button>&nbsp;&nbsp;
-        <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked/> Keep In Seession
+        <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked> Keep In Session </input>
      </td>
    </tr>
    <tr class="collpsd">$tdivxc</tr>
    <tr class="collpsd">
-    <td align="right"><b>View by Date:</b></td>
+    <td align="right">View by Date:</td>
 	<td align="left">
         From:&nbsp;<input id="srh_date_from" name="v_from" type="text" size="16" value="$rs_dat_from"/>&nbsp;&nbsp;
         To:&nbsp;<input id="srh_date_to" name="v_to" type="text" size="16" value="$rs_dat_to"/>
@@ -920,7 +927,7 @@ _TXT
     </td>
 	</tr>
    <tr class="collpsd">
-    <td align="right"><b>Keywords:</b></td>
+    <td align="right">Keywords:</td>
 	<td align="left">
 		<input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/>
 		&nbsp;&nbsp;<input type="submit" value="Search" align="left">
