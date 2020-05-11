@@ -126,6 +126,39 @@ if($cgi->param('srch_reset') == 1){
 }
 
 
+
+if($prm_vc &&$prm_vc ne ""){
+#TODO (2020-11-05) This is a subrotine candidate. It gets too complicated. should not have both $prm_vc and $prm_vc_lst;
+       $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
+       if(!$prm_vc_lst||$prm_vc_lst==0){#} && index($prm_xc, ',') > 0){
+           $prm_vc_lst =  $prm_vc;
+       }else{
+            my $f;
+            my @vc_lst = split /\,/, $prm_vc_lst; @vc_lst = uniq(sort { $a <=> $b }  @vc_lst);
+            foreach my $n(@vc_lst){
+                if($n == $prm_vc){ $f=1; last; }
+            }
+            if(!$f){#not found view was clicked changing category but not adding it to vc list. Let's add it to the list.
+                $prm_vc_lst .= ",$prm_vc";
+            }
+            $prm_vc_lst=~ s/\,$//g;$prm_vc_lst=~ s/\,\,/\,/g;
+       }
+
+
+   if ($cgi->param('sss_vc') eq 'on'){
+       $sss->param('sss_vc', $prm_xc);
+       $sss->param('sss_vc_lst', $prm_xc_lst);
+   }
+   else{
+        $sss->clear('sss_vc');
+        $sss->clear('sss_vc_lst');
+   }
+
+}else{
+       $prm_vc = $sss->param('sss_vc');
+       $prm_vc_lst = $sss->param('sss_vc_lst');
+}
+
 if($prm_xc &&$prm_xc ne ""){
 #TODO (2020-02-23) It gets too complicated. should not have both $prm_xc and $prm_xc_lst;
        $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
@@ -152,7 +185,6 @@ if($prm_xc &&$prm_xc ne ""){
         $sss->clear('sss_xc');
         $sss->clear('sss_xc_lst');
    }
-
 
 }else{
        $prm_xc = $sss->param('sss_xc');
@@ -289,13 +321,23 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 
         my @keywords = split / /, $rs_keys;
         if ($prm_vc && $prm_vc != $prm_xc) {
-            $stmS .= $prm_aa . " ID_CAT='" . $prm_vc . "' AND";
+
+
+                if(@vc_lst){
+                    $stmS .= $prm_aa;
+                    foreach (@vc_lst){
+                            $stmS .= " ID_CAT=$_ OR";
+                    }
+                }
+                else{       $stmS .= $prm_aa . " ID_CAT=$prm_vc AND"; }
+
         }
         else {
             if($prm_xc>0){
                 if(@xc_lst){
+                    $stmS .= $prm_aa;
                     foreach (@xc_lst){
-                            $stmS .= $prm_aa . " ID_CAT!=$_ AND";
+                            $stmS .= " ID_CAT!=$_ AND";
                     }
                 }
                 else{       $stmS .= $prm_aa . " ID_CAT!=$prm_xc AND"; }
@@ -303,12 +345,12 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
         }
 
         if ($stmD) {
-            $stmS = $stmS .$prm_aa . $stmD . " AND";
+            $stmS .= $stmD . " AND";
         }
 
         if (@keywords) {
             foreach (@keywords) {
-                $stmS = $stmS . " LOWER(LOG) REGEXP '\\b" . lc $_ . "\\b'";
+                $stmS .= " LOWER(LOG) REGEXP '\\b" . lc $_ . "\\b'";
                 if ( \$_ != \$keywords[-1] ) {
                     $stmS = $stmS . " OR ";
                 }
@@ -316,14 +358,24 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
             $sqlVWL = $stmS . $stmE;
         }
     }
-    elsif ($prm_vc && $prm_vc != $prm_xc) {
+    elsif ($prm_vc) {
 
-        if ($stmD) {
-            $sqlVWL = $stmS . $prm_aa . $stmD . " AND ID_CAT=" . $prm_vc .$prm_aa. $stmE;
-        }
-        else {
-            $sqlVWL = $stmS . $prm_aa . " ID_CAT=" . $prm_vc . $stmE;
-        }
+
+                if(@vc_lst){
+                    foreach (@vc_lst){
+                            $stmS .= " ID_CAT=$_ OR";
+                    }
+                    $sqlVWL = $stmS . $prm_aa; $sqlVWL =~ s/OR$//g;
+                    $sqlVWL .= $stmE;
+                }
+                elsif ($stmD) {
+                    $sqlVWL = $stmS . $prm_aa . $stmD . " AND ID_CAT=" . $prm_vc . $stmE;
+                }
+                else {
+                    $sqlVWL = $stmS . $prm_aa . " ID_CAT=" . $prm_vc . $stmE;
+                }
+
+
     }
     else {
 
@@ -408,7 +460,7 @@ sub traceDBExe {
            $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
         return $st;
     }catch{
-                LifeLogException->throw(error=>"database error encountered.", show_trace=>1);
+                LifeLogException->throw(error=>"Database error encountered.", show_trace=>1);
     }
 }
 
