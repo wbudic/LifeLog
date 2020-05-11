@@ -99,7 +99,16 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         showTimeout: 100
     });
 
-
+    $('#sss_xc').poshytip({
+        content: "When checked, system will try to remember your view mode while in session.",
+        className: 'tip-yellowsimple',
+        showOn: 'focus',
+        alignTo: 'target',
+        alignX: 'center',
+        alignY: 'bottom',
+        offsetX: 5,
+        showTimeout: 100
+    });
 
     $(window).scroll(function() {
         if (!MNU_SCROLLING) {
@@ -124,7 +133,6 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
             })
         })
     });
-
 
     $("#log_submit").click(encodeText);
 
@@ -602,12 +610,12 @@ function toggleDoc(whole) {
         if($("#RTF").prop('checked')){
             $("#rtf_doc").show();
             $('#tbl_doc').show();
-            $('#toolbar-container').show();
+           // $('#toolbar-container').show();
         }
         else{
             $("#rtf_doc").hide();
             $('#tbl_doc').hide();
-            $('#toolbar-container').hide();
+            //$('#toolbar-container').hide();
         }
     }
     else{
@@ -740,14 +748,69 @@ function viewExcludeCategory(btn) {
     $("#vc").value = "0";
 }
 
+function addInclude() {
+    var vc = $("#vc").val();
+    var lst = $("#vclst");
+    if(vc == 0){
+        return dialogModal("Can't add include!", "Must select a category to add to a list of includes.");
+    }
+
+    var sel = $("meta[id='cats["+vc+"]']").attr('name');
+    var div = $('#divvc');
+    var tagged = $('#divvc').text();
+    var reg = new RegExp(sel);
+
+    if(!tagged.match(reg)){
+        $('#divvc_lbl').show();
+        if(tagged.length>0){
+            div.text(tagged + ',' + sel);
+            lst.val(lst.val() + ',' + vc);
+        }
+        else{
+            div.text(sel);
+            lst.val(vc);
+        }
+    }
+return false;
+}
+
+function removeInclude() {
+    var vc = $("#vc").val();
+    var xlst = $("#xclst");
+    if(vc == 0){
+        return dialogModal("Can't remove exclude!", "Must select a category to remove from list of includes.");
+    }
+    var sel = $("meta[id='cats["+vc+"]']").attr('name');
+    //var sel = $('#vc option:selected');
+    var div = $('#divvc');
+    var tagged = $('#divvc').text();
+    var tagids = xlst.val();
+    var reg = new RegExp(sel);
+    if(tagged.match(reg)){
+            tagged = tagged.replace(reg,'');
+            tagged = tagged.replace(/\,\,/,'\,');
+            tagged = tagged.replace(/^\,+|\,+$/g,'');
+            tagids = tagids.replace(vc,'');
+            tagids = tagids.replace(/\,\,/,'\,');
+            tagids = tagids.replace(/^\,+|\,+$/g,'');
+            if(tagged.length==0){
+                $('#divvc_lbl').hide();
+            }
+            div.text(tagged);
+            xlst.val(tagids);
+    }
+
+return false;
+}
+
 function addExclude() {
     var xc = $("#xc").val();
     var xlst = $("#xclst");
     if(xc == 0){
-        return dialogModal("Can't add exclude!", "Must select a category to add to list of excludes.");
+        return dialogModal("Can't add exclude!", "Must select a category to add to a list of excludes.");
     }
 
-    var sel = $("meta[id='cats["+xc+"]']").attr('name'); //_CATS_NAME_MAP.get(ix.val());//$('#xc option:selected');
+    var sel = $("meta[id='cats["+xc+"]']").attr('name');
     var div = $('#divxc');
     var tagged = $('#divxc').text();
     var reg = new RegExp(sel);
@@ -771,7 +834,7 @@ function removeExclude() {
     var xc = $("#xc").val();
     var xlst = $("#xclst");
     if(xc == 0){
-        return dialogModal("Can't remove exclude!", "Must select a category to add to list of excludes.");
+        return dialogModal("Can't remove exclude!", "Must select a category to remove from list of excludes.");
     }
     var sel = $("meta[id='cats["+xc+"]']").attr('name'); //_CATS_NAME_MAP.get(xc.val());
     //var sel = $('#xc option:selected');
@@ -796,9 +859,14 @@ function removeExclude() {
 return false;
 }
 
-function resetViewByCategory(){
+function resetInclude(){
   $("#vc").val(0);
+  $('#divxc').text("");
+  $("#vclst").val("");
   $("#lcat_v").html("&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font></i>&nbsp;&nbsp;&nbsp;");
+  $("#amf2").val(0);
+  $("#amf2").selectmenu('refresh');
+  return false;
 }
 
 function resetExclude(){
@@ -806,6 +874,7 @@ function resetExclude(){
     $('#divxc').text("");
     $("#lcat_x").html("&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font></i>&nbsp;&nbsp;&nbsp;");
     $("#xclst").val("");
+    return false;
 }
 
 function viewByDate(btn) {
