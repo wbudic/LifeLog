@@ -25,12 +25,16 @@ div {
     color: #d8d8d8;
 }
 
+#div_log {
+    font-weight: bold;
+}
 #div_srh {
     text-align: center;
     vertical-align: middle;
     display: none;
     margin-top: 5px;
     margin-bottom: 0px;
+    font-weight: bold;
 }
 
 TABLE,

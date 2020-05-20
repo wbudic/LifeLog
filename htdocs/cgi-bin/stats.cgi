@@ -7,7 +7,7 @@ use warnings;
 #no warnings 'uninitialized';
 use Switch;
 
-use CGI;
+use CGI::Pretty ":standard";
 use CGI::Session '-ip_match';
 use DBI;
 use DateTime;
@@ -55,20 +55,42 @@ $today->set_time_zone(&Settings::timezone);
 
 $ENV{'HOME'} = "~/";
 
+my $CSS=<<CSS;
+.main div {
+    font-family: Bookman;
+    text-align: left;
+    vertical-align: left;
+}
+.info span{
+    border: 1px solid black;
+    padding: 5px;
+    margin-top: 5px;
+    margin-right: 15px;
+    float: left;
+    width:98%
+}
+.processes{
+     margin-top: 5px; padding: 5px;
+     border: 1px solid black;
+     float: none;
+}
+CSS
+
 
 print $cgi->header(-expires=>"+6os", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>&Settings::bgcol,
                        -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
-                                  {-type => 'text/javascript', -src => 'wsrc/jquery.js' },
-                                  {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js' }],
+                                  {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
+                                  {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
                        -style => [{-type => 'text/css', -src => "wsrc/".&Settings::css},
-                                  {-type => 'text/css', -src => 'wsrc/jquery-ui.css' },
-                                  {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' }],
-
+                                  {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
+                                  {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
+                                  {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
+                                  {-script=>$CSS}
+                                 ],
+                        -head => style({-type => 'text/css'}, $CSS),
                        -onload  => "onBodyLoadGeneric()"
                 );
-
-my $tbl = '<table class="tbl" border="1px"><tr class="r0"><td colspan="5"><b>* Personal Log Data Statistics *</b></td></tr>';
 
 my $log_rc = selectSQL('select count(rowid) from LOG;');
 my ($stm1,$stm2) = "SELECT count(date) from LOG where date>=date('now','start of year');";
@@ -121,7 +143,8 @@ my $year =$today->year();
 my $IPPublic  = `curl -s https://www.ifconfig.me`;
 my $IPPrivate = `hostname -I`; $IPPrivate =~ s/\s/<br>/g;
 
-$tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>).&Settings::release.qq(</td></tr>
+my $tbl = qq(<table class="tbl" border="1px"><tr class="r0"><td colspan="5" style="text-align:centered"><b>* Personal Log Data Statistics *</b></td></tr>
+          <tr class="r1"><td>LifeLog App. Version:</td><td>).&Settings::release.qq(</td></tr>
 	      <tr class="r0"><td>Number of Records:</td><td>$log_rc</td></tr>
           <tr class="r1"><td>No. of Records This Year:</td><td>$log_this_year_rc</td></tr>
           <tr class="r0"><td>No. of RTF Documents:</td><td>$notes_rc</td></tr>
@@ -135,23 +158,26 @@ $tbl .=qq(<tr class="r1"><td>LifeLog App. Version:</td><td>).&Settings::release.
 
 
 print qq(<div id="menu" title="To close this menu click on its heart, and wait." style="border: 1px solid black;padding: 5px;margin-top: 25px;">
-<a class="a_" href="config.cgi">Config</a><hr>
 <a class="a_" href="main.cgi">Log</a><hr>
-<br>
+<a class="a_" href="config.cgi">Config</a><hr>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
 </div>);
 
 print qq(
-<div style="text-align:left; border: 1px solid black; padding:5px;"><h2>Life Log Server Statistics</h2><hr>
-    <span style="text-align:left; float:left; padding:15px;">$tbl<br></span>
-    <span style="text-align:left; margin:1px; padding-right:15px; float:none;"><h2>Server Info</h2><hr><br>
-    $hardware_status</span><hr>
-</div>
-$HS
-<div class="tbl" style="text-align:left; border: 0px; padding:5px;">
-    <b>Server Side Processes</b><hr>
-</div>
-<pre>$processes</pre>);
+<div class="main">
+    <h2>Life Log Server Statistics</h2><hr>
+    <div class="info">
+        <span><b>Log Status & Information</b><hr>$tbl</span>
+        <span><b>Server Info</b><hr>$hardware_status</span>
+        <span><b>Server Filesystem Info</b><hr>$HS</span>
+    </div><br>
+    <div class="processes" style="float:left;">
+        <b>Server Side Processes</b><hr>
+        <pre>$processes</pre>
+    </div>
+
+</div>);
+
 print $cgi->end_html;
 
 &Settings::toLog($db,$syslog);

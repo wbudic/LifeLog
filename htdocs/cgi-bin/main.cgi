@@ -60,6 +60,7 @@ my $log_top     = 0;
 my $rs_keys     = $cgi->param('keywords');
 my $prm_aa      = $cgi->param("aa");
 my $prm_vc      = $cgi->param("vc");
+my $prm_vc_lst  = $cgi->param("vclst");
 my $prm_xc      = $cgi->param("xc");
 my $prm_xc_lst  = $cgi->param("xclst");
 my $rs_dat_from = $cgi->param('v_from');
@@ -125,6 +126,39 @@ if($cgi->param('srch_reset') == 1){
 }
 
 
+
+if($prm_vc &&$prm_vc ne ""){
+#TODO (2020-11-05) This is a subrotine candidate. It gets too complicated. should not have both $prm_vc and $prm_vc_lst;
+       $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
+       if(!$prm_vc_lst||$prm_vc_lst==0){#} && index($prm_xc, ',') > 0){
+           $prm_vc_lst =  $prm_vc;
+       }else{
+            my $f;
+            my @vc_lst = split /\,/, $prm_vc_lst; @vc_lst = uniq(sort { $a <=> $b }  @vc_lst);
+            foreach my $n(@vc_lst){
+                if($n == $prm_vc){ $f=1; last; }
+            }
+            if(!$f){#not found view was clicked changing category but not adding it to vc list. Let's add it to the list.
+                $prm_vc_lst .= ",$prm_vc";
+            }
+            $prm_vc_lst=~ s/\,$//g;$prm_vc_lst=~ s/\,\,/\,/g;
+       }
+
+
+   if ($cgi->param('sss_vc') eq 'on'){
+       $sss->param('sss_vc', $prm_xc);
+       $sss->param('sss_vc_lst', $prm_xc_lst);
+   }
+   else{
+        $sss->clear('sss_vc');
+        $sss->clear('sss_vc_lst');
+   }
+
+}else{
+       $prm_vc = $sss->param('sss_vc');
+       $prm_vc_lst = $sss->param('sss_vc_lst');
+}
+
 if($prm_xc &&$prm_xc ne ""){
 #TODO (2020-02-23) It gets too complicated. should not have both $prm_xc and $prm_xc_lst;
        $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
@@ -152,7 +186,6 @@ if($prm_xc &&$prm_xc ne ""){
         $sss->clear('sss_xc_lst');
    }
 
-
 }else{
        $prm_xc = $sss->param('sss_xc');
        $prm_xc_lst = $sss->param('sss_xc_lst');
@@ -160,6 +193,7 @@ if($prm_xc &&$prm_xc ne ""){
 
 
 ##
+my @vc_lst = split /\,/, $prm_vc_lst; @vc_lst = uniq(sort { $a <=> $b }  @vc_lst);
 my @xc_lst = split /\,/, $prm_xc_lst; @xc_lst = uniq(sort { $a <=> $b }  @xc_lst);
 
 
@@ -287,13 +321,23 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 
         my @keywords = split / /, $rs_keys;
         if ($prm_vc && $prm_vc != $prm_xc) {
-            $stmS .= $prm_aa . " ID_CAT='" . $prm_vc . "' AND";
+
+
+                if(@vc_lst){
+                    $stmS .= $prm_aa;
+                    foreach (@vc_lst){
+                            $stmS .= " ID_CAT=$_ OR";
+                    }
+                }
+                else{       $stmS .= $prm_aa . " ID_CAT=$prm_vc AND"; }
+
         }
         else {
             if($prm_xc>0){
                 if(@xc_lst){
+                    $stmS .= $prm_aa;
                     foreach (@xc_lst){
-                            $stmS .= $prm_aa . " ID_CAT!=$_ AND";
+                            $stmS .= " ID_CAT!=$_ AND";
                     }
                 }
                 else{       $stmS .= $prm_aa . " ID_CAT!=$prm_xc AND"; }
@@ -301,12 +345,12 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
         }
 
         if ($stmD) {
-            $stmS = $stmS .$prm_aa . $stmD . " AND";
+            $stmS .= $stmD . " AND";
         }
 
         if (@keywords) {
             foreach (@keywords) {
-                $stmS = $stmS . " LOWER(LOG) REGEXP '\\b" . lc $_ . "\\b'";
+                $stmS .= " LOWER(LOG) REGEXP '\\b" . lc $_ . "\\b'";
                 if ( \$_ != \$keywords[-1] ) {
                     $stmS = $stmS . " OR ";
                 }
@@ -314,14 +358,24 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
             $sqlVWL = $stmS . $stmE;
         }
     }
-    elsif ($prm_vc && $prm_vc != $prm_xc) {
+    elsif ($prm_vc) {
 
-        if ($stmD) {
-            $sqlVWL = $stmS . $prm_aa . $stmD . " AND ID_CAT=" . $prm_vc .$prm_aa. $stmE;
-        }
-        else {
-            $sqlVWL = $stmS . $prm_aa . " ID_CAT=" . $prm_vc . $stmE;
-        }
+
+                if(@vc_lst){
+                    foreach (@vc_lst){
+                            $stmS .= " ID_CAT=$_ OR";
+                    }
+                    $sqlVWL = $stmS . $prm_aa; $sqlVWL =~ s/OR$//g;
+                    $sqlVWL .= $stmE;
+                }
+                elsif ($stmD) {
+                    $sqlVWL = $stmS . $prm_aa . $stmD . " AND ID_CAT=" . $prm_vc . $stmE;
+                }
+                else {
+                    $sqlVWL = $stmS . $prm_aa . " ID_CAT=" . $prm_vc . $stmE;
+                }
+
+
     }
     else {
 
@@ -362,7 +416,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $id        = 0;
     my $log_start = index $sqlVWL, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
-    my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa;
+    my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, 'REGEXP')>0;
 
     print $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
@@ -406,7 +460,7 @@ sub traceDBExe {
            $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
         return $st;
     }catch{
-                LifeLogException->throw(error=>"database error encountered.", show_trace=>1);
+                LifeLogException->throw(error=>"Database error encountered.", show_trace=>1);
     }
 }
 
@@ -426,7 +480,7 @@ sub buildLog {
         my $sticky = $row[$i++]; #Sticky to top
         my $pid = $row[$i++]; #PID actual log ID in View.
 
-        if ( $af == 1 ) { #AFLAG Income
+        if ( $af == 1 ) { #AFLAG Income, assets are neutral.
             $sum += $am;
         }
         elsif ( $af == 2 ) {
@@ -677,18 +731,19 @@ sub buildLog {
 
     if   ( $tfId == 1 ) { $tfId = 0; }
     else                { $tfId = 1; }
-    my ($tot,$tas);
-    $tot = $sum - $exp;
-    $sum = &cam($sum);
+    my ($tot,$tin);
+    $tot = $sum + $ass - abs($exp);
+    $tin = &cam($sum);
     $exp = &cam($exp);
-    $tas = &cam($ass);
+    $ass = &cam($ass);
     $tot = &cam($tot);
+    $tot = "<font color='red'>$tot</font>" if($tot<0);
 
     $log_output .= qq(
     <tr class="r$tfId">
 		<td></td>
 		<td></td>
-		<td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets[$tas] Gross[<b><i>$tot</i></b> &lt;-- $sum (<font color="red">$exp</font>)]</td>
+		<td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets [ $ass ] Inc [ $tin ] Exp [ <font color="red">$exp</font> ] <b>&#8594; Gross [<i>$tot</i> ] </b></td>
 	</tr>);
 
     ###
@@ -770,7 +825,7 @@ _TXT
 
             </td>
 			<td style="text-align:top; vertical-align:top">Category:&nbsp;
-            <span id="lcat" class="span_cat">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
+            <span id="lcat" class="ui-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
                 <button class="bordered" data-dropdown="#dropdown-standard">&#171;</button>
 
             <div class="dropdown-menu dropdown-anchor-top-right dropdown-has-anchor" id="dropdown-standard">
@@ -826,10 +881,12 @@ _TXT
       </tr>
     );
     my $sss_checked = 'checked' if $isInViewMode;
-    my $tdivxc = '<td id="divxc_lbl" align="right" style="display:none"><b>Excludes:</b></td><td align="left" id="divxc"></td>';
+    my ($vc_lst,$xc_lst) = ("","");
+    my $tdivvc = '<td id="divvc_lbl" align="right" style="display:none">Includes:</td><td align="left" id="divvc"></td>';
+    my $tdivxc = '<td id="divxc_lbl" align="right" style="display:none">Excludes:</td><td align="left" id="divxc"></td>';
     my $catselected  = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
     my $xcatselected = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
-    my $xc_lst = '';
+
     if($prm_vc){
         $catselected = $hshCats{$prm_vc};
          my $n = 16 - length($catselected);
@@ -843,13 +900,13 @@ _TXT
         $xcatselected = $hshCats{$prm_xc};
         my $n = 16 - length($xcatselected);
         $xcatselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
-        $tdivxc = '<td id="divxc_lbl" align="right"><b>Excludes:</b></td><td align="left" id="divxc">'.$xcls.'</td>';
+        $tdivxc = '<td id="divxc_lbl" align="right">Excludes:</td><td align="left" id="divxc">'.$xcls.'</td>';
     }
     elsif($prm_xc){
         $xcatselected = $hshCats{$prm_xc};
          my $n = 16 - length($xcatselected);
         $xcatselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
-        $tdivxc = '<td id="divxc_lbl" align="right"><b>Excludes:</b></td><td align="left" id="divxc">'.$hshCats{$prm_xc}.'</td>';
+        $tdivxc = '<td id="divxc_lbl" align="right">Excludes:</td><td align="left" id="divxc">'.$hshCats{$prm_xc}.'</td>';
     }
     #select options of $prm_aa in dropdown.
     my $aopts = "";
@@ -864,20 +921,24 @@ _TXT
     $srh .=
     qq(
     <tr class="collpsd">
-     <td align="right"><b>View by Category:</b></td>
+     <td align="right">View by Category:</td>
      <td align="left">
 
-             <span id="lcat_v" class="span_cat">$catselected</span>
-             <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
-
+            <span id="lcat_v" class="ui-button">$catselected</span>
+            <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
             <div id="dropdown-standard-v" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
                         <table class="tbl">$td_cat</table>
             </div>
 
             <input id="vc" name="vc" type="hidden" value="$prm_vc"/>
+            <input id="vclst" name="vclst" type="hidden" value="$vc_lst"/>
+
+            <button id="btnxca" onClick="return addInclude()"/>Add</button>&nbsp;&nbsp;
+            <button id="btnxca" type="button" onClick="return removeInclude()">Remove</button>&nbsp;
+            <button id="btnxrc" type="button" onClick="return resetInclude()">Reset</button>&nbsp;&nbsp;&nbsp;
             <button id="btn_cat" onclick="viewByCategory(this);">View</button>
 &nbsp;&nbsp;
-            <b>View by Amount Type:</b>
+            View by Amount Type:
 &nbsp;&nbsp;
             <select id="amf2" name="aa" class="ui-button">
                 $aopts
@@ -885,13 +946,13 @@ _TXT
 
      </td>
    </tr>
+   <tr class="collpsd">$tdivvc</tr>
    <tr class="collpsd">
-     <td align="right"><b>Exclude Category:</b></td>
+     <td align="right">Exclude Category:</td>
      <td align="left">
 
-                 <span id="lcat_x" class="span_cat">$xcatselected</span>
-                 <button class="bordered" data-dropdown="#dropdown-standard-x">&#171;</button>
-
+            <span id="lcat_x" class="ui-button">$xcatselected</span>
+            <button class="bordered" data-dropdown="#dropdown-standard-x">&#171;</button>
             <div id="dropdown-standard-x" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
                         <table class="tbl">$td_cat</table>
             </div>
@@ -902,15 +963,15 @@ _TXT
         <input id="xclst" name="xclst" type="hidden" value="$xc_lst"/>
 
         <button id="btnxca" onClick="return addExclude()"/>Add</button>&nbsp;&nbsp;
-        <button id="btnxrc" type="button" onClick="return removeExclude()">Remove</button>&nbsp;
-        <button id="btnxrc" type="button" onClick="return resetExclude()">Reset</button>&nbsp;&nbsp;&nbsp;
+        <button id="btnxca" type="button" onClick="return removeExclude()">Remove</button>&nbsp;
+        <button id="btnxca type="button" onClick="return resetExclude()">Reset</button>&nbsp;&nbsp;&nbsp;
         <button id="btn_cat" onclick="return viewExcludeCategory(this);">View</button>&nbsp;&nbsp;
-        <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked/> Keep In Seession
+        <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked> Keep In Session </input>
      </td>
    </tr>
    <tr class="collpsd">$tdivxc</tr>
    <tr class="collpsd">
-    <td align="right"><b>View by Date:</b></td>
+    <td align="right">View by Date:</td>
 	<td align="left">
         From:&nbsp;<input id="srh_date_from" name="v_from" type="text" size="16" value="$rs_dat_from"/>&nbsp;&nbsp;
         To:&nbsp;<input id="srh_date_to" name="v_to" type="text" size="16" value="$rs_dat_to"/>
@@ -918,7 +979,7 @@ _TXT
     </td>
 	</tr>
    <tr class="collpsd">
-    <td align="right"><b>Keywords:</b></td>
+    <td align="right">Keywords:</td>
 	<td align="left">
 		<input id="rs_keys" name="keywords" type="text" size="60" value="$rs_keys"/>
 		&nbsp;&nbsp;<input type="submit" value="Search" align="left">
@@ -962,8 +1023,8 @@ print qq(
 <a class="a_" href="config.cgi">Config</a><hr>
 <a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></a><hr>
 $sm_reset_all
-<a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br>
-<span style="font-size: x-small;">$vmode</span><br>
+<a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br><hr>
+<span style="font-size: x-small; font-weight: bold;">$vmode</span><br>
 </div>
 	  <div id="div_log">$frm</div>
 	  <div id="div_srh">$srh</div>

@@ -19,12 +19,16 @@ div {
     vertical-align: middle;
 }
 
+#div_log {
+    font-weight: bold;
+}
 #div_srh {
     text-align: center;
     vertical-align: middle;
     display: none;
     margin-top: 5px;
     margin-bottom: 0px;
+    font-weight: bold;
 }
 
 TABLE,
@@ -62,15 +66,19 @@ th,
     text-decoration-style: wavy;
 
 }
+
 .span_cat {
+    font-family: Bookman;
     border:1px solid #b2f8ef;
     border-bottom:solid  #42e4fa 1px;
     border-style: inset;
     padding: 2px;
     padding-right: 10px;
     padding-left: 10px;
-    width:unset;
+    box-sizing: border-box;
+    width: auto;
 }
+
 #cat_lst {
     visibility: hidden;
 }
@@ -277,3 +285,4 @@ a:hover {
     font-weight: bold;
     color:crimson;
 }
+

@@ -1,14 +1,14 @@
-# Branch Development LifeLog in Perl
+# Branch Development Life Log in Perl
 
 *This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
 This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
 
+## Life Log Development
 
-## LifeLog Development
+### v.1.8 SUN STABLE Encountered
 
-### v.1.8 SUN STABLE
-
+* Implement View by Amount Type, reset button for categories.
 * &#10004; Introduce a new column header background colour.
 * &#10004; Autologin bypasses actual wanted login.
   * This is bug 20.
@@ -86,7 +86,7 @@ This version is not compatible in data structure to prior versions. Data migrati
   * In this mode settings page is disabled. And can be enabled only by System Admin.
 * Provide About button and info.
 
-## LifeLog RTF Documents using Quill Javascript RTF API
+## Life Log RTF Documents using Quill Javascript RTF API
 
 * Deal with export/import of RTF Documents.
 
@@ -94,6 +94,9 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v. 1.9 Encountered/Fixed
 
+* &#10004; Bug 25 - SQLite view not properly sorting in new databases. Newer records listed last.
+  * View should order by time function desc, ascendig is default.
+* &#10004; Bug 24 - Logs row sum calculation not working/wrong, with negative and positive values.
 * &#10004; Bug 23 - Delete not working in view mode.
 * &#10004; Bug 22 - Delete selection of entries not working after a while, db fix in config page required.
 * &#10004; Bug 21 - Income sum for year in stats is displayed wrong.
@@ -140,4 +143,4 @@ This version is not compatible in data structure to prior versions. Data migrati
 
    An open source application.
 
-<center>Sun Stage v.1.8 - 2020</center>
+<center>Life Log - Sun Stable Stage v.1.8 (2020)</center>
