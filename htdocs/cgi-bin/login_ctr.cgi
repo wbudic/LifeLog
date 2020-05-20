@@ -282,6 +282,10 @@ sub checkCreateTables {
         #Need to run slow populuate check from config file.
         $changed = 1;
     }
+    elsif($hasLogTbl && $DEF_VERSION > $DB_VERSION && $DB_VERSION < 2.0){
+        #dev 1.9 main log view has changed in 1.8..1.9, above scope will perform anyway, its drop, to be recreated later.
+        $db->do('DROP TABLE VW_LOG;');delete($curr_tables{'VW_LOG'});
+    }
 
     if(!$hasLogTbl) {
 
