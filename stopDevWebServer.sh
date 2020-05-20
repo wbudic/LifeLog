@@ -1,3 +1,4 @@
 #!/bin/bash
-sudo kill -9 $(./log/thttpd.pid)
+PID=$(ps -C thttpd | grep thttpd | awk '{printf "%s", $1}')
+sudo kill -9 $PID
 
