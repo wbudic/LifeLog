@@ -17,7 +17,7 @@ use DBI;
 use constant CIPHER_KEY => '95d7a85ba891da';
 
 #DEFAULT SETTINGS HERE!
-our $RELEASE_VER  = '1.8';
+our $RELEASE_VER  = '2.0';
 our $TIME_ZONE    = 'Australia/Sydney';
 our $LANGUAGE     = 'English';
 our $PRC_WIDTH    = '60';
@@ -211,7 +211,7 @@ sub renumerate {
     my $db = shift;
     #Renumerate Log! Copy into temp. table.
     my $sql;
-    selectRecords($db, 'CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;');
+    selectRecords($db,'CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;');
     #update  notes table with new log id only for reference sake.
     my $st = selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;');
     while(my @row =$st->fetchrow_array()) {
@@ -232,15 +232,17 @@ sub renumerate {
     }
 
     # Delete any possible orphaned Notes records.
+    $st->finish();
     $st = selectRecords($db, "SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
                                     NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
     while($st->fetchrow_array()) {
         $db->do("DELETE FROM NOTES WHERE LID=".$_[0].";")
     }
+    $st->finish();
     $db->do('DROP TABLE LOG;');
     $db->do(&createLOGStmt);
     $db->do('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT,AFLAG,STICKY)
-                       SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM life_log_temp_table ORDER by DATE;');
+                       SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM life_log_temp_table ORDER by DATE;');    
     $db->do('DROP TABLE life_log_temp_table;');
 }
 

@@ -284,7 +284,8 @@ sub checkCreateTables {
     }
     elsif($hasLogTbl && $DEF_VERSION > $DB_VERSION && $DB_VERSION < 2.0){
         #dev 1.9 main log view has changed in 1.8..1.9, above scope will perform anyway, its drop, to be recreated later.
-        $db->do('DROP TABLE VW_LOG;');delete($curr_tables{'VW_LOG'});
+        $db->do('DROP VIEW VW_LOG;');delete($curr_tables{'VW_LOG'});
+        $changed = 1;
     }
 
     if(!$hasLogTbl) {
