@@ -1058,17 +1058,6 @@ undef($sss);
 exit;
 
 
-# http://localhost:8080/cgi-bin/main.cgi?
-# date=2020-02-27+11%3A05%3A28&
-# log=new
-# &am=
-# &amf=0
-# &ec=92
-
-
-# &submit_is_edit=0&submit_is_view=0&rs_all=0&rs_cur=0&rs_prev=332
-
-
 sub processSubmit {
 
         my $date = $cgi->param('date');
@@ -1328,7 +1317,7 @@ sub authenticate {
 sub fetchAutocomplete {
     my $st = traceDBExe('SELECT LOG from LOG' . $stmE );
     while ( my @row = $st->fetchrow_array() ) {
-        my $log = $row[0];
+        my ($wl,$log) = ("",$row[0]);
 
         #Decode escaped \\n
         $log =~ s/\\n/\n/gs;
@@ -1348,7 +1337,8 @@ sub fetchAutocomplete {
 
             #remove all non alphanumerics
             $word =~ s/[^a-zA-Z]//gs;
-            if ( length($word) > 2 ) {
+            $wl = length($word);
+            if ( $wl > 2 && $wl < Settings::autoWordLength()) {
                 $word = lc $word;
                 #parse for already placed words, instead of using an hash.
                 my $idx = index( $autowords, $word, 0 );

@@ -28,12 +28,14 @@ our $AUTHORITY    = '';
 our $IMG_W_H      = '210x120';
 our $REC_LIMIT    = 25;
 our $AUTO_WRD_LMT = 1000;
+our $AUTO_WRD_LEN = 17; #Autocompletion word length limit. Internal.
 our $VIEW_ALL_LMT = 1000;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
 our $THEME        = 'Standard';
 our $TRACK_LOGINS = 1;
 our $KEEP_EXCS    = 0;
+
 
 #Annons here, variables that could be overiden in  code or database, per need.
 my %anons = ();
@@ -65,6 +67,7 @@ sub frameSize      {return $FRAME_SIZE}
 sub universalDate  {return $DATE_UNI;}
 sub recordLimit    {return $REC_LIMIT}
 sub autoWordLimit  {return $AUTO_WRD_LMT}
+sub autoWordLength {return $AUTO_WRD_LEN}
 sub viewAllLimit   {return $VIEW_ALL_LMT}
 sub trackLogins    {return $TRACK_LOGINS}
 sub windowRTFSize  {return $RTF_SIZE}
