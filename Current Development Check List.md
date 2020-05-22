@@ -8,6 +8,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.2.0 SUN STABLE Encountered
 
+* Implement gzip http page encoding compression of traffic.
 * Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
 * &#10004; Autocompletion picks up long false words, in html and code type messages.
 

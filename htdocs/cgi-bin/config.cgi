@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 #
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
@@ -279,6 +279,19 @@ while(my @row = $dbs->fetchrow_array()) {
                       <td>$v</td>
                       <td>$d</td>);
             next;
+        }
+        elsif($n eq "COMPRESS_ENC"){
+            my($l,$u)=("","");
+            if($v == 0){
+                    $l = "SELECTED"
+            }
+            else{
+                $u = "SELECTED"
+            }
+            $v = qq(<select id="cmp_enc" name="var$i">
+                    <option value="0" $l>False</option>
+                    <option value="1" $u>True</option>
+                    </select>);
         }
         elsif(!defined(Settings::anon($n))){ #change into settable field to us found here unknown and not anon.
             $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';

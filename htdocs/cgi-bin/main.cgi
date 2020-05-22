@@ -23,6 +23,7 @@ use Time::localtime;
 
 use Regexp::Common qw /URI/;
 use List::MoreUtils qw(uniq);
+use Gzip::Faster;
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";

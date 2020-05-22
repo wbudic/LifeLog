@@ -35,6 +35,7 @@ our $RTF_SIZE     = 0;
 our $THEME        = 'Standard';
 our $TRACK_LOGINS = 1;
 our $KEEP_EXCS    = 0;
+our $COMPRESS_ENC = 0; #HTTP Compressed encoding.
 
 
 #Annons here, variables that could be overiden in  code or database, per need.
@@ -74,6 +75,7 @@ sub windowRTFSize  {return $RTF_SIZE}
 sub keepExcludes   {return $KEEP_EXCS}
 sub bgcol          {return $BGCOL}
 sub css            {return $TH_CSS}
+sub compressPage   {return $COMPRESS_ENC}
 sub debug          {my $ret=shift; if($ret){$DEBUG = $ret;}; return $DEBUG;}
 
 sub createCONFIGStmt {
@@ -160,6 +162,7 @@ sub getConfiguration {
                 case "DEBUG"        { $DEBUG        = $r[2];}
                 case "KEEP_EXCS"    { $KEEP_EXCS    = $r[2];}
                 case "TRACK_LOGINS" { $TRACK_LOGINS = $r[2];}
+                case "COMPRESS_ENC" { $COMPRESS_ENC = $r[2];}
                 else                { $anons{$r[1]} = $r[2];}
                 }
         }

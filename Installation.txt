@@ -126,7 +126,8 @@ sudo cpan Number/Bytes/Human.pm;
 sudo cpan Regexp::Common;
 sudo cpan JSON;
 sudo cpan Switch;
-sudo cpan install IPC::Run
+sudo cpan IPC::Run
+sudo cpan Gzip::Faster;
 
 #Install DBI module
 sudo cpan DBI;
