@@ -6,6 +6,11 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Life Log Development
 
+### v.2.0 SUN STABLE Encountered
+
+* Autocompletion picks up long false words, in html and code type messages.
+* Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
+
 ### v.1.8 SUN STABLE Encountered
 
 * Implement View by Amount Type, reset button for categories.
@@ -92,6 +97,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Bugs
 
+### v. 2.0 Encountered/Fixed
+
 ### v. 1.9 Encountered/Fixed
 
 * &#10004; Bug 25 - SQLite view not properly sorting in new databases. Newer records listed last.
@@ -143,4 +150,4 @@ This version is not compatible in data structure to prior versions. Data migrati
 
    An open source application.
 
-<center>Life Log - Sun Stable Stage v.1.8 (2020)</center>
+<center>Life Log - Sun Stable Stage v.2.0 (2020)</center>
