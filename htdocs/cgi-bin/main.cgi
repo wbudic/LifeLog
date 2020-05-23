@@ -28,6 +28,7 @@ use Gzip::Faster;
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
 require Settings;
+$CGI::POST_MAX = 1024 * 1024 * 5;  # max 5B posts
 
 my $cgi = CGI->new;
 my $sss = new CGI::Session( "driver:File", $cgi, { Directory => &Settings::logPath } );
@@ -82,7 +83,7 @@ my $BGCOL       = &Settings::bgcol;
 my $DEBUG       = &Settings::debug;
 #END OF SETTINGS
 
-
+my $BUFFER;
 
 my $lang  = Date::Language->new(Settings::language());
 my $today = DateTime->now;
@@ -211,62 +212,11 @@ else {    #defaults
     $imgh = 120;
 }
 
-print $cgi->header(-expires => "0s", -charset => "UTF-8");
-print $cgi->start_html(
-    -title   => "Personal Log",
-    -BGCOLOR => $BGCOL,
-    -onload  => "onBodyLoad('$toggle','".Settings::timezone()."','$today','".&Settings::sessionExprs."',$rs_cur);",
-    -style   => [
-        { -type => 'text/css', -src => "wsrc/$TH_CSS" },
-        { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
-        { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
-        {
-            -type => 'text/css',
-            -src  => 'wsrc/jquery-ui-timepicker-addon.css'
-        },
-        { -type => 'text/css', -src => 'wsrc/tip-skyblue/tip-skyblue.css' },
-        {
-            -type => 'text/css',
-            -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
-        },
-
-        { -type => 'text/css', -src => 'wsrc/quill/katex.min.css' },
-        { -type => 'text/css', -src => 'wsrc/quill/monokai-sublime.min.css' },
-        { -type => 'text/css', -src => 'wsrc/quill/quill.snow.css' },
-        { -type => 'text/css', -src => 'wsrc/jquery.sweet-dropdown.css' },
-
-    ],
-    -script => [
-        { -type => 'text/javascript', -src => 'wsrc/main.js' },
-        { -type => 'text/javascript', -src => 'wsrc/jquery.js' },
-        { -type => 'text/javascript', -src => 'wsrc/jquery-ui.js' },
-        {
-            -type => 'text/javascript',
-            -src  => 'wsrc/jquery-ui-timepicker-addon.js'
-        },
-        {
-            -type => 'text/javascript',
-            -src  => 'wsrc/jquery-ui-sliderAccess.js'
-        },
-        { -type => 'text/javascript', -src => 'wsrc/jquery.poshytip.js' },
-
-        { -type => 'text/javascript', -src => 'wsrc/quill/katex.min.js' },
-        { -type => 'text/javascript', -src => 'wsrc/quill/highlight.min.js' },
-        { -type => 'text/javascript', -src => 'wsrc/quill/quill.min.js' },
-        { -type => 'text/javascript', -src => 'wsrc/jscolor.js' },
-        { -type => 'text/javascript', -src => 'wsrc/moment.js' },
-        { -type => 'text/javascript', -src => 'wsrc/moment-timezone-with-data.js' },
-        { -type => 'text/javascript', -src => 'wsrc/jquery.sweet-dropdown.js'}
-
-    ],
-);
-
-
 my $st;
 my $sqlCAT = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
 my $sqlVWL = "$stmS STICKY = 1 $stmE";
 
-print qq(## Using db -> $dsn\n) if $DEBUG;
+PrintB (qq(## Using db -> $dsn\n)) if $DEBUG;
 
 $st = $db->prepare($sqlCAT);
 $st->execute() or LifeLogException->throw($DBI::errstri);
@@ -419,7 +369,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
     my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, 'REGEXP')>0;
 
-    print $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
+    PrintB $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
@@ -447,7 +397,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     #Following is saying is in page selection, not view selection, or accounting on type of sticky entries.
     if( !$isInViewMode && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from ){
         $sqlVWL = "$stmS STICKY != 1 $stmE";
-        print $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
+        PrintB $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
         ;
         &buildLog(traceDBExe($sqlVWL));
     }
@@ -456,7 +406,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 sub traceDBExe {
     my $sql = shift;
     try{
-        print "do:$sql" if ($DEBUG);
+        PrintB("do:$sql") if ($DEBUG);
         my $st = $db->prepare($sql);
            $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
         return $st;
@@ -467,7 +417,7 @@ sub traceDBExe {
 
 sub buildLog {
     my $pst = shift;
-    #print "## sqlVWL: $sqlVWL\n";
+    #PrintB "## sqlVWL: $sqlVWL\n";
     while ( my @row = $pst->fetchrow_array() ) {
         my $i = 0;
         $id = $row[$i++]; #ID must be rowid in LOG.
@@ -1000,10 +950,10 @@ _TXT
     my $help = &help;
 
   ################################
- #   Page printout from here!   #
+ #   Page PrintBout from here!   #
 ################################
 
-print qq(
+printB (qq(
 <div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
@@ -1049,10 +999,10 @@ $sm_reset_all
             });
         });
 </script>
-);
+));
 
+outputPage();
 
-print $cgi->end_html;
 $st->finish;
 $db->disconnect();
 undef($sss);
@@ -1504,4 +1454,73 @@ return qq(
 </div>
 </td></tr></table>
 )
+}
+sub printB {
+    $BUFFER .= shift;
+}
+
+sub outputPage {
+
+
+    printB ($cgi->start_html(
+        -title   => "Personal Log",
+        -BGCOLOR => $BGCOL,
+        -onload  => "onBodyLoad('$toggle','".Settings::timezone()."','$today','".&Settings::sessionExprs."',$rs_cur);",
+        -style   => [
+            { -type => 'text/css', -src => "wsrc/$TH_CSS" },
+            { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
+            { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
+            {
+                -type => 'text/css',
+                -src  => 'wsrc/jquery-ui-timepicker-addon.css'
+            },
+            { -type => 'text/css', -src => 'wsrc/tip-skyblue/tip-skyblue.css' },
+            {
+                -type => 'text/css',
+                -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
+            },
+
+            { -type => 'text/css', -src => 'wsrc/quill/katex.min.css' },
+            { -type => 'text/css', -src => 'wsrc/quill/monokai-sublime.min.css' },
+            { -type => 'text/css', -src => 'wsrc/quill/quill.snow.css' },
+            { -type => 'text/css', -src => 'wsrc/jquery.sweet-dropdown.css' },
+
+        ],
+        -script => [
+            { -type => 'text/javascript', -src => 'wsrc/main.js' },
+            { -type => 'text/javascript', -src => 'wsrc/jquery.js' },
+            { -type => 'text/javascript', -src => 'wsrc/jquery-ui.js' },
+            {
+                -type => 'text/javascript',
+                -src  => 'wsrc/jquery-ui-timepicker-addon.js'
+            },
+            {
+                -type => 'text/javascript',
+                -src  => 'wsrc/jquery-ui-sliderAccess.js'
+            },
+            { -type => 'text/javascript', -src => 'wsrc/jquery.poshytip.js' },
+
+            { -type => 'text/javascript', -src => 'wsrc/quill/katex.min.js' },
+            { -type => 'text/javascript', -src => 'wsrc/quill/highlight.min.js' },
+            { -type => 'text/javascript', -src => 'wsrc/quill/quill.min.js' },
+            { -type => 'text/javascript', -src => 'wsrc/jscolor.js' },
+            { -type => 'text/javascript', -src => 'wsrc/moment.js' },
+            { -type => 'text/javascript', -src => 'wsrc/moment-timezone-with-data.js' },
+            { -type => 'text/javascript', -src => 'wsrc/jquery.sweet-dropdown.js'}
+
+        ],
+    ));
+
+
+    my $enc = $cgi->http('Accept-Encoding');
+        
+    if($enc =~ m/gzip/){        
+        print $cgi->header(-expires => "1s", -charset => "UTF-8", -Content_Encoding => 'gzip');
+        $BUFFER = gzip($BUFFER);
+    }
+    else{
+        print $cgi->header(-expires => "1s", -charset => "UTF-8");
+    }    
+    print $BUFFER;
+    print $cgi->end_html;
 }
