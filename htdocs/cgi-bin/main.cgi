@@ -1514,7 +1514,7 @@ sub outputPage {
 
     my $enc = $cgi->http('Accept-Encoding');
         
-    if($enc =~ m/gzip/){        
+    if($enc =~ m/gzip/ && Settings->compressPage()){        
         print $cgi->header(-expires => "1s", -charset => "UTF-8", -Content_Encoding => 'gzip');
         $BUFFER = gzip($BUFFER);
     }
