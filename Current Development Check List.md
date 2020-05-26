@@ -6,11 +6,14 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Life Log Development
 
-### v.2.0 SUN STABLE Encountered
+### v.2.0 Encountered
 
-* Implement gzip http page encoding compression of traffic.
 * Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
-* &#10004; Autocompletion picks up long false words, in html and code type messages.
+* Multiple category assignment to be enabled, where the first selected is the primary, others put in separate cross reference table.
+* Sub users list with passwords in config to be provided, with access and category, permissions settings. Default enabled permission is Event view category.
+* Provide Caddy webserver configuraton, instructions, if available to serve CGI.
+* &#10004; Implement gzip http page encoding compression of traffic.
+* &#10004; Autocompletion picks up long false words, in html and code type logs.
 
 ### v.1.8 SUN STABLE Encountered
 
