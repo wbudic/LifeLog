@@ -84,6 +84,9 @@ my $DEBUG       = &Settings::debug;
 #END OF SETTINGS
 
 my $BUFFER;
+sub toBuf {
+    $BUFFER .= shift;        
+}
 
 my $lang  = Date::Language->new(Settings::language());
 my $today = DateTime->now;
@@ -216,7 +219,7 @@ my $st;
 my $sqlCAT = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
 my $sqlVWL = "$stmS STICKY = 1 $stmE";
 
-PrintB (qq(## Using db -> $dsn\n)) if $DEBUG;
+toBuf (qq(## Using db -> $dsn\n)) if $DEBUG;
 
 $st = $db->prepare($sqlCAT);
 $st->execute() or LifeLogException->throw($DBI::errstri);
@@ -256,7 +259,7 @@ for my $key ( keys %hshDesc ) {
     }
 }
 my $log_output =
-qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
+qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 <TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
 <tr class="hdr">
 	<th>Date</th>
@@ -369,7 +372,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
     my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, 'REGEXP')>0;
 
-    PrintB $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
+    toBuf $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
@@ -397,7 +400,7 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     #Following is saying is in page selection, not view selection, or accounting on type of sticky entries.
     if( !$isInViewMode && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from ){
         $sqlVWL = "$stmS STICKY != 1 $stmE";
-        PrintB $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
+        toBuf $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
         ;
         &buildLog(traceDBExe($sqlVWL));
     }
@@ -406,18 +409,18 @@ qq(<form id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 sub traceDBExe {
     my $sql = shift;
     try{
-        PrintB("do:$sql") if ($DEBUG);
+        toBuf("do:$sql") if ($DEBUG);
         my $st = $db->prepare($sql);
            $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
         return $st;
     }catch{
-                LifeLogException->throw(error=>"Database error encountered.", show_trace=>1);
+       LifeLogException->throw(error=>"Database error encountered.", show_trace=>1);
     }
 }
 
 sub buildLog {
     my $pst = shift;
-    #PrintB "## sqlVWL: $sqlVWL\n";
+    #toBuf "## sqlVWL: $sqlVWL\n";
     while ( my @row = $pst->fetchrow_array() ) {
         my $i = 0;
         $id = $row[$i++]; #ID must be rowid in LOG.
@@ -680,58 +683,58 @@ sub buildLog {
     }    #while end
 }#buildLog
 
-    if   ( $tfId == 1 ) { $tfId = 0; }
-    else                { $tfId = 1; }
-    my ($tot,$tin);
-    $tot = $sum + $ass - abs($exp);
-    $tin = &cam($sum);
-    $exp = &cam($exp);
-    $ass = &cam($ass);
-    $tot = &cam($tot);
-    $tot = "<font color='red'>$tot</font>" if($tot<0);
+if   ( $tfId == 1 ) { $tfId = 0; }
+else                { $tfId = 1; }
+my ($tot,$tin);
+$tot = $sum + $ass - abs($exp);
+$tin = &cam($sum);
+$exp = &cam($exp);
+$ass = &cam($ass);
+$tot = &cam($tot);
+$tot = "<font color='red'>$tot</font>" if($tot<0);
 
-    $log_output .= qq(
-    <tr class="r$tfId">
-		<td></td>
-		<td></td>
-		<td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets [ $ass ] Inc [ $tin ] Exp [ <font color="red">$exp</font> ] <b>&#8594; Gross [<i>$tot</i> ] </b></td>
-	</tr>);
+$log_output .= qq(
+<tr class="r$tfId">
+    <td></td>
+    <td></td>
+    <td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets [ $ass ] Inc [ $tin ] Exp [ <font color="red">$exp</font> ] <b>&#8594; Gross [<i>$tot</i> ] </b></td>
+</tr>);
 
-    ###
-    &buildNavigationButtons;
-    ###
+###
+&buildNavigationButtons;
+###
 
-    ##
-    #Fetch Keywords autocomplete we go by words larger then three.
-    #
-    my $aw_cnt    = 0;
-    my $autowords = qq("gas","money","today");
+##
+# Fetch Keywords autocomplete we go by words larger then three.
+#
+my $aw_cnt    = 0;
+my $autowords = qq("gas","money","today");
 
-    &fetchAutocomplete;
+&fetchAutocomplete;
 
-    if ( $log_rc == 0 ) {
+if ( $log_rc == 0 ) {
 
-        if ($stmD) {
-            $log_output .= qq(<tr><td colspan="5">
-			<b>Search Failed to Retrive any records on select: [<i>$stmD</i>] !</b></td></tr>');
-        }
-        elsif ($rs_keys) {
-            my $criter = "";
-            if ( $prm_vc > 0 ) {
-                $criter = "->Criteria[" . $hshCats{$prm_vc} . "]";
-            }
-            $log_output .= qq(<tr><td colspan="5">
-			<b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td></tr>);
-        }
-        else {
-            if ($isInViewMode) { $log_output .= '<tr><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>' }
-            else{ $log_output .= '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>'}
-        }
+    if ($stmD) {
+        $log_output .= qq(<tr><td colspan="5">
+        <b>Search Failed to Retrive any records on select: [<i>$stmD</i>] !</b></td></tr>');
     }
+    elsif ($rs_keys) {
+        my $criter = "";
+        if ( $prm_vc > 0 ) {
+            $criter = "->Criteria[" . $hshCats{$prm_vc} . "]";
+        }
+        $log_output .= qq(<tr><td colspan="5">
+        <b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td></tr>);
+    }
+    else {
+        if ($isInViewMode) { $log_output .= '<tr><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>' }
+        else{ $log_output .= '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>'}
+    }
+}
 
-    $log_output .= <<_TXT;
+$log_output .= <<_TXT;
 <tr class="r0"><td colspan="2">Show All hidden with &#10132;
-<a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;></span></a>
+<a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 
 <a href="#top">&#x219F;</a></td>
 <td colspan="4" align="right">
@@ -742,14 +745,15 @@ sub buildLog {
     <input type="reset" value="Unselect All"/>
     <input id="del_sel" type="submit" value="Delete Selected"/>
 </td></tr>
-</form>
-<form id="frm_srch" action="main.cgi">
-    <tr class="r0"><td><b>Keywords:</b></td><td colspan="4" align="left">
-    <input id="rs_keys2" name="keywords" type="text" size="60"/></td>
-    <td><input type="submit" value="Search"/></td></tr>
-</form>
-</TABLE>
+</TABLE></FORM>
 _TXT
+
+$log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
+    <tr class="r0"><td><b>Keywords:</b></td><td colspan="4" align="left">
+    <input id="rs_keys2" name="keywords" type="text" size="60"/>
+    <input type="submit" value="Search"/></td></tr>
+    </TABLE>
+</form>);
 
     my ( $sp1, $sp2, $sp3 );
     $sp1 = '<span  class="ui-icon ui-icon-heart"></span>';
@@ -804,7 +808,7 @@ _TXT
 		</td>
 		<td align="right">
                 <span id="sss_status"></span>&nbsp;
-				<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/></div>
+				<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/>
 		</td>
 	</tr>
 	<tr class="collpsd"><td colspan="3"></td></tr>
@@ -915,9 +919,9 @@ _TXT
 
         <button id="btnxca" onClick="return addExclude()"/>Add</button>&nbsp;&nbsp;
         <button id="btnxca" type="button" onClick="return removeExclude()">Remove</button>&nbsp;
-        <button id="btnxca type="button" onClick="return resetExclude()">Reset</button>&nbsp;&nbsp;&nbsp;
+        <button id="btnxca" type="button" onClick="return resetExclude()">Reset</button>&nbsp;&nbsp;&nbsp;
         <button id="btn_cat" onclick="return viewExcludeCategory(this);">View</button>&nbsp;&nbsp;
-        <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked> Keep In Session </input>
+        <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked/> Keep In Session
      </td>
    </tr>
    <tr class="collpsd">$tdivxc</tr>
@@ -949,11 +953,11 @@ _TXT
     my $quill = &quill( $cgi->param('submit_is_edit') );
     my $help = &help;
 
-  ################################
- #   Page PrintBout from here!   #
-################################
+        ##################################
+        #  Final Page Output from here!  #
+        ##################################
 
-printB (qq(
+toBuf (qq(
 <div id="menu" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
 <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
@@ -972,7 +976,7 @@ printB (qq(
 <a class="a_" onclick="return toggle('#tbl_hlp',true);">Help</a><hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <a class="a_" href="config.cgi">Config</a><hr>
-<a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></a><hr>
+<a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></span></a><hr>
 $sm_reset_all
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br><hr>
 <span style="font-size: x-small; font-weight: bold;">$vmode</span><br>
@@ -984,20 +988,15 @@ $sm_reset_all
 	  <div>\n$log_output\n</div><br>
 	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
 	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
-	  <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"/></div>
-<!-- Cat Data Start-->
+	  <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"></a></div>
+<!-- Cat Data Start -->
 <span id="meta_cats">
 	$data_cats
 </span>
-<!--Cat Data End->
+<!--Cat Data End -->
 <!-- Page Settings Specifics date:20200222 -->
 <script type="text/javascript">
-    \$( function() {
-        var tags = [$autowords];
-        \$( "#rs_keys, #rs_keys2" ).autocomplete({
-            source: tags
-            });
-        });
+        var AUTOWORDS = [$autowords];
 </script>
 ));
 
@@ -1046,7 +1045,7 @@ try {
                                              STICKY=$sticky WHERE rowid="$edit_mode";
                     <br>);
                 #
-                print $stm if $DEBUG;
+                toBuf $stm if $DEBUG;
                 #
 
                 my $dbUpd = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } )  or LifeLogException->throw("Execute failed [$DBI::errstri]");
@@ -1109,7 +1108,7 @@ try {
                 if ($st->fetchrow_array() ) {
                     return;
                 }
-                if ($dtCur > $dt){$sticky = 1; print $cgi->p("<b>Insert forced to be sticky, it is in the past!</b>");}
+                if ($dtCur > $dt){$sticky = 1; toBuf $cgi->p("<b>Insert forced to be sticky, it is in the past!</b>");}
                 $stm = qq(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES ($cat,$rtf,'$date','$log',$am,$af,$sticky););
                 $st = traceDBExe($stm);
                 if($sssCDB){
@@ -1128,7 +1127,7 @@ try {
                       $st = traceDBExe("SELECT LID FROM NOTES WHERE LID=".$lid[0].";");
                       if($st->fetchrow_array()){
                           $st = $db->do("DELETE FROM NOTES WHERE LID=".$lid[0].";");
-                          print qq(<p>Warning deleted (possible old) NOTES.LID[$lid[0]] -> lid:@lid</p>);
+                          toBuf qq(<p>Warning deleted (possible old) NOTES.LID[$lid[0]] -> lid:@lid</p>);
                       }
                       $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
                       $st->execute($lid[0], $gzero[0]);
@@ -1152,7 +1151,7 @@ my $dbg = qq(--DEBUG OUTPUT--\n
     \@DB::args:@DB::args
     \$DBI::err:$DBI::errstr
     cnt:$cnt, cat:$cat, date:$date, log:$log, am:$am, af:$af, rtf:$rtf, sticky:$sticky);
-print $cgi->header,
+    print $cgi->header,
         "<hr><font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
         "<hr><pre>$pwd/$0 -> &".caller." -> [<font color=red><b>$DBI::errstr</b></font>] $err\n$dbg</pre>",
         $cgi->end_html;
@@ -1403,28 +1402,28 @@ return qq(
     </td></tr>
 <tr class="collpsd"><td>
 <div id="rz" class="rz">
-    <h2>L-Tags Specs</h2>
+ <h2>L-Tags Specs</h2>
     <p class="rz">
     Life Log Tags are simple markup allowing fancy formatting and functionality
     for your logs HTML layout.
     </p>
     <p>
-    <b>&#60;&#60;B&#60;<i>{Text To Bold}</i><b>&#62;&#62;</b>
+        <b>&#60;&#60;B&#60;<i>{Text To Bold}</i>&#62;&#62;</b>
     </p>
     <p>
-    <b>&#60;&#60;I&#60;<i>{Text To Italic}</i><b>&#62;&#62;</b>
+        <b>&#60;&#60;I&#60;<i>{Text To Italic}</i>&#62;&#62;</b>
     </p>
     <p>
-    <b>&#60;&#60;TITLE&#60;<i>{Title Text}</i><b>&#62;&#62;</b>
+        <b>&#60;&#60;TITLE&#60;<i>{Title Text}</i>&#62;&#62;</b>
     </p>
     <p>
-    <b>&#60;&#60;LIST&#60;<i>{List of items delimited by new line to terminate item or with '~' otherwise.}</i><b>&#62;</b>
+        <b>&#60;&#60;LIST&#60;<i>{List of items delimited by new line to terminate item or with '~' otherwise.}</i>&#62;</b>
     </p>
     <p>
-    <b>&#60;&#60;IMG&#60;<i>{url to image}</i><b>&#62;&#62;</b>
+        <b>&#60;&#60;IMG&#60;<i>{url to image}</i>&#62;&#62;</b>
     </p>
     <p>
-        <b>&#60;&#60;FRM&#60;<i>{file name}_frm.png}</i><b>&#62;&#62;</b><br><br>
+        <b>&#60;&#60;FRM&#60;<i>{file name}_frm.png}</i>&#62;&#62;</b><br><br>
         *_frm.png images file pairs are located in the ./images folder of the cgi-bin directory.<br>
         These are manually resized by the user. Next to the original.
         Otherwise considered as stand alone icons. *_frm.png Image resized to ->  width="210" height="120"
@@ -1438,35 +1437,26 @@ return qq(
 
 	  &#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;&#62;
 	  This is my pet, can you hold him for a week while I am on holiday?
-            </pre>
-					</p>
-					<p>
-					<b>&#60;&#60;LNK&#60;<i>{url to image}</i><b>&#62;&#62;</b><br><br>
+            </pre>					
+				<p>
+					<b>&#60;&#60;LNK&#60;<i>{url to image}</i>&#62;&#62;</b><br><br>
 					Explicitly tag an URL in the log entry.
 					Required if using in log IMG or FRM tags.
 					Otherwise link appears as plain text.
-					</p>
-					<hr>
-          </p>
-						<h3>Log Page Particulars</h3>
-						&#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly.
-					</p>
+				</p>
+	<hr>    
+    <h3>Log Page Particulars</h3><p> &#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly. </p>
 </div>
-</td></tr></table>
-)
-}
-sub printB {
-    $BUFFER .= shift;
+</td></tr></table>)
 }
 
 sub outputPage {
-
-
-    printB ($cgi->start_html(
-        -title   => "Personal Log",
-        -BGCOLOR => $BGCOL,
-        -onload  => "onBodyLoad('$toggle','".Settings::timezone()."','$today','".&Settings::sessionExprs."',$rs_cur);",
-        -style   => [
+    #Bug 26 -Fixed here by prefixing to collected html body buffer.    
+    $BUFFER = $cgi->start_html(
+            -title   => "Personal Log",
+            -BGCOLOR => $BGCOL,
+            -onload  => "onBodyLoad('$toggle','".Settings::timezone()."','$today','".&Settings::sessionExprs."',$rs_cur);",
+            -style   => [
             { -type => 'text/css', -src => "wsrc/$TH_CSS" },
             { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
             { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
@@ -1508,13 +1498,10 @@ sub outputPage {
             { -type => 'text/javascript', -src => 'wsrc/moment-timezone-with-data.js' },
             { -type => 'text/javascript', -src => 'wsrc/jquery.sweet-dropdown.js'}
 
-        ],
-    ));
-
-
-    my $enc = $cgi->http('Accept-Encoding');
-        
-    if($enc =~ m/gzip/ && Settings->compressPage()){        
+        ]) . 
+    $BUFFER;
+            
+    if(Settings->compressPage() && $cgi->http('Accept-Encoding') =~ m/gzip/){        
         print $cgi->header(-expires => "1s", -charset => "UTF-8", -Content_Encoding => 'gzip');
         $BUFFER = gzip($BUFFER);
     }
