@@ -104,6 +104,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v. 2.0 Encountered/Fixed
 
+* &#10004; Bug 26 HTML output is incorrect since introducing buffering and content compression. Browser corrects, hence it was not noticed before.
+
 ### v. 1.9 Encountered/Fixed
 
 * &#10004; Bug 25 - SQLite view not properly sorting in new databases. Newer records listed last.
