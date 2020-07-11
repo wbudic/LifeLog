@@ -8,6 +8,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.2.0 Encountered
 
+* Hover over log entries, to make more visible what log entry is being ticked on wider screens.
 * Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
 * Multiple category assignment to be enabled, where the first selected is the primary, others put in separate cross reference table.
 * Sub users list with passwords in config to be provided, with access and category, permissions settings. Default enabled permission is Event view category.

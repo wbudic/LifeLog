@@ -1,16 +1,15 @@
 *** LifeLog Requirements ***
 
- -Web Server (any will do that supports CGI perl execution)
- -SQLite
- -Perl Modules
- -git (git clone https://github.com/wbudic/LifeLog)
+ - Web Server (any will do that supports CGI perl execution)
+ - SQLite
+ - Perl Modules
+ - git (git clone https://github.com/wbudic/LifeLog)
 
  -- Note - Perl and some modules might take time to install
-           as their fetched and tested for your computer.
+           as they are fetched and tested for your computer.
 
 
-
-## Install tiny thttpd web server. ##
+## Install tiny thttpd web server ##
 
 
 https://acme.com/software/thttpd/
@@ -57,16 +56,15 @@ The full URL to the LifeLog is the following link (if not working try without cg
 #
 #
 
+### Obtain from  GIT reposity latest stable realease with:
+##
+    git clone https://github.com/wbudic/LifeLog.git
+##
+###
 
-## Run using Lightthpd Web Server
-Modify the the config file, lighttpd.conf. To suit the path where you pulled the git repository, of LifeLog.
-With:
-git clone https://github.com/wbudic/LifeLog.git
 
-
-
-#Install cpanm to make installing other modules easier (you'll thank us later).
-#You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
+# Optional install cpanm to make installing other modules easier.
+# You need to type these commands into a Terminal emulator (Mac OS X, Win32, Linux)
 
 sudo apt install cpanminus
 
@@ -75,20 +73,22 @@ sudo apt install cpanminus
 https://www.sqlite.org/download.html
 
 
-#Development Environment Perl Install
+## Development Environment Perl Install
 
-#Developer? Install VSCode, not from flatpack. Use Microsoft site -> https://code.visualstudio.com/
+# Developer? Install VSCode, not from flatpack. Use Microsoft site -> https://code.visualstudio.com/
 Requirments: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
 
-# Install Perl, properly, don't use the distro provided perl interpreter.
+# Install Perl, properly, don't use the distro provided perl interpreter (might be outdated or has missing modules).
+##
 sudo apt install perlbrew
+##
 #https://learn.perl.org/installing/unix_linux.html
 curl -L http://xrl.us/installperlnix | bash
 # Perl compiled based on your hardware infrastructure now, is Very Good.
 #Developer? Switch to it, and cpan modules:
 
-#Perlbrew allowes you to switch to newer (securer) patched versions of perl.
-#Example bellow builds from a $HOME/dev/perl-5.30.1.tar.gz source code archive
+# Perlbrew allowes you to switch to newer (securer) patched versions of perl.
+# Example bellow builds from a $HOME/dev/perl-5.30.1.tar.gz source code archive
 #        a descent perl installation for development on your machine.
 
 perlbrew install ~/dev/perl-5.30.1.tar.gz --thread --multi --64int --64all --no-patchperl --debug
@@ -99,12 +99,13 @@ sudo apt install libperl-critic-perl
 sudo apt install libperl-dev
 sudo cpan Perl::LanguageServer
 
-NOTICE -> Above Perl installation and modules can take time as they build (compiled) and are tested
+NOTICE -> Above Perl installation and modules can take time as they build (get compiled) and are tested
           using your computers configuration and hardware for optimal performance.
-          The Perl::LanguageServer, can fail in tests, as it development specific, can be ignored.
+          The Perl::LanguageServer, can fail in tests, as it is development specific, this can be ignored.
 
-#Install OpenSSL (Optional)
+# Install OpenSSL (Optional)
 https://www.openssl.org/
+
 sudo apt install openssl
 
 
