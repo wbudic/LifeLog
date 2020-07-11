@@ -279,6 +279,14 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
 
 
     setPageSessionTimer(expires);
+
+
+    $( function() {        
+        $( "#rs_keys, #rs_keys2" ).autocomplete({
+            source: AUTOWORDS
+            });
+    });
+
     display("Log page is ready!");
 }
 
