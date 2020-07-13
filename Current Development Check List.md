@@ -8,6 +8,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.2.0 Encountered
 
+* Export to CVS button on selected logs.
 * Hover over log entries, to make more visible what log entry is being ticked on wider screens.
 * Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
 * Multiple category assignment to be enabled, where the first selected is the primary, others put in separate cross reference table.
@@ -32,7 +33,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 * New CNF Development.
   * &#10004; Migration is currently hard to maintain and data export and import is wrongly reliant to CVS.
   * &#10004; Anons to be enabled.
-  * CVS imports/exports are to be made obsolete in the future. It is not safe.
+  * CVS imports/exports of full database are to be made obsolete in the future. It is not safe.
     * This will be still available via command line.
 * RTF Documents header lister page, to provide for, new log entry assignment, deletion, edits.
   * There isnt and shouldn't be a full relationship to docs. Hence new log entries can link to existing, docs.
