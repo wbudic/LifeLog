@@ -281,10 +281,25 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
     setPageSessionTimer(expires);
 
 
-    $( function() {        
+    $(function() {        
         $( "#rs_keys, #rs_keys2" ).autocomplete({
             source: AUTOWORDS
             });
+    });
+    var CHK_PREV;
+    $("#frm_log tr").mouseover(function(e){
+        var chk = $(e.target).find('input[name="chk"]');
+        if(!CHK_PREV.prop('checked')){        
+            CHK_PREV.closest("tr").removeClass("hover");
+        }
+        $(e.target.parentNode).closest("tr").addClass("hover");
+        CHK_PREV = chk;
+      return false;
+    }).mouseout(function(e) {
+        CHK_PREV = $(e.target).find('input[name="chk"]');
+        if(!CHK_PREV.prop('checked')){
+            $(e.target.parentNode).closest("tr").removeClass("hover");
+        }
     });
 
     display("Log page is ready!");

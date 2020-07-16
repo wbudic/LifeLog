@@ -9,11 +9,10 @@ This version is not compatible in data structure to prior versions. Data migrati
 ### v.2.0 Encountered
 
 * Export to CVS button on selected logs.
-* Hover over log entries, to make more visible what log entry is being ticked on wider screens.
+* &#10004; Hover over log entries, to make more visible what log entry is being ticked on wider screens.
 * Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
 * Multiple category assignment to be enabled, where the first selected is the primary, others put in separate cross reference table.
 * Sub users list with passwords in config to be provided, with access and category, permissions settings. Default enabled permission is Event view category.
-* Provide Caddy webserver configuraton, instructions, if available to serve CGI.
 * &#10004; Implement gzip http page encoding compression of traffic.
 * &#10004; Autocompletion picks up long false words, in html and code type logs.
 
