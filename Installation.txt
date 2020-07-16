@@ -129,6 +129,7 @@ sudo cpan JSON;
 sudo cpan Switch;
 sudo cpan IPC::Run
 sudo cpan Gzip::Faster;
+sudo cpan Syntax::Keyword::Try;
 
 #Install DBI module
 sudo cpan DBI;
