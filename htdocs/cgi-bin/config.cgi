@@ -1112,7 +1112,9 @@ sub exportToCSV {
                  print "<pre>\n";
         }
         else{
-         print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.categories.csv");
+         my $type = 'categories';
+         $type = 'log' if($csvp ==1);
+         print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.$type.csv");
         }
 
         #print "ID,NAME,DESCRIPTION\n";
