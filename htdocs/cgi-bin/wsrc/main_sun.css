@@ -82,7 +82,8 @@ th,
 .rz {
     border: 1px solid black;
     text-align: left;
-    background-color: #D4AF37 vertical-align: top;
+    background-color: #D4AF37;
+    vertical-align: top;
     align-self: baseline;
     height: auto;
     padding: 2%;
