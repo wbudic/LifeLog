@@ -17,6 +17,11 @@ sudo chmod +x $SCRIPT
 # You can delete or keep after running this script.
 sudo ./$SCRIPT
 
+#Used for stats, required utility
+sudo apt install inxi -y
+
+
+
 echo "\nDone with Life Log modules installation!\n"
 
 
