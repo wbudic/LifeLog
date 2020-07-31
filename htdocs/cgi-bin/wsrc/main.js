@@ -902,16 +902,23 @@ function viewByDate(btn) {
 
 function submitNewCategory() {
 
-    var frm = document.getElementById("frm_config");
+    var frm = $("#frm_config");
     var cid = frm.caid;
     frm.cchg.value = cid.value;
     return true;
 }
 
 function dateDiffSelected() {
-    document.getElementById("datediff").value = 1;
+   $("#opr").val(1);
     return true;
 }
+
+function exportSelected() {
+    $("#opr").val(2);
+    return true;
+}
+
+
 
 function sumSelected() {
     var chks = document.getElementsByName("chk");

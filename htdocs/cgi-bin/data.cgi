@@ -19,6 +19,7 @@ use DateTime qw();
 use DateTime::Format::SQLite;
 use DateTime::Format::Human::Duration;
 use Regexp::Common qw /URI/;
+use Text::CSV;
 
 use lib "system/modules";
 require Settings;
@@ -67,9 +68,9 @@ my $tbl = '<a name="top"></a><form name="frm_log_del" action="data.cgi" onSubmit
            <tr class="hdr" style="text-align:left;"><th>Date <a href="#bottom">&#x21A1;</a></th> <th>Time</th> <th>Log</th> <th>Category</th></tr>';
 
 
-my $datediff = $cgi->param("datediff");
+my $opr = $cgi->param("opr");
 my $confirmed = $cgi->param('confirmed');
-if ($datediff){
+if ($opr == 1){
          print $cgi->header(-expires=>"+6os");
          print $cgi->start_html(-title => "Date Difference Report", -BGCOLOR => $BGCOL,
                  -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
@@ -189,68 +190,93 @@ try{
 sub NotConfirmed {
 
     my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT == CAT.ID) as CAT, DATE, LOG from VW_LOG WHERE";
+       $stmS = "SELECT rowid as ID, ID_CAT as IDCAT, DATE, LOG from LOG" if($opr == 2);
     my $stmE = " ORDER BY DATE DESC, ID DESC;";
 
     #Get ids and build confirm table and check
     my $stm = $stmS ." ";
         foreach my $id ($cgi->param('chk')){
-            $stm = $stm . "PID = " . $id . " OR ";
+            if($opr == 2){
+                $stm = $stm . "rowid = " . $id . " OR ";
+            }
+            else{
+                $stm = $stm . "PID = " . $id . " OR ";
+            }
         }
         $stm =~ s/ OR $//; $stm .= $stmE;
 
     $st = $db->prepare( $stm );
     $rv = $st->execute();
-    print $cgi->header(-expires=>"+6os");
-    print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
-            -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-            -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
+    if($opr == 0){
+        print $cgi->header(-expires=>"+6os");
+        print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
+                -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+                -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
 
-    );
+        );
 
-    print $cgi->pre("###NotConfirmed($rv,$st)->[stm:$stm]")  if($DEBUG);
-
-    my $r_cnt = 0;
-    my $rs = "r1";
+        print $cgi->pre("###NotConfirmed($rv,$st)->[stm:$stm]")  if($DEBUG);
 
 
-    while(my @row = $st->fetchrow_array()) {
+        my $r_cnt = 0;
+        my $rs = "r1";
 
-        my $ct = $row[2];
-        my $dt = DateTime::Format::SQLite->parse_datetime( $row[3] );
-        my $log = log2html($row[4]);
 
-        $tbl = $tbl . '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" .
-            '<td class="'.$rs.'">' . $dt->hms . "</td>" .
-            '<td class="'.$rs.'" style="font-weight:bold; color:maroon;">'."$log</td>\n".
-            '<td class="'.$rs.'">' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';
-        if($rs eq "r1"){
-        $rs = "r0";
+        while(my @row = $st->fetchrow_array()) {
+
+            my $ct = $row[2];
+            my $dt = DateTime::Format::SQLite->parse_datetime( $row[3] );
+            my $log = log2html($row[4]);
+
+            $tbl = $tbl . '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" .
+                '<td class="'.$rs.'">' . $dt->hms . "</td>" .
+                '<td class="'.$rs.'" style="font-weight:bold; color:maroon;">'."$log</td>\n".
+                '<td class="'.$rs.'">' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';
+            if($rs eq "r1"){
+            $rs = "r0";
+            }
+            else{
+                $rs = "r1";
+            }
+            $r_cnt++;
         }
-        else{
-            $rs = "r1";
+        my $plural = "";
+        if($r_cnt>1){
+            $plural = "s";
         }
-        $r_cnt++;
+
+        $tbl = $tbl .  '<tr class="r0"><td colspan="4"><a name="bottom"></a><a href="#top">&#x219F;</a>
+        <center>
+        <h2>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h2>
+        (Or hit you Browsers Back Button!)</center>
+        </td></tr>
+        <tr class="r0"><td colspan="4"><center>
+        <input type="submit" value="I AM CONFIRMING!">
+        </center>
+        <input type="hidden" name="confirmed" value="1">
+        </td></tr>
+        </table></form>';
+
+        print '<center><div>' . $tbl .'</div></center>';
+
+        
+    }else{
+        my $csv = Text::CSV->new ( { binary => 1, escape_char => "\\", eol => $/ } );
+        print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.sel.csv");
+
+        while (my $row=$st->fetchrow_arrayref()){
+              #    $row[3] =~ s/\\\\n/\n/gs;
+               my $out = $csv->print(*STDOUT, $row);                  
+                  print $out if(length $out>1);
+        }
+        $st->finish;
+        $db->disconnect();
+        exit;
     }
-    my $plural = "";
-    if($r_cnt>1){
-        $plural = "s";
-    }
 
- $tbl = $tbl .  '<tr class="r0"><td colspan="4"><a name="bottom"></a><a href="#top">&#x219F;</a>
- <center>
- <h2>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h2>
- (Or hit you Browsers Back Button!)</center>
- </td></tr>
- <tr class="r0"><td colspan="4"><center>
- <input type="submit" value="I AM CONFIRMING!">
- </center>
- <input type="hidden" name="confirmed" value="1">
-</td></tr>
-</table></form>';
 
-print '<center><div>' . $tbl .'</div></center>';
-
- $st->finish;
+    $st->finish;
+    $db->disconnect();
 }
 
 sub log2html{

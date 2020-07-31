@@ -738,7 +738,8 @@ $log_output .= <<_TXT;
 
 <a href="#top">&#x219F;</a></td>
 <td colspan="4" align="right">
-    <input type="hidden" name="datediff" id="datediff" value="0"/>
+    <input type="hidden" name="opr" id="opr" value="0"/>
+    <input type="submit" value="Export Selected" onclick="return exportSelected()"/>&nbsp;
     <input type="submit" value="Sum Selected" onclick="return sumSelected()"/>&nbsp;
     <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
     <button onclick="return selectAllLogs()">Select All</button>
