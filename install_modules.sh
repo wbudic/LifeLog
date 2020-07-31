@@ -15,6 +15,11 @@ sudo chmod +x install_lifelog_modules_1.1.8.sh
 # You can delete or keep after running this script.
 sudo ./install_lifelog_modules_1.1.8.sh
 
+#Used for stats, required utility
+sudo apt install inxi -y
+
+
+
 echo "\nDone with Life Log modules installation!\n"
 
 
