@@ -115,9 +115,10 @@ $income     = big_money(sprintf("%.2f",$income));
 #utility inxi could be a perl written version on newer systems.
 #So I use the inter processing module here for inxi. -- @wbudic
 my  $HS = "";
-my @cmd = ("inxi", "-b", "-c0");
+my @cmd = ("/usr/bin/inxi", "-b", "-c0");
+#Gatter into $HS
 run \@cmd, '>&', \$HS; #instead of -> system("inxi",'-b', '-c0');
-    $HS .= `uptime -p`;
+$HS .= `uptime -p`;
 
 
 my $hardware_status = $HS;#`inxi -b -c0; uptime -p`;
