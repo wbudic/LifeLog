@@ -6,24 +6,26 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Life Log Development
 
-### v.2.0 Encountered
+### v.2.0 EARTH RC1 Encountered
 
+* -> RTF based view of log entries.
 * Export to CVS button on selected logs.
-* &#10004; Hover over log entries, to make more visible what log entry is being ticked on wider screens.
+* Restore of backup on different version of LifeLog should fail with detecting this.
 * Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
 * Multiple category assignment to be enabled, where the first selected is the primary, others put in separate cross reference table.
 * Sub users list with passwords in config to be provided, with access and category, permissions settings. Default enabled permission is Event view category.
+* &#10004; Hover over log entries, to make more visible what log entry is being ticked on wider screens.
 * &#10004; Implement gzip http page encoding compression of traffic.
 * &#10004; Autocompletion picks up long false words, in html and code type logs.
 
 ### v.1.8 SUN STABLE Encountered
 
-* Implement View by Amount Type, reset button for categories.
+* &#10004; Implement View by Amount Type, reset button for categories.
 * &#10004; Introduce a new column header background colour.
 * &#10004; Autologin bypasses actual wanted login.
   * This is bug 20.
 
-### v.1.7 Encountered
+### v.1.7 MOON STAGE Encountered 
 
 * &#10004; Database backup tgz ball, upload and download button on config page.
   * You must have the password you logged in to unscramble the backup.
@@ -71,8 +73,8 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Urgent FIXES and Known Issuses
 
-* &#10004; Expired sessions, swallow submits into void.
 * CVS Export and Import has not been implemented for RTF type log entries.
+* &#10004; Expired sessions, swallow submits into void.
 * &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 
 ## Planned New Possible Features of Minor Relevance
