@@ -753,6 +753,10 @@ function display(desc, times){
     pnl.fadeOut(1000*times);
 }
 
+function viewRTFLogs(btn){
+    $("#vrtf").val(1);
+}
+
 function viewByAmountType(btn) {
     var aa = $("#amf2 option:selected");
         aa.val(parseInt(aa.val())+1);

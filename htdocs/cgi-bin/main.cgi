@@ -65,6 +65,7 @@ my $prm_vc      = $cgi->param("vc");
 my $prm_vc_lst  = $cgi->param("vclst");
 my $prm_xc      = $cgi->param("xc");
 my $prm_xc_lst  = $cgi->param("xclst");
+my $prm_rtf     = $cgi->param("vrtf");
 my $rs_dat_from = $cgi->param('v_from');
 my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
@@ -271,6 +272,8 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     #We use js+perl, trickery to filter by amount type, as well.
     if ($prm_aa >0){my $s = $prm_aa - 1;$prm_aa = " AFLAG=$s AND";}else{$prm_aa=""}
 
+    $stmS .= " ID_RTF>0 AND" if($prm_rtf==1);
+
     if ( $rs_keys && $rs_keys ne '*' ) {
 
         my @keywords = split / /, $rs_keys;
@@ -313,8 +316,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
         }
     }
     elsif ($prm_vc) {
-
-
+                
                 if(@vc_lst){
                     foreach (@vc_lst){
                             $stmS .= " ID_CAT=$_ OR";
@@ -370,7 +372,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $id        = 0;
     my $log_start = index $sqlVWL, "<=";
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
-    my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, 'REGEXP')>0;
+    my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, 'REGEXP')>0 || $prm_rtf;
 
     toBuf $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
@@ -727,8 +729,10 @@ if ( $log_rc == 0 ) {
         <b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td></tr>);
     }
     else {
-        if ($isInViewMode) { $log_output .= '<tr><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>' }
-        else{ $log_output .= '<tr><td colspan="5"><b>Database is New or  Empty!</b></td></tr>'}
+        if ($isInViewMode) { 
+              if($prm_rtf){$log_output .= '<tr><td colspan="5"><b>No RTF records found matching criteria.</b></td></tr>'}
+              else        {$log_output .= '<tr><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>'}
+        }else{ $log_output .= '<tr><td colspan="5"><b>Database is New or Empty!</b></td></tr>'}
     }
 }
 
@@ -899,6 +903,10 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
             <select id="amf2" name="aa" class="ui-button">
                 $aopts
             </select>&nbsp;<button id="btn_amt" onclick="viewByAmountType(this);">View</button>
+&nbsp;&nbsp;
+            <input id="vrtf" name="vrtf" type="hidden" value="0"/>
+            View RTF Logs:&nbsp;<button id="btn_rtf" onclick="viewRTFLogs(this);">View</button>
+&nbsp;&nbsp;            
 
      </td>
    </tr>
