@@ -407,7 +407,7 @@ print qq(
                 $inpRestore
                 <hr></td></tr>
 
-                <tr><td><H3>CSV File Format</H3></td></tr>
+                <tr><td><H3>CSV File Format</H3> Notice: (<font color=red>Obsolete feature, use not recommended!</font>)</td></tr>
 
                 <tr style="border-left: 1px solid black;"><td>
                         <b>Import Categories</b>: <input type="file" name="data_cat" /></td></tr>
@@ -422,6 +422,7 @@ print qq(
                        <input type="button" onclick="return exportToCSV('cat',1);" value="View"/>
                 </td></tr>
                 <tr style="border-top: 1px solid black;border-right: 1px solid black;"><td>
+                        Notice: (<font color=red>Obsolete feature, use not recommended!</font>)<br>
                         <b>Import Log</b>: <input type="file" name="data_log" /></td></tr>
                 <tr style="border-right: 1px solid black;"><td style="text-align:right;">
                         <input type="submit" name="Submit" value="Submit"/></td></tr>
@@ -449,10 +450,11 @@ print qq(
                 <li>Restoration is of found missing in current log data.</li>
                 <li>Restoration is not removing entries in existing current log data.</li>
                 <li>Restoration is most likelly not possible after application upgrade.</li>
-                <li>Upgrade after restoring first, as the upgrade will migrate structure and data.</li>
+                <li>Restoration of old backups is not made possible or is safe, on new stable application releases.
+                 <ul><li><i>Upgrade your application after restoring it first, as an upgrade will migrate structure and data.</i></li></ul></li>
                 <li>                
-                Restoration will import previous date backup data if recreating a new aliased for it database, of the same application version. 
-                    <ul><li>For example: If the database file has been delete or is blank on login, you than can run a restore, if you have an backup.</li></ul>
+                Restoration will import on an previous date backuped data in case when recreating a new aliased for it database, but of the same application version. 
+                    <ul><li>For example: If the database file has been deleted or is blank on login, you than can run a restore, if you have an backup.</li></ul>
                 </li>
                 
                 
