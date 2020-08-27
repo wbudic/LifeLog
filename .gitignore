@@ -61,3 +61,4 @@ dbLifeLog/*.db.toz
 
 *.db.osz
 dbLifeLog/bck/*
+dbLifeLog/data_log_bck.db
