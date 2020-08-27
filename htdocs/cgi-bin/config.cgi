@@ -432,7 +432,43 @@ print qq(
             </table><br><a href="#top">&#x219F;&nbsp;Go to Top of page</a>
     </div>
    <hr>
-
+   <div id="rz" style="text-align:left; position:relative;width:640px; padding:10px;">
+       <h2>Backup Specs</h2>
+    <p><ol>
+        <li><h3>Backup Rules</h3>
+            <ol>
+                <li>Backup provides a compressed archive of the current logged in aliased database only.</li>
+                <li>Backup should be uploaded to client to restore.</li>
+                <li>Issuing backup always creates on the server an copy.</li>
+                <li>Backups are issued manually and are interactive.</li>
+            </ol>
+        </li>
+        <li><h3>Restore Rules</h3>
+            <ol>
+                <li>The restoring is only possible if logged into the current by alias application version.</li>
+                <li>Restoration is of found missing in current log data.</li>
+                <li>Restoration is not removing entries in existing current log data.</li>
+                <li>Restoration is most likelly not possible after application upgrade.</li>
+                <li>Upgrade after restoring first, as the upgrade will migrate structure and data.</li>
+                <li>                
+                Restoration will import previous date backup data if recreating a new aliased for it database, of the same application version. 
+                    <ul><li>For example: If the database file has been delete or is blank on login, you than can run a restore, if you have an backup.</li></ul>
+                </li>
+                
+                
+            </ol>            
+        </li>
+        <li><h3>Purpose</h3>
+            <ol>
+                    <li>Provides direct safeguard, besides any external backup procedures.</li>
+                    <li>Provides before snapshot, if venturing into major log modifications.</li>
+                    <li>Encourages experimentation, with data deletion and modification.</li>
+                    <li>Required if downgrading from an failed application upgrade, or found missuesed and corrupted current data state.</li>
+            </ol>
+        </li>
+    </ol></p>
+    </div>
+    <hr>
     <div id="rz" style="text-align:left; position:relative;width:640px; padding:10px;">
                     <h2>L-Tags Specs</h2>
                     <p>
@@ -1021,7 +1057,8 @@ sub restore {
         my $m1 = "it is not permitted to restore another aliases log backup.";
         $m1= "has your log password changed?" if ($tar=~/_data_$userid/);
 
-        my $cmd = `tar tvf $tar 2>/dev/null`  or die qq(, possible an security issue, $m1\nFAILED READING $tar. \nYour alias is: <b>$userid</b>.\n);
+        my $cmd = `tar tvf $tar 2>/dev/null` 
+         or die qq(, possible an security issue, $m1\nBACKUP FILE INVALID! $tar\nYour data alias is: <b>$userid</b>\nYour LifeLog version is:), &Settings::release ."\n";
 
         print "Contents->".$cmd."\n\n";
         $cmd = `tar xzvf $tar -C $dbck --strip-components 1 2>/dev/null` or die "Failed extracting $tar";
@@ -1082,10 +1119,12 @@ sub restore {
 
         $b_db->disconnect();
         $db->disconnect();
+        `rm -rf $dbck/`;
         print "Done!";
     }
     catch{
-        $ERROR = "<font color='red'><b>Restore failed!</b></font> hndl->$hndl $@ \nbr:[@br]";#,show_trace=>&Settings::debug);
+        $ERROR = "<font color='red'><b>Restore failed!</b></font> hndl->$hndl $@ \n";
+        $ERROR = "br:[@br]" if(@br);
     };
 
     my $back = $cgi->url( -relative => 1 );
