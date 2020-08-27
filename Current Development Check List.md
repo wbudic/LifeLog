@@ -6,14 +6,19 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ## Life Log Development
 
-### v.2.0 EARTH RC1 Encountered
+### v.2.0 SUN RC2 Encountered
 
 * -> RTF based view of log entries.
 * Export to CVS button on selected logs.
-* Restore of backup on different version of LifeLog should fail with detecting this.
 * Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
 * Multiple category assignment to be enabled, where the first selected is the primary, others put in separate cross reference table.
 * Sub users list with passwords in config to be provided, with access and category, permissions settings. Default enabled permission is Event view category.
+* &#10004; Minimise Log form when in View Mode.
+* &#10004; Restore of backup on different version of LifeLog should fail with detecting this in provided error.
+  * Provided Backup/Restore Specifications, and message that restoration has been invalidated as that is an invalid backup file.
+
+### v.1.9 SUN RC1 Encountered
+
 * &#10004; Hover over log entries, to make more visible what log entry is being ticked on wider screens.
 * &#10004; Implement gzip http page encoding compression of traffic.
 * &#10004; Autocompletion picks up long false words, in html and code type logs.
