@@ -302,6 +302,11 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
         }
     });
 
+    if($("#isInViewMode").val()>0){
+        this.toggle('#div_srh', true); 
+        this.toggle('#div_log', true);
+    }
+
     display("Log page is ready!");
 }
 

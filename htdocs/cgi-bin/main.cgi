@@ -28,7 +28,7 @@ use Gzip::Faster;
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
 require Settings;
-$CGI::POST_MAX = 1024 * 1024 * 5;  # max 5B posts
+$CGI::POST_MAX = 1024 * 1024 * 5;  # max 5GB file post size limit.
 
 my $cgi = CGI->new;
 my $sss = new CGI::Session( "driver:File", $cgi, { Directory => &Settings::logPath } );
@@ -826,6 +826,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 	<input type="hidden" name="rs_prev" value="$log_rc_prev"/>
 	<input type="hidden" name="rs_page" value="$rs_page"/>
 	<input type="hidden" name="CGISESSID" value="$sid"/>
+    <input type="hidden" id="isInViewMode" value="$isInViewMode"/>
 	$tags
     </form>
 	);
@@ -834,7 +835,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 	<form id="frm_srch" action="main.cgi">
 	<table class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
 	  <tr class="r0">
-        <td colspan="2"><b>Search/View By</b>
+        <td colspan="2"><b>View By/Search</b>
             <a id="srch_close" href="#" onclick="return hide('#div_srh');">$sp1</a>
             <a id="srch_close" href="#" onclick="return toggle('#div_srh .collpsd');">$sp2</a>
         </td>
