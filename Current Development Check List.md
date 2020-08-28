@@ -9,6 +9,7 @@ This version is not compatible in data structure to prior versions. Data migrati
 ### v.2.0 SUN RC2 Encountered
 
 * -> RTF based view of log entries.
+* Check and test cross relese migration.
 * Export to CVS button on selected logs.
 * Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
 * Multiple category assignment to be enabled, where the first selected is the primary, others put in separate cross reference table.
