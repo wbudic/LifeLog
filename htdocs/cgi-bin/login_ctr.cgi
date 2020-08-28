@@ -73,7 +73,7 @@ try{
             Alias will create a new database if it doesn't exist. Note down your password.
             <input type="hidden" name="CGISESSID" value="$sid"/>
             <input type="hidden" name="login" value="1"/></td></tr>
-        <tr class="r0"><td colspan="2">Your Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
+        <tr class="r0"><td colspan="2">Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
         </table></form>);
 
     print qq(<br><br><div id="rz">
