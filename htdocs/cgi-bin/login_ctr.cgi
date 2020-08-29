@@ -246,7 +246,9 @@ sub checkCreateTables {
                             }
                         }
                 }
-                #is above v.1.6 has a notes table.
+            }
+            if($DB_VERSION > 1.6){
+                #is above v.1.6 notes table.
                 $db->do('DROP TABLE VW_LOG;');
                 delete($curr_tables{'VW_LOG'});
             }
