@@ -34,7 +34,7 @@ my $alias = $cgi->param('alias');
 my $passw = $cgi->param('passw');
 my ($debug,$frm) = "";
 #Codebase release version. Release in the created db or existing one can be different, through time.
-my $RELEASE = Settings::release();
+my $SCRIPT_RELEASE = Settings::release();
 
 if($cgi->param('logout')){&logout}
 
@@ -201,8 +201,7 @@ sub checkCreateTables {
     # Default version is the scripted current one, which could have been updated.
     # We need to maybe update further, if these versions differ.
     # Source default and the one from the CONFIG table in the (present) database.
-    my $DEF_VERSION = Settings::release();
-                      Settings::getConfiguration($db,{backup_enabled=>$BACKUP_ENABLED});
+    Settings::getConfiguration($db,{backup_enabled=>$BACKUP_ENABLED});
     my $DB_VERSION  = Settings::release();
     my $hasLogTbl   = $curr_tables{'LOG'};
     my $hasNotesTbl = $curr_tables{'NOTES'};
@@ -220,7 +219,7 @@ sub checkCreateTables {
     #
     # From v.1.8 Log has changed, to have LOG to NOTES relation.
     #
-    if($hasLogTbl && $DEF_VERSION > $DB_VERSION && $DB_VERSION < 1.8){
+    if($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 1.8){
         # We must upgrade now. If existing LOG table is now invalid old version containing boolean RTF.
         Settings::debug(1);
         my @names = @{Settings::getTableColumnNames($db, 'LOG')};
@@ -249,8 +248,7 @@ sub checkCreateTables {
             }
             if($DB_VERSION > 1.6){
                 #is above v.1.6 notes table.
-                $db->do('DROP TABLE VW_LOG;');
-                delete($curr_tables{'VW_LOG'});
+                $db->do('DROP TABLE VW_LOG;');                
             }
             $db->do('DROP TABLE LOG;');
             #v.1.8 Has fixes, time also properly to take into the sort. Not crucial to drop.
@@ -285,9 +283,10 @@ sub checkCreateTables {
         #Need to run slow populuate check from config file.
         $changed = 1;
     }
-    elsif($hasLogTbl && $DEF_VERSION > $DB_VERSION && $DB_VERSION < 2.0){
+    elsif($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 2.0){
         #dev 1.9 main log view has changed in 1.8..1.9, above scope will perform anyway, its drop, to be recreated later.
         $db->do('DROP VIEW VW_LOG;');delete($curr_tables{'VW_LOG'});
+        delete($curr_tables{'VW_LOG'});
         $changed = 1;
     }
 
@@ -355,8 +354,8 @@ sub checkCreateTables {
         my @r = Settings::selectRecords($db, 'SELECT ID, VALUE FROM CONFIG WHERE NAME IS "RELEASE_VER";')->fetchrow_array();
         my $did = $r[0];
         my $dnm = $r[1];
-        my $cmp = $dnm eq $RELEASE;
-        $debug .= "Upgrade cmp(RELESE_VER:'$dnm' eq Settings::release:'$RELEASE') ==  $cmp";
+        my $cmp = $dnm eq $SCRIPT_RELEASE;
+        $debug .= "Upgrade cmp(RELESE_VER:'$dnm' eq Settings::release:'$SCRIPT_RELEASE') ==  $cmp";
         #Settings::debug(1);
         if(!$cmp){
             Settings::renumerate($db);
@@ -370,8 +369,8 @@ sub checkCreateTables {
                 $pv = 0;
             }
             &Settings::configProperty($db, 200, '^REL_RENUM',$pv);
-            &Settings::configProperty($db, $did>0?$did:0, 'RELEASE_VER', $RELEASE);
-            &Settings::toLog($db, "Upgraded Life Log from v.$dnm to v.$RELEASE version, this is the $pv upgrade.") if $pv;
+            &Settings::configProperty($db, $did>0?$did:0, 'RELEASE_VER', $SCRIPT_RELEASE);
+            &Settings::toLog($db, "Upgraded Life Log from v.$dnm to v.$SCRIPT_RELEASE version, this is the $pv upgrade.") if $pv;
         }
         &populate($db);
     }
