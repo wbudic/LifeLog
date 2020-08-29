@@ -696,7 +696,7 @@ $tot = &cam($tot);
 $tot = "<font color='red'>$tot</font>" if($tot<0);
 
 $log_output .= qq(
-<tr class="r$tfId">
+<tr class="r$tfId" id="summary_row">
     <td></td>
     <td></td>
     <td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets [ $ass ] Inc [ $tin ] Exp [ <font color="red">$exp</font> ] <b>&#8594; Gross [<i>$tot</i> ] </b></td>
@@ -717,7 +717,7 @@ my $autowords = qq("gas","money","today");
 if ( $log_rc == 0 ) {
 
     if ($stmD) {
-        $log_output .= qq(<tr><td colspan="5">
+        $log_output .= qq(<tr id="brw_row"><td colspan="5">
         <b>Search Failed to Retrive any records on select: [<i>$stmD</i>] !</b></td></tr>');
     }
     elsif ($rs_keys) {
@@ -725,19 +725,19 @@ if ( $log_rc == 0 ) {
         if ( $prm_vc > 0 ) {
             $criter = "->Criteria[" . $hshCats{$prm_vc} . "]";
         }
-        $log_output .= qq(<tr><td colspan="5">
+        $log_output .= qq(<tr id="brw_row"><td colspan="5">
         <b>Search Failed to Retrive any records on keywords: [<i>$rs_keys</i>]$criter!</b></td></tr>);
     }
     else {
         if ($isInViewMode) { 
-              if($prm_rtf){$log_output .= '<tr><td colspan="5"><b>No RTF records found matching criteria.</b></td></tr>'}
-              else        {$log_output .= '<tr><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>'}
-        }else{ $log_output .= '<tr><td colspan="5"><b>Database is New or Empty!</b></td></tr>'}
+              if($prm_rtf){$log_output .= '<tr id="brw_row"><td colspan="5"><b>No RTF records found matching criteria.</b></td></tr>'}
+              else        {$log_output .= '<tr id="brw_row"><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>'}
+        }else{ $log_output .= '<tr id="brw_row"><td colspan="5"><b>Database is New or Empty!</b></td></tr>'}
     }
 }
 
 $log_output .= <<_TXT;
-<tr class="r0"><td colspan="2">Show All hidden with &#10132;
+<tr class="r0" id="brw_row"><td colspan="2">Show All hidden with &#10132;
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 
 <a href="#top">&#x219F;</a></td>
@@ -1189,20 +1189,20 @@ my $dbg = qq(--DEBUG OUTPUT--\n
         $vmode = "<font color='red'>[In View Mode]</font>&nbsp;" if$isInViewMode;
 
         if($rec_limit == 0){
-            $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3">
+            $log_output .= qq!<tr class="r$tfId" id="brw_row"><td>$vmode</td><td colspan="3">
                                <input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="Back To Page View"/>!;
 
         }
         else{
                 if ($rs_cur < $log_top && $rs_prev && $rs_prev > 0 && $log_start > 0 && $rs_page > 0) {
 
-                    $log_output .= qq!<tr class="r$tfId"><td>$vmode</td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
+                    $log_output .= qq!<tr class="r$tfId" id="brw_row"><td>$vmode</td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
                     <input type="hidden" value="$rs_prev"/>
                     <input class="ui-button" type="button" onclick="submitPrev($log_rc_prev, $rec_limit);return false;" value="&lsaquo;&lsaquo;&nbsp; Previous"/>&nbsp;&nbsp;!;
 
                 }
                 else {
-                    $log_output .= qq(<tr class="r$tfId"><td>$vmode</td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
+                    $log_output .= qq(<tr class="r$tfId" id="brw_row"><td>$vmode</td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
                 }
 
 
