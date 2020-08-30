@@ -8,12 +8,13 @@
 # Uncoment the  following git pull if also wanting to perform a latest pull
 # from the master (upgrade) repository.
 ## git pull
-sudo cat Installation.txt | grep 'sudo apt install' > install_lifelog_modules_1.1.8.sh
-sudo cat Installation.txt | grep 'sudo cpan' >> install_lifelog_modules_1.1.8.sh
-sudo chmod +x install_lifelog_modules_1.1.8.sh
+LIFELOG_MODS=install_lifelog_req_modules_2.0.sh
+sudo cat Installation.txt | grep 'sudo apt install' > $LIFELOG_MODS
+sudo cat Installation.txt | grep 'sudo cpan' >> $LIFELOG_MODS
+sudo chmod +x $LIFELOG_MODS
 # The following is actual installation file generated. Don't run outside this script.
 # You can delete or keep after running this script.
-sudo ./install_lifelog_modules_1.1.8.sh
+sudo ./$LIFELOG_MODS
 
 #Used for stats, required utility
 sudo apt install inxi -y
