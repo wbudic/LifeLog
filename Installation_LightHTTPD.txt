@@ -1,6 +1,19 @@
 # Compile/Install LightHTTPD with SSL Support
+# wget https://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-1.4.54.tar.gz
 
-sudo apt install libssl-dev
+sudo apt install lighttpd
+
+cd ~/dev/lighttpd-1.4.54
+tar xvzf lighttpd-1.4.54.tar.gz
+sudo apt autoremove -y
+sudo apt-get install intltool -y
+sudo apt-get install pcre-config -y
+sudo apt-get install build-essential -y
+sudo apt-get install libssl-dev -y
+sudo apt-get install libpcre3-dev -y
+sudo apt-get install libbz2-dev -y
+sudo apt install libssl-dev -y
+
 ./configure --prefix=/usr/local/lighttpd --with-openssl --with-sqlite
 make
 sudo make install
@@ -10,6 +23,7 @@ lighttpd -V
 
 ## Create Selfsigned SSL Certificate
 
+cd ~/dev
 openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
   -keyout elite.key -out elite.crt -subj "/CN=elite.net" \
   -addext "subjectAltName=DNS:elite.net,DNS:www.elite.net,IP:192.168.1.45"
@@ -44,5 +58,11 @@ accesslog.filename = “/var/log/lighttpd/elite.net.access.log”
 
 ## Start "lighty" with -D option for interactive console trouble shooting and testing.
 
-lighttpd -D -f  ~/dev/LifeLog/lighttpd.conf
+/usr/sbin/lighttpd -D -f  ~/dev/LifeLog/lighttpd.conf
 
+
+## Run as service , def is: lighttpd -D -f  /etc/lighttpd/lighttpd.conf
+
+sudo systemctl start lighttpd -D -f  /home/will/dev/LifeLog/lighttpd.conf
+sudo systemctl enable lighttpd
+sudo systemctl status lighttpd

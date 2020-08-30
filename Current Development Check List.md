@@ -2,9 +2,11 @@
 
 *This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
-This version is not compatible in data structure to prior versions. Data migration is required, to transfer previous data (see ../dbLifeLog/main.cnf).
-
 ## Life Log Development
+
+### v.2.1 SUN STABLE New Features
+
+* Static pages setting from pages directory.
 
 ### v.2.0 SUN RC2 Encountered
 
@@ -24,14 +26,14 @@ This version is not compatible in data structure to prior versions. Data migrati
 * &#10004; Implement gzip http page encoding compression of traffic.
 * &#10004; Autocompletion picks up long false words, in html and code type logs.
 
-### v.1.8 SUN STABLE Encountered
+### v.1.8 SUN STABLE Encountered/Fixed
 
 * &#10004; Implement View by Amount Type, reset button for categories.
 * &#10004; Introduce a new column header background colour.
 * &#10004; Autologin bypasses actual wanted login.
   * This is bug 20.
 
-### v.1.7 MOON STAGE Encountered 
+### v.1.7 MOON STAGE Encountered?Fixed 
 
 * &#10004; Database backup tgz ball, upload and download button on config page.
   * You must have the password you logged in to unscramble the backup.
