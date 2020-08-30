@@ -9,13 +9,13 @@
 # from the master (upgrade) repository.
 ## git pull
 
-LIFELOG_MODS=install_lifelog_req_modules_2.0.sh
-sudo cat Installation.txt | grep 'sudo apt install' > $LIFELOG_MODS
-sudo cat Installation.txt | grep 'sudo cpan' >> $LIFELOG_MODS
-sudo chmod +x $LIFELOG_MODS
+LifeLogInstall=install_lifelog_req_modules_2.0.sh
+sudo cat Installation.txt | grep 'sudo apt install' > $LifeLogInstall | awk '{print $0, "-y"}'
+sudo cat Installation.txt | grep 'sudo cpan' >> $LifeLogInstall 
+sudo chmod +x $LifeLogInstall
 # The following is actual installation file generated. Don't run outside this script.
 # You can delete or keep after running this script.
-sudo ./$LIFELOG_MODS
+sudo ./$LifeLogInstall
 
 #Used for stats, required utility
 sudo apt install inxi -y
