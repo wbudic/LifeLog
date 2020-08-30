@@ -8,12 +8,12 @@ This version is not compatible in data structure to prior versions. Data migrati
 
 ### v.2.0 SUN RC2 Encountered
 
-* -> RTF based view of log entries.
-* Check and test cross relese migration.
 * Export to CVS button on selected logs.
 * Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
 * Multiple category assignment to be enabled, where the first selected is the primary, others put in separate cross reference table.
 * Sub users list with passwords in config to be provided, with access and category, permissions settings. Default enabled permission is Event view category.
+* &#10004; RTF based view of log entries.
+* &#10004; Check and test cross release migration.
 * &#10004; Minimise Log form when in View Mode.
 * &#10004; Restore of backup on different version of LifeLog should fail with detecting this in provided error.
   * Provided Backup/Restore Specifications, and message that restoration has been invalidated as that is an invalid backup file.

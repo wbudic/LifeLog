@@ -272,7 +272,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     #We use js+perl, trickery to filter by amount type, as well.
     if ($prm_aa >0){my $s = $prm_aa - 1;$prm_aa = " AFLAG=$s AND";}else{$prm_aa=""}
 
-    $stmS .= " ID_RTF>0 AND" if($prm_rtf==1);
+    $stmS .= " ID_RTF>0 AND" if($prm_rtf);
 
     if ( $rs_keys && $rs_keys ne '*' ) {
 
@@ -360,6 +360,10 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
                     $prm_aa =~ s/AND$//g;
                     $sqlVWL = $stmS .$prm_aa.' '.$stmE;
         }
+        elsif($prm_rtf){
+             $stmS   =~ s/AND$//g;
+             $sqlVWL = $stmS.$stmE;
+        }
     }
 
 
@@ -374,7 +378,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
     my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, 'REGEXP')>0 || $prm_rtf;
 
-    toBuf $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
+    toBuf $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|vrtf=$prm_rtf|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
     if ( $log_start > 0 ) {
 
