@@ -24,9 +24,9 @@ use Text::CSV;
 use lib "system/modules";
 require Settings;
 
-my $cgi = CGI->new;
+my $cgi     = CGI->new;
 my $session = new CGI::Session("driver:File",$cgi, {Directory => Settings::logPath()});
-my $sid=$session->id();
+my $sid     =$session->id();
 my $dbname  =$session->param('database');
 my $userid  =$session->param('alias');
 my $password=$session->param('passw');
@@ -35,7 +35,11 @@ if(!$userid||!$dbname){
     print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
     exit;
 }
-
+# $cgi->param('chk',(1,2));
+# $cgi->param('opr',2);
+# $dbname  = "data_admin_log.db";
+# $userid  = "admin";
+# $password= "admin";
 
 my $database = Settings::logPath().$dbname;
 my $dsn= "DBI:SQLite:dbname=$database";
@@ -188,25 +192,26 @@ try{
 }
 
 sub NotConfirmed {
-
-    my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT == CAT.ID) as CAT, DATE, LOG from VW_LOG WHERE";
-       $stmS = "SELECT rowid as ID, ID_CAT as IDCAT, DATE, LOG from LOG" if($opr == 2);
-    my $stmE = " ORDER BY DATE DESC, ID DESC;";
+try{
+    my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT == CAT.ID) as CAT, DATE, LOG from VW_LOG WHERE";       
+    my $stmE = " ORDER BY DATE DESC, ID DESC;";  
+    if($opr == 2){
+        $stmS = "SELECT rowid as ID, ID_CAT as IDCAT, DATE, LOG, AMOUNT from LOG WHERE";
+        $stmE = " ORDER BY date(DATE);";
+    }
 
     #Get ids and build confirm table and check
     my $stm = $stmS ." ";
-        foreach my $id ($cgi->param('chk')){
-            if($opr == 2){
-                $stm = $stm . "rowid = " . $id . " OR ";
-            }
-            else{
-                $stm = $stm . "PID = " . $id . " OR ";
-            }
+    foreach my $id ($cgi->param('chk')){
+        if($opr == 2){
+            $stm = $stm . "rowid == " . $id . " OR ";
         }
-        $stm =~ s/ OR $//; $stm .= $stmE;
-
-    $st = $db->prepare( $stm );
-    $rv = $st->execute();
+        else{
+            $stm = $stm . "PID == " . $id . " OR ";
+        }
+    }
+    $stm =~ s/ OR $//; $stm .= $stmE;    
+    $st = Settings::selectRecords($db, $stm);       
     if($opr == 0){
         print $cgi->header(-expires=>"+6os");
         print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
@@ -260,21 +265,27 @@ sub NotConfirmed {
         print '<center><div>' . $tbl .'</div></center>';
 
         
-    }else{
-        my $csv = Text::CSV->new ( { binary => 1, escape_char => "\\", eol => $/ } );
-        print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname.sel.csv");
-
+    } 
+    elsif($opr == 2){
+        
+        my $csv = Text::CSV-> new ( { binary => 1, escape_char => "\\", strict => 1, eol => $/ } );
+           
+        my @columns = ("ID", "CAT", "DATE", "LOG", "AMOUNT");
+        
+        print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname"."_sel.csv");        
+        print $csv->print(*STDOUT, \@columns);
         while (my $row=$st->fetchrow_arrayref()){
-              #    $row[3] =~ s/\\\\n/\n/gs;
-               my $out = $csv->print(*STDOUT, $row);                  
-                  print $out if(length $out>1);
+            #    $row[3] =~ s/\\\\n/\n/gs;
+            my $out = $csv->print(*STDOUT, $row);                  
+                print $out if(length $out>1);
         }
-        $st->finish;
-        $db->disconnect();
-        exit;
+            $st->finish;
+            $db->disconnect();
+            exit;
     }
-
-
+}catch{
+    print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
+}
     $st->finish;
     $db->disconnect();
 }

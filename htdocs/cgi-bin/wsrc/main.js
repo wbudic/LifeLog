@@ -931,10 +931,16 @@ function dateDiffSelected() {
 
 function exportSelected() {
     $("#opr").val(2);
-    return true;
+    
 }
 
-
+function exportToCSV(dat, view){
+    var csv;
+    if(dat == 'cat'){  csv = view ? 4:3;  }
+    else
+    if(dat == 'log'){  csv = view ? 2:1;  }
+    window.location = "config.cgi?csv="+csv;
+}
 
 function sumSelected() {
     var chks = document.getElementsByName("chk");
@@ -1138,13 +1144,6 @@ function deleteBackup() {
     });
 }
 
-function exportToCSV(dat, view){
-    var csv;
-    if(dat == 'cat'){  csv = view ? 4:3;  }
-    else
-    if(dat == 'log'){  csv = view ? 2:1;  }
-    window.location = "config.cgi?csv="+csv;
-}
 
 function setPageSessionTimer(expires) {
 
