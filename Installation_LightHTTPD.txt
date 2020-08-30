@@ -45,7 +45,7 @@ server.modules   = ( "mod_access",
 $SERVER[“socket”] == “:443” {
 
 ssl.engine = “enable”
-ssl.pemfile = “/etc/lighttpd/ssl/elite.net.pem”
+ssl.pemfile = “/home/will/dev/elite.net.pem”
 
 # ssl.ca-file = “/etc/lighttpd/ssl/CA_issuing.crt”
 
