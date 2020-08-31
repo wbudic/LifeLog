@@ -110,31 +110,33 @@ my $gross   = big_money($income - $expense);
 $expense    = big_money(sprintf("%.2f",$expense));
 $income     = big_money(sprintf("%.2f",$income));
 
-
 #Under perlbrew, sometimes STDOUT is not piped back to our cgi,
 #utility inxi could be a perl written version on newer systems.
 #So I use the inter processing module here for inxi. -- @wbudic
-my  $HS = "";
+my  $buff = "";
 my @cmd = ("/usr/bin/inxi", "-b", "-c0");
-#Gatter into $HS
-run \@cmd, '>&', \$HS; #instead of -> system("inxi",'-b', '-c0');
-$HS .= `uptime -p`;
+my $uptime = `uptime -p`;
+my @ht = split(m/\s/,`hostname -I`);
+my $hst = "";
+   $hst = `hostname` . "($ht[0])" if (@ht);
 
 
-my $hardware_status = $HS;#`inxi -b -c0; uptime -p`;
-my $syslog = "<b>".substr $HS, index($HS, 'Host:'), index($HS, 'Console:');
-   $syslog .= "</b>\n".substr $HS, rindex($HS, 'Info:');
-   $HS = "<pre>\n".`df -h -l -x tmpfs`."</pre>";
-   $syslog .= $HS;
-$hardware_status =~ s/\n/<br\/>/g;
-$hardware_status =~ s/Memory:/<b>Memory:/g;
-$hardware_status =~ s/Init:/<\/b>Initial:/g;
-$hardware_status =~ s/up\s/<b>Server is up: /g;
-$hardware_status .= '</b>';
+#Gather into $buff
+run \@cmd, ">&", \$buff; #instead of -> system("inxi",'-b', '-c0');
+my @matches = $buff =~ /^(System.*)|(Machine.*)|(CPU.*)|(Drives.*)|(Info.*)|(Init.*)$/gm;#$txt=~/^(?=.*?\bone\b)(?=.*?\btwo\b)(?=.*?\bthree\b).*$/gim);
+push (@matches, $uptime);
+my $hardware_status = "<b>Host: </b>$hst<br>".join("\t", map { defined ? $_ : '' } @matches);
+   $hardware_status =~ s/<.*filter>//gm; #remove crap
+   $hardware_status =~ s/^(\w+:)/<b>$1<\/b>/m;
+   #$hardware_status =~ s/(\t\w+:)/<b>$1<\/b>/gms;
+   $hardware_status =~ s/\t+/<br>/gm; #TODO: This temp. resolves the regex needs to be adjusted so we join with <br>
+   $hardware_status =~ s/Memory:/<br><b>Memory: <\/b>/g;   
+   $hardware_status =~ s/up\s/<b>Server is up: <\/b>/g;
+   
 
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
-my  $processes = `$prc | sort -u -r -`;
-my  $dbSize = (uc format_bytes($stat[7], bs => 1000));
+my $processes = `$prc | sort -u -r -`;
+my $dbSize = (uc format_bytes($stat[7], bs => 1000));
 #Strip kernel 0 processes reported
 $processes =~ s/\s*0.00.*//gd;
 #trim reduce prefixed spacing
@@ -166,11 +168,10 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 
 print qq(
 <div class="main">
-    <h2>Life Log Server Statistics</h2><hr>
+    <hr><h2>Life Log Server Statistics</h2><hr>
     <div class="info">
         <span><b>Log Status & Information</b><hr>$tbl</span>
-        <span><b>Server Info</b><hr>$hardware_status</span>
-        <span><b>Server Filesystem Info</b><hr>$HS</span>
+        <span><b>Server Info</b><hr>$hardware_status</span>       
     </div><br>
     <div class="processes" style="float:left;">
         <b>Server Side Processes</b><hr>
@@ -180,8 +181,8 @@ print qq(
 </div>);
 
 print $cgi->end_html;
-
-&Settings::toLog($db,$syslog);
+my $syslog = "<span>$hardware_status</span>"."<pre>\n".`df -h -l -x tmpfs`."</pre>";   
+&Settings::toLog($db, $syslog);
 $db->disconnect();
 
 }

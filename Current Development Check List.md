@@ -118,6 +118,7 @@
 
 ### v. 1.9 Encountered/Fixed
 
+* &#10004; Bug 28 - System info stats logs not reporting host anymore.
 * Bug 27 - Restore of old backups not working anymore.
 * Bug 26 - In Chrome editing log entry not working. Something refreshes page, after 5 seconds.
 * &#10004; Bug 25 - SQLite view not properly sorting in new databases. Newer records listed last.
