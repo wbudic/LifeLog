@@ -207,7 +207,9 @@ sub checkCreateTables {
     my $hasNotesTbl = $curr_tables{'NOTES'};
     my @annons = Settings::anons();
     LifeLogException -> throw("Annons!") if (@annons==0);#We even added above the backup_enabled anon, so WTF?
-
+    if($curr_tables{'life_log_temp_table'}){#A possible of some old migration lingering...
+       $db->do('DROP TABLE `life_log_temp_table`;');
+    }
     # Reflect anons to db config.
     $sql = "SELECT ID, NAME, VALUE FROM CONFIG WHERE";
     foreach my $ana(@annons){$sql .=  " NAME LIKE '$ana' OR";};$sql =~ s/OR$//; $sql .=';';
