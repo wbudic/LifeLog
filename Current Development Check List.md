@@ -4,9 +4,12 @@
 
 ## Life Log Development
 
-### v.2.1 SUN STABLE New Features
+### v.2.1 SUN STABLE New Features in Works
 
 * Static pages setting from pages directory.
+* Earth stage requires same SQL related code to work on at least one more DBMS type other than SQLight.
+  * PostgreSQL is most likelly candidate as MySQL is not easy to install for the average user.
+  * Developing and adopting to MySQL or any other system is not prerogative, as it works well as it is with inbuild simplicity.
 
 ### v.2.0 SUN RC2 Encountered
 
