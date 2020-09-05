@@ -10,7 +10,7 @@
 ## git pull
 
 LifeLogInstall=install_lifelog_req_modules_2.0.sh
-sudo cat Installation.txt | grep 'sudo apt install' > $LifeLogInstall | awk '{print $0, "-y"}'
+sudo cat Installation.txt | grep 'sudo apt install' | awk '{print $0, "-y"}' > $LifeLogInstall
 sudo cat Installation.txt | grep 'sudo cpan' >> $LifeLogInstall 
 sudo chmod +x $LifeLogInstall
 # The following is actual installation file generated. Don't run outside this script.

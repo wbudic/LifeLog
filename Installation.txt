@@ -97,7 +97,9 @@ perlbrew use 5.30.1
 sudo apt install libperl-critic-perl
 #libperl-dev is required for the lang server
 sudo apt install libperl-dev
+sudo apt-get install zlib1g-dev
 sudo cpan Perl::LanguageServer
+
 
 NOTICE -> Above Perl installation and modules can take time as they build (get compiled) and are tested
           using your computers configuration and hardware for optimal performance.
@@ -122,13 +124,13 @@ sudo cpan DateTime::Format::Human::Duration
 sudo cpan DateTime::Format::SQLite;
 sudo cpan Text::CSV;
 sudo cpan Number::Bytes::Human;
+sudo cpan Gzip::Faster;
 sudo cpan CGI::Session;
 sudo cpan Number/Bytes/Human.pm;
 sudo cpan Regexp::Common;
 sudo cpan JSON;
 sudo cpan Switch;
 sudo cpan IPC::Run
-sudo cpan Gzip::Faster;
 sudo cpan Syntax::Keyword::Try;
 
 #Install DBI module
