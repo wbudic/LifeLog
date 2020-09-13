@@ -132,6 +132,7 @@ sudo cpan JSON;
 sudo cpan Switch;
 sudo cpan IPC::Run
 sudo cpan Syntax::Keyword::Try;
+sudo cpan Text::Markdown
 
 #Install DBI module
 sudo cpan DBI;

@@ -10,6 +10,8 @@
 * Earth stage requires same SQL related code to work on at least one more DBMS type other than SQLight.
   * PostgreSQL is most likelly candidate as MySQL is not easy to install for the average user.
   * Developing and adopting to MySQL or any other system is not prerogative, as it works well as it is with inbuild simplicity.
+* Provide markdown text functionality to html pages. For quick vanila plain documentation.
+* &#10004; Implement title bolding on logs using markdown, so tags can be avoided, for multiline logs.
 
 ### v.2.0 SUN RC2 Encountered
 

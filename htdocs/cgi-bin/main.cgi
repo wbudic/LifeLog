@@ -605,10 +605,13 @@ sub buildLog {
             $log =~ s/<<LIST<(\w*|\s*)*.*(>+?)/$sub/o;
             $tagged = 1;
         }
-
+        #bold on start markup
+        $log =~ s/(^\*)(.*)(\*)(\\n)/<b>\2<\/b><br>/oi;
         #Decode escaped \\n
         $log =~ s/\r\n/<br>/gs;
         $log =~ s/\\n/<br>/gs;
+        
+        
 
         if ( $CID_EVENT == $row[1] ) {
             $log = "<font color='#eb4848' style='font-weight:bold'>$log</font>";

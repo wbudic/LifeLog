@@ -7,7 +7,7 @@ use warnings;
 #no warnings 'uninitialized';
 use Switch;
 
-use CGI::Pretty ":standard";
+#use CGI::Pretty ":standard";
 use CGI::Session '-ip_match';
 use DBI;
 use DateTime;
