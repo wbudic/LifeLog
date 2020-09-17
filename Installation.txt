@@ -9,54 +9,7 @@
            as they are fetched and tested for your computer.
 
 
-## Install tiny thttpd web server ##
-
-
-https://acme.com/software/thttpd/
-
-wget https://acme.com/software/thttpd/thttpd-2.29.tar.gz
-tar -xvzf thttpd-2.29.tar.gz
-cd thttpd-2.29/
-sudo groupadd www
-./configure
-sudo mkdir /usr/local/man/man1
-sudo make
-sudo make install
-
-#rm thttpd-2.29.tar.gz
-#rm -rf thttpd-2.29
-
-Create an mkdir ~/thttpd_dev directory.
-
-Run server using this config file, where {user} is your home login location.
-
-
-# This section overrides defaults
-dir=/home/{user}/thttpd_dev/htdocs
-user={user}
-logfile=/home/{user}/thttpd_dev/log/thttpd.log
-pidfile=/home/{user}/thttpd_dev/run/thttpd.pid
-# This section _documents_ defaults in effect
-port=8080
-# nosymlink# default = !chroot
-# novhost
-# nocgipat
-# nothrottles
-host=0.0.0.0
-charset=utf-8
-cgipat=**.cgi
-
-After modifying the thttpd.conf
-you'll have to modify the startDevWebServer.sh to reflect your setup before running the script.
-
-The full URL to the LifeLog is the following link (if not working try without cgi-bin, and proceed with further installation):
-#
-#
-         http://localhost:8080/cgi-bin/
-#
-#
-
-### Obtain from  GIT reposity latest stable realease with:
+### Obtain from  GIT repository latest stable release with:
 ##
     git clone https://github.com/wbudic/LifeLog.git
 ##
@@ -239,8 +192,8 @@ You can export and modify your added categories via an CSV file.
 Making sure the ID first column across all entries has a unique number.
 
 #Install AUTO_LOGIN
-On a personal network or small network, you might prefere to auto login when browsing to the LifeLog,
-instead of entering every time user name and password. It makese sense, as you are the only one using it,
+On a personal network or small network, you might prefer to auto login when browsing to the LifeLog,
+instead of entering every time user name and password. It makes sense, as you are the only one using it,
 don't need that extra security.
 
 Other scenario is that the LifeLog in an Office Environment is accessed by multiple people.,
@@ -249,10 +202,61 @@ using same alias and password. Don't need to have any extra security as the alia
 
 Modify, in dbLifeLog/main.cnf
 Look for <<AUTO_LOGIN<>
-And change have your general login credentials. i.e.:
+And change have your general login credential's. i.e.:
 <<AUTO_LOGIN<admin/password_123>
 
 Then login one last time, and enable AUTO_LOGIN at the configuration page.
 
 
 
+## Install tiny thttpd web server ##
+
+Note - This is still recommended, if not willing to configure or have to run
+a heavier more complex web server configuration.
+The recommendation is to skip this webserver and install LightHTTPD, 
+which is more modern and maintained.
+
+
+https://acme.com/software/thttpd/
+
+wget https://acme.com/software/thttpd/thttpd-2.29.tar.gz
+tar -xvzf thttpd-2.29.tar.gz
+cd thttpd-2.29/
+sudo groupadd www
+./configure
+sudo mkdir /usr/local/man/man1
+sudo make
+sudo make install
+
+#rm thttpd-2.29.tar.gz
+#rm -rf thttpd-2.29
+
+Create an mkdir ~/thttpd_dev directory.
+
+Run server using this config file, where {user} is your home login location.
+
+
+# This section overrides defaults
+dir=/home/{user}/thttpd_dev/htdocs
+user={user}
+logfile=/home/{user}/thttpd_dev/log/thttpd.log
+pidfile=/home/{user}/thttpd_dev/run/thttpd.pid
+# This section _documents_ defaults in effect
+port=8080
+# nosymlink# default = !chroot
+# novhost
+# nocgipat
+# nothrottles
+host=0.0.0.0
+charset=utf-8
+cgipat=**.cgi
+
+After modifying the thttpd.conf
+you'll have to modify the startDevWebServer.sh to reflect your setup before running the script.
+
+The full URL to the LifeLog is the following link (if not working try without cgi-bin, and proceed with further installation):
+#
+#
+         http://localhost:8080/cgi-bin/
+#
+#
