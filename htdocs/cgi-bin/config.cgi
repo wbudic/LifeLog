@@ -20,7 +20,7 @@ use DateTime::Duration;
 use Date::Language;
 use Text::CSV;
 use Scalar::Util qw(looks_like_number);
-use Sys::Syslog qw(:DEFAULT :standard :macros);
+use Sys::Syslog qw(:DEFAULT :standard :macros); #openLog, closelog macros
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
@@ -44,9 +44,7 @@ if(!$userid||!$dbname){
     exit;
 }
 
-my $database = &Settings::logPath.$dbname;
-my $dsn= "DBI:SQLite:dbname=$database";
-my $db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or die "<p>Error->"& $DBI::errstri &"</p>";
+my $db = Settings::connectDB($userid, $pass);
 
 ### Fetch settings
     Settings::getConfiguration($db);
@@ -600,7 +598,7 @@ if($passch){
         }
     }
 
-    openlog($dsn, 'cons,pid', "user");
+    openlog(Settings::dsn(), 'cons,pid', "user");
         syslog('info', 'Status:%s', $status);
         syslog('info', 'Password change request for %s', $$userid);
     closelog();
@@ -780,7 +778,7 @@ catch{
 
 }
 
-    openlog($dsn, 'cons,pid', "user");
+    openlog(Settings::dsn(), 'cons,pid', "user");
         syslog('info', 'Status:%s', $status);
         syslog('err', '%s', $ERROR) if ($ERROR);
     closelog();
@@ -863,7 +861,7 @@ try{
 
         $db->do('COMMIT;');
         $db->disconnect();
-        $db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or LifeLogException->throw($DBI::errstri);
+        $db =Settings::connectDB($userid, $pass);
         $dbs = $db->do("VACUUM;");
 
 
@@ -1022,7 +1020,7 @@ try{
 sub backup {
 
    my $ball = 'bck__'.$today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
-   my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." $database | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball." 2>/dev/null";
+   my $pipe = "tar czf - ".Settings::logPath().'main.cnf' ." ". Settings::dbFile()." | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball." 2>/dev/null";
    my $rez = `$pipe`;
 
     #print $cgi->header;

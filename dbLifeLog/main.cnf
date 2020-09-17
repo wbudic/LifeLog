@@ -3,10 +3,12 @@
 This is the main configuration file for the LifeLog applications settings.
 https://github.com/wbudic/LifeLog
 This is an Open Source License project -> https://choosealicense.com/licenses/isc/
-Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUTO_LOGIN option bellow, use config in app.
+Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AUTO_LOGIN option bellow, use config in app.
 <<AUTO_LOGIN</>
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>
+# Default database driver prefix, is SQLite.
+<<DBI_DRV_PRFIX<DBI:SQLite:dbname=>
 <<CONFIG<4>
 00|$RELEASE_VER = 2.1`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
@@ -27,6 +29,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , dont enable here using AUT
 34|$VIEW_ALL_LMT=1000`Limit of all records displayed for large logs. Set to 0, for unlimited.
 36|$TRACK_LOGINS=1`Create system logs on login/logout of Life Log.
 38|$COMPRESS_ENC=0`Compress Encode pages, default -> 0=false, 1=true.
+40|$SUBPAGEDIR  =docs`Directory to scan for subpages like documents.
 <<CAT<3>
 01|Unspecified `For quick uncategorised entries.
 03|File System `Operating file system/Application short log.

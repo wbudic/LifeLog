@@ -41,9 +41,8 @@ if(!$userid||!$dbname){
 # $userid  = "admin";
 # $password= "admin";
 
-my $database = Settings::logPath().$dbname;
-my $dsn= "DBI:SQLite:dbname=$database";
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })  or LifeLogException->throw($DBI::errstri);
+
+my $db = Settings::connectDB($userid, $password);
 
 #Fetch settings
 my $imgw = 210;

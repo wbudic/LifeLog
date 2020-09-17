@@ -29,7 +29,7 @@ my $sssCreatedDB = $session->param("cdb");
 my $sid=$session->id();
 my $cookie = $cgi->cookie(CGISESSID => $sid);
 
-
+my $db;
 my $alias = $cgi->param('alias');
 my $passw = $cgi->param('passw');
 my ($debug,$frm) = "";
@@ -127,47 +127,47 @@ sub processSubmit {
     return 0;
 }
 
-sub checkAutologinSet {
+sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
+    my $t = '<<'.shift.'<';
+    my $line = shift;
+    if(rindex ($line, $t, 0)==0){#@TODO change the following to regex parsing:
+        my $l = length $t;
+        my $e = index $line, ">", $l + 1;
+        return substr $line, $l, $e - $l;
+    }
+    return undef;
+}
 
-    #We don't need to slurp as it is expected setting in header.
-    my (@cre, $end,$crest);
+sub checkAutologinSet {
+    my (@cre, $v);
+    # We don't need to slurp whole file as next are expected settings in begining of the config file.
     open(my $fh, '<', &Settings::logPath.'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");
     while (my $line = <$fh>) {
                 chomp $line;
-                if(rindex ($line, "<<AUTO_LOGIN<", 0)==0){
-                        $end = index $line, ">", 14;
-                        $crest = substr $line, 13, $end - 13;
-                        @cre = split '/', $crest;
-                       next;
-                }
-                elsif(rindex ($line, "<<BACKUP_ENABLED<", 0)==0){
-                        $end = index $line, ">", 18;
-                        $BACKUP_ENABLED = substr $line, 17, $end - 17;
-                    last; #we expect as last anon to be set.
-                }
-                elsif(rindex ($line, "<<CONFIG<",0) == 0){last;}
+                $v = parseAutonom('AUTO_LOGIN',$line);
+                if($v){ @cre = split '/', $v; next}
+                $v = parseAutonom('BACKUP_ENABLED',$line);
+                if($v){ $BACKUP_ENABLED = $v; next}
+                $v = parseAutonom('DBI_DRV_PRFIX',$line);
+                if($v){Settings::DBIPrefix($v); next} 
+                last if parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
-    if(@cre &&scalar(@cre)>1){##TODO we already connected here to the db, why do it again later?
+    if(@cre &&scalar(@cre)>1){
 
-            if($alias && $passw && $alias ne $cre[0]){ # Is this an new alias login attempt?
+            if($alias && $passw && $alias ne $cre[0]){ # Is this an new alias login attempt? If so, autologin is of the agenda.
                 return;                                # Note, we do assign entered password even passw as autologin is set. Not entering one bypasses this.
             }                                          # If stricter access is required set it to zero in main.cnf, or disable in config.
             $passw = $cre[1] if (!$passw);
-            my $database = &Settings::logPath.'data_'.$cre[0].'_log.db';
-            my $dsn= "DBI:SQLite:dbname=$database";
-            my $db = DBI->connect($dsn, $cre[0], $cre[1], { RaiseError => 1 })
-                       or LifeLogException->throw("<p>Error->"& $DBI::errstri &"</p>");
-                #check if enabled.
-            my $st = $db->prepare("SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");
-            $st->execute();
-            my @set = $st->fetchrow_array();
-            if(@set && $set[0]=="1"){
+            $db = Settings::connectDB($alias, $passw);            
+            #check if autologin enabled.
+            my $st = Settings::selectRecords($db,"SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");            
+            my @set = $st->fetchrow_array() if $st;
+            if($set[0]=="1"){
                     $alias = $cre[0];
-                    $passw = $passw; #same as entered, by the not knowing to leave it blank.
+                    $passw = $passw; 
                     &Settings::removeOldSessions;
-            }
-            $db->disconnect();
+            }            
     }
 
 }
@@ -176,10 +176,8 @@ sub checkCreateTables {
 
     my $today = DateTime->now;
        $today-> set_time_zone( &Settings::timezone );
-    my $database = &Settings::logPath.'data_'.$alias.'_log.db';
-    my $dsn= "DBI:SQLite:dbname=$database";
-    my $db = DBI->connect($dsn, $alias, $passw, { RaiseError => 1 }) or LifeLogException->throw($DBI::errstri);
     my ($pst, $sql,$rv, $changed) = 0;
+    $db = Settings::connectDB($alias, $passw) if !$db; 
     # We live check database for available tables now only once.
     # If brand new database, this sill returns fine an empty array.
     $pst = Settings::selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");

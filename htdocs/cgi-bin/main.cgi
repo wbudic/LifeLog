@@ -43,11 +43,7 @@ if ( !$userid || !$dbname ) {
     print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
     exit;
 }
-
-my $database = &Settings::logPath . $dbname;
-my $dsn      = "DBI:SQLite:dbname=$database";
-my $db       = DBI->connect( $dsn, $userid, $password, { PrintError => 0, RaiseError => 1 } )
-                      or LifeLogException->throw("Connection failed [$DBI::errstri]");
+my $db       = Settings::connectDB($userid, $password);
 my ( $imgw, $imgh );
 #Fetch settings
  Settings::getConfiguration($db);
@@ -220,7 +216,7 @@ my $st;
 my $sqlCAT = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
 my $sqlVWL = "$stmS STICKY = 1 $stmE";
 
-toBuf (qq(## Using db -> $dsn\n)) if $DEBUG;
+toBuf ("## Using db ->". Settings::dsn(). "\n") if $DEBUG;
 
 $st = $db->prepare($sqlCAT);
 $st->execute() or LifeLogException->throw($DBI::errstri);
@@ -1065,7 +1061,7 @@ try {
                 toBuf $stm if $DEBUG;
                 #
 
-                my $dbUpd = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } )  or LifeLogException->throw("Execute failed [$DBI::errstri]");
+                my $dbUpd = DBI->connect(Settings::dsn(), $userid, $password, { RaiseError => 1 } )  or LifeLogException->throw("Execute failed [$DBI::errstri]");
                 traceDBExe($stm);
                 return;
             }
@@ -1163,7 +1159,7 @@ my $pwd = `pwd`;
 $pwd =~ s/\s*$//;
 
 my $dbg = qq(--DEBUG OUTPUT--\n
-    DSN:$dsn
+    DSN:) . Settings::dsn(). qq(
     stm:$stm
     \@DB::args:@DB::args
     \$DBI::err:$DBI::errstr
