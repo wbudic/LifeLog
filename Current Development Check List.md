@@ -6,8 +6,9 @@
 
 ### v.2.1 SUN STABLE New Features in Works
 
-* Static pages setting from pages directory.
-* Earth stage requires same SQL related code to work on at least one more DBMS type other than SQLight.
+* Static pages setting for the pages directory.
+* Search on multiwords should rank by encounter of words specified and display first. (that one is difficult)
+* Multi db driver type support. Earth stage requires same SQL related code to work on at least one more DBMS type other than SQLight.
   * PostgreSQL is most likelly candidate as MySQL is not easy to install for the average user.
   * Developing and adopting to MySQL or any other system is not prerogative, as it works well as it is with inbuild simplicity.
 * Provide markdown text functionality to html pages. For quick vanila plain documentation.
