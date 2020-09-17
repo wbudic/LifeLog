@@ -7,8 +7,10 @@ use warnings;
 #no warnings 'uninitialized';
 use Switch;
 
-#use CGI::Pretty ":standard";
+use CGI;
+use CGI::Pretty ":standard"; #Influde style subroutine for inline CSS
 use CGI::Session '-ip_match';
+use CGI::Carp qw ( fatalsToBrowser );
 use DBI;
 use DateTime;
 use DateTime::Format::SQLite;
@@ -20,7 +22,7 @@ use lib "system/modules";
 use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
 require Settings;
 
-my $cgi = CGI->new;
+my $cgi = CGI->new();
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
 my $sid=$session->id();
 my $dbname  =$session->param('database');
@@ -28,7 +30,7 @@ my $userid  =$session->param('alias');
 my $password=$session->param('passw');
 
 if(!$userid||!$dbname){
-    if (&Settings::debug){
+    if (Settings::debug()){
         $userid ="admin";
         $dbname = "data_admin_log.db";
         $password = "admin";
@@ -41,12 +43,8 @@ if(!$userid||!$dbname){
 my $db = "";
 
 try{
-
-my $database = &Settings::logPath . $dbname;
-my @stat = stat $database;
-my $dsn  = "DBI:SQLite:dbname=$database";
-$db      = DBI->connect( $dsn, $userid, $password, { RaiseError => 1 } );
-
+$db = Settings::connectDB($userid, $password);
+my @stat = stat Settings::dbFile();
 Settings::getConfiguration($db);
 Settings::getTheme();
 
@@ -78,7 +76,7 @@ CSS
 
 
 print $cgi->header(-expires=>"+6os", -charset=>"UTF-8");
-print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>&Settings::bgcol,
+print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>Settings::bgcol(),
                        -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
                                   {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                                   {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
@@ -154,7 +152,7 @@ my $tbl = qq(<table class="tbl" border="1px"><tr class="r0"><td colspan="5" styl
           <tr class="r1"><td># Sum of Expenses For Year $year</td><td>$expense</td></tr>
           <tr class="r0"><td># Sum of Income For Year $year</td><td>$income</td></tr>
           <tr class="r1"><td>Gross For Year $year</td><td>$gross</td></tr>
-          <tr class="r0"><td>$database</td><td>$dbSize</td></tr>
+          <tr class="r0"><td>$Settings::DBFILE</td><td>$dbSize</td></tr>
           <tr class="r1"><td>Public IP</td><td>$IPPublic</td></tr>
           <tr class="r0"><td>Private IP</td><td>$IPPrivate</td></tr>
 </table>);
@@ -190,9 +188,8 @@ $db->disconnect();
             my $err = $@;
             my $pwd = `pwd`;
             $pwd =~ s/\s*$//;
-            print $cgi->header,
-            "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
-            "<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n</pre>",
+            print  "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now. "->".$err,
+            #"<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n</pre>",
             $cgi->end_html;
  };
 

@@ -36,6 +36,9 @@ our $THEME        = 'Standard';
 our $TRACK_LOGINS = 1;
 our $KEEP_EXCS    = 0;
 our $COMPRESS_ENC = 0; #HTTP Compressed encoding.
+our $DBI_DRV_PRFIX= "DBI:SQLite:dbname=";
+our $DSN;
+our $DBFILE;
 
 
 #Annons here, variables that could be overiden in  code or database, per need.
@@ -76,55 +79,91 @@ sub keepExcludes   {return $KEEP_EXCS}
 sub bgcol          {return $BGCOL}
 sub css            {return $TH_CSS}
 sub compressPage   {return $COMPRESS_ENC}
-sub debug          {my $ret=shift; if($ret){$DEBUG = $ret;}; return $DEBUG;}
+sub debug          {my $r = shift; if(!$r){$r = $DEBUG}else{$DEBUG=$r}  return $r}
+sub DBIPrefix      {my $r = shift; if(!$r){$r = $DBI_DRV_PRFIX}else{$DBI_DRV_PRFIX=$r}  return $r}
+sub dsn            {return $DSN}
+sub dbFile         {return $DBFILE}
+
+
 
 sub createCONFIGStmt {
 return qq(
     CREATE TABLE CONFIG(
-        ID TINY             PRIMARY KEY NOT NULL,
-        NAME VCHAR(16)      UNIQUE,
-        VALUE VCHAR(28),
-        DESCRIPTION VCHAR(128)
+        ID INT             PRIMARY KEY NOT NULL,
+        NAME VARCHAR(16)      UNIQUE,
+        VALUE VARCHAR(28),
+        DESCRIPTION VARCHAR(128)
     );
     CREATE INDEX idx_config_name ON CONFIG (NAME);
 )}
 sub createCATStmt {
 return qq(
     CREATE TABLE CAT(
-        ID TINY             PRIMARY KEY NOT NULL,
-        NAME                VCHAR(16),
-        DESCRIPTION         VCHAR(64)
+        ID INT             PRIMARY KEY NOT NULL,
+        NAME                VARCHAR(16),
+        DESCRIPTION         VARCHAR(64)
     );
     CREATE INDEX idx_cat_name ON CAT (NAME);
 )}
 sub createLOGStmt {
 return qq(
     CREATE TABLE LOG (
-        ID_CAT TINY        NOT NULL,
+        ID_CAT INT        NOT NULL,
         ID_RTF INTEGER     DEFAULT 0,
         DATE   DATETIME    NOT NULL,
-        LOG    VCHAR (128) NOT NULL,
+        LOG    VARCHAR (128) NOT NULL,
         AMOUNT INTEGER,
-        AFLAG TINY         DEFAULT 0,
+        AFLAG INT         DEFAULT 0,
         STICKY BOOL        DEFAULT 0
     );
 )}
+
+#pgSQL -> CREATE TABLE LOG (
+#         ID_CAT INT        NOT NULL,
+#         ID_RTF INTEGER     DEFAULT 0,
+#         DATE   TIMESTAMP    NOT NULL,
+#         LOG    VARCHAR (128) NOT NULL,
+#         AMOUNT INTEGER,
+#         AFLAG INT         DEFAULT 0,
+#         STICKY BOOL       DEFAULT FALSE 
+#     );
+
+
+
 sub createVW_LOGStmt {
 return qq(
 CREATE VIEW VW_LOG AS
     SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
-        FROM LOG as a ORDER BY Date(DATE) DESC, Time(DATE) DESC;'
+        FROM LOG as a ORDER BY Date(DATE) DESC, Time(DATE) DESC;
 )}
+
+#pgSQL -> CREATE VIEW VW_LOG AS
+    # SELECT ctid as ID,*, (select count(ctid) from LOG as recount where a.ctid >= recount.ctid) as PID
+    #     FROM LOG as a ORDER BY Date(DATE) DESC;
+
+
+
+
 sub createAUTHStmt {
 return qq(
     CREATE TABLE AUTH(
         ALIAS varchar(20)   PRIMARY KEY,
         PASSW TEXT,
         EMAIL               varchar(44),
-        ACTION TINY
+        ACTION INT
     ) WITHOUT ROWID;
     CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);
 )}
+
+    #pgSQL -> CREATE TABLE AUTH(
+    #     ALIAS varchar(20)   PRIMARY KEY,
+    #     PASSW TEXT,
+    #     EMAIL               varchar(44),
+    #     ACTION INT
+    # );
+    # CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);
+
+
 sub createNOTEStmt {
     return qq(CREATE TABLE NOTES (LID INTEGER PRIMARY KEY NOT NULL, DOC TEXT);)
 }
@@ -132,7 +171,7 @@ sub createLOGCATSREFStmt {
 return qq(
     CREATE TABLE LOGCATSREF (
         LID INTEGER NOT NULL,
-        CID TINY NOT NULL,
+        CID INT NOT NULL,
     FOREIGN KEY (LID) REFERENCES LOG(ID),
     FOREIGN KEY(CID) REFERENCES CAT(ID)
     );
@@ -145,25 +184,25 @@ sub getConfiguration {
            $st->execute();
         while ( my @r = $st->fetchrow_array() ){
                 switch ( $r[1] ) {
-                case "RELEASE_VER"  { $RELEASE_VER  = $r[2];}
-                case "TIME_ZONE"    { $TIME_ZONE    = $r[2];}
-                case "PRC_WIDTH"    { $PRC_WIDTH    = $r[2];}
-                case "SESSN_EXPR"   { $SESSN_EXPR   = $r[2];}
-                case "DATE_UNI"     { $DATE_UNI     = $r[2];}
-                case "LANGUAGE"     { $LANGUAGE     = $r[2];}
+                case "RELEASE_VER"  { $RELEASE_VER  = $r[2]}
+                case "TIME_ZONE"    { $TIME_ZONE    = $r[2]}
+                case "PRC_WIDTH"    { $PRC_WIDTH    = $r[2]}
+                case "SESSN_EXPR"   { $SESSN_EXPR   = $r[2]}
+                case "DATE_UNI"     { $DATE_UNI     = $r[2]}
+                case "LANGUAGE"     { $LANGUAGE     = $r[2]}
                 case "LOG_PATH"     {} #ommited and code static can't change for now.
-                case "IMG_W_H"      { $IMG_W_H      = $r[2];}
-                case "REC_LIMIT"    { $REC_LIMIT    = $r[2];}
-                case "AUTO_WRD_LMT" { $AUTO_WRD_LMT = $r[2];}
-                case "VIEW_ALL_LMT" { $VIEW_ALL_LMT = $r[2];}
-                case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2];}
-                case "RTF_SIZE"     { $RTF_SIZE     = $r[2];}
-                case "THEME"        { $THEME        = $r[2];}
-                case "DEBUG"        { $DEBUG        = $r[2];}
-                case "KEEP_EXCS"    { $KEEP_EXCS    = $r[2];}
-                case "TRACK_LOGINS" { $TRACK_LOGINS = $r[2];}
-                case "COMPRESS_ENC" { $COMPRESS_ENC = $r[2];}
-                else                { $anons{$r[1]} = $r[2];}
+                case "IMG_W_H"      { $IMG_W_H      = $r[2]}
+                case "REC_LIMIT"    { $REC_LIMIT    = $r[2]}
+                case "AUTO_WRD_LMT" { $AUTO_WRD_LMT = $r[2]}
+                case "VIEW_ALL_LMT" { $VIEW_ALL_LMT = $r[2]}
+                case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2]}
+                case "RTF_SIZE"     { $RTF_SIZE     = $r[2]}
+                case "THEME"        { $THEME        = $r[2]}
+                case "DEBUG"        { $DEBUG        = $r[2]}
+                case "KEEP_EXCS"    { $KEEP_EXCS    = $r[2]}
+                case "TRACK_LOGINS" { $TRACK_LOGINS = $r[2]}
+                case "COMPRESS_ENC" { $COMPRESS_ENC = $r[2]}                
+                else                { $anons{$r[1]} = $r[2]}
                 }
         }
         #Anons are murky grounds. -- @bud
@@ -396,6 +435,14 @@ sub configProperty {
             }
         }
     }
+}
+
+sub connectDB {
+    my ($a,$p) = @_;
+    $DBFILE = $LOG_PATH.'data_'.$a.'_log.db';
+    $DSN= $DBI_DRV_PRFIX.$DBFILE;  
+    return DBI->connect($DSN, $a, $p, { RaiseError => 1, PrintError => 0})
+                       or LifeLogException->throw(error=>"<p>Error->"& $DBI::errstri &"</p>$!",  show_trace=>1);
 }
 
 
