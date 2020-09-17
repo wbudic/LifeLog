@@ -90,6 +90,8 @@ sudo cpan Text::Markdown
 #Install DBI module
 sudo cpan DBI;
 sudo cpan DBD::SQLite;
+#For ProgrsSQL see Installation_ProgresSQL.txt before installing perl driver:
+#cpan DBD::Pg;
 
 #Final Perl Installation Notes
 

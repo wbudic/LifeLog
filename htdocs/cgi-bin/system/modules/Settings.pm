@@ -39,6 +39,7 @@ our $COMPRESS_ENC = 0; #HTTP Compressed encoding.
 our $DBI_DRV_PRFIX= "DBI:SQLite:dbname=";
 our $DSN;
 our $DBFILE;
+our $IS_PROGRESSDB=0;
 
 
 #Annons here, variables that could be overiden in  code or database, per need.
@@ -440,7 +441,11 @@ sub configProperty {
 sub connectDB {
     my ($a,$p) = @_;
     $DBFILE = $LOG_PATH.'data_'.$a.'_log.db';
-    $DSN= $DBI_DRV_PRFIX.$DBFILE;  
+    $DSN= $DBI_DRV_PRFIX.$DBFILE;
+    if (rindex ($DBI_DRV_PRFIX ,'DBI:Pg') ==0) {#progress
+        $DSN=$DBI_DRV_PRFIX.$a; $p=$a;
+        $IS_PROGRESSDB = 1;
+    }
     return DBI->connect($DSN, $a, $p, { RaiseError => 1, PrintError => 0})
                        or LifeLogException->throw(error=>"<p>Error->"& $DBI::errstri &"</p>$!",  show_trace=>1);
 }

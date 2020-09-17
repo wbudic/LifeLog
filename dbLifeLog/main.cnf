@@ -7,8 +7,10 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 <<AUTO_LOGIN</>
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>
-# Default database driver prefix, is SQLite.
-<<DBI_DRV_PRFIX<DBI:SQLite:dbname=>
+# Default database driver prefix, for SQLite.
+<<DBI_DRV_PRFIX_SQLITE<DBI:SQLite:dbname=>
+# Progress DB driver (must have database, the user(alias) and password, pre-created or set)
+<<DBI_DRV_PRFIX<DBI:Pg:host=localhost;dbname=>
 <<CONFIG<4>
 00|$RELEASE_VER = 2.1`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
