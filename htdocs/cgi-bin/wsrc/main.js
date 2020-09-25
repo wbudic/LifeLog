@@ -207,7 +207,6 @@ function onBodyLoad(toggle, tz, today, expires, rs_cur) {
             pnl.show();
     }
 
-
     $("#dropdown-standard a").click(function(e){
         e.preventDefault();
         var ci = $(event.target).parent(); ci = ci.attr('id');

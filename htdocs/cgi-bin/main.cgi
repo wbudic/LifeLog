@@ -33,22 +33,29 @@ $CGI::POST_MAX = 1024 * 1024 * 5;  # max 5GB file post size limit.
 my $cgi = CGI->new;
 my $sss = new CGI::Session( "driver:File", $cgi, { Directory => &Settings::logPath } );
 my $sid      = $sss->id();
-my $dbname   = $sss->param('database');
-my $userid   = $sss->param('alias');
-my $password = $sss->param('passw');
+
+my $alias   = $sss->param('alias');
+my $passw    = $sss->param('passw');
 my $sssCDB   = $sss->param('cdb');
 my $vmode;
 
-if ( !$userid || !$dbname ) {
+Settings::dbSrc( $sss->param('db_source'));
+Settings::dbFile($sss->param('database'));
+use Data::Dumper;
+
+
+if ( !$alias ||  !$passw) {
     print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
     exit;
 }
-my $db       = Settings::connectDB($userid, $password);
+# print $cgi->header, '<pre>dbFile:'.Settings::dbFile()."\n". Dumper(\$sss).'</pre>';
+# exit;
+my $db = Settings::connectDB($alias, $passw);
 my ( $imgw, $imgh );
 #Fetch settings
  Settings::getConfiguration($db);
  Settings::getTheme();
-### Authenticate sss to alias password
+### Authenticate sss to alias passw
     &authenticate;
 #
 my $log_rc      = 0;
@@ -214,7 +221,7 @@ else {    #defaults
 
 my $st;
 my $sqlCAT = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
-my $sqlVWL = "$stmS STICKY = 1 $stmE";
+my $sqlVWL = "$stmS STICKY = true $stmE";
 
 toBuf ("## Using db ->". Settings::dsn(). "\n") if $DEBUG;
 
@@ -303,7 +310,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 
         if (@keywords) {
             foreach (@keywords) {
-                $stmS .= " LOWER(LOG) REGEXP '\\b" . lc $_ . "\\b'";
+                if(Settings::isProgressDB()){$stmS .= " LOWER(LOG) ~ '" . lc $_ . "'"}else{$stmS .= " LOWER(LOG) REGEXP '\\b" . lc $_ . "\\b'"}
                 if ( \$_ != \$keywords[-1] ) {
                     $stmS = $stmS . " OR ";
                 }
@@ -371,8 +378,8 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $tfId      = 0;
     my $id        = 0;
     my $log_start = index $sqlVWL, "<=";
-    my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si;
-    my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, 'REGEXP')>0 || $prm_rtf;
+    my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si; my $regex = 'REGEXP'; $regex = ') ~' if Settings::isProgressDB();
+    my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, $regex)>0 || $prm_rtf;
 
     toBuf $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|vrtf=$prm_rtf|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
 
@@ -401,7 +408,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     buildLog(traceDBExe($sqlVWL));
     #Following is saying is in page selection, not view selection, or accounting on type of sticky entries.
     if( !$isInViewMode && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from ){
-        $sqlVWL = "$stmS STICKY != 1 $stmE";
+        $sqlVWL = "$stmS STICKY = false $stmE";
         toBuf $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
         ;
         &buildLog(traceDBExe($sqlVWL));
@@ -416,7 +423,7 @@ sub traceDBExe {
            $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
         return $st;
     }catch{
-       LifeLogException->throw(error=>"Database error encountered.", show_trace=>1);
+       LifeLogException->throw(error=>"DSN: [".Settings::dsn()."] Error encountered -> $@", show_trace=>1);
     }
 }
 
@@ -602,7 +609,7 @@ sub buildLog {
             $tagged = 1;
         }
         #bold on start markup
-        $log =~ s/(^\*)(.*)(\*)(\\n)/<b>\2<\/b><br>/oi;
+        $log =~ s/(^\*)(.*)(\*)(\\n)/<b>$2<\/b><br>/oi;
         #Decode escaped \\n
         $log =~ s/\r\n/<br>/gs;
         $log =~ s/\\n/<br>/gs;
@@ -788,8 +795,10 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 
             </td>
 			<td style="text-align:top; vertical-align:top">Category:&nbsp;
-            <span id="lcat" class="ui-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
-                <button class="bordered" data-dropdown="#dropdown-standard">&#171;</button>
+            
+                <button data-dropdown="#dropdown-standard">
+                <span id="lcat" class="ui-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>                
+               &nbsp; &#171;</button>
 
             <div class="dropdown-menu dropdown-anchor-top-right dropdown-has-anchor" id="dropdown-standard">
                         <table class="tbl">$td_cat</table>
@@ -1061,7 +1070,7 @@ try {
                 toBuf $stm if $DEBUG;
                 #
 
-                my $dbUpd = DBI->connect(Settings::dsn(), $userid, $password, { RaiseError => 1 } )  or LifeLogException->throw("Execute failed [$DBI::errstri]");
+                my $dbUpd = Settings::connectDB($alias, $passw);#@  or LifeLogException->throw("Execute failed [$DBI::errstri]");
                 traceDBExe($stm);
                 return;
             }
@@ -1098,7 +1107,7 @@ try {
 
                     }
 
-                    $sqlVWL = qq($stmS PID<=$rs_cur and STICKY!=1 $sand $stmE);
+                    $sqlVWL = qq($stmS PID<=$rs_cur and STICKY=false $sand $stmE);
                     return;
                 }
             }
@@ -1122,6 +1131,7 @@ try {
                     return;
                 }
                 if ($dtCur > $dt){$sticky = 1; toBuf $cgi->p("<b>Insert forced to be sticky, it is in the past!</b>");}
+                $sticky=castToBool($sticky);
                 $stm = qq(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES ($cat,$rtf,'$date','$log',$am,$af,$sticky););
                 $st = traceDBExe($stm);
                 if($sssCDB){
@@ -1230,16 +1240,16 @@ my $dbg = qq(--DEBUG OUTPUT--\n
 sub authenticate {
     try {
 
-        my $st = traceDBExe("SELECT alias FROM AUTH WHERE alias='$userid' and passw='$password';");
+        my $st = traceDBExe("SELECT alias FROM AUTH WHERE alias='$alias' and passw='$passw';");
         my @c = $st->fetchrow_array();
-        if (@c && $c[0] eq $userid ) { return; }
+        if (@c && $c[0] eq $alias ) { return; }
 
         #Check if passw has been wiped for reset?
-        $st = traceDBExe("SELECT * FROM AUTH WHERE alias='$userid';");
+        $st = traceDBExe("SELECT * FROM AUTH WHERE alias='$alias';");
         @c = $st->fetchrow_array();
         if ( @c && $c[1] == "" ) {
-            #Wiped with -> UPDATE AUTH SET passw='' WHERE alias='$userid';
-            $st = traceDBExe("UPDATE AUTH SET passw='$password' WHERE alias='$userid';");
+            #Wiped with -> UPDATE AUTH SET passw='' WHERE alias='$alias';
+            $st = traceDBExe("UPDATE AUTH SET passw='$passw' WHERE alias='$alias';");
             return;
         }
 
@@ -1253,7 +1263,7 @@ sub authenticate {
         );
         if($DEBUG){
                 print $cgi->center(
-                    $cgi->div("<b>Access Denied!</b> alias:$userid pass:$password SQL->SELECT * FROM AUTH WHERE alias='$userid' and passw='$password'; ")
+                    $cgi->div("<b>Access Denied!</b> alias:$alias pass:$passw SQL->SELECT * FROM AUTH WHERE alias='$alias' and passw='$passw'; ")
                 );
         }
         else{
@@ -1524,3 +1534,7 @@ sub outputPage {
     print $BUFFER;
     print $cgi->end_html;
 }
+
+sub castToBool {if(shift){return 'true'}else{return 'false'}}
+
+1;

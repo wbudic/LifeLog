@@ -1,4 +1,4 @@
-#Install ProgresSQL
+# Install ProgresSQL
 sudo mkdir /usr/include/postgresql
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" > \
 /etc/apt/sources.list.d/postgresql.list'
@@ -6,12 +6,19 @@ sudo apt update -y
 sudo apt upgrade -y
 sudo apt install postgresql-12 -y
 
-##Install required libpq-dev to compile test perl driver, later. 
+## Install required libpq-dev to compile test perl driver, later. 
 sudo apt install libpq-dev
 
 ##Install perl driver.
 sudo cpan DBD::Pg;
 
+
+# To assign default postgres user and db
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+sudo -u postgres psql -c "CREATE DATABASE testdb;"
+
+## Start stop ProgresSQL
+sudo service postgresql start
 
 ###manually Obtain dep. if encountering lib problems. with i.e.:
 wget https://apt.postgresql.org/pub/repos/apt/pool/main/p/postgresql-12/libpq-dev_12.4-1.pgdg20.04+1_amd64.deb
@@ -19,15 +26,22 @@ dpkg -i libpq-dev_12.4-1.pgdg20.04+1_amd64.deb
 ###Than run again driver install
 sudo cpan DBD::Pg;
 
-#Notes
+# Notes
 
-ProgresSQL Server is an full database service solution. So interaction, like databases, users and backups.
-These are all handled outside the scope of the LifeLog application. You will need to set this up,
-prior of using this application. And make an setting in main.cnf that this is handled outside.
-Mainly what driver you are using. In this case it is the ProgresSQL one. Modify the Anon property to say:
-<DBI_DRV_PRFIX<DBI:Pg:host=localhost;dbname=>
-Don't specify the dbname. You don't need to run a schema, as on a new blank database, all will be created.
-The alias is assumed the database name, and the user.
+ProgresSQL Server is an full database service solution. Handling interaction, like databases, users and backups.
+These all can be handled outside the scope of the LifeLog application.
+However, it is not required or recomended to have an fully managed database system, like this, 
+just to use the LifeLog app.
+
+Modify the following anon property tag in main.cnf to specify:
+<<DBI_DRV_PRFIX<DBI:Pg:host=localhost>
+
+The alias is by default assumed the database name, and the user.
+
+Modify the following anon property, to have multiple users as aliases loging into same database.
+<<DBI_MULTI_USER_DB<0>
+to something like:
+<<DBI_MULTI_USER_DB<lifelog>
 
 Hope all works for you, and happy logging!
 

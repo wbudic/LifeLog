@@ -112,7 +112,8 @@ sub processSubmit {
             if(&checkCreateTables()==0){
                 $session->param('alias', $alias);
                 $session->param('passw', $passw);
-                $session->param('database', 'data_'.$alias.'_log.db');
+                $session->param('db_source', Settings::dbSrc());
+                $session->param('database',  Settings::dbFile());                
                 $session->flush();
                 ### To MAIN PAGE
                 print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
@@ -148,8 +149,8 @@ sub checkAutologinSet {
                 if($v){ @cre = split '/', $v; next}
                 $v = parseAutonom('BACKUP_ENABLED',$line);
                 if($v){ $BACKUP_ENABLED = $v; next}
-                $v = parseAutonom('DBI_DRV_PRFIX',$line);
-                if($v){Settings::DBIPrefix($v); next} 
+                $v = parseAutonom('DBI_SOURCE',$line);
+                if($v){Settings::dbSrc($v); next} 
                 last if parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
@@ -172,18 +173,68 @@ sub checkAutologinSet {
 
 }
 
+sub checkPreparePGDB {
+    my $create =1;
+    $passw = $cgi->param('passw'); #PG handles password encryption itself.
+    my @data_sources = DBI->data_sources("Pg");
+    foreach my $ln (@data_sources){
+            my $i = rindex $ln, '=';
+            my $n = substr $ln, $i+1;
+            if($n eq $alias){ $create = 0; last;}
+    }
+    if($create){
+        my $db = DBI->connect("dbi:Pg:dbname=postgres");
+        Settings::debug(1);
+        $db->do(qq(
+            CREATE ROLE $alias WITH
+                LOGIN
+                SUPERUSER
+                CREATEDB
+                CREATEROLE
+                INHERIT
+                NOREPLICATION
+                CONNECTION LIMIT -1
+                PASSWORD '$passw';
+        ));
+        $db->do(qq(
+            CREATE DATABASE $alias
+                WITH 
+                OWNER = $alias
+                ENCODING = 'UTF8'
+                LC_COLLATE = 'en_AU.UTF-8'
+                LC_CTYPE = 'en_AU.UTF-8'
+                TABLESPACE = pg_default
+                CONNECTION LIMIT = -1;
+        ));
+        $db->disconnect(); undef $db;
+    }
+    return Settings::connectDB($alias, $passw) if !$db; 
+}
+
 sub checkCreateTables {
 
     my $today = DateTime->now;
        $today-> set_time_zone( &Settings::timezone );
     my ($pst, $sql,$rv, $changed) = 0;
-    $db = Settings::connectDB($alias, $passw) if !$db; 
+    
     # We live check database for available tables now only once.
     # If brand new database, this sill returns fine an empty array.
-    $pst = Settings::selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");
     my %curr_tables = ();
-    while(my @r = $pst->fetchrow_array()){
-        $curr_tables{$r[0]} = 1;
+
+    if(Settings::isProgressDB()){
+        $db = checkPreparePGDB();
+        my @tbls = $db->tables(undef, 'public');
+        foreach (@tbls){
+            my $t = uc substr($_,7);
+            $curr_tables{$t} = 1;
+        }
+    }
+    else{
+        $db = Settings::connectDB($alias, $passw) if !$db; 
+        $pst = Settings::selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");        
+        while(my @r = $pst->fetchrow_array()){
+            $curr_tables{$r[0]} = 1;
+        }
     }
     if($curr_tables{'CONFIG'}) {
         #Set changed if has configuration data been wiped out.
@@ -192,7 +243,7 @@ sub checkCreateTables {
     else{
         #v.1.3 -> v.1.4
         #has alter table CONFIG add DESCRIPTION VCHAR(128);
-        $rv = $db->do(&Settings::createCONFIGStmt);
+        $rv = $db->do(Settings::createCONFIGStmt());
         $changed = 1;
     }
     # Now we got a db with CONFIG, lets get settings from there.
@@ -351,7 +402,7 @@ sub checkCreateTables {
         #It is also good to run db fix (config page) to renum if this is an release update?
         #Release in software might not be what is in db, which counts.
         #This here next we now update.
-        my @r = Settings::selectRecords($db, 'SELECT ID, VALUE FROM CONFIG WHERE NAME IS "RELEASE_VER";')->fetchrow_array();
+        my @r = Settings::selectRecords($db, 'SELECT ID, VALUE FROM CONFIG WHERE NAME LIKE \'RELEASE_VER\';')->fetchrow_array();
         my $did = $r[0];
         my $dnm = $r[1];
         my $cmp = $dnm eq $SCRIPT_RELEASE;
@@ -401,7 +452,7 @@ sub populate {
              @lines  = split '\n', $content;
     close $fh;
 
-    my $insConfig = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
+    my $insConfig = $db->prepare('INSERT INTO CONFIG (NAME,VALUE,DESCRIPTION) VALUES (?,?,?)');
     my $insCat    = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
                     $db->begin_work();
     foreach my $line (@lines) {
@@ -426,13 +477,14 @@ sub populate {
                                                                     if($vars{$id}){
 $err .= "UID{$id} taken by $vars{$id}-> $line\n";
                                                                     }
-                                                                    else{
-                                                                            my $st = $db->prepare("SELECT rowid FROM CONFIG WHERE NAME LIKE '$name';");
-                                                                                $st->execute();
-                                                                                $inData = 1;
-                                                                                if(!$st->fetchrow_array()) {
-                                                                                      $insConfig->execute($id,$name,$value,$tick[1]);
-                                                                                }
+                                                                    else{                                                                            
+                                                                            my @arr = Settings::selectRecords($db,"SELECT ID FROM CONFIG WHERE NAME LIKE '$name';")->fetchrow_array();                                                                                 
+                                                                            $inData = 1;                                                                                
+                                                                            if(!@arr) {
+                                                                                $debug .= "conf.ins->".$name.",".$value.",".$tick[1]."\n";
+                                                                                $insConfig->execute($name,$value,$tick[1]);
+                                                                            }
+                                                                                
                                                                     }
                                                                 }
                                                         }else{
@@ -451,6 +503,7 @@ $err .= "Invalid, spec'd entry -> $line\n";
                                                                         # Then check if the  ID is available. If not just skip, the import. Reseting can fix that latter.
                                                                         if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE NAME LIKE '$pair[1]';")->fetchrow_array()) {
                                                                             if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE ID = $pair[0];")->fetchrow_array()){
+                                                                                $debug .= "cat.ins->".$pair[0].",".$pair[1].",".$tick[1]."\n";
                                                                                $insCat->execute($pair[0],$pair[1],$tick[1]);
                                                                             }
                                                                         }
@@ -494,10 +547,10 @@ sub logout {
     try{
         $alias = $session->param('alias');
         $passw = $session->param('passw');
-        my $database = &Settings::logPath.'data_'.$alias.'_log.db';
-        my $dsn= "DBI:SQLite:dbname=$database";
-        my $db = DBI->connect($dsn, $alias, $passw, { RaiseError => 1 })
-                    or LifeLogException->throw($DBI::errstri);
+        Settings::dbSrc( $session->param('db_source'));
+        Settings::dbFile($session->param('database'));
+
+        my $db = Settings::connectDB($alias, $passw);
         Settings::toLog($db, "Log properly loged out by $alias.");
         $db->disconnect();
     }catch{
@@ -539,5 +592,5 @@ sub logout {
 
     exit;
 }
-
+1;
 ### CGI END

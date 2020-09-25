@@ -7,10 +7,16 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 <<AUTO_LOGIN</>
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>
-# Default database driver prefix, for SQLite.
-<<DBI_DRV_PRFIX_SQLITE<DBI:SQLite:dbname=>
-# Progress DB driver (must have database, the user(alias) and password, pre-created or set)
-<<DBI_DRV_PRFIX<DBI:Pg:host=localhost;dbname=>
+# Default database driver prefix, is SQLite.
+<<!DBI_SOURCE<DBI:SQLite:>
+# ProgresSQL DB driver. Remove -> '!' prefix to tag name, to enable.
+<<DBI_SOURCE<DBI:Pg:host=localhost;>
+
+# Set folowing to an database name, if multiple aliases connect to a single log database.
+# Users have to be set, and alias is then used for their userid to be able to login.
+# By default this setting is disabled with 0, making alias, its own log database.
+<<DBI_MULTI_USER_DB<0>
+
 <<CONFIG<4>
 00|$RELEASE_VER = 2.1`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
@@ -51,6 +57,8 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 <<MIG<>
 NOTES|DROP TABLE NOTES;' ver. 1.5 fts4 virtual tables have been scratched as they require special SQLite compilation.
 LOG<5>|Run Query ' ver. 1.5
+
+## Following are historical migration changes.
 
 //ALTER TABLE LOG RENAME AMMOUNT TO AMOUNT;
 
