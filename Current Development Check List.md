@@ -16,15 +16,16 @@
 
 ### v.2.0 SUN RC2 Encountered
 
+* Multiple search views and their settings, should be preserved as last preset. Maybe even have named multiple ones in a dropdown or part of the page menu.
+* Sub users list with passwords in config to be provided, with access and category, permissions settings. Default enabled permission is Event view category.
+* [Scrapt] Multiple category assignment to be enabled, where the first selected is the primary, others put in a separate cross reference table, parseed as hashtags maybe.
+  * Scrapt -> as many categories per log complex and not necessary as many categories per view is already there.
 * &#10004; Export to CVS button on selected logs.
 * &#10004; RTF based view of log entries.
 * &#10004; Check and test cross release migration.
 * &#10004; Minimise Log form when in View Mode.
 * &#10004; Restore of backup on different version of LifeLog should fail with detecting this in provided error.
   * Provided Backup/Restore Specifications, and message that restoration has been invalidated as that is an invalid backup file.
-* Multiple search views and their settings, should be preserved as last preset. Maybe even have name multiple ones in a dropdown.
-* Multiple category assignment to be enabled, where the first selected is the primary, others put in a separate cross reference table, parseed as hashtags maybe.
-* Sub users list with passwords in config to be provided, with access and category, permissions settings. Default enabled permission is Event view category.
 
 ### v.1.9 SUN RC1 Encountered
 
