@@ -39,7 +39,7 @@ our $COMPRESS_ENC = 0; #HTTP Compressed encoding.
 our $DBI_SOURCE   = "DBI:SQLite:";
 our $DSN;
 our $DBFILE;
-our $IS_PG_DB=0;
+our $IS_PG_DB     = 0;
 
 
 #Annons here, variables that could be overiden in  code or database, per need.
@@ -153,7 +153,7 @@ sub selLogIDCount {
 }
 
 sub selStartOfYear {
-    if($IS_PG_DB){return "date>= date_trunc('year', now());"}
+    if($IS_PG_DB){return "date>= date_trunc('year', now())"}
     return "date>=date('now','start of year')"
 }
 

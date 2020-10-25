@@ -50,11 +50,6 @@ Settings::dbFile($sss->param('database'));
     Settings::getConfiguration($db);
     Settings::getTheme();
 ###
-
-my @stat = stat Settings::dbFile();
-Settings::getConfiguration($db);
-Settings::getTheme();
-
 my $today = DateTime->now;
 $today->set_time_zone(&Settings::timezone);
 
@@ -141,7 +136,9 @@ my $hardware_status = "<b>Host: </b>$hst<br>".join("\t", map { defined ? $_ : ''
 
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 my $processes = `$prc | sort -u -r -`;
-my $dbSize = (uc format_bytes($stat[7], bs => 1000));
+my @stat = stat Settings::dbFile();
+my $dbSize =  "Not Avail";
+   $dbSize = (uc format_bytes($stat[7], bs => 1000)) if !Settings::isProgressDB();
 #Strip kernel 0 processes reported
 $processes =~ s/\s*0.00.*//gd;
 #trim reduce prefixed spacing
@@ -152,14 +149,14 @@ my $IPPublic  = `curl -s https://www.ifconfig.me`;
 my $IPPrivate = `hostname -I`; $IPPrivate =~ s/\s/<br>/g;
 
 my $tbl = qq(<table class="tbl" border="1px"><tr class="r0"><td colspan="5" style="text-align:centered"><b>* Personal Log Data Statistics *</b></td></tr>
-          <tr class="r1"><td>LifeLog App. Version:</td><td>).&Settings::release.qq(</td></tr>
+          <tr class="r1"><td>LifeLog App. Version:</td><td>).Settings::release().qq(</td></tr>
 	      <tr class="r0"><td>Number of Records:</td><td>$log_rc</td></tr>
           <tr class="r1"><td>No. of Records This Year:</td><td>$log_this_year_rc</td></tr>
           <tr class="r0"><td>No. of RTF Documents:</td><td>$notes_rc</td></tr>
           <tr class="r1"><td># Sum of Expenses For Year $year</td><td>$expense</td></tr>
           <tr class="r0"><td># Sum of Income For Year $year</td><td>$income</td></tr>
           <tr class="r1"><td>Gross For Year $year</td><td>$gross</td></tr>
-          <tr class="r0"><td>$Settings::DBFILE</td><td>$dbSize</td></tr>
+          <tr class="r0"><td>$dbname<td>$dbSize</td></tr>
           <tr class="r1"><td>Public IP</td><td>$IPPublic</td></tr>
           <tr class="r0"><td>Private IP</td><td>$IPPrivate</td></tr>
 </table>);
