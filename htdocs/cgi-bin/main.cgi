@@ -30,13 +30,13 @@ use lib "system/modules";
 require Settings;
 $CGI::POST_MAX = 1024 * 1024 * 5;  # max 5GB file post size limit.
 
-my $cgi = CGI->new;
-my $sss = new CGI::Session( "driver:File", $cgi, { Directory => &Settings::logPath } );
-my $sid      = $sss->id();
+my $cgi     = CGI->new;
+my $sss     = new CGI::Session( "driver:File", $cgi, { Directory => &Settings::logPath } );
+my $sid     = $sss->id();
 
 my $alias   = $sss->param('alias');
-my $passw    = $sss->param('passw');
-my $sssCDB   = $sss->param('cdb');
+my $passw   = $sss->param('passw');
+my $sssCDB  = $sss->param('cdb');
 my $vmode;
 
 Settings::dbSrc( $sss->param('db_source'));
