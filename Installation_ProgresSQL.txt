@@ -1,3 +1,24 @@
+# Notes
+
+ProgresSQL Server is a full database service solution (RDBSM). Handling interaction, like multipe enterprise schemas, databases, users and backups.
+These all are and can be handled outside the scope of the LifeLog application.
+However, it is not required or recomended to have a fully managed database system service, just to use for the LifeLog app.
+
+
+Modify the following anon driver property tag in dbLifeLog/main.cnf to specify:
+<<DBI_SOURCE<DBI:Pg:host=localhost>
+
+The alias is by default assumed the actual database name as well as the user.
+
+Modify the following anon property, to have the SQL Server provide multiple users as different aliases to loging into specifed single database.
+<<DBI_MULTI_USER_DB<0>
+to something like, to make logins now database users:
+<<DBI_MULTI_USER_DB<lifelog>
+Where 'lifelog' is the database.
+
+Hope all works for you, and happy logging!
+
+
 # Install ProgresSQL
 sudo mkdir /usr/include/postgresql
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" > \
@@ -26,23 +47,6 @@ dpkg -i libpq-dev_12.4-1.pgdg20.04+1_amd64.deb
 ###Than run again driver install
 sudo cpan DBD::Pg;
 
-# Notes
 
-ProgresSQL Server is an full database service solution. Handling interaction, like databases, users and backups.
-These all can be handled outside the scope of the LifeLog application.
-However, it is not required or recomended to have an fully managed database system, like this, 
-just to use the LifeLog app.
-
-Modify the following anon property tag in main.cnf to specify:
-<<DBI_DRV_PRFIX<DBI:Pg:host=localhost>
-
-The alias is by default assumed the database name, and the user.
-
-Modify the following anon property, to have multiple users as aliases loging into same database.
-<<DBI_MULTI_USER_DB<0>
-to something like:
-<<DBI_MULTI_USER_DB<lifelog>
-
-Hope all works for you, and happy logging!
 
 
