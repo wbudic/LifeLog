@@ -1124,7 +1124,7 @@ sub restore {
         print "Done!";
     }
     catch{
-        $ERROR = "<font color='red'><b>Restore failed!</b></font> hndl->$hndl $@ \n";
+        $ERROR = "<font color='red'><b>Restore Failed!</b></font> hndl->$hndl $@ \n";
         $ERROR = "br:[@br]" if(@br);
     };
 

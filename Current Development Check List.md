@@ -6,6 +6,7 @@
 
 ### v.2.1 SUN STABLE New Features in Works
 
+* Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
 * Static pages setting for the pages directory.
 * Search on multiwords should rank by encounter of words specified and display first. (That one is difficult)
 * Provide markdown text functionality to html pages. For quick vanila plain documentation.
