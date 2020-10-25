@@ -109,7 +109,7 @@ sub processSubmit {
 
             $passw = uc crypt $passw, hex Settings->CIPHER_KEY;
             #CheckTables will return 1 if it was an logout set in config table.
-            if(&checkCreateTables()==0){
+            if(checkCreateTables()==0){
                 $session->param('alias', $alias);
                 $session->param('passw', $passw);
                 $session->param('db_source', Settings::dbSrc());
@@ -362,10 +362,10 @@ sub checkCreateTables {
     # From v.1.6 view use server side views, for pages and correct record by ID and PID lookups.
     # This should make queries faster, less convulsed, and log renumeration less needed for accurate pagination.
     if(!$curr_tables{'VW_LOG'}) {
-        $rv = $db->do(&Settings::createVW_LOGStmt);
+        $rv = $db->do(Settings::createVW_LOGStmt());
     }
     if(!$curr_tables{'CAT'}) {
-        $db->do(&Settings::createCATStmt);
+        $db->do(Settings::createCATStmt());
         $changed = 1;
     }else{
         # If empty something happened to it. It shouldn't be EMPTY!
@@ -452,9 +452,11 @@ sub populate {
              @lines  = split '\n', $content;
     close $fh;
 
-    my $insConfig = $db->prepare('INSERT INTO CONFIG (NAME,VALUE,DESCRIPTION) VALUES (?,?,?)');
-    my $insCat    = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
-                    $db->begin_work();
+    my $cnfIns = 'INSERT INTO CONFIG (ID,NAME,VALUE,DESCRIPTION) VALUES (?,?,?,?)'; #for silly bckwrds compatbl;
+       $cnfIns = 'INSERT INTO CONFIG (NAME,VALUE,DESCRIPTION) VALUES (?,?,?)' if(Settings::isProgressDB());
+    my $insCnf = $db->prepare($cnfIns);
+    my $insCat = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
+                 $db->begin_work();
     foreach my $line (@lines) {
 
                     last if ($line =~ /<MIG<>/);#Not doing it with CNF1.0
@@ -482,7 +484,8 @@ $err .= "UID{$id} taken by $vars{$id}-> $line\n";
                                                                             $inData = 1;                                                                                
                                                                             if(!@arr) {
                                                                                 $debug .= "conf.ins->".$name.",".$value.",".$tick[1]."\n";
-                                                                                $insConfig->execute($name,$value,$tick[1]);
+                                                                               if(Settings::isProgressDB()) {$insCnf->execute($name,$value,$tick[1])}
+                                                                               else{$insCnf->execute($id,$name,$value,$tick[1])}
                                                                             }
                                                                                 
                                                                     }
