@@ -8,9 +8,9 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>
 # Default database driver prefix, is SQLite.
-<<!DBI_SOURCE<DBI:SQLite:>
+<<DBI_SOURCE<DBI:SQLite:>
 # ProgresSQL DB driver. Remove -> '!' prefix to tag name, to enable.
-<<DBI_SOURCE<DBI:Pg:host=localhost;>
+<<!DBI_SOURCE<DBI:Pg:host=localhost;>
 
 # Set folowing to an database name, if multiple aliases connect to a single log database.
 # Users have to be set, and alias is then used for their userid to be able to login.
