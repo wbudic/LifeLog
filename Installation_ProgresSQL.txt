@@ -13,7 +13,7 @@ sudo apt install libpq-dev
 sudo cpan DBD::Pg;
 
 
-# To assign default postgres user and db
+# To assign default postgresSQL user and db
 sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
 sudo -u postgres psql -c "CREATE DATABASE testdb;"
 

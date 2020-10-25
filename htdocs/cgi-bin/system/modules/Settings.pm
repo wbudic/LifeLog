@@ -147,6 +147,16 @@ if($IS_PG_DB){
     );
 )}
 
+sub selLogIDCount {
+    if($IS_PG_DB){return 'select count(ID) from LOG;'}
+    return 'select count(rowid) from LOG;'
+}
+
+sub selStartOfYear {
+    if($IS_PG_DB){return "date>= date_trunc('year', now());"}
+    return "date>=date('now','start of year')"
+}
+
 sub createVW_LOGStmt {
 if($IS_PG_DB){
   return qq(

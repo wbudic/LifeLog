@@ -30,12 +30,12 @@ require Settings;
 #15mg data post limit
 $CGI::POST_MAX = 1024 * 15000;
 my ($LOGOUT,$ERROR) = (0,"");
-my $cgi = CGI->new;
-my $session = new CGI::Session("driver:File", $cgi, {Directory=>&Settings::logPath});
-my $sid=$session->id();
-my $dbname  =$session->param('database');
-my $userid  =$session->param('alias');
-my $pass    =$session->param('passw');
+my $cgi     = CGI->new;
+my $sss     = new CGI::Session("driver:File", $cgi, {Directory=>&Settings::logPath});
+my $sid     = $sss->id();
+my $dbname  = $sss->param('database');
+my $userid  = $sss->param('alias');
+my $pass    = $sss->param('passw');
 my $sys     = `uname -n`;
 #my $acumululator="";
 
@@ -44,9 +44,10 @@ if(!$userid||!$dbname){
     exit;
 }
 
-my $db = Settings::connectDB($userid, $pass);
-
+Settings::dbSrc( $sss->param('db_source'));
+Settings::dbFile($sss->param('database'));
 ### Fetch settings
+    my $db = Settings::connectDB($userid, $pass);
     Settings::getConfiguration($db);
     Settings::getTheme();
 ###
@@ -78,8 +79,8 @@ my %hshCats = {};
 &processSubmit;
 ###############
 Settings::getTheme();
-$session->param("theme",&Settings::css);
-$session->param("bgcolor",&Settings::bgcol);
+$sss->param("theme", &Settings::css);
+$sss->param("bgcolor", &Settings::bgcol);
 
 &getHeader;
 
@@ -974,8 +975,8 @@ try{
 }
 
 sub logout {
-    $session->delete();
-    $session->flush();
+    $sss->delete();
+    $sss->flush();
     print $cgi->redirect("login_ctr.cgi");
     exit;
 }

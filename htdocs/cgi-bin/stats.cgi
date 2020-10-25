@@ -22,28 +22,35 @@ use lib "system/modules";
 use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
 require Settings;
 
-my $cgi = CGI->new();
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
-my $sid=$session->id();
-my $dbname  =$session->param('database');
-my $userid  =$session->param('alias');
-my $password=$session->param('passw');
+my $cgi     = CGI->new();
+my $sss     = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
+my $sid     = $sss->id();
+my $dbname  = $sss->param('database');
+my $userid  = $sss->param('alias');
+my $pass    = $sss->param('passw');
+my $db;
 
 if(!$userid||!$dbname){
     if (Settings::debug()){
         $userid ="admin";
         $dbname = "data_admin_log.db";
-        $password = "admin";
+        $pass   = "admin";
     }
     else{
-    print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
-    exit;
+        print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+        exit;
     }
 }
-my $db = "";
-
 try{
-$db = Settings::connectDB($userid, $password);
+
+Settings::dbSrc( $sss->param('db_source'));
+Settings::dbFile($sss->param('database'));
+### Fetch settings
+    $db = Settings::connectDB($userid, $pass);
+    Settings::getConfiguration($db);
+    Settings::getTheme();
+###
+
 my @stat = stat Settings::dbFile();
 Settings::getConfiguration($db);
 Settings::getTheme();
@@ -90,20 +97,20 @@ print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>Settings::bgcol(),
                        -onload  => "onBodyLoadGeneric()"
                 );
 
-my $log_rc = selectSQL('select count(rowid) from LOG;');
-my ($stm1,$stm2) = "SELECT count(date) from LOG where date>=date('now','start of year');";
+my $log_rc = selectSQL(Settings::selLogIDCount());
+my ($stm1,$stm2) = "SELECT count(date) from LOG where ".Settings::selStartOfYear();
 my $log_this_year_rc = selectSQL($stm1);
 my $notes_rc = selectSQL('select count(LID) from NOTES where DOC is not null;');
 my $id;
 
 #INCOME
-$stm1 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 1;';
+$stm1 = 'SELECT sum(AMOUNT) from LOG where '.Settings::selStartOfYear().' AND AFLAG = 1;';
 #EXPENSE
-$stm2 = 'SELECT sum(AMOUNT) from LOG where date>=date("now","start of year") AND AFLAG = 2;';
+$stm2 = 'SELECT sum(AMOUNT) from LOG where '.Settings::selStartOfYear().' AND AFLAG = 2;';
 
 
-my $income = selectSQL($stm1);
-my $expense= selectSQL($stm2);
+my $income  = selectSQL($stm1);
+my $expense = selectSQL($stm2);
 my $gross   = big_money($income - $expense);
 $expense    = big_money(sprintf("%.2f",$expense));
 $income     = big_money(sprintf("%.2f",$income));
@@ -111,7 +118,7 @@ $income     = big_money(sprintf("%.2f",$income));
 #Under perlbrew, sometimes STDOUT is not piped back to our cgi,
 #utility inxi could be a perl written version on newer systems.
 #So I use the inter processing module here for inxi. -- @wbudic
-my  $buff = "";
+my $buff = "";
 my @cmd = ("/usr/bin/inxi", "-b", "-c0");
 my $uptime = `uptime -p`;
 my @ht = split(m/\s/,`hostname -I`);
