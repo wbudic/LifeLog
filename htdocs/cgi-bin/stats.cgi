@@ -23,18 +23,18 @@ use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
 require Settings;
 
 my $cgi     = CGI->new();
-my $sss     = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
-my $sid     = $sss->id();
-my $dbname  = $sss->param('database');
-my $userid  = $sss->param('alias');
-my $pass    = $sss->param('passw');
-my $db;
+my $db      = Settings::fetchDBSettings($cgi);
+my $sss     = Settings::session();
+my $sid     = Settings::sid(); 
+my $dbname  = Settings::dbname();
+my $alias   = Settings::alias();
+my $passw   = Settings::pass();
 
-if(!$userid||!$dbname){
+if(!$alias||!$dbname){
     if (Settings::debug()){
-        $userid ="admin";
+        $alias  ="admin";
         $dbname = "data_admin_log.db";
-        $pass   = "admin";
+        $passw  = "admin";
     }
     else{
         print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
@@ -43,13 +43,6 @@ if(!$userid||!$dbname){
 }
 try{
 
-Settings::dbSrc( $sss->param('db_source'));
-Settings::dbFile($sss->param('database'));
-### Fetch settings
-    $db = Settings::connectDB($userid, $pass);
-    Settings::getConfiguration($db);
-    Settings::getTheme();
-###
 my $today = DateTime->now;
 $today->set_time_zone(&Settings::timezone);
 

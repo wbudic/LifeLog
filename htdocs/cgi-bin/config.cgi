@@ -8,7 +8,6 @@ use warnings;
 use Switch;
 
 use CGI;
-use CGI::Session '-ip_match';
 use CGI::Carp qw ( fatalsToBrowser );
 use DBI;
 use Exception::Class ('LifeLogException');
@@ -30,35 +29,19 @@ require Settings;
 #15mg data post limit
 $CGI::POST_MAX = 1024 * 15000;
 my ($LOGOUT,$ERROR) = (0,"");
-my $cgi     = CGI->new;
-my $sss     = new CGI::Session("driver:File", $cgi, {Directory=>&Settings::logPath});
-my $sid     = $sss->id();
-my $dbname  = $sss->param('database');
-my $userid  = $sss->param('alias');
-my $pass    = $sss->param('passw');
+my $cgi     = CGI->new();
 my $sys     = `uname -n`;
-#my $acumululator="";
-
-if(!$userid||!$dbname){
-    print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
-    exit;
-}
-
-Settings::dbSrc( $sss->param('db_source'));
-Settings::dbFile($sss->param('database'));
-### Fetch settings
-    my $db = Settings::connectDB($userid, $pass);
-    Settings::getConfiguration($db);
-    Settings::getTheme();
-###
-
+my $db      = Settings::fetchDBSettings($cgi);
+my $sid     = Settings::sid(); 
+my $dbname  = Settings::dbname();
+my $alias   = Settings::alias();
 my $rv;
 my $dbs;
-my $lang   = Date::Language->new(&Settings::language);
-my $today  = DateTime->now;
+my $lang    = Date::Language->new(&Settings::language);
+my $today   = DateTime->now;
    $today->set_time_zone( &Settings::timezone );
-my $tz     = $cgi->param('tz');
-my $csvp   = $cgi->param('csv');
+my $tz      = $cgi->param('tz');
+my $csvp    = $cgi->param('csv');
 
 &exportToCSV if ($csvp);
 
@@ -74,15 +57,14 @@ my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 my $status = "Ready for change!";
 my $cats;
 my %hshCats = {};
-&cats;
+cats();
 ###############
-&processSubmit;
+processSubmit();
 ###############
 Settings::getTheme();
-$sss->param("theme", &Settings::css);
-$sss->param("bgcolor", &Settings::bgcol);
-
-&getHeader;
+Settings::session()->param("theme", Settings::css());
+Settings::session()->param("bgcolor", Settings::bgcol());
+getHeader();
 
  if ($ERROR){&error;}else{
 print qq(<div id="menu" title="To close this menu click on its heart, and wait.">
@@ -121,7 +103,7 @@ while(my @row = $dbs->fetchrow_array()) {
     }
  }
 
-my  $frmCats = qq(
+my $frmCats = qq(
      <form id="frm_config" action="config.cgi">).$tbl.qq(
       <tr class="r1">
          <td><input type="text" name="caid" value="" size="3"/></td>
@@ -154,7 +136,7 @@ $tbl = qq(<table id="cnf_sys" class="tbl" border="1" width=").&Settings::pagePrc
        );
 my $stm = 'SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG ORDER BY NAME;';
    $dbs = Settings::selectRecords($db, $stm);
-my $REL ="";
+my $REL = "";
 while(my @row = $dbs->fetchrow_array()) {
 
          my $n = $row[1]; next if($n =~ m/^\^/); #skip private tagged settings
@@ -348,7 +330,7 @@ my  $frmPASS = qq(
         <tr class="r1" align="left"><td>New:</td><td><input type="pass" name="new" value="" size="12"/></td></tr>
         <tr class="r1" align="left"><td>Confirmation:</td><td><input type="pass" name="confirm" value="" size="12"/></td></tr>
         <tr class="r1">
-         <td colspan="2" align="right"><b>Pass change for -> $userid</b>&nbsp;<input type="submit" value="Change"/></td>
+         <td colspan="2" align="right"><b>Pass change for -> $alias</b>&nbsp;<input type="submit" value="Change"/></td>
         </tr>
         </table><input type="hidden" name="pass_change" value="1"/></form><br>
         );
@@ -437,23 +419,26 @@ print qq(
     <p><ol>
         <li><h3>Backup Rules</h3>
             <ol>
-                <li>Backup provides a compressed archive of the current logged in aliased database only.</li>
-                <li>Backup should be uploaded to client to restore.</li>
+                <li>Backup provides an compressed archive of only the current logged in database.</li>
+                <li>Backup should and can be uploaded to local client to later restore.</li>
                 <li>Issuing backup always creates on the server an copy.</li>
                 <li>Backups are issued manually and are interactive.</li>
+                <li>Backups are server side encrypted.</li>
+                <li>Backups can be particularly server specific, therefore not suitable for restoration on new or different hardware.</li>
+                <li>Backup uses OpenSSL, wich under different versions can be uncompatible in the implemented type of encryption.</li>
             </ol>
         </li>
         <li><h3>Restore Rules</h3>
             <ol>
-                <li>The restoring is only possible if logged into the current by alias application version.</li>
-                <li>Restoration is of found missing in current log data.</li>
+                <li>The restoring is only possible if logged into current database the backup belongs.</li>
+                <li>Restoration is of only logs found missing in current log.</li>
                 <li>Restoration is not removing entries in existing current log data.</li>
-                <li>Restoration is most likelly not possible after application upgrade.</li>
+                <li>Restoration might not be possible after an server application upgrade.</li>
                 <li>Restoration of old backups is not made possible or is safe, on new stable application releases.
-                 <ul><li><i>Upgrade your application after restoring it first, as an upgrade will migrate structure and data.</i></li></ul></li>
+                 <ul><li><i>Upgrade your application after restoring it first, as an upgrade will/might migrate structure and data.</i></li></ul></li>
                 <li>                
-                Restoration will import on an previous date backuped data in case when recreating a new aliased for it database, but of the same application version. 
-                    <ul><li>For example: If the database file has been deleted or is blank on login, you than can run a restore, if you have an backup.</li></ul>
+                Restoration will import on an previous date backuped data, in case when recreating a newly created same alias database. 
+                    <ul><li>For example: If the database file has been deleted or is blank on login, you than can run a restore, if you have an backup, for given server.</li></ul>
                 </li>
                 
                 
@@ -461,10 +446,10 @@ print qq(
         </li>
         <li><h3>Purpose</h3>
             <ol>
-                    <li>Provides direct safeguard, besides any external backup procedures.</li>
-                    <li>Provides before snapshot, if venturing into major log modifications.</li>
+                    <li>Provides a direct safeguard, besides any external backup procedures.</li>
+                    <li>Provides a before snapshot, if venturing into major log modifications.</li>
                     <li>Encourages experimentation, with data deletion and modification.</li>
-                    <li>Required if downgrading from an failed application upgrade, or found missuesed and corrupted current data state.</li>
+                    <li>Required if downgrading from an failed application upgrade, or found a missuesed or corrupted state of current data.</li>
             </ol>
         </li>
     </ol></p>
@@ -594,14 +579,14 @@ if($passch){
              $status = "Pass Has Been Changed";
         }
         else{
-            $status = "Wrong existing pass was entered, are you user by alias: $userid ?";
+            $status = "Wrong existing pass was entered, are you user by alias: $alias ?";
             print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
         }
     }
 
     openlog(Settings::dsn(), 'cons,pid', "user");
         syslog('info', 'Status:%s', $status);
-        syslog('info', 'Password change request for %s', $$userid);
+        syslog('info', 'Password change request for %s', $alias);
     closelog();
 
 
@@ -788,7 +773,7 @@ catch{
 sub confirmExistingPass {
         my $pass = $_[0];
         my $crypt = encryptPassw($pass);
-        my $sql = "SELECT ALIAS, PASSW from AUTH WHERE ALIAS='$userid' AND PASSW='$crypt';";
+        my $sql = "SELECT ALIAS, PASSW from AUTH WHERE ALIAS='$alias' AND PASSW='$crypt';";
     #		print "<center><div><p><font color=red><b>DEBUG</b></font>:[$pass]<br>$sql</p></div></center>";
         $dbs = Settings::selectRecords($db, $stmtCat );
         if($dbs->fetchrow_array()){
@@ -798,7 +783,7 @@ sub confirmExistingPass {
 }
 sub changePass {
       my $pass = encryptPassw($_[0]);
-        $dbs = Settings::selectRecords($db, "UPDATE AUTH SET PASSW='$pass' WHERE ALIAS='$userid';");
+        $dbs = Settings::selectRecords($db, "UPDATE AUTH SET PASSW='$pass' WHERE ALIAS='$alias';");
         if($dbs->fetchrow_array()){
             return 1;
         }
@@ -862,7 +847,7 @@ try{
 
         $db->do('COMMIT;');
         $db->disconnect();
-        $db =Settings::connectDB($userid, $pass);
+        $db  = Settings::connectDB();
         $dbs = $db->do("VACUUM;");
 
 
@@ -975,8 +960,8 @@ try{
 }
 
 sub logout {
-    $sss->delete();
-    $sss->flush();
+    Settings::session()->delete();
+    Settings::session()->flush();
     print $cgi->redirect("login_ctr.cgi");
     exit;
 }
@@ -1000,7 +985,7 @@ sub backupDelete {
     my $f = &Settings::logPath.$n;
 try{
     if (-e $f) {
-         LifeLogException->throw("File -> <i>[$n]</i> is not a backup file or it doesn't belong to $userid (you)!") if(index ($file , /bck_\d+$userid\_log/) == -1 );
+         LifeLogException->throw("File -> <i>[$n]</i> is not a backup file or it doesn't belong to $alias (you)!") if(index ($file , /bck_\d+$alias\_log/) == -1 );
          unlink($f) or LifeLogException->throw("Failed to delete $n! -> $!");
          print $cgi->redirect("config.cgi?CGISESSID=$sid");
     exit;
@@ -1019,9 +1004,9 @@ try{
 };
 }
 sub backup {
-
-   my $ball = 'bck__'.$today->strftime('%Y%m%d%H%M%S_')."$dbname.osz";
-   my $pipe = "tar czf - ".Settings::logPath().'main.cnf' ." ". Settings::dbFile()." | openssl enc -k $pass:$userid -e -des-ede3-cfb -out ".Settings::logPath().$ball." 2>/dev/null";
+   my $pass = Settings::pass();
+   my $ball = 'bck_'.$today->strftime('%Y%m%d%H%M%S_')."_$dbname.osz";
+   my $pipe = "tar czf - ".Settings::logPath().'main.cnf' ." ". Settings::dbFile()." | openssl enc -e -des-ede3-cfb -salt -S ".Settings->CIPHER_KEY." -pass pass:$pass-$alias -out ".Settings::logPath().$ball." 2>/dev/null";
    my $rez = `$pipe`;
 
     #print $cgi->header;
@@ -1041,25 +1026,25 @@ sub restore {
 
     my $hndl = $cgi->upload("data_bck");
     my ($pipe,@br);
+    my $pass = Settings::pass();
     try{
 
-
-        &getHeader;
+        getHeader();
         print $cgi->start_html;
         print "<pre>Reading->$hndl</pre>";
         my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
         my $tar = $dbck.$hndl; $tar =~ s/osz$/tar/;
         my $pipe;
-        open ($pipe,  "| openssl enc -k $pass:$userid -d -des-ede3-cfb -in /dev/stdin 2>/dev/null > $tar"); #| tar zt");#1>/dev/null");
+        open ($pipe,  "| openssl enc -d -des-ede3-cfb -salt -S ".Settings->CIPHER_KEY." -pass pass:$pass-$alias -in /dev/stdin 2>/dev/null > $tar");
             while(<$hndl>){print $pipe $_;};
         close $pipe;
 
         print "<pre>\n";
         my $m1 = "it is not permitted to restore another aliases log backup.";
-        $m1= "has your log password changed?" if ($tar=~/_data_$userid/);
+        $m1= "has your log password changed?" if ($tar=~/_data_$alias/);
 
         my $cmd = `tar tvf $tar 2>/dev/null` 
-         or die qq(, possible an security issue, $m1\nBACKUP FILE INVALID! $tar\nYour data alias is: <b>$userid</b>\nYour LifeLog version is:), &Settings::release ."\n";
+         or die qq(, possible an security issue, $m1\nBACKUP FILE INVALID! $tar\nYour data alias is: <b>$alias</b>\nYour LifeLog version is:), Settings::release()."\n";
 
         print "Contents->".$cmd."\n\n";
         $cmd = `tar xzvf $tar -C $dbck --strip-components 1 2>/dev/null` or die "Failed extracting $tar";
@@ -1067,7 +1052,7 @@ sub restore {
 
         my $b_base = $dbck.$dbname;
         my $dsn= "DBI:SQLite:dbname=$b_base";
-        my $b_db = DBI->connect($dsn, $userid, $pass, { RaiseError => 1 }) or LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
+        my $b_db = DBI->connect($dsn, $alias, $pass, { RaiseError => 1 }) or LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
         print "Connected to -> $dsn\n";
 
         print "Merging from backup categories table...\n";
@@ -1124,7 +1109,7 @@ sub restore {
         print "Done!";
     }
     catch{
-        $ERROR = "<font color='red'><b>Restore Failed!</b></font> hndl->$hndl $@ \n";
+        $ERROR = "<font color='red'><b>Restore Failed!</b></font>hndl->$hndl $@ \n";
         $ERROR = "br:[@br]" if(@br);
     };
 

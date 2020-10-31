@@ -22,7 +22,7 @@ use lib "system/modules";
 require Settings;
 my $BACKUP_ENABLED = 0;
 
-my $cgi = CGI->new;
+my $cgi = CGI->new();
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
    $session->expire(&Settings::sessionExprs);
 my $sssCreatedDB = $session->param("cdb");
@@ -36,10 +36,9 @@ my ($debug,$frm) = "";
 #Codebase release version. Release in the created db or existing one can be different, through time.
 my $SCRIPT_RELEASE = Settings::release();
 
-if($cgi->param('logout')){&logout}
-
 try{
-    &checkAutologinSet;
+    logout() if($cgi->param('logout'));
+    checkAutologinSet();
     if(&processSubmit==0){
 
         print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
@@ -82,7 +81,7 @@ try{
                                 <a href="https://github.com/wbudic/LifeLog" target="_blank">Get latest version of this application here!</a><br>
                             </center><div>);
 
-    Settings::printDebugHTML($debug) if (&Settings::debug);
+    Settings::printDebugHTML($debug) if (Settings::debug());
     print $cgi->end_html;
 
     }
@@ -113,7 +112,8 @@ sub processSubmit {
                 $session->param('alias', $alias);
                 $session->param('passw', $passw);
                 $session->param('db_source', Settings::dbSrc());
-                $session->param('database',  Settings::dbFile());                
+                $session->param('db_file',   Settings::dbFile());
+                $session->param('database',  Settings::dbname());                
                 $session->flush();
                 ### To MAIN PAGE
                 print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
@@ -142,7 +142,7 @@ sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag
 sub checkAutologinSet {
     my (@cre, $v);
     # We don't need to slurp whole file as next are expected settings in begining of the config file.
-    open(my $fh, '<', &Settings::logPath.'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");
+    open(my $fh, '<', Settings::logPath().'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");
     while (my $line = <$fh>) {
                 chomp $line;
                 $v = parseAutonom('AUTO_LOGIN',$line);
@@ -546,16 +546,15 @@ return "SELECT name FROM sqlite_master WHERE type='view' AND name='$name';"
 
 sub logout {
 
-    if(&Settings::trackLogins){
+    if(Settings::trackLogins()){
     try{
         $alias = $session->param('alias');
         $passw = $session->param('passw');
-        Settings::dbSrc( $session->param('db_source'));
-        Settings::dbFile($session->param('database'));
-
-        my $db = Settings::connectDB($alias, $passw);
-        Settings::toLog($db, "Log properly loged out by $alias.");
-        $db->disconnect();
+        if($alias){
+            my $db = Settings::connectDB($alias, $passw);
+            Settings::toLog($db, "Log properly loged out by $alias.");
+            $db->disconnect();
+        }
     }catch{
         my $err = $@;
         my $dbg = "" ;

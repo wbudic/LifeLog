@@ -6,7 +6,7 @@
 
 ### v.2.1 SUN STABLE New Features in Works
 
-* Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
+* &#10004; Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
 * Static pages setting for the pages directory.
 * Search on multiwords should rank by encounter of words specified and display first. (That one is difficult)
 * Provide markdown text functionality to html pages. For quick vanila plain documentation.
@@ -18,8 +18,9 @@
 
 ### v.2.0 SUN RC2 Encountered
 
-* Multiple search views and their settings, should be preserved as last preset. Maybe even have named multiple ones in a dropdown or part of the page menu.
 * Sub users list with passwords in config to be provided, with access and category, permissions settings. Default enabled permission is Event view category.
+* [Scrapt] Multiple search views and their settings, should be preserved as last preset. Maybe even have named multiple ones in a dropdown or part of the page menu.
+  * Scrapt -> as view display is different to actual time based normal page display of records. Maybe in the future.
 * [Scrapt] Multiple category assignment to be enabled, where the first selected is the primary, others put in a separate cross reference table, parseed as hashtags maybe.
   * Scrapt -> as many categories per log complex and not necessary as many categories per view is already there.
 * &#10004; Export to CVS button on selected logs.

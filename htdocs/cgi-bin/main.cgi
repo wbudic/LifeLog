@@ -9,9 +9,6 @@ use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use Switch;
 
-use CGI;
-use CGI::Session '-ip_match';
-use CGI::Carp qw ( fatalsToBrowser );
 use DBI;
 
 use DateTime;
@@ -24,38 +21,29 @@ use Time::localtime;
 use Regexp::Common qw /URI/;
 use List::MoreUtils qw(uniq);
 use Gzip::Faster;
+use Data::Dumper;
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
 require Settings;
-$CGI::POST_MAX = 1024 * 1024 * 5;  # max 5GB file post size limit.
 
-my $cgi     = CGI->new;
-my $sss     = new CGI::Session( "driver:File", $cgi, { Directory => &Settings::logPath } );
-my $sid     = $sss->id();
+my $db      = Settings::fetchDBSettings();
+my $cgi     = Settings::cgi();
+my $sss     = Settings::session();
+my $sid     = Settings::sid(); 
+my $dbname  = Settings::dbname();
+my $alias   = Settings::alias();
+my $passw   = Settings::pass();
 
-my $alias   = $sss->param('alias');
-my $passw   = $sss->param('passw');
 my $sssCDB  = $sss->param('cdb');
-my $vmode;
-
-Settings::dbSrc( $sss->param('db_source'));
-Settings::dbFile($sss->param('database'));
-use Data::Dumper;
-
+my ($vmode, $imgw, $imgh );
 
 if ( !$alias ||  !$passw) {
     print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
     exit;
 }
-# print $cgi->header, '<pre>dbFile:'.Settings::dbFile()."\n". Dumper(\$sss).'</pre>';
-# exit;
-my $db = Settings::connectDB($alias, $passw);
-my ( $imgw, $imgh );
-#Fetch settings
- Settings::getConfiguration($db);
- Settings::getTheme();
-### Authenticate sss to alias passw
+
+### Authenticate session to alias passw
     &authenticate;
 #
 my $log_rc      = 0;

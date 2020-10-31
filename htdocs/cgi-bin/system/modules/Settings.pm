@@ -10,6 +10,10 @@ use warnings;
 use Switch;
 use Exception::Class ('SettingsException');
 use Syntax::Keyword::Try;
+use CGI;
+use CGI::Session '-ip_match';
+use CGI::Carp qw ( fatalsToBrowser );
+
 
 use DBI;
 
@@ -40,6 +44,8 @@ our $DBI_SOURCE   = "DBI:SQLite:";
 our $DSN;
 our $DBFILE;
 our $IS_PG_DB     = 0;
+
+my ($cgi, $sss, $sid, $alias, $pass, $dbname);
 
 
 #Annons here, variables that could be overiden in  code or database, per need.
@@ -84,9 +90,40 @@ sub debug          {my $r = shift; if(!$r){$r = $DEBUG}else{$DEBUG=$r}  return $
 sub dbSrc          {my $r = shift; if($r) {$DBI_SOURCE=$r; $IS_PG_DB = 1 if(index (uc $r, 'DBI:PG') ==0)}  
                     return $DBI_SOURCE}
 sub dbFile         {my $r = shift; if($r) {$DBFILE=$r} return $DBFILE}
+sub dbName         {return $dbname;}
 sub dsn            {return $DSN}
 sub isProgressDB   {return $IS_PG_DB}
 
+sub fetchDBSettings {
+try {
+    $CGI::POST_MAX = 1024 * 1024 * 5;  # max 5GB file post size limit.
+    $cgi     = CGI->new();    
+    $sss     = new CGI::Session("driver:File", $cgi, {Directory=>$LOG_PATH});
+    $sid     = $sss->id();
+    $dbname  = $sss->param('database');
+    $alias   = $sss->param('alias');
+    $pass    = $sss->param('passw');
+    if(!$alias||!$dbname){
+        print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid&alias=$alias&dbname=$dbname");
+        exit;
+    }
+    my $ret  = connectDB($alias, $pass);
+    dbSrc($sss->param('db_source'));    
+    getConfiguration($ret);
+    getTheme();
+    $sss->expire($SESSN_EXPR);
+    return $ret;
+}catch{
+    SettingsException->throw(error=>$@, show_trace=>$DEBUG);
+    exit;
+}
+}
+sub cgi     {return $cgi}
+sub session {return $sss}
+sub sid     {return $sid}
+sub dbname  {return $dbname}
+sub alias   {return $alias}
+sub pass    {return $pass}
 
 sub createCONFIGStmt {
 if($IS_PG_DB){qq(
@@ -490,11 +527,14 @@ sub configProperty {
 
 sub connectDB {
     my ($a,$p) = @_;
-    $DBFILE = $LOG_PATH.'data_'.$a.'_log.db' if(!$DBFILE);    
+    $a = $alias if(!$a);
+    $p = $alias if(!$p);
+    $dbname = 'data_'.$a.'_log.db';
+    $DBFILE = $LOG_PATH.$dbname if(!$DBFILE);    
     if ($IS_PG_DB)  {
         $DSN = $DBI_SOURCE .'dbname='.$a; $DBFILE = $a;        
     }else{
-        $DSN = $DBI_SOURCE .'dbname='.$DBFILE
+        $DSN = $DBI_SOURCE .'dbname='.$DBFILE;        
     }
     try{
         return DBI->connect($DSN, $a, $p, {AutoCommit => 1, RaiseError => 1, PrintError => 0, show_trace=>1});
