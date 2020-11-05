@@ -13,7 +13,9 @@ use Syntax::Keyword::Try;
 use CGI;
 use CGI::Session '-ip_match';
 use CGI::Carp qw ( fatalsToBrowser );
-
+use DateTime;
+use DateTime::Format::SQLite;
+use DateTime::Duration;
 
 use DBI;
 
@@ -34,6 +36,7 @@ our $REC_LIMIT    = 25;
 our $AUTO_WRD_LMT = 1000;
 our $AUTO_WRD_LEN = 17; #Autocompletion word length limit. Internal.
 our $VIEW_ALL_LMT = 1000;
+our $DISP_ALL     = 1;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
 our $THEME        = 'Standard';
@@ -80,6 +83,7 @@ sub recordLimit    {return $REC_LIMIT}
 sub autoWordLimit  {return $AUTO_WRD_LMT}
 sub autoWordLength {return $AUTO_WRD_LEN}
 sub viewAllLimit   {return $VIEW_ALL_LMT}
+sub displayAll     {return $DISP_ALL}
 sub trackLogins    {return $TRACK_LOGINS}
 sub windowRTFSize  {return $RTF_SIZE}
 sub keepExcludes   {return $KEEP_EXCS}
@@ -104,7 +108,7 @@ try {
     $alias   = $sss->param('alias');
     $pass    = $sss->param('passw');
     if(!$alias||!$dbname){
-        print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid&alias=$alias&dbname=$dbname");
+        print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
         exit;
     }
     my $ret  = connectDB($alias, $pass);
@@ -124,6 +128,12 @@ sub sid     {return $sid}
 sub dbname  {return $dbname}
 sub alias   {return $alias}
 sub pass    {return $pass}
+
+sub today {
+    my $ret = DateTime->now();
+       $ret -> set_time_zone(Settings::timezone()) if(!anon('auto_set_timezone'));
+return $ret;
+}
 
 sub createCONFIGStmt {
 if($IS_PG_DB){qq(
@@ -284,6 +294,7 @@ sub getConfiguration {
                 case "REC_LIMIT"    { $REC_LIMIT    = $r[2]}
                 case "AUTO_WRD_LMT" { $AUTO_WRD_LMT = $r[2]}
                 case "VIEW_ALL_LMT" { $VIEW_ALL_LMT = $r[2]}
+                case "DISP_ALL"     { $DISP_ALL     = $r[2]}
                 case "FRAME_SIZE"   { $FRAME_SIZE   = $r[2]}
                 case "RTF_SIZE"     { $RTF_SIZE     = $r[2]}
                 case "THEME"        { $THEME        = $r[2]}
@@ -447,7 +458,9 @@ sub countRecordsIn {
 
 sub getCurrentSQLTimeStamp {
 
-     my $dt = DateTime->from_epoch(epoch => time(), time_zone=> $TIME_ZONE);
+     my $dt;
+     if(anon('auto_set_timezone')){$dt = DateTime->from_epoch(epoch => time())}
+     else{                         $dt = DateTime->from_epoch(epoch => time(), time_zone=> $TIME_ZONE)}     
      # 20200225  Found that SQLite->format_datetime, changes internally to UTC timezone, which is wrong.
      # Strange that this format_datetime will work from time to time, during day and some dates. (A Pitfall)
     #return DateTime::Format::SQLite->format_datetime($dt);

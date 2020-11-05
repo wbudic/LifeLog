@@ -8,12 +8,7 @@ use strict;
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use Switch;
-
 use DBI;
-
-use DateTime;
-use DateTime::Format::SQLite;
-use DateTime::Duration;
 use Date::Language;
 use Date::Parse;
 use Time::localtime;
@@ -81,9 +76,8 @@ sub toBuf {
 }
 
 my $lang  = Date::Language->new(Settings::language());
-my $today = DateTime->now;
-   $today -> set_time_zone(Settings::timezone());
-
+my $today = Settings->today();
+ 
 if(!$prm_vc && &Settings::keepExcludes){
     if($prm_xc_lst){
         &Settings::configProperty($db, 201, '^EXCLUDES', $prm_xc_lst);

@@ -12,7 +12,6 @@ use CGI::Pretty ":standard"; #Influde style subroutine for inline CSS
 use CGI::Session '-ip_match';
 use CGI::Carp qw ( fatalsToBrowser );
 use DBI;
-use DateTime;
 use DateTime::Format::SQLite;
 use Number::Bytes::Human qw(format_bytes);
 use IPC::Run qw( run );
@@ -43,8 +42,7 @@ if(!$alias||!$dbname){
 }
 try{
 
-my $today = DateTime->now;
-$today->set_time_zone(&Settings::timezone);
+my $today = Settings->today();
 
 $ENV{'HOME'} = "~/";
 

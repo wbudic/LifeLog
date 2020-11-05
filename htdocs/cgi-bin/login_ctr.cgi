@@ -11,20 +11,12 @@ use CGI;
 use CGI::Session '-ip_match';
 use DBI;
 
-use DateTime;
-use DateTime::Format::SQLite;
-use DateTime::Duration;
-#Bellow perl 5.28+
-#use experimental 'smartmatch';
-
-#DEFAULT SETTINGS HERE!
 use lib "system/modules";
 require Settings;
-my $BACKUP_ENABLED = 0;
 
 my $cgi = CGI->new();
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
-   $session->expire(&Settings::sessionExprs);
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>Settings::logPath()});
+   $session->expire(Settings::sessionExprs());
 my $sssCreatedDB = $session->param("cdb");
 my $sid=$session->id();
 my $cookie = $cgi->cookie(CGISESSID => $sid);
@@ -36,7 +28,12 @@ my ($debug,$frm) = "";
 #Codebase release version. Release in the created db or existing one can be different, through time.
 my $SCRIPT_RELEASE = Settings::release();
 
+#anons - Are parsed end obtained only here, to be transfered to the DB config.
+my $BACKUP_ENABLED = 0;
+my $AUTO_SET_TIMEZONE = 0;
+
 try{
+
     logout() if($cgi->param('logout'));
     checkAutologinSet();
     if(&processSubmit==0){
@@ -57,7 +54,7 @@ try{
        $hst = `hostname` . "($ht[0])" if (@ht);
 
     $frm = qq(
-        <form id="frm_login" action="login_ctr.cgi" method="post"><table border="0" width=").&Settings::pagePrcWidth.qq(%">
+        <form id="frm_login" action="login_ctr.cgi" method="post"><table border="0" width=").Settings::pagePrcWidth().qq(%">
         <tr class="r0">
             <td colspan="3"><center>LOGIN</center></td>
             </tr>
@@ -97,8 +94,8 @@ try{
             $pwd =~ s/\s*$//;
             $dbg = "--DEBUG OUTPUT--\n$debug" if $debug;
             print $cgi->header,
-            "<hr><font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
-            "<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n$dbg</pre>",
+            "<hr><font color=red><b>SERVER ERROR</b></font> on ".DateTime->now().
+            "<pre>".$pwd."/$0 -> &".caller." -> [\n$err]","\n$dbg</pre>",
             $cgi->end_html;
  };
 exit;
@@ -124,19 +121,8 @@ sub processSubmit {
     else{
         $alias = $passw = "";
     }
-    &Settings::removeOldSessions;  #and prompt for login returning 0
+    Settings::removeOldSessions();  #and prompt for login returning 0
     return 0;
-}
-
-sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
-    my $t = '<<'.shift.'<';
-    my $line = shift;
-    if(rindex ($line, $t, 0)==0){#@TODO change the following to regex parsing:
-        my $l = length $t;
-        my $e = index $line, ">", $l + 1;
-        return substr $line, $l, $e - $l;
-    }
-    return undef;
 }
 
 sub checkAutologinSet {
@@ -150,7 +136,9 @@ sub checkAutologinSet {
                 $v = parseAutonom('BACKUP_ENABLED',$line);
                 if($v){ $BACKUP_ENABLED = $v; next}
                 $v = parseAutonom('DBI_SOURCE',$line);
-                if($v){Settings::dbSrc($v); next} 
+                if($v){Settings::dbSrc($v); next}
+                $v = parseAutonom('AUTO_SET_TIMEZONE',$line);
+                if($v){$AUTO_SET_TIMEZONE = $v; next}
                 last if parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
@@ -167,10 +155,21 @@ sub checkAutologinSet {
             if($set[0]=="1"){
                     $alias = $cre[0];
                     $passw = $passw; 
-                    &Settings::removeOldSessions;
+                    Settings::removeOldSessions();
             }            
     }
 
+}
+
+sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
+    my $t = '<<'.shift.'<';
+    my $line = shift;
+    if(rindex ($line, $t, 0)==0){#@TODO change the following to regex parsing:
+        my $l = length $t;
+        my $e = index $line, ">", $l + 1;
+        return substr $line, $l, $e - $l;
+    }
+    return undef;
 }
 
 sub checkPreparePGDB {
@@ -213,8 +212,7 @@ sub checkPreparePGDB {
 
 sub checkCreateTables {
 
-    my $today = DateTime->now;
-       $today-> set_time_zone( &Settings::timezone );
+    my $today = Settings::today();
     my ($pst, $sql,$rv, $changed) = 0;
     
     # We live check database for available tables now only once.
@@ -250,7 +248,7 @@ sub checkCreateTables {
     # Default version is the scripted current one, which could have been updated.
     # We need to maybe update further, if these versions differ.
     # Source default and the one from the CONFIG table in the (present) database.
-    Settings::getConfiguration($db,{backup_enabled=>$BACKUP_ENABLED});
+    Settings::getConfiguration($db,{backup_enabled=>$BACKUP_ENABLED,auto_set_timezone=>$AUTO_SET_TIMEZONE});
     my $DB_VERSION  = Settings::release();
     my $hasLogTbl   = $curr_tables{'LOG'};
     my $hasNotesTbl = $curr_tables{'NOTES'};
@@ -396,7 +394,7 @@ sub checkCreateTables {
     #
     # New Implementation as of 1.5, cross SQLite Database compatible.
     #
-    if(!$hasNotesTbl) {$db->do(&Settings::createNOTEStmt);}
+    if(!$hasNotesTbl) {$db->do(Settings::createNOTEStmt())}
 
     if($changed){
         #It is also good to run db fix (config page) to renum if this is an release update?
@@ -425,7 +423,7 @@ sub checkCreateTables {
         }
         &populate($db);
     }
-    Settings::toLog($db, "Log accessed by $alias.") if(&Settings::trackLogins);
+    Settings::toLog($db, "Log accessed by $alias.") if(Settings::trackLogins());
     #
         $db->disconnect();
     #
@@ -562,7 +560,7 @@ sub logout {
         $pwd =~ s/\s*$//;
         $dbg = "--DEBUG OUTPUT--\n$debug" if $debug;
         print $cgi->header,
-        "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now.
+        "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now().
         "<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n$dbg</pre>",
         $cgi->end_html;
         exit;

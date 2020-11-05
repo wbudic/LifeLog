@@ -13,9 +13,7 @@ use DBI;
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 
-use DateTime;
 use DateTime::Format::SQLite;
-use DateTime::Duration;
 use Date::Language;
 use Text::CSV;
 use Scalar::Util qw(looks_like_number);
@@ -37,13 +35,12 @@ my $dbname  = Settings::dbname();
 my $alias   = Settings::alias();
 my $rv;
 my $dbs;
-my $lang    = Date::Language->new(&Settings::language);
-my $today   = DateTime->now;
-   $today->set_time_zone( &Settings::timezone );
+my $lang    = Date::Language->new(Settings::language());
+my $today   = Settings::today();   
 my $tz      = $cgi->param('tz');
 my $csvp    = $cgi->param('csv');
 
-&exportToCSV if ($csvp);
+exportToCSV() if ($csvp);
 
 if($cgi->param('bck'))        {&backup;}
 elsif($cgi->param('bck_del')) {&backupDelete;}
@@ -270,6 +267,19 @@ while(my @row = $dbs->fetchrow_array()) {
                 $u = "SELECTED"
             }
             $v = qq(<select id="cmp_enc" name="var$i">
+                    <option value="0" $l>False</option>
+                    <option value="1" $u>True</option>
+                    </select>);
+        }
+        elsif($n eq "DISP_ALL"){
+            my($l,$u)=("","");
+            if($v == 0){
+                    $l = "SELECTED"
+            }
+            else{
+                $u = "SELECTED"
+            }
+            $v = qq(<select id="log_disp" name="var$i">
                     <option value="0" $l>False</option>
                     <option value="1" $u>True</option>
                     </select>);
@@ -702,11 +712,11 @@ elsif($chdbfix){
             my $log = $row[3];
             my ( $dty, $dtf ) = $dt->ymd;
             my $dth = $dt->hms;
-            if ( &Settings::universalDate == 1 ) {
+            if ( Settings::universalDate() == 1 ) {
                 $dtf = $dty;
             }
             else {
-                $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, &Settings::timezone );
+                $dtf = $lang->time2str( "%d %b %Y", $dt->epoch, Settings::timezone() );
             }
 
                 $log =~ s/''/'/g;

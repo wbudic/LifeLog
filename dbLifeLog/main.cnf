@@ -17,6 +17,9 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 # By default this setting is disabled with 0, making alias, its own log database.
 <<DBI_MULTI_USER_DB<0>
 
+#Timezoning, if set to 1, country locale setting for timezone in config page is ignored.
+<<AUTO_SET_TIMEZONE<0>
+
 <<CONFIG<4>
 00|$RELEASE_VER = 2.1`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
@@ -38,6 +41,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 36|$TRACK_LOGINS=1`Create system logs on login/logout of Life Log.
 38|$COMPRESS_ENC=0`Compress Encode pages, default -> 0=false, 1=true.
 40|$SUBPAGEDIR  =docs`Directory to scan for subpages like documents.
+42|$DISP_ALL    = 1`Display whole log entry, default -> 1=true, 0=false for display single line only.
 <<CAT<3>
 01|Unspecified `For quick uncategorised entries.
 03|File System `Operating file system/Application short log.
