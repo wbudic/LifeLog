@@ -122,9 +122,13 @@
 
 ## Bugs
 
+### v. 2.1 Encountered/Fixed
+
+* Bug 30 Wrongly entered or modified locale can't be reset no more to an valid one.
+
 ### v. 2.0 Encountered/Fixed
 
-* &#10004; Bug 26 HTML output is incorrect since introducing buffering and content compression. Browser corrects, hence it was not noticed before.
+* &#10004; Bug 29 HTML output is incorrect since introducing buffering and content compression. Browser corrects, hence it was not noticed before.
 
 ### v. 1.9 Encountered/Fixed
 
