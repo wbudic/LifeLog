@@ -9,6 +9,7 @@
 * &#10004; Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
 * Static pages setting for the pages directory.
 * Search on multiwords should rank by encounter of words specified and display first. (That one is difficult)
+* Search button should be an and on previous views settings. Otherwise lists entries of other categories containg an word.
 * Provide markdown text functionality to html pages. For quick vanila plain documentation.
 * Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more showes only that number of lines. (That one is difficult)
 * &#10004; Implement title bolding on logs using markdown, so tags can be avoided, for multiline logs.
