@@ -6,6 +6,7 @@
 
 ### v.2.1 SUN STABLE New Features in Works
 
+* Provide office share link for main.inf linked categories, No login required but not log creation or search is possible.
 * &#10004; Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
 * Static pages setting for the pages directory.
 * Search on multiwords should rank by encounter of words specified and display first. (That one is difficult)
