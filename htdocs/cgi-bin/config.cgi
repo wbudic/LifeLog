@@ -347,14 +347,14 @@ my  $frmPASS = qq(
 
 
 my @backups = ();
-my ($file,$bck_list) ="";
+my ($bck_list) ="";
 opendir my $dir, &Settings::logPath;
-while($file = readdir $dir){
+while(my $file = readdir $dir){
 next if $file eq '.' or $file eq '..' or index ($file , 'bck_') == -1;
   push @backups, $file;
 }
 close $dir;
-foreach $file (sort @backups){
+foreach my $file (sort @backups){
     #my $n = substr $file, length(&Settings::logPath);
     $bck_list .=  "<input name='bck_file' type='radio' value='$file'>$file</input><br>";
 }
@@ -910,7 +910,7 @@ try{
 
                                                     my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
                                                     if(scalar(%nash)==1){
-                                                            for $id (keys %nash) {
+                                                            for my $id (keys %nash) {
                                                                 $name  = $nash{$id};
                                                                 $value = $hsh{$key};
                                                                 if($vars{$id}){
@@ -1022,9 +1022,9 @@ sub backup {
     #print $cgi->header;
     #print $cgi->start_html;
     print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>$ball);
-    open (TAR, "<".Settings::logPath().$ball) or die "Failed creating backup -> $ball";
-    while(<TAR>){print $_;}
-    close TAR;
+    open (my $TAR, "<", Settings::logPath().$ball) or die "Failed creating backup -> $ball";
+    while(<$TAR>){print $_;}
+    close $TAR;
 
     #print $cgi->end_html;
     exit;
@@ -1045,7 +1045,7 @@ sub restore {
         my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
         my $tar = $dbck.$hndl; $tar =~ s/osz$/tar/;
         my $pipe;
-        open ($pipe,  "| openssl enc -d -des-ede3-cfb -salt -S ".Settings->CIPHER_KEY." -pass pass:$pass-$alias -in /dev/stdin 2>/dev/null > $tar");
+        open ($pipe, "|" ,"openssl enc -d -des-ede3-cfb -salt -S ".Settings->CIPHER_KEY." -pass pass:$pass-$alias -in /dev/stdin 2>/dev/null > $tar");
             while(<$hndl>){print $pipe $_;};
         close $pipe;
 

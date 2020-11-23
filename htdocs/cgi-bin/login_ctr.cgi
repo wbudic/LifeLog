@@ -342,11 +342,10 @@ sub checkCreateTables {
     if(!$hasLogTbl) {
 
         if($sssCreatedDB){
-            print $cgi->header;
-            print $cgi->start_html;
-            print "<center><font color=red><b>A new alias login detect! <br>
-            Server security measure has been triggered -> Sorry further new alias login/creation not allowed!</b></font><br><br>Contact your network admin.</center>".$_;
-            print $cgi->end_html;
+            print $cgi->header, $cgi->start_html,
+            q(<center><font color=red><b>A new alias login detect! <br>
+            Server security measure has been triggered -> Sorry further new alias login/creation not allowed!</b>
+            </font><br><br>Contact your network admin.</center>).$_,$cgi->end_html;
             exit;
         }
 

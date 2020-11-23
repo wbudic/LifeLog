@@ -497,6 +497,7 @@ function edit(row) {
     $("#amf").val(ec_v);
     $("#amf").selectmenu('refresh');
 
+    $("#div_log").show();
     $("#el").focus();
 
     return false;
@@ -742,16 +743,6 @@ function showAll() {
 
     return false;
 }
-
-// function helpSelCategory(sel) {
-
-//     var desc = _CATS_DESC_MAP.get(sel.options[sel.selectedIndex].value);
-//     if (!desc) {
-//         desc = "<font color='red'>Please select a Category!</font>";
-//     }
-//     display(desc);
-// }
-
 
 function display(desc, times){
     var pnl = $("#cat_desc");

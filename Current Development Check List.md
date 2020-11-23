@@ -9,14 +9,15 @@
 * Provide office share link for main.inf linked categories, No login required but not log creation or search is possible.
 * &#10004; Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
 * Static pages setting for the pages directory.
-* Search on multiwords should rank by encounter of words specified and display first. (That one is difficult)
-* Search button should be an and on previous views settings. Otherwise lists entries of other categories containg an word.
-* Provide markdown text functionality to html pages. For quick vanila plain documentation.
-* Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more showes only that number of lines. (That one is difficult)
+* Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
+* Search button should be an and on previous views settings. Otherwise lists entries of other categories containing an word.
+* Provide markdown text functionality to html pages. For quick vanilla plain documentation.
+* Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
+* &#10004; Edit button to show if hidden is the log entry section.
 * &#10004; Implement title bolding on logs using markdown, so tags can be avoided, for multiline logs.
 * &#10004; Multi db driver type support. Earth stage requires same SQL related code to work on at least one more DBMS type other than SQLight.
-  * PostgreSQL is most likelly candidate as MySQL is not easy to install for the average user.
-  * Developing and adopting to MySQL or any other system is not prerogative, as it works well as it is with inbuild simplicity.
+  * PostgreSQL is most likely candidate as MySQL is not easy to install for the average user.
+  * Developing and adopting to MySQL or any other system is not prerogative, as it works well as it is with inbuilt simplicity.
 
 ### v.2.0 SUN RC2 Encountered
 
@@ -67,7 +68,7 @@
 * &#10004; Notes to Log table should be other way in relationship direction.
   * LOG.ID_RTF -> NOTES.rowid
   * This is currently causing problems when the log renumerates, or entries are imported.
-* &#10004; In config page Categories section to appear after system settings. As less likelly to be changed.
+* &#10004; In config page Categories section to appear after system settings. As less likely to be changed.
   * System Configuration section is to be sorted. As in future it is more likelly to grow.
 * &#10004; New system setting, $VIEW_ALL_LMT=1000. To limit view all records displayed on huge databases.
 * &#10004; Provide system logs on stats page runs.
@@ -75,12 +76,12 @@
 * &#10004; main.cnf newer versions should have precedence to id and entry name to previously set or stored in db.
 * &#10004; Config stored list of excludes. Provide multiple excludes view.
 * &#10004; Settings module requires subroutines for debug logging and db properties access.
-* &#10004; LifeLog codebase release verion upgrade tracking and procedures with older databases.
+* &#10004; LifeLog codebase release version upgrade tracking and procedures with older databases.
 * &#10004; JS based session logout timer warning to be implemented.
 * &#10004; Mutli new alias access flood attack security trigger implementation.
-* &#10004; Debug system settings implementaiton.
+* &#10004; Debug system settings implementation.
 * &#10004; Delete page updated to show better display of entries.
-* &#10004; Login page to indentify host.
+* &#10004; Login page to identify host.
 * &#10004; Session cleanup on autologin not clearing properly.
   * A dbfix, should clear older entries as well.
 
@@ -102,10 +103,10 @@
 * Plugin subpages.
   * Configured in main.cnf
   * Appear on menu or as dropdouwn in the header.
-  * Downloaded/Configurated from the configuration page.
+  * Downloaded/Configured from the configuration page.
 * View save feature. Where you name and save to config or session a dropdown of views.
 * Fit to page log. Making log subpage scrollable rather than whole page to see the bottom.
-* Make session timeot sub pages aware via JSON.
+* Make session timeout sub pages aware via JSON.
 * Multiple category assignment table (set via hashtags and end of a post).
 * Log cards Export/Import. Send log entries via email or USB, why not?
 * Provide sub alias login that sets data visible to only a set of categories.
@@ -167,11 +168,11 @@
 
 ### v. 1.6 Encountered/Fixed
 
-* &#10004; Bug - 11 View runs, brocken since sticky feature implentation. Page record sets don't work.
-* &#10004; Bug - 10 Expense type entries don't fill ammount field on edit button clicked.
+* &#10004; Bug - 11 View runs, brocken since sticky feature implementation. Page record sets don't work.
+* &#10004; Bug - 10 Expense type entries don't fill amount field on edit button clicked.
 * &#10004; Bug - 09 RTF documents lost on data renumeration of log. Data fix options in config. Needs urgent revision.
 * Bug - 08 CSV imports duplicate on DB Fix in config page.
-* &#10004; Bug - 07, Editing and RTF entry, Dosen't strip the attached html to view in place.
+* &#10004; Bug - 07, Editing and RTF entry, doesn't strip the attached html to view in place.
 * &#10004; Bug - 06, Invalid Time 00. Javascript error thrown, when 00am used.
 * &#10004; Bug - 05, CRLF and apostrophe replacement not working.
 * &#10004; Bug - 04, Local not picked up properly on current date.
