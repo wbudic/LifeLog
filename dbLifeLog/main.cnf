@@ -12,13 +12,19 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 # ProgresSQL DB driver. Remove -> '!' prefix to tag name, to enable.
 <<!DBI_SOURCE<DBI:Pg:host=localhost;>
 
-# Set folowing to an database name, if multiple aliases connect to a single log database.
+# Set following to an database name, if multiple aliases connect to a single log database.
 # Users have to be set, and alias is then used for their userid to be able to login.
 # By default this setting is disabled with 0, making alias, its own log database.
 <<DBI_MULTI_USER_DB<0>
 
 #Timezoning, if set to 1, country locale setting for timezone in config page is ignored.
 <<AUTO_SET_TIMEZONE<0>
+
+# Public, enabled list of categories. Remove -> '!' prefix to tag name, to enable. Be careful what category you add/enable here.
+# Public records view feature only, it doesn't allow new log entries to be added and have pin point searching of all existing.
+<<!PUBLIC_CATS<03,06,09>#File,System log and Event.
+# Following is similar to AUTO_LOGIN setting above, and must be set.
+<<!PUBLIC_LOGIN<admin/admin>
 
 <<CONFIG<4>
 00|$RELEASE_VER = 2.1`LifeLog Application Version.

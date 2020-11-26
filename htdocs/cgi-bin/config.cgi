@@ -347,14 +347,14 @@ my  $frmPASS = qq(
 
 
 my @backups = ();
-my ($bck_list) ="";
+my ($file, $bck_list) ="";
 opendir my $dir, &Settings::logPath;
-while(my $file = readdir $dir){
+while($file = readdir $dir){
 next if $file eq '.' or $file eq '..' or index ($file , 'bck_') == -1;
   push @backups, $file;
 }
 close $dir;
-foreach my $file (sort @backups){
+foreach $file (sort @backups){
     #my $n = substr $file, length(&Settings::logPath);
     $bck_list .=  "<input name='bck_file' type='radio' value='$file'>$file</input><br>";
 }

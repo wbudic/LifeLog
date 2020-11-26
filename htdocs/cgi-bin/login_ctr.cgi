@@ -131,15 +131,15 @@ sub checkAutologinSet {
     open(my $fh, '<', Settings::logPath().'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");
     while (my $line = <$fh>) {
                 chomp $line;
-                $v = parseAutonom('AUTO_LOGIN',$line);
-                if($v){ @cre = split '/', $v; next}
-                $v = parseAutonom('BACKUP_ENABLED',$line);
-                if($v){ $BACKUP_ENABLED = $v; next}
-                $v = parseAutonom('DBI_SOURCE',$line);
+                $v = Settings::parseAutonom('AUTO_LOGIN',$line);
+                if($v){@cre = split '/', $v; next}
+                $v = Settings::parseAutonom('BACKUP_ENABLED',$line);
+                if($v){$BACKUP_ENABLED = $v; next}
+                $v = Settings::parseAutonom('DBI_SOURCE',$line);
                 if($v){Settings::dbSrc($v); next}
-                $v = parseAutonom('AUTO_SET_TIMEZONE',$line);
+                $v = Settings::parseAutonom('AUTO_SET_TIMEZONE',$line);
                 if($v){$AUTO_SET_TIMEZONE = $v; next}
-                last if parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
+                last if Settings::parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
     if(@cre &&scalar(@cre)>1){
@@ -150,27 +150,18 @@ sub checkAutologinSet {
             $passw = $cre[1] if (!$passw);
             $db = Settings::connectDB($alias, $passw);            
             #check if autologin enabled.
-            my $st = Settings::selectRecords($db,"SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");            
-            my @set = $st->fetchrow_array() if $st;
-            if($set[0]=="1"){
-                    $alias = $cre[0];
-                    $passw = $passw; 
-                    Settings::removeOldSessions();
-            }            
+            my $st = Settings::selectRecords($db,"SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");                        
+            if($st){my @set = $st->fetchrow_array();
+                if($set[0]=="1"){
+                        $alias = $cre[0];
+                        $passw = $passw; 
+                        Settings::removeOldSessions();
+                }
+            }
     }
 
 }
 
-sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
-    my $t = '<<'.shift.'<';
-    my $line = shift;
-    if(rindex ($line, $t, 0)==0){#@TODO change the following to regex parsing:
-        my $l = length $t;
-        my $e = index $line, ">", $l + 1;
-        return substr $line, $l, $e - $l;
-    }
-    return undef;
-}
 
 sub checkPreparePGDB {
     my $create =1;

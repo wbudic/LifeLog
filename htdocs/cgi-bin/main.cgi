@@ -34,13 +34,14 @@ my $sssCDB  = $sss->param('cdb');
 my ($vmode, $imgw, $imgh );
 
 if ( !$alias ||  !$passw) {
-    print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+    print $cgi->redirect("alogin_ctr.cgi?CGISESSID=$sid");
     exit;
 }
-
 ### Authenticate session to alias passw
     &authenticate;
 #
+
+
 my $log_rc      = 0;
 my $log_rc_prev = 0;
 my $log_cur_id  = 0;
@@ -62,12 +63,12 @@ my $stmS        = $sqlView." WHERE";
 my $stmE        = ' LIMIT '.&Settings::viewAllLimit.';';
 my $stmD        = "";
 my $sm_reset_all;
-my $rec_limit   = &Settings::recordLimit;
+my $rec_limit   = Settings::recordLimit();
 ### Page specific settings Here
-my $TH_CSS      = &Settings::css;
-my $BGCOL       = &Settings::bgcol;
+my $TH_CSS      = Settings::css();
+my $BGCOL       = Settings::bgcol();
 #Set to 1 to get debug help. Switch off with 0.
-my $DEBUG       = &Settings::debug;
+my $DEBUG       = Settings::debug();
 #END OF SETTINGS
 
 my $BUFFER;
@@ -204,6 +205,7 @@ else {    #defaults
 my $st;
 my $sqlCAT = "SELECT ID, NAME, DESCRIPTION FROM CAT ORDER BY ID;";
 my $sqlVWL = "$stmS STICKY = true $stmE";
+my $isPUBViewMode = Settings::pub() && Settings::sqlPubors();
 
 toBuf ("## Using db ->". Settings::dsn(). "\n") if $DEBUG;
 
@@ -244,6 +246,8 @@ for my $key ( keys %hshDesc ) {
         $data_cats .= qq(<meta id="cats[$key]" name="$n" content="$kv">\n);
     }
 }
+my $eh;
+if($isPUBViewMode){$eh = ""}else{$eh='<th>Edit</th>'}
 my $log_output =
 qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 <TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
@@ -252,14 +256,16 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 	<th>Time</th>
 	<th>Log</th><th>#</th>
 	<th>Category</th>
-    <th>Edit</th>
+    $eh
 </tr>);
     #We use js+perl, trickery to filter by amount type, as well.
-    if ($prm_aa >0){my $s = $prm_aa - 1;$prm_aa = " AFLAG=$s AND";}else{$prm_aa=""}
+    if($prm_aa >0){my $s = $prm_aa - 1;$prm_aa = " AFLAG=$s AND";}else{$prm_aa=""}
+    if($prm_rtf){$stmS .= " ID_RTF>0 AND";}
 
-    $stmS .= " ID_RTF>0 AND" if($prm_rtf);
-
-    if ( $rs_keys && $rs_keys ne '*' ) {
+    if($isPUBViewMode){
+        $sqlVWL = $stmS." ".Settings::sqlPubors().$stmE;
+    }
+    elsif ( $rs_keys && $rs_keys ne '*' ) {
 
         my @keywords = split / /, $rs_keys;
         if ($prm_vc && $prm_vc != $prm_xc) {
@@ -393,7 +399,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
         $sqlVWL = "$stmS STICKY = false $stmE";
         toBuf $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
         ;
-        &buildLog(traceDBExe($sqlVWL));
+        buildLog(traceDBExe($sqlVWL));
     }
 
 
@@ -651,13 +657,15 @@ sub buildLog {
 		<td id="v$id" class="log" width="40%">$log</td>
 		<td id="a$id" width="10%" class="tbl">$am</td>
 		<td id="c$id" width="10%" class="tbl">$ct</td>
+        );
+        if(!$isPUBViewMode){$log_output .= qq(
 		<td width="20%">
         <input id="r$id" type="hidden" value="$rtf"/>
         <input id="s$id" type="hidden" value="$sticky"/>
         <input id="f$id" type="hidden" value="$af"/>
         	<button class="edit" value="Edit" onclick="return edit($id);">$ssymb</button>
 			<input name="chk" type="checkbox" value="$pid"/>
-		</td></tr>);
+		</td></tr>)};
 
         if ( $rtf > 0 ) {
              $log_output .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
@@ -727,7 +735,10 @@ if ( $log_rc == 0 ) {
         }else{ $log_output .= '<tr id="brw_row"><td colspan="5"><b>Database is New or Empty!</b></td></tr>'}
     }
 }
+if($isPUBViewMode){
 
+}
+else{
 $log_output .= <<_TXT;
 <tr class="r0" id="brw_row"><td colspan="2">Show All hidden with &#10132;
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
@@ -751,7 +762,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     <input type="submit" value="Search"/></td></tr>
     </TABLE>
 </form>);
-
+};
     my ( $sp1, $sp2, $sp3 );
     $sp1 = '<span  class="ui-icon ui-icon-heart"></span>';
     $sp2 = '<span  class="ui-icon ui-icon-circle-triangle-s"></span>';
@@ -954,45 +965,56 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     else {$srh .= '</tr>'};
 
     $srh .= '</table></form>';
+
+my $sideMenu;
+my $tail = q(<div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
+<div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
+<div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"></a></div>);
+if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
+    $sideMenu = qq(
+        <div id="menu" title="To close this menu click on its heart, and wait.">
+        <div class="hdr" style="marging=0;padding:0px;">
+        <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
+        <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
+        <a id="menu_close" href="#" onclick="return hideLog();"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
+        </div>
+        <hr>
+        <a class="a_" onclick="return toggle('#div_log',true);">Log</a><br>
+        <a href="#" title="TOP" onclick="return submitTop();" ><span class="ui-icon ui-icon-triangle-1-w" style="float:none;"></span></a>
+        <a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
+        <a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
+        <a href="#" title="END" onclick="return submitEnd($rec_limit);"><span class="ui-icon ui-icon-triangle-1-e" style="float:none;"></span></a>
+        <hr>
+        <a class="a_" onclick="return toggle('#div_srh',true);">Search</a><hr>
+        <a class="a_" onclick="return deleteSelected();">Delete</a><hr>
+        <a class="a_" onclick="return toggle('#tbl_hlp',true);">Help</a><hr>
+        <a class="a_" href="stats.cgi">Stats</a><hr>
+        <a class="a_" href="config.cgi">Config</a><hr>
+        <a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></span></a><hr>
+        $sm_reset_all
+        <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br><hr>
+        <span style="font-size: x-small; font-weight: bold;">$vmode</span><br>
+        </div>
+        );
+}
+
+
     my $quill = &quill( $cgi->param('submit_is_edit') );
     my $help = &help;
 
-        ##################################
-        #  Final Page Output from here!  #
-        ##################################
+##################################
+#  Final Page Output from here!  #
+##################################
+
 
 toBuf (qq(
-<div id="menu" title="To close this menu click on its heart, and wait.">
-<div class="hdr" style="marging=0;padding:0px;">
-<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
-<a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
-<a id="menu_close" href="#" onclick="return hideLog();"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
-</div>
-<hr>
-<a class="a_" onclick="return toggle('#div_log',true);">Log</a><br>
-<a href="#" title="TOP" onclick="return submitTop();" ><span class="ui-icon ui-icon-triangle-1-w" style="float:none;"></span></a>
-<a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
-<a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
-<a href="#" title="END" onclick="return submitEnd($rec_limit);"><span class="ui-icon ui-icon-triangle-1-e" style="float:none;"></span></a>
-<hr>
-<a class="a_" onclick="return toggle('#div_srh',true);">Search</a><hr>
-<a class="a_" onclick="return deleteSelected();">Delete</a><hr>
-<a class="a_" onclick="return toggle('#tbl_hlp',true);">Help</a><hr>
-<a class="a_" href="stats.cgi">Stats</a><hr>
-<a class="a_" href="config.cgi">Config</a><hr>
-<a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></span></a><hr>
-$sm_reset_all
-<a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br><hr>
-<span style="font-size: x-small; font-weight: bold;">$vmode</span><br>
-</div>
-	  <div id="div_log">$frm</div>
-	  <div id="div_srh">$srh</div>
-      $quill
-      <div id="div_hlp">$help</div>
-	  <div>\n$log_output\n</div><br>
-	  <div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
-	  <div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
-	  <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"></a></div>
+$sideMenu
+<div id="div_log">$frm</div>
+<div id="div_srh">$srh</div>
+$quill
+<div id="div_hlp">$help</div>
+<div>\n$log_output\n</div><br>
+$tail
 <!-- Cat Data Start -->
 <span id="meta_cats">
 	$data_cats
@@ -1182,8 +1204,10 @@ my $dbg = qq(--DEBUG OUTPUT--\n
 
         $vmode = "[In Page Mode]&nbsp;";
         $vmode = "<font color='red'>[In View Mode]</font>&nbsp;" if$isInViewMode;
-
-        if($rec_limit == 0){
+        if($isPUBViewMode){
+           $log_output .=qq!<tr class="r$tfId" id="brw_row"><td>$vmode</td><td colspan="3"></td>!;
+        }
+        elsif($rec_limit == 0){
             $log_output .= qq!<tr class="r$tfId" id="brw_row"><td>$vmode</td><td colspan="3">
                                <input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="Back To Page View"/>!;
 

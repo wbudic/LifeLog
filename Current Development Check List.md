@@ -1,16 +1,16 @@
 # Branch Development Life Log in Perl
 
-*This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, used. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
+*This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, and in use. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
 
 ## Life Log Development
 
 ### v.2.1 SUN STABLE New Features in Works
 
-* Provide office share link for main.inf linked categories, No login required but not log creation or search is possible.
-* &#10004; Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
+* Implement mapped provision of named timezones via main.inf, for towns not available in global list.
+* &#10004; Provide office share public link for main.inf linked categories, No login required but no log creation or search is possible.
+* &#10004; main.inf - Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
 * Static pages setting for the pages directory.
 * Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
-* Search button should be an and on previous views settings. Otherwise lists entries of other categories containing an word.
 * Provide markdown text functionality to html pages. For quick vanilla plain documentation.
 * Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
 * &#10004; Edit button to show if hidden is the log entry section.
