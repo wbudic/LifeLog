@@ -65,7 +65,7 @@ our $DEBUG         = 1;
 #200 -> '^REL_RENUM' : this.$RELEASE_VER (Used in login_ctr.cgi)
 #201 -> '^EXCLUDES'  : 0 (Used in main.cgi)
 
-our $SQL_PUB = "";
+our $SQL_PUB = undef;
 
 sub anons {my @ret=sort(keys %anons); return @ret;}
 #Check call with defined(Settings::anon('my_anon'))
@@ -114,7 +114,7 @@ try {
     $pass    = $sss->param('passw');
     $pub     = $cgi->param('pub');
     if($pub){#we override session to obtain pub(alias)/pass from config.
-        open(my $fh, '<', logPath().'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");
+        open(my $fh, '<', logPath().'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");        
         while (my $line = <$fh>) {
                     chomp $line;
                     my $v = Settings::parseAutonom('PUBLIC_LOGIN',$line);
@@ -131,14 +131,13 @@ try {
                     }
                     last if Settings::parseAutonom('CONFIG',$line);
         }
-        close $fh;
+        close $fh; 
+        if(!$SQL_PUB){$alias=undef}       
     }
-    elsif(!$alias||!$dbname){
+    if(!$alias){
         print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
         exit;
     }
-
-    print "a:$alias/p:$pass";
     my $ret  = connectDB($alias, $pass);    
     dbSrc($sss->param('db_source'));    
     getConfiguration($ret);
