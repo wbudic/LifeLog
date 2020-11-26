@@ -4,10 +4,9 @@
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 package Settings;
-
+use v5.10;
 use strict;
 use warnings;
-use Switch;
 use Exception::Class ('SettingsException');
 use Syntax::Keyword::Try;
 use CGI;
@@ -311,27 +310,27 @@ sub getConfiguration {
         my $st = $db->prepare("SELECT ID, NAME, VALUE FROM CONFIG;");
            $st->execute();
         while ( my @r = $st->fetchrow_array() ){
-                switch ( $r[1] ) {
-                case "RELEASE_VER"  {$RELEASE_VER  = $r[2]}
-                case "TIME_ZONE"    {$TIME_ZONE    = $r[2]}
-                case "PRC_WIDTH"    {$PRC_WIDTH    = $r[2]}
-                case "SESSN_EXPR"   {$SESSN_EXPR   = $r[2]}
-                case "DATE_UNI"     {$DATE_UNI     = $r[2]}
-                case "LANGUAGE"     {$LANGUAGE     = $r[2]}
-                case "LOG_PATH"     {} #ommited and code static can't change for now.
-                case "IMG_W_H"      {$IMG_W_H      = $r[2]}
-                case "REC_LIMIT"    {$REC_LIMIT    = $r[2]}
-                case "AUTO_WRD_LMT" {$AUTO_WRD_LMT = $r[2]}
-                case "VIEW_ALL_LMT" {$VIEW_ALL_LMT = $r[2]}
-                case "DISP_ALL"     {$DISP_ALL     = $r[2]}
-                case "FRAME_SIZE"   {$FRAME_SIZE   = $r[2]}
-                case "RTF_SIZE"     {$RTF_SIZE     = $r[2]}
-                case "THEME"        {$THEME        = $r[2]}
-                case "DEBUG"        {$DEBUG        = $r[2]}
-                case "KEEP_EXCS"    {$KEEP_EXCS    = $r[2]}
-                case "TRACK_LOGINS" {$TRACK_LOGINS = $r[2]}
-                case "COMPRESS_ENC" {$COMPRESS_ENC = $r[2]}                
-                else                {$anons{$r[1]} = $r[2]}
+                given ( $r[1] ) {
+                when ("RELEASE_VER") {$RELEASE_VER  = $r[2]}
+                when ("TIME_ZONE")   {$TIME_ZONE    = $r[2]}
+                when ("PRC_WIDTH")   {$PRC_WIDTH    = $r[2]}
+                when ("SESSN_EXPR")  {$SESSN_EXPR   = $r[2]}
+                when ("DATE_UNI")    {$DATE_UNI     = $r[2]}
+                when ("LANGUAGE")    {$LANGUAGE     = $r[2]}
+                when ("LOG_PATH")    {} #ommited and code static can't change for now.
+                when ("IMG_W_H")     {$IMG_W_H      = $r[2]}
+                when ("REC_LIMIT")   {$REC_LIMIT    = $r[2]}
+                when ("AUTO_WRD_LMT"){$AUTO_WRD_LMT = $r[2]}
+                when ("VIEW_ALL_LMT"){$VIEW_ALL_LMT = $r[2]}
+                when ("DISP_ALL")    {$DISP_ALL     = $r[2]}
+                when ("FRAME_SIZE")  {$FRAME_SIZE   = $r[2]}
+                when ("RTF_SIZE")    {$RTF_SIZE     = $r[2]}
+                when ("THEME")       {$THEME        = $r[2]}
+                when ("DEBUG")       {$DEBUG        = $r[2]}
+                when ("KEEP_EXCS")   {$KEEP_EXCS    = $r[2]}
+                when ("TRACK_LOGINS"){$TRACK_LOGINS = $r[2]}
+                when ("COMPRESS_ENC"){$COMPRESS_ENC = $r[2]}                
+                default              {$anons{$r[1]} = $r[2]}
                 }
         }
         #Anons are murky grounds. -- @bud
@@ -364,18 +363,16 @@ sub getConfiguration {
 
 
 sub getTheme {
-
-        switch ($THEME){
-            case "Sun"   { $BGCOL = '#D4AF37'; $TH_CSS = "main_sun.css"; }
-            case "Moon"  { $BGCOL = '#000000'; $TH_CSS = "main_moon.css"; }
-            case "Earth" { $BGCOL = '#26ac0c'; $TH_CSS = "main_earth.css";} # Used to be $BGCOL = '#26be54';
-            else{
-                # Standard;
-                $BGCOL    = '#c8fff8';
-                $TH_CSS   = 'main.css';
-            }
+    given ($THEME){
+        when ("Sun")   { $BGCOL = '#D4AF37'; $TH_CSS = "main_sun.css"; }
+        when ("Moon")  { $BGCOL = '#000000'; $TH_CSS = "main_moon.css"; }
+        when ("Earth") { $BGCOL = '#26ac0c'; $TH_CSS = "main_earth.css";} # Used to be $BGCOL = '#26be54';
+        default{
+            # Standard;
+            $BGCOL    = '#c8fff8';
+            $TH_CSS   = 'main.css';
         }
-
+    }
 }
 
 #From v.1.8 Changed

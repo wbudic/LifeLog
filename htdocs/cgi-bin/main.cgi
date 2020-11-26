@@ -3,11 +3,11 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
+use v5.10;
 use warnings;
 use strict;
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
-use Switch;
 use DBI;
 use Date::Language;
 use Date::Parse;
@@ -515,11 +515,11 @@ sub buildLog {
         if ( $log =~ /<iframe / ) {
             my $a = q(<iframe width="560" height="315");
             my $b;
-            switch (&Settings::frameSize) {
-                case "0" { $b = q(width="390" height="215") }
-                case "1" { $b = q(width="280" height="180") }
-                case "2" { $b = q(width="160" height="120") }
-                else {
+            given (&Settings::frameSize) {
+                when("0") { $b = q(width="390" height="215") }
+                when("1") { $b = q(width="280" height="180") }
+                when("2") { $b = q(width="160" height="120") }
+                default {
                     $b = &Settings::frameSize;
                 }
             }
@@ -1352,11 +1352,11 @@ sub quill{
 
     my ( $log_id, $height ) = shift;
 
-switch ( &Settings::windowRTFSize ) {
-        case "0" { $height = q(height:420px;) }
-        case "1" { $height = q(height:260px;) }
-        case "2" { $height = q(height:140px;) }
-        else {
+given ( &Settings::windowRTFSize ) {
+        when("0") { $height = q(height:420px;) }
+        when("1") { $height = q(height:260px;) }
+        when("2") { $height = q(height:140px;) }
+        default  {
             $height = &Settings::windowRTFSize;
         }
 }

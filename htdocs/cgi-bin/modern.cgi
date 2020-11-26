@@ -7,7 +7,6 @@ use warnings;
 use strict;
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
-use Switch;
 
 use CGI;
 use CGI::Session '-ip_match';
