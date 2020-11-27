@@ -5,7 +5,7 @@
 #
 
 use Try::Tiny;
-use Switch;
+use strict;
  
 use CGI;
 use CGI::Session '-ip_match';
@@ -41,7 +41,7 @@ print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"$BGCOL",
 #TODO
 my %countries = {};
 my @states;    
-foreach $zone (sort @zones){
+foreach my $zone (sort @zones){
     $zone =~ s/\"//g;
     my @p = split /\//, $zone;
     my $country = $p[0];
@@ -68,7 +68,7 @@ foreach $zone (sort @zones){
 
 print "<center>";
 print "<h2 class='rz' style='text-align:center;border-bottom: 0px cornflowerblue;'>World Time Zone Strings</h2>\n";
-foreach $key (sort keys %countries){   
+foreach my $key (sort keys %countries){   
     $states = $countries{$key}; 
     if( length($states)>0 ){
         print "<div class='rz' style='text-align:left;border-bottom: 0px cornflowerblue;'><b>$key</b></div>\n";

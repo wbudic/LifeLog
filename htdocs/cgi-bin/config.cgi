@@ -3,9 +3,9 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
+use v5.10;
 use strict;
 use warnings;
-use Switch;
 
 use CGI;
 use CGI::Carp qw ( fatalsToBrowser );

@@ -40,8 +40,6 @@ if ( !$alias ||  !$passw) {
 ### Authenticate session to alias passw
     &authenticate;
 #
-
-
 my $log_rc      = 0;
 my $log_rc_prev = 0;
 my $log_cur_id  = 0;

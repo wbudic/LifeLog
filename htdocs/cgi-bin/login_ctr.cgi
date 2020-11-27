@@ -138,7 +138,7 @@ sub checkAutologinSet {
                 $v = Settings::parseAutonom('DBI_SOURCE',$line);
                 if($v){Settings::dbSrc($v); next}
                 $v = Settings::parseAutonom('AUTO_SET_TIMEZONE',$line);
-                if($v){$AUTO_SET_TIMEZONE = $v; next}
+                if($v){$AUTO_SET_TIMEZONE = $v; next}                
                 last if Settings::parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;

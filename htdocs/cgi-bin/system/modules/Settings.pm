@@ -4,6 +4,7 @@
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 package Settings;
+
 use v5.10;
 use strict;
 use warnings;
@@ -17,6 +18,7 @@ use DateTime::Format::SQLite;
 use DateTime::Duration;
 
 use DBI;
+use experimental qw( switch );
 
 #This is the default developer release key, replace on istallation. As it is not secure.
 use constant CIPHER_KEY => '95d7a85ba891da';
@@ -51,7 +53,8 @@ my ($cgi, $sss, $sid, $alias, $pass, $dbname, $pub);
 
 
 #Annons here, variables that could be overiden in  code or database, per need.
-my %anons = ();
+our %anons = ();
+our %tz_map;
 
 ### Page specific settings Here
 our $TH_CSS        = 'main.css';
@@ -69,6 +72,7 @@ our $SQL_PUB = undef;
 sub anons {my @ret=sort(keys %anons); return @ret;}
 #Check call with defined(Settings::anon('my_anon'))
 sub anon {my $n=shift; return $anons{$n}}
+sub anonsSet {my $a = shift;%anons=%{$a}}
 
 sub release        {return $RELEASE_VER}
 sub logPath        {return $LOG_PATH}
@@ -112,7 +116,7 @@ try {
     $alias   = $sss->param('alias');
     $pass    = $sss->param('passw');
     $pub     = $cgi->param('pub');
-    if($pub){#we override session to obtain pub(alias)/pass from config.
+    if($pub){#we override session to obtain pub(alias)/pass from file main config.
         open(my $fh, '<', logPath().'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");        
         while (my $line = <$fh>) {
                     chomp $line;
@@ -159,8 +163,29 @@ sub pub     {return $pub}
 
 sub today {
     my $ret = DateTime->now();
-       $ret -> set_time_zone(Settings::timezone()) if(!anon('auto_set_timezone'));
-return $ret;
+    if(!$anons{'auto_set_timezone'}){
+       setTimezone($ret);
+    }       
+    return $ret;
+}
+
+sub setTimezone {    
+    my $ret = shift;
+    my $v= $anons{'TIME_ZONE_MAP'};
+    if($v){
+       if(!%tz_map){
+           %tz_map={}; chomp($v);
+           foreach (split('\n')){
+             my @p = split('=', $_);
+             $tz_map{trim($p[0])} = trim($p[1]);
+           }
+       }
+       $v = $tz_map{$TIME_ZONE}; #will be set in config to either valid or mapped.
+       if($v){$TIME_ZONE=$v}
+    }
+    $ret = DateTime->now() if(!$ret);
+    $ret -> set_time_zone($TIME_ZONE) ;
+    return $ret;
 }
 
 sub createCONFIGStmt {
@@ -483,7 +508,6 @@ sub countRecordsIn {
 }
 
 sub getCurrentSQLTimeStamp {
-
      my $dt;
      if(anon('auto_set_timezone')){$dt = DateTime->from_epoch(epoch => time())}
      else{                         $dt = DateTime->from_epoch(epoch => time(), time_zone=> $TIME_ZONE)}     
@@ -590,7 +614,7 @@ sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag
         my $e = index $line, ">", $l + 1;
         return substr $line, $l, $e - $l;
     }
-    return undef;
+    return;
 }
 
 1;

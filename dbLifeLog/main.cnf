@@ -25,6 +25,12 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 <<!PUBLIC_CATS<03,06,09>#File,System log and Event.
 # Following is similar to AUTO_LOGIN setting above, and must be set.
 <<!PUBLIC_LOGIN<admin/admin>
+<<TIME_ZONE_MAP<
+Marsfield=Australia/Sydney
+Bondi=Australia/Sydney
+America/Texas=America/Chicago
+>>
+
 
 <<CONFIG<4>
 00|$RELEASE_VER = 2.1`LifeLog Application Version.
@@ -40,7 +46,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 22|$AUTO_LOGIN  = 0`Autologin option, that expires only if login out. Enter Credentials in main.cnf.
 24|$FRAME_SIZE  = 0`Youtube frame size settings, 0 - Large, 1 - Medium, 2- Small.
 26|$RTF_SIZE    = 2`RTF Document height, 0 - Large, 1 - Medium, 2- Small.
-28|$THEME       = Standard`Theme to applay, Standard, Sun, Moon, Earth.
+28|$THEME       = Standard`Theme to apply, Standard, Sun, Moon, Earth.
 30|$DEBUG       = 0`Development page additional debug output, off (default) or on.
 32|$KEEP_EXCS   = 0`Cache excludes between sessions, off (default) or on.
 34|$VIEW_ALL_LMT=1000`Limit of all records displayed for large logs. Set to 0, for unlimited.
@@ -49,7 +55,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 40|$SUBPAGEDIR  =docs`Directory to scan for subpages like documents.
 42|$DISP_ALL    = 1`Display whole log entry, default -> 1=true, 0=false for display single line only.
 <<CAT<3>
-01|Unspecified `For quick uncategorised entries.
+01|Unspecified `For quick uncategorized entries.
 03|File System `Operating file system/Application short log.
 06|System Log  `Operating system important log.
 09|Event       `Event that occurred, meeting, historically important.
@@ -63,7 +69,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 55|Cars        `Car(s) related entry.
 60|Online      `Online purchases (ebay, or received/ordered from online source).
 88|Diary       `Diary specific log and entry. Your daily yaddi-yadda that have decided to place here.
-90|Fitness     `Fitness steps, news, info, and usefull links. Ammount is steps.
+90|Fitness     `Fitness steps, news, info, and useful links. Amount is steps.
 <<MIG<>
 NOTES|DROP TABLE NOTES;' ver. 1.5 fts4 virtual tables have been scratched as they require special SQLite compilation.
 LOG<5>|Run Query ' ver. 1.5

@@ -80,11 +80,11 @@ foreach (@data_sources){
     }
 
 
- $db->disconnect();
+$db->disconnect();
 
 
-  $db = DBI->connect("DBI:Pg:host=localhost;dbname=admin3", "admin3", "admin3", {AutoCommit => 1, RaiseError => 1, PrintError => 0});
-        my @tbls = $db->tables(undef, 'public');
-        foreach (@tbls){
-            print uc substr($_,7) ,"\n";
-        }
+$db = DBI->connect("DBI:Pg:host=localhost;dbname=admin3", "admin3", "admin3", {AutoCommit => 1, RaiseError => 1, PrintError => 0});
+    my @tbls = $db->tables(undef, 'public');
+    foreach (@tbls){
+        print uc substr($_,7) ,"\n";
+    }

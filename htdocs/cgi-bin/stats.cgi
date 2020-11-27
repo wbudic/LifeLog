@@ -2,10 +2,10 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
+use v5.10;
 use strict;
 use warnings;
 #no warnings 'uninitialized';
-use Switch;
 
 use CGI;
 use CGI::Pretty ":standard"; #Influde style subroutine for inline CSS
