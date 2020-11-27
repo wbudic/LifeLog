@@ -7,6 +7,7 @@
 ### v.2.1 SUN STABLE New Features in Works
 
 * Implement mapped provision of named timezones via main.inf, for towns not available in global list.
+  * Javascript also needs to be updated to translate this properly.
 * &#10004; Provide office share public link for main.inf linked categories, No login required but no log creation or search is possible.
 * &#10004; main.inf - Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
 * Static pages setting for the pages directory.
@@ -16,7 +17,7 @@
 * &#10004; Edit button to show if hidden is the log entry section.
 * &#10004; Implement title bolding on logs using markdown, so tags can be avoided, for multiline logs.
 * &#10004; Multi db driver type support. Earth stage requires same SQL related code to work on at least one more DBMS type other than SQLight.
-  * PostgreSQL is most likely candidate as MySQL is not easy to install for the average user.
+  * PostgreSQL is the candidate as MySQL is not easy to install and bulky for all systems.
   * Developing and adopting to MySQL or any other system is not prerogative, as it works well as it is with inbuilt simplicity.
 
 ### v.2.0 SUN RC2 Encountered
