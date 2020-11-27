@@ -6,6 +6,7 @@
 
 ### v.2.1 SUN STABLE New Features in Works
 
+* Session expired should disable the log entry form.
 * Implement mapped provision of named timezones via main.inf, for towns not available in global list.
   * Javascript also needs to be updated to translate this properly.
 * &#10004; Provide office share public link for main.inf linked categories, No login required but no log creation or search is possible.
