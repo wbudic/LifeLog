@@ -171,20 +171,21 @@ sub today {
 
 sub setTimezone {    
     my $ret = shift;
+    my $to  = shift; #optional for testing purposes.
     my $v= $anons{'TIME_ZONE_MAP'};
     if($v){
        if(!%tz_map){
            %tz_map={}; chomp($v);
-           foreach (split('\n')){
+           foreach (split('\n',$v)){
              my @p = split('=', $_);
              $tz_map{trim($p[0])} = trim($p[1]);
            }
        }
-       $v = $tz_map{$TIME_ZONE}; #will be set in config to either valid or mapped.
+       if($to){$v = $tz_map{$to};}else{$v = $tz_map{$TIME_ZONE};}      
        if($v){$TIME_ZONE=$v}
     }
     $ret = DateTime->now() if(!$ret);
-    $ret -> set_time_zone($TIME_ZONE) ;
+    $ret -> set_time_zone($TIME_ZONE);
     return $ret;
 }
 

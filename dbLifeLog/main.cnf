@@ -26,8 +26,9 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 # Following is similar to AUTO_LOGIN setting above, and must be set.
 <<!PUBLIC_LOGIN<admin/admin>
 <<TIME_ZONE_MAP<
-Marsfield=Australia/Sydney
-Bondi=Australia/Sydney
+Australia/Marsfield=Australia/Sydney
+Australia/Bondi=Australia/Sydney
+America/Austin=America/Chicago
 America/Texas=America/Chicago
 >>
 

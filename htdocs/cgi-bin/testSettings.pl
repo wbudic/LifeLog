@@ -20,11 +20,13 @@ require CNFParser;
 my $cnf = CNFParser->new($ENV{'PWD'}.'/dbLifeLog/main.cnf');
 my $ptr = $cnf->anons();
 Settings::anonsSet($ptr);
-
-my $time  = Settings::today();
+my $time = Settings::today();
+my $cnf_tz = Settings::timezone();
+my $ret = Settings::setTimezone(undef, 'America/Texas');
 my $a = Settings::anon('TIME_ZONE_MAP');
 
 
-print $time, $a , "\n";
+
+print "tz:".$cnf_tz." time:". $time. "\n", $a , "\n\nTime America/Texas:$ret\n";
 
 1;
