@@ -106,7 +106,7 @@ if ( $rs_keys || $stmD || $prm_vc > 0 || $prm_xc > 0 || $prm_aa > 0) { $toggle =
 $sss->expire(Settings::sessionExprs());
 $sss->param('theme', $TH_CSS);
 $sss->param('bgcolor', $BGCOL);
-#ss->param('sss_main', $today);
+#sss->param('sss_main', $today);
 #
 
 #Reset Clicked
@@ -323,10 +323,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 
     }
     else {
-
-
-        if($prm_xc>0){
-
+            if($prm_xc>0){
                 if(@xc_lst){
                     my $ands = "";
                     foreach (@xc_lst){
@@ -339,20 +336,18 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
                 else{
                     $sqlVWL = $stmS . $prm_aa." ID_CAT!=$prm_xc;" . $stmE;
                 }
-
-        }
-
-        if ($stmD) {
-            $sqlVWL = $stmS . $prm_aa.' '. $stmD . $stmE;
-        }
-        elsif($prm_aa){
-                    $prm_aa =~ s/AND$//g;
-                    $sqlVWL = $stmS .$prm_aa.' '.$stmE;
-        }
-        elsif($prm_rtf){
-             $stmS   =~ s/AND$//g;
-             $sqlVWL = $stmS.$stmE;
-        }
+            }
+            if ($stmD) {
+                $sqlVWL = $stmS . $prm_aa.' '. $stmD . $stmE;
+            }
+            elsif($prm_aa){
+                        $prm_aa =~ s/AND$//g;
+                        $sqlVWL = $stmS .$prm_aa.' '.$stmE;
+            }
+            elsif($prm_rtf){
+                $stmS   =~ s/AND$//g;
+                $sqlVWL = $stmS.$stmE;
+            }
     }
 
 
@@ -389,14 +384,12 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $exp       = 0;
     my $ass       = 0;
 
-
     #place sticky or view param.ed entries first!
     buildLog(traceDBExe($sqlVWL));
     #Following is saying is in page selection, not view selection, or accounting on type of sticky entries.
     if( !$isInViewMode && !$prm_vc  && !$prm_xc && !$rs_keys && !$rs_dat_from ){
         $sqlVWL = "$stmS STICKY = false $stmE";
         toBuf $cgi->pre("###2 -> ".$sqlVWL)  if $DEBUG;
-        ;
         buildLog(traceDBExe($sqlVWL));
     }
 
@@ -409,7 +402,14 @@ sub traceDBExe {
            $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
         return $st;
     }catch{
-       LifeLogException->throw(error=>"DSN: [".Settings::dsn()."] Error encountered -> $@", show_trace=>1);
+        #BUG 31 fix.
+        if(Settings::isProgressDB() &&  index($sql,'VW_LOG')>0){
+            $db -> do(Settings::createViewLOGStmt());
+            my $st = $db->prepare($sql);
+           $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
+            return $st;
+        }
+        LifeLogException->throw(error=>"DSN: [".Settings::dsn()."] Error encountered -> $@", show_trace=>1);
     }
 }
 
