@@ -33,10 +33,9 @@ my $BACKUP_ENABLED = 0;
 my $AUTO_SET_TIMEZONE = 0;
 
 try{
-
-    logout() if($cgi->param('logout'));
     checkAutologinSet();
-    if(&processSubmit==0){
+    logout() if($cgi->param('logout'));
+    if(processSubmit()==0){
 
         print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
         print $cgi->start_html(
@@ -157,7 +156,9 @@ sub checkAutologinSet {
                         $passw = $passw; 
                         Settings::removeOldSessions();
                 }
+                $st->finish();
             }
+            $db -> disconnect();
     }
 
 }
@@ -173,7 +174,7 @@ sub checkPreparePGDB {
             if($n eq $alias){ $create = 0; last;}
     }
     if($create){
-        my $db = DBI->connect("dbi:Pg:dbname=postgres");
+        my $db = DBI->connect("dbi:Pg:dbname=postgres");#Default expected to exist db is postgres, holding roles.
         Settings::debug(1);
         $db->do(qq(
             CREATE ROLE $alias WITH
@@ -197,8 +198,7 @@ sub checkPreparePGDB {
                 CONNECTION LIMIT = -1;
         ));
         $db->disconnect(); undef $db;
-    }
-    return Settings::connectDB($alias, $passw) if !$db; 
+    }    
 }
 
 sub checkCreateTables {
@@ -211,7 +211,8 @@ sub checkCreateTables {
     my %curr_tables = ();
 
     if(Settings::isProgressDB()){
-        $db = checkPreparePGDB();
+        checkPreparePGDB();
+        $db = Settings::connectDB($alias, $passw); 
         my @tbls = $db->tables(undef, 'public');
         foreach (@tbls){
             my $t = uc substr($_,7);
@@ -219,7 +220,7 @@ sub checkCreateTables {
         }
     }
     else{
-        $db = Settings::connectDB($alias, $passw) if !$db; 
+        $db = Settings::connectDB($alias, $passw); 
         $pst = Settings::selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");        
         while(my @r = $pst->fetchrow_array()){
             $curr_tables{$r[0]} = 1;
@@ -340,17 +341,18 @@ sub checkCreateTables {
             exit;
         }
 
-        $db->do(&Settings::createLOGStmt);
+        $db->do(Settings::createLOGStmt());
 
         my $st = $db->prepare('INSERT INTO LOG(ID_CAT,DATE,LOG) VALUES (?,?,?)');
             $st->execute( 3, $today, "DB Created!");
-            $session->param("cdb", "1");
+            $st->finish();
+            $session->param("cdb", "1");            
     }
 
-    # From v.1.6 view use server side views, for pages and correct record by ID and PID lookups.
+    # From v.1.6 view uses server side views, for pages and correct record by ID and PID lookups.
     # This should make queries faster, less convulsed, and log renumeration less needed for accurate pagination.
     if(!$curr_tables{'VW_LOG'}) {
-        $rv = $db->do(Settings::createVW_LOGStmt());
+        $db->do(Settings::createViewLOGStmt());
     }
     if(!$curr_tables{'CAT'}) {
         $db->do(Settings::createCATStmt());
@@ -363,15 +365,16 @@ sub checkCreateTables {
     #Have cats been wiped out?
     $changed = 1 if Settings::countRecordsIn($db, 'CAT') == 0;
 
-    #TODO Multiple cats per log future table.
+    #TODO Future table for multiple cats per log if ever required.
     if(!$curr_tables{'LOGCATSREF'}) {
-        $db->do(&Settings::createLOGCATSREFStmt);
+        $db->do(Settings::createLOGCATSREFStmt());
     }
 
     if(!$curr_tables{'AUTH'}) {
-        $db->do(&Settings::createAUTHStmt);
+        $db->do(Settings::createAUTHStmt());
         my $st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?);');
            $st->execute($alias, $passw,"",0);
+           $st->finish();
     }
     #
     # Scratch FTS4 implementation if present.
@@ -415,7 +418,7 @@ sub checkCreateTables {
     }
     Settings::toLog($db, "Log accessed by $alias.") if(Settings::trackLogins());
     #
-        $db->disconnect();
+     $db->disconnect();
     #
     #Still going through checking tables and data, all above as we might have an version update in code.
     #Then we check if we are login in intereactively back. Interective, logout should bring us to the login screen.

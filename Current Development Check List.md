@@ -6,6 +6,9 @@
 
 ### v.2.1 SUN STABLE New Features in Works
 
+* PostgreSQL to be further tested. Implement server managed database.
+  * On errors sessions appear not to be closed by driver, maybe this is required and they expire?
+  * Not all sql has been translated or proper database everywhere established.
 * Session expired should disable the log entry form.
 * Implement mapped provision of named timezones via main.inf, for towns not available in global list.
   * Javascript also needs to be updated to translate this properly.
