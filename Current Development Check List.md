@@ -132,7 +132,9 @@
 
 ### v. 2.1 Encountered/Fixed
 
-* Bug 30 Wrongly entered or modified locale can't be reset no more to an valid one.
+* &#10004; Bug 31 PostgreSQL new created log view is not being created.
+ * On a newly created database the view without the schema specified are seen as temporary views.
+* &#10004; Bug 30 Wrongly entered or modified locale can't be reset no more to an valid one.
 
 ### v. 2.0 Encountered/Fixed
 
