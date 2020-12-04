@@ -344,16 +344,16 @@ sub checkCreateTables {
         $db->do(Settings::createLOGStmt());
 
         my $st = $db->prepare('INSERT INTO LOG(ID_CAT,DATE,LOG) VALUES (?,?,?)');
-            $st->execute( 3, $today, "DB Created!");
-            $st->finish();
-            $session->param("cdb", "1");            
+           $st->execute( 3, $today, "DB Created!");            
+           $session->param("cdb", "1");
     }
 
     # From v.1.6 view uses server side views, for pages and correct record by ID and PID lookups.
     # This should make queries faster, less convulsed, and log renumeration less needed for accurate pagination.
     if(!$curr_tables{'VW_LOG'}) {
-        $db->do(Settings::createViewLOGStmt());
+        $db->do(Settings::createViewLOGStmt()) or LifeLogException -> throw("ERROR:".$@)        ;
     }
+
     if(!$curr_tables{'CAT'}) {
         $db->do(Settings::createCATStmt());
         $changed = 1;
@@ -388,6 +388,17 @@ sub checkCreateTables {
     # New Implementation as of 1.5, cross SQLite Database compatible.
     #
     if(!$hasNotesTbl) {$db->do(Settings::createNOTEStmt())}
+
+    if(Settings::isProgressDB()){        
+        my @tbls = $db->tables(undef, 'public');
+        foreach (@tbls){
+            my $t = uc substr($_,7);
+            $curr_tables{$t} = 1;
+        }
+        if(!$curr_tables{'VW_LOG'}) {
+            LifeLogException -> throw("VW_LOG not created! Try logging in again.");
+        }
+    }
 
     if($changed){
         #It is also good to run db fix (config page) to renum if this is an release update?

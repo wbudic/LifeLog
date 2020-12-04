@@ -273,7 +273,7 @@ sub selStartOfYear {
 sub createViewLOGStmt {
 if($IS_PG_DB){
   return qq(
-    CREATE VIEW VW_LOG AS
+    CREATE VIEW public.VW_LOG AS
      SELECT *, (select count(ID) from LOG as recount where a.id >= recount.id) as PID
          FROM LOG as a ORDER BY Date(DATE) DESC;
     );

@@ -103,10 +103,10 @@ if ( $rs_keys || $stmD || $prm_vc > 0 || $prm_xc > 0 || $prm_aa > 0) { $toggle =
 
 
 ##Handle Session Keeps
-$sss->expire(&Settings::sessionExprs);
+$sss->expire(Settings::sessionExprs());
 $sss->param('theme', $TH_CSS);
 $sss->param('bgcolor', $BGCOL);
-$sss->param('sss_main', $today);
+#ss->param('sss_main', $today);
 #
 
 #Reset Clicked
