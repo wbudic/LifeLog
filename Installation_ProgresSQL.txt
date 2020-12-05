@@ -50,9 +50,10 @@ sudo apt install libpq-dev
 sudo cpan DBD::Pg;
 
 
-# To assign default Postgres SQL user and test db
+# To assign default Postgres SQL user roles.
 sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
-sudo -u postgres psql -c "CREATE DATABASE testdb;"
+sudo -u postgres psql -c "CREATE ROLE lifelog WITH LOGIN SUPERUSER CREATEDB CREATEROLE INHERIT NOREPLICATION CONNECTION LIMIT -1 PASSWORD 'xxxxxxx'";
+sudo -u postgres psql -c "CREATE DATABASE lifelog;"
 
 ## Start stop Postgres SQL
 sudo service postgresql start
