@@ -174,7 +174,10 @@ sub checkPreparePGDB {
             if($n eq $alias){ $create = 0; last;}
     }
     if($create){
-        my $db = DBI->connect("dbi:Pg:dbname=postgres");#Default expected to exist db is postgres, holding roles.
+        # TODO Default expected to exist db is postgres, username and password. This cgi connects locally.
+        # Modify this to take any other situations or create main.cnf anon properties for all this. 
+        # To the user with roes and database creation powers.
+        my $db = DBI->connect('dbi:Pg:dbname=postgres;host=localhost','postgres', 'postgres');
         Settings::debug(1);
         $db->do(qq(
             CREATE ROLE $alias WITH
