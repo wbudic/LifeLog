@@ -90,6 +90,7 @@ my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.&Settings::pageP
               <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
             <tr class="r1"><th>ID</th><th>Category</th><th  align="left">Description</th></tr>
           ';
+my $foot = "";
 $dbs = Settings::selectRecords($db, $stmtCat);
 while(my @row = $dbs->fetchrow_array()) {
     if( $row[0]>0 ){
@@ -288,15 +289,16 @@ while(my @row = $dbs->fetchrow_array()) {
             $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
         }
 
-       $tbl = qq($tbl
-       <tr class="r0" align="left">
+       my $tr = qq(<tr class="r0" align="left">
             <td>$n</td>
             <td>$v</td>
             <td>$d</td>
         </tr>);
+
+        if($i<300){$tbl.=$tr}else{$foot.=$tr}
 }
 
-$tbl = qq($tbl<tr class="r1" align="left">$REL</tr>); #RELEASE VERSION we make to outstand last, can't be changed. :)
+$tbl = qq($tbl$foot<tr class="r1" align="left">$REL</tr>); #RELEASE VERSION we make to outstand last, can't be changed. :)
 
 my  $frmVars = qq(
      <form id="frm_vars" action="config.cgi">$tbl
@@ -752,9 +754,7 @@ elsif($chdbfix){
         exit;
 
     }
-    else{
-        &processDBFix;
-    }
+    else{processDBFix()}
     $status = "Performed Database Fixes!";
 }
 
@@ -828,7 +828,11 @@ try{
 
         $db->do('BEGIN TRANSACTION;');
         #Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
-        $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG ORDER BY DATE;');
+        if(Settings::isProgressDB()){
+            $dbs = Settings::selectRecords($db, 'SELECT ID, DATE FROM LOG ORDER BY DATE;');
+        }else{
+            $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG ORDER BY DATE;');
+        }
         while(@row = $dbs->fetchrow_array()) {
             my $existing = $dates{$row[0]};
             if($existing && $existing eq $row[1]){
@@ -841,7 +845,11 @@ try{
         }
 
         foreach my $del (@dlts){
-            $sql = "DELETE FROM LOG WHERE rowid=$del;";
+             if(Settings::isProgressDB()){
+                 $sql = "DELETE FROM LOG WHERE rowid=$del;";
+             }else{
+                 $sql = "DELETE FROM LOG WHERE ID=$del;";
+             }
                     #print "$sql\n<br>";
                     my $st_del = $db->prepare($sql);
                     $st_del->execute();
@@ -1312,14 +1320,22 @@ sub renumerate {
     #Renumerate Log! Copy into temp. table.
     my $sql;
     $db->do("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
-    $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE ID_RTF >0 ORDER BY DATE;');
+    if(Settings::isProgressDB()){
+        $dbs = Settings::selectRecords($db, 'SELECT ID, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;');
+    }else{
+        $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;');
+    }
     #update  notes with new log id
     while(my @row = $dbs->fetchrow_array()) {
         my $sql_date = $row[1];
         if($sql_date){#could be an improperly deleted record in there? Skip if there is!
                         #$sql_date =~ s/T/ /;
                         $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
-                        $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
+                         if(Settings::isProgressDB()){
+                            $sql = "SELECT ID, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
+                         }else{
+                            $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
+                         }
                         $dbs = Settings::selectRecords($db, $sql);
                         my @new  = $dbs->fetchrow_array();
                         if(scalar @new > 0){
@@ -1329,12 +1345,17 @@ sub renumerate {
     }
 
     # Delete Orphaned Notes entries.
+    if(Settings::isProgressDB()){
+        $dbs = Settings::selectRecords($db, "SELECT LID, LOG.ID from NOTES LEFT JOIN LOG ON
+                                        NOTES.LID = LOG.ID WHERE LOG.ID is NULL;");
+    }else{
     $dbs = Settings::selectRecords($db, "SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
-                                    NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
+                                        NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
+    }
     while(my @row = $dbs->fetchrow_array()) {
         $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
     }
-    $db->do('DROP TABLE LOG;');
+    $db->do('DROP TABLE LOG CASCADE;');
     $db->do(&Settings::createLOGStmt);
     $db->do(q(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT,AFLAG)
                     SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG FROM life_log_temp_table ORDER by DATE;));
