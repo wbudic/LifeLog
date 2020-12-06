@@ -8,9 +8,9 @@ use warnings;
 #no warnings 'uninitialized';
 
 use CGI;
-use CGI::Pretty ":standard"; #Influde style subroutine for inline CSS
 use CGI::Session '-ip_match';
 use CGI::Carp qw ( fatalsToBrowser );
+use CGI::Pretty ":standard"; #Includes style subroutine for inline CSS
 use DBI;
 use DateTime::Format::SQLite;
 use Number::Bytes::Human qw(format_bytes);
@@ -123,7 +123,6 @@ my $hardware_status = "<b>Host: </b>$hst<br>".join("\t", map { defined ? $_ : ''
    $hardware_status =~ s/\t+/<br>/gm; #TODO: This temp. resolves the regex needs to be adjusted so we join with <br>
    $hardware_status =~ s/Memory:/<br><b>Memory: <\/b>/g;   
    $hardware_status =~ s/up\s/<b>Server is up: <\/b>/g;
-   
 
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 my $processes = `$prc | sort -u -r -`;
@@ -174,8 +173,11 @@ print qq(
 </div>);
 
 print $cgi->end_html;
-my $syslog = "<span>$hardware_status</span>"."<pre>\n".`df -h -l -x tmpfs`."</pre>";   
-&Settings::toLog($db, $syslog);
+
+$hardware_status = "<span>$hardware_status</span>"."<pre>\n".`df -h -l -x tmpfs`."</pre>";   
+Settings::toLog($db, $$hardware_status);
+
+
 $db->disconnect();
 
 }

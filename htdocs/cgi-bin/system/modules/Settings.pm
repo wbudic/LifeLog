@@ -116,33 +116,35 @@ try {
     $alias   = $sss->param('alias');
     $pass    = $sss->param('passw');
     $pub     = $cgi->param('pub');
+
+    ##From here we have data source set, currently Progress DB SQL and SQLite SQL compatible.
+    dbSrc($sss->param('db_source'));
+
+
     if($pub){#we override session to obtain pub(alias)/pass from file main config.
         open(my $fh, '<', logPath().'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");        
         while (my $line = <$fh>) {
                     chomp $line;
-                    my $v = Settings::parseAutonom('PUBLIC_LOGIN',$line);
+                    my $v = parseAutonom('PUBLIC_LOGIN',$line);
                     if($v){my @cre = split '/', $v; 
                            $alias = $cre[0];                           
                            $pass = uc crypt $cre[1], hex Settings->CIPHER_KEY;
                     }                    
-                       $v = Settings::parseAutonom('PUBLIC_CATS',$line);
+                       $v = parseAutonom('PUBLIC_CATS',$line);
                     if($v){my @cats= split(',',$v);
                         foreach(@cats){
                             $SQL_PUB .= "ID_CAT=".trim($_)." OR ";
                         }
                         $SQL_PUB =~ s/\s+OR\s+$//;
                     }
-                    last if Settings::parseAutonom('CONFIG',$line);
+                    last if parseAutonom('CONFIG',$line);
         }
         close $fh; 
         if(!$SQL_PUB){$alias=undef}       
     }
     if(!$alias){
-        print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
-        exit;
+        $alias = "admin"; $pass  = $alias; dbSrc('dbi:Pg:host=localhost;');
     }
-    ##From here we have data source set, currently Progress DB SQL and SQLite SQL compatible.
-    dbSrc($sss->param('db_source'));
     my $ret  = connectDB($alias, $pass);
     getConfiguration($ret);
     
@@ -241,7 +243,7 @@ if($IS_PG_DB){
         ID_CAT INT        NOT NULL,
         ID_RTF INTEGER    DEFAULT 0,
         DATE TIMESTAMP    NOT NULL,
-        LOG VARCHAR (128) NOT NULL,
+        LOG VARCHAR (1024) NOT NULL,
         AMOUNT INTEGER,
         AFLAG INT         DEFAULT 0,
         STICKY BOOL       DEFAULT FALSE,
@@ -479,6 +481,7 @@ sub printDebugHTML {
 
 sub toLog {
     my ($db,$log,$cat) = @_;
+    if(!$db){SettingsException->throw("Database handle not passed!")}
     my $stamp = getCurrentSQLTimeStamp();
         if(!$cat){
             my @arr = selectRecords($db,"SELECT ID FROM CAT WHERE NAME LIKE 'System Log' or NAME LIKE 'System';")->fetchrow_array();
