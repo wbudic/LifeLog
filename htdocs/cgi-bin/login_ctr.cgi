@@ -136,8 +136,10 @@ sub checkAutologinSet {
                 if($v){$BACKUP_ENABLED = $v; next}
                 $v = Settings::parseAutonom('DBI_SOURCE',$line);
                 if($v){Settings::dbSrc($v); next}
-                $v = Settings::parseAutonom('AUTO_SET_TIMEZONE',$line);
-                if($v){$AUTO_SET_TIMEZONE = $v; next}                
+                $v = Settings::parseAutonom('AUTO_SET_TIMEZONE',$line);                
+                if($v){$AUTO_SET_TIMEZONE = $v; next}
+                $v = Settings::parseAutonom('DBI_LOG_VAR_SIZE',$line);
+                if($v){Settings::dbVLSZ($v); next}
                 last if Settings::parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
@@ -201,7 +203,9 @@ sub checkPreparePGDB {
                 CONNECTION LIMIT = -1;
         ));
         $db->disconnect(); undef $db;
+        return 1;
     }    
+    return 0;
 }
 
 sub checkCreateTables {
@@ -214,7 +218,7 @@ sub checkCreateTables {
     my %curr_tables = ();
 
     if(Settings::isProgressDB()){
-        checkPreparePGDB();
+        $changed = checkPreparePGDB();
         $db = Settings::connectDB($alias, $passw); 
         my @tbls = $db->tables(undef, 'public');
         foreach (@tbls){
@@ -243,7 +247,7 @@ sub checkCreateTables {
     # Default version is the scripted current one, which could have been updated.
     # We need to maybe update further, if these versions differ.
     # Source default and the one from the CONFIG table in the (present) database.
-    Settings::getConfiguration($db,{backup_enabled=>$BACKUP_ENABLED,auto_set_timezone=>$AUTO_SET_TIMEZONE});
+    Settings::getConfiguration($db,{backup_enabled=>$BACKUP_ENABLED,auto_set_timezone=>$AUTO_SET_TIMEZONE, db_log_var_limit=>Settings::dbVLSZ()});
     my $DB_VERSION  = Settings::release();
     my $hasLogTbl   = $curr_tables{'LOG'};
     my $hasNotesTbl = $curr_tables{'NOTES'};

@@ -376,7 +376,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
         $stc->finish();
     }
     #
-    #Fetch entries!
+    # Fetch log entries!
     #
     my $CID_EVENT = 9;
     my $tags      = "";
@@ -887,7 +887,6 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     <tr class="collpsd">
      <td align="right">View by Category:</td>
      <td align="left">
-
             <span id="lcat_v" class="ui-button">$catselected</span>
             <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
             <div id="dropdown-standard-v" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
@@ -1482,7 +1481,7 @@ sub outputPage {
     $BUFFER = $cgi->start_html(
             -title   => "Personal Log",
             -BGCOLOR => $BGCOL,
-            -onload  => "onBodyLoad('$toggle','".Settings::timezone()."','$today','".&Settings::sessionExprs."',$rs_cur);",
+            -onload  => "onBodyLoad('$toggle','".&Settings::timezone."','$today','".&Settings::sessionExprs."','$rs_cur',".&Settings::dbVLSZ.");",
             -style   => [
             { -type => 'text/css', -src => "wsrc/$TH_CSS" },
             { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },

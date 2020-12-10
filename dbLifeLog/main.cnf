@@ -9,9 +9,10 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 <<BACKUP_ENABLED<1>
 # Default database driver prefix, is SQLite.
 <<DBI_SOURCE<DBI:SQLite:>
-# ProgresSQL DB driver. Remove -> '!' prefix to tag name, to enable.
+# ProgresSQL DB driver. Remove -> '!' prefix to tag name, to enable, and override the above SQLite one.
 <<!DBI_SOURCE<DBI:Pg:host=localhost;>
-
+# LOG actual variable size limit, - 1024 default, 128 minimum value. 
+#<<DBI_LOG_VAR_SIZE<1024>
 # Set following to an database name, if multiple aliases connect to a single log database.
 # Users have to be set, and alias is then used for their userid to be able to login.
 # By default this setting is disabled with 0, making alias, its own log database.
@@ -19,6 +20,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 
 #Timezoning, if set to 1, country locale setting for timezone in config page is ignored.
 <<AUTO_SET_TIMEZONE<0>
+
 
 # Public, enabled list of categories. Remove -> '!' prefix to tag name, to enable. Be careful what category you add/enable here.
 # Public records view feature only, it doesn't allow new log entries to be added and have pin point searching of all existing.
@@ -77,7 +79,7 @@ LOG<5>|Run Query ' ver. 1.5
 
 ## Following are historical migration changes.
 
-//ALTER TABLE LOG RENAME AMMOUNT TO AMOUNT;
+//ALTER TABLE LOG RENAME AMOUNT TO AMOUNT;
 
 CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;
 DROP TABLE LOG;
