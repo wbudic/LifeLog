@@ -67,7 +67,6 @@ my $CSS=<<CSS;
 }
 CSS
 
-
 print $cgi->header(-expires=>"+6os", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>Settings::bgcol(),
                        -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
@@ -124,6 +123,9 @@ my $hardware_status = "<b>Host: </b>$hst<br>".join("\t", map { defined ? $_ : ''
    $hardware_status =~ s/Memory:/<br><b>Memory: <\/b>/g;   
    $hardware_status =~ s/up\s/<b>Server is up: <\/b>/g;
 
+my $log = "<span>".$hardware_status."</span>"."<pre>\n".`df -h -l -x tmpfs`."</pre>";   
+Settings::toLog($db, $log);   
+
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 my $processes = `$prc | sort -u -r -`;
 my @stat = stat Settings::dbFile();
@@ -173,10 +175,6 @@ print qq(
 </div>);
 
 print $cgi->end_html;
-
-$hardware_status = "<span>$hardware_status</span>"."<pre>\n".`df -h -l -x tmpfs`."</pre>";   
-Settings::toLog($db, $$hardware_status);
-
 
 $db->disconnect();
 
