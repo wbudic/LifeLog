@@ -7,8 +7,6 @@ use v5.10;
 use strict;
 use warnings;
 
-use CGI;
-use CGI::Carp qw ( fatalsToBrowser );
 use DBI;
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
@@ -27,9 +25,9 @@ require Settings;
 #15mg data post limit
 $CGI::POST_MAX = 1024 * 15000;
 my ($LOGOUT,$ERROR) = (0,"");
-my $cgi     = CGI->new();
 my $sys     = `uname -n`;
-my $db      = Settings::fetchDBSettings($cgi);
+my $db      = Settings::fetchDBSettings();
+my $cgi     = Settings->cgi();
 my $sid     = Settings::sid(); 
 my $dbname  = Settings::dbname();
 my $alias   = Settings::alias();
