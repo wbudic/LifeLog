@@ -3,20 +3,12 @@
 # Programed in vim by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-
+use v5.10;
 use strict;
 use warnings;
-use Switch;
-
-
-use CGI;
-use CGI::Session '-ip_match';
-use DBI;
 use Exception::Class ('LifeLogException');
-use Syntax::Keyword::Try;
 
-use DateTime qw();
-use DateTime::Format::SQLite;
+use Syntax::Keyword::Try;
 use DateTime::Format::Human::Duration;
 use Regexp::Common qw /URI/;
 use Text::CSV;
@@ -24,47 +16,18 @@ use Text::CSV;
 use lib "system/modules";
 require Settings;
 
-my $cgi     = CGI->new;
-my $session = new CGI::Session("driver:File",$cgi, {Directory => Settings::logPath()});
-my $sid     =$session->id();
-my $dbname  =$session->param('database');
-my $userid  =$session->param('alias');
-my $password=$session->param('passw');
-
-if(!$userid||!$dbname){
-    print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
-    exit;
-}
-# $cgi->param('chk',(1,2));
-# $cgi->param('opr',2);
-# $dbname  = "data_admin_log.db";
-# $userid  = "admin";
-# $password= "admin";
-
-
-my $db = Settings::connectDB($userid, $password);
-
-#Fetch settings
-my $imgw = 210;
-my $imgh = 120;
-Settings::getConfiguration($db);
-Settings::getTheme();
-my $human = DateTime::Format::Human::Duration->new();
-
-
-### Page specific settings Here
-my $PRC_WIDTH = &Settings::pagePrcWidth;
-my $TH_CSS = &Settings::css;
-my $BGCOL  = &Settings::bgcol;
-#Set to 1 to get debug help. Switch off with 0.
-my $DEBUG  = &Settings::debug;
-#END OF SETTINGS
-
-my $today = DateTime->now;
-$today->set_time_zone(&Settings::timezone);
-
+my $db        = Settings::fetchDBSettings();
+my $cgi       = Settings->cgi();
+my $dbname    = Settings::dbname();
+my $imgw      = 210;
+my $imgh      = 120;
+my $human     = DateTime::Format::Human::Duration->new();
+my $PRC_WIDTH = Settings::pagePrcWidth();
+my $TH_CSS    = Settings::css();
+my $BGCOL     = Settings::bgcol();
+my $DEBUG     = Settings::debug();
+my $today =  Settings::today();
 my $tbl_rc =0;
-my ($stm,$st, $rv);
 
 my $tbl = '<a name="top"></a><form name="frm_log_del" action="data.cgi" onSubmit="return formDelValidation();">
            <table class="tbl_rem" width="'.$PRC_WIDTH.'%">
@@ -74,18 +37,12 @@ my $tbl = '<a name="top"></a><form name="frm_log_del" action="data.cgi" onSubmit
 my $opr = $cgi->param("opr");
 my $confirmed = $cgi->param('confirmed');
 if ($opr == 1){
-         print $cgi->header(-expires=>"+6os");
-         print $cgi->start_html(-title => "Date Difference Report", -BGCOLOR => $BGCOL,
-                 -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-                 -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
-
-        );
-        &DisplayDateDiffs;
+        DisplayDateDiffs();
 }elsif ($confirmed){
-    &ConfirmedDelition;
+        ConfirmedDelition();
 }else{
     print $cgi->redirect('main.cgi') if not $cgi->param('chk');
-    &NotConfirmed;
+    NotConfirmed();
 }
 
 
@@ -93,7 +50,16 @@ print $cgi->end_html;
 $db->disconnect();
 exit;
 
-sub DisplayDateDiffs{
+sub DisplayDateDiffs {
+
+    my ($stm,$st);
+
+    print $cgi->header(-expires=>"+6os");
+    print $cgi->start_html(-title => "Date Difference Report", -BGCOLOR => $BGCOL,
+                -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
+                -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
+
+    );
 
     $tbl = '<table class="tbl" width="'.$PRC_WIDTH.'%">
         <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
@@ -167,35 +133,33 @@ return "<b>".$d->ymd()."</b> ".$d->hms;
 sub ConfirmedDelition {
 
 try{
-
+    my $st;
     foreach my $id ($cgi->param('chk')){
         print $cgi->p("###[deleting:$id]")  if(Settings::debug());
         $st = $db->prepare("DELETE FROM LOG WHERE rowid = '$id';");
-        $rv = $st->execute() or die or die "<p>Error->"& $DBI::errstri &"</p>";
+        $st->execute() or die "<p>Error->"& $_ &"</p>";
         $st = $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$id';");
-        $rv = $st->execute();
-
-       # if($rv == 0) {
-          #   die "<p>Error->"& $DBI::errstri &"</p>";
-       # }
-
+        $st->execute();
     }
     $st->finish;
 
     print $cgi->redirect('main.cgi');
 
 }catch{
-    print $cgi->p("<font color=red><b>ERROR</b></font>  " . $_);
+    print $cgi->p("<font color=red><b>ERROR</b></font>  " . $@);
 }
 
 }
 
 sub NotConfirmed {
+
 try{
-    my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT == CAT.ID) as CAT, DATE, LOG from VW_LOG WHERE";       
+    my ($stm,$st);
+    my $SQLID = 'rowid'; $SQLID = 'ID' if( Settings::isProgressDB() );
+    my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT = CAT.ID) as CAT, DATE, LOG from VW_LOG WHERE";       
     my $stmE = " ORDER BY DATE DESC, ID DESC;";  
     if($opr == 2){
-        $stmS = "SELECT rowid as ID, ID_CAT as IDCAT, DATE, LOG, AMOUNT from LOG WHERE";
+        $stmS = "SELECT $SQLID as ID, ID_CAT as IDCAT, DATE, LOG, AMOUNT from LOG WHERE";
         $stmE = " ORDER BY date(DATE);";
     }
 
@@ -203,14 +167,14 @@ try{
     my $stm = $stmS ." ";
     foreach my $id ($cgi->param('chk')){
         if($opr == 2){
-            $stm = $stm . "rowid == " . $id . " OR ";
+            $stm = $stm . "$SQLID = " . $id . " OR ";
         }
         else{
-            $stm = $stm . "PID == " . $id . " OR ";
+            $stm = $stm . "PID = " . $id . " OR ";
         }
     }
     $stm =~ s/ OR $//; $stm .= $stmE;    
-    $st = Settings::selectRecords($db, $stm);       
+              
     if($opr == 0){
         print $cgi->header(-expires=>"+6os");
         print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
@@ -218,9 +182,8 @@ try{
                 -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
 
         );
-
-        print $cgi->pre("###NotConfirmed($rv,$st)->[stm:$stm]")  if($DEBUG);
-
+        $st = Settings::selectRecords($db, $stm);
+        print $cgi->pre("###NotConfirmed()->[stm:$stm]") if($DEBUG);
 
         my $r_cnt = 0;
         my $rs = "r1";
@@ -249,7 +212,7 @@ try{
             $plural = "s";
         }
 
-        $tbl = $tbl .  '<tr class="r0"><td colspan="4"><a name="bottom"></a><a href="#top">&#x219F;</a>
+        $tbl .= '<tr class="r0"><td colspan="4"><a name="bottom"></a><a href="#top">&#x219F;</a>
         <center>
         <h2>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h2>
         (Or hit you Browsers Back Button!)</center>
@@ -278,15 +241,10 @@ try{
             my $out = $csv->print(*STDOUT, $row);                  
                 print $out if(length $out>1);
         }
-            $st->finish;
-            $db->disconnect();
-            exit;
     }
 }catch{
-    print "<font color=red><b>SERVER ERROR</b>->exportLogToCSV</font>:".$_;
+    print "<font color=red><b>SERVER ERROR</b>-> Method NotConfirmed() Page Build Failed!.</font>:<pre>".$@."</pre>";
 }
-    $st->finish;
-    $db->disconnect();
 }
 
 sub log2html{
@@ -340,11 +298,11 @@ sub log2html{
     if ( $log =~ /<iframe / ) {
         my $a = q(<iframe width="560" height="315");
         my $b;
-        switch (&Settings::frameSize) {
-            case "0" { $b = q(width="390" height="215") }
-            case "1" { $b = q(width="280" height="180") }
-            case "2" { $b = q(width="160" height="120") }
-            else {
+        given (&Settings::frameSize) {
+            when("0") { $b = q(width="390" height="215") }
+            when("1") { $b = q(width="280" height="180") }
+            when("2") { $b = q(width="160" height="120") }
+            default {
                 $b = &Settings::frameSize;
             }
         }
@@ -370,3 +328,4 @@ sub log2html{
 
 return $log;
 }
+1;
