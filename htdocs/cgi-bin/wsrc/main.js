@@ -16,17 +16,19 @@ var DEF_BACKGROUND = 'white';
 var RTF_DOC_RESIZED = false;
 var RTF_DOC_ORIG;
 var TIME_STAMP;
-var TIMEZONE;
+var TIMEZONE; 
+var DBI_LVAR_SZ;
 
 function onBodyLoadGeneric() {
     $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
     $("#btn_save_doc").button();
 }
 
-function onBodyLoad(toggle, tz, today, expires, rs_cur) {
+function onBodyLoad(toggle, tz, today, expires, rs_cur, log_limit) {
 
-    TIMEZONE   = tz;
-    TIME_STAMP = new Date(today);
+    TIMEZONE    = tz;
+    TIME_STAMP  = new Date(today);
+    DBI_LVAR_SZ = parseInt(log_limit);
     onBodyLoadGeneric();
 
     if (toggle) {
@@ -360,6 +362,9 @@ function validate(dt, log) {
     }
     if (!log) {
         msg = msg + "<b>Log</b> field entry can't be empty, can't submit!<br>";
+    }
+    else if (log.length>DBI_LVAR_SZ) {
+        msg = msg+ "<b>Log</b> Server has an text limit of (" + DBI_LVAR_SZ +" ) Your log size is:" + log.length;
     }
     if(msg){
         return dialogModal( "Sorry Form Validation Failed", msg);
