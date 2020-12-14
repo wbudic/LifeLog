@@ -6,12 +6,13 @@
 
 ### v.2.1 SUN STABLE New Features in Works
 
-* &#10004 PostgreSQL to be further tested. Implement server managed database.
-  * On errors sessions appear not to be closed by driver, maybe this is required and they expire?
-  * Not all sql has been translated or proper database everywhere established.
-* Session expired should disable the log entry form.
+* &#10004; Config. page set session expires times has to be validated not to be under 2 minutes.
 * Implement mapped provision of named timezones via main.inf, for towns not available in global list.
   * Javascript also needs to be updated to translate this properly.
+* &#10004; PostgreSQL to be further tested. Implement server managed database.
+  * On errors sessions appear not to be closed by driver, maybe this is required and they expire?
+  * Not all sql has been translated or proper database everywhere established.
+* &#10004; Session expired should disable the log entry form.
 * &#10004; Implement log text field limit setting.  0 - Unlimited, 1024 - Default n>128 as minimum size.
 * &#10004; System configuration variables should be sorted and listed by name and grouped by type. Anons presented at the bottom.
 * &#10004; Provide office share public link for main.inf linked categories, No login required but no log creation or search is possible.

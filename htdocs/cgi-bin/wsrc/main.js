@@ -1145,16 +1145,23 @@ function setPageSessionTimer(expires) {
             var timeout;
             var now = new moment();
             var val = expires.replace(/\+|[A-Z]|[a-z]/g, '');
+            
             if(expires.indexOf("h")>0){
                 timeout = moment(now).add(val, "h");
             }
             else
             if(expires.indexOf("m")>0){
+                if(val<2){val=2};
                 timeout = moment(now).add(val, "m");
             }
             else
             if(expires.indexOf("s")>0){
+               if(val<60){val=2}; 
                timeout = moment(now).add(val, "s");
+            }
+            else{
+                if(val<2){val=2};
+                timeout = moment(now).add(val, "m");
             }
 
            	var timer   =  setInterval(function() {
@@ -1168,6 +1175,9 @@ function setPageSessionTimer(expires) {
                 if(now.isAfter(timeout)){
                     $("#sss_status").html("<span id='sss_expired'><a href='login_ctr.cgi'>Page Session has Expired!</a></span>");
                     clearInterval(timer);
+                    $("#ed").prop( "disabled", true );
+                    $("#el").prop( "disabled", true );
+                    $("#am").prop( "disabled", true );
                 }
 
                                         }, 1000);
