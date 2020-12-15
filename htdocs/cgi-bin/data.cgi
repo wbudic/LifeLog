@@ -134,9 +134,10 @@ sub ConfirmedDelition {
 
 try{
     my $st;
+    my $SQLID = 'rowid'; $SQLID = 'ID' if( Settings::isProgressDB() );
     foreach my $id ($cgi->param('chk')){
         print $cgi->p("###[deleting:$id]")  if(Settings::debug());
-        $st = $db->prepare("DELETE FROM LOG WHERE rowid = '$id';");
+        $st = $db->prepare("DELETE FROM LOG WHERE $SQLID = '$id';");
         $st->execute() or die "<p>Error->"& $_ &"</p>";
         $st = $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$id';");
         $st->execute();
@@ -147,6 +148,7 @@ try{
 
 }catch{
     print $cgi->p("<font color=red><b>ERROR</b></font>  " . $@);
+    exit;
 }
 
 }
@@ -159,8 +161,8 @@ try{
     my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT = CAT.ID) as CAT, DATE, LOG from VW_LOG WHERE";       
     my $stmE = " ORDER BY DATE DESC, ID DESC;";  
     if($opr == 2){
-        $stmS = "SELECT $SQLID as ID, ID_CAT as IDCAT, DATE, LOG, AMOUNT from LOG WHERE";
-        $stmE = " ORDER BY date(DATE);";
+       $stmS = "SELECT $SQLID as ID, ID_CAT as IDCAT, DATE, LOG, AMOUNT from LOG WHERE";
+       $stmE = " ORDER BY date(DATE);";
     }
 
     #Get ids and build confirm table and check
