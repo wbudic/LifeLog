@@ -39,43 +39,58 @@ print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>"$BGCOL",
 
 
 #TODO
-my %countries = {};
-my @states;    
+my %regions = {};
+my @cities;    
 foreach my $zone (sort @zones){
     $zone =~ s/\"//g;
     my @p = split /\//, $zone;
-    my $country = $p[0];
-    my $city    = $p[1];
-    my $region  = $p[2];
-
-    if(length($country)==0){next;}
-
-    if($region){
-        $city = "$region/$city";
+    #America/Argentina/Rio_Gallegos
+    my $region  = $p[0];
+    my $country = $p[1];
+    my $city    = $p[2];
+    if(!$city){
+        $city = $country;
+        $country = $region;
     }
-    my $def = "$country/$city";
-    
-    if(exists($countries{$country})){
-        $states = $countries{$country};    
+
+    if(exists($regions{$region})){
+        @cities =@{ $regions{$region} };
     }else{
-        $states = ();
-        push (@{$countries{$country}}, $states);
-      #  print "[$country] created list!\n";
+        @cities = ();
+        $regions{$region} = \@cities;
     }
-    push @{$states}, "$country/$city";
-    #print "$zone<br>\n";    
+    push @cities, "$country/$city";
 }
+sub trim {my $r=shift; $r=~s/^\s+|\s+$//g; return $r}
 
 print "<center>";
-print "<h2 class='rz' style='text-align:center;border-bottom: 0px cornflowerblue;'>World Time Zone Strings</h2>\n";
-foreach my $key (sort keys %countries){   
-    $states = $countries{$key}; 
-    if( length($states)>0 ){
+print "<h2 class='rz' style='text-align:center;'>World Time Zone Strings</h2><br>\n";
+my $ftzmap = $ENV{'PWD'}.'tz.map';
+if(-e $ftzmap){
+    my $TIME_ZONE_MAP = "";
+    open($fh, "<:perlio", $ftzmap) or LifeLogException->throw( "Can't open $ftzmap: $!");
+    read  $fh, $TIME_ZONE_MAP, -s $fh;
+    close $fh;
+    print "<div class='rz' style='text-align:left;border-bottom: 0px cornflowerblue;'><b>Custom Mapped in $ftzmap</b></div>\n";
+    print "<div class='rz' style='text-align:left;'><ul>\n";
+    foreach (split('\n',$TIME_ZONE_MAP)){
+        my @p = split('=', $_);
+        if($p[0]){
+            my $mapped = trim($p[0]);
+            print "<li><a href=\"config.cgi?tz=$mapped\">$mapped</a></li>";
+        }
+    }
+    print "</ul></div>\n";
+    print "</div><br>\n";
+}
+foreach my $key (sort keys %regions){   if(!$key){next}
+    my @country =  @{$regions{$key}}; 
+    if( @country>0 ){
         print "<div class='rz' style='text-align:left;border-bottom: 0px cornflowerblue;'><b>$key</b></div>\n";
         print "<div class='rz' style='text-align:left;'><ul>\n";
-        foreach $entry (sort @{$states}){
+        foreach my $entry (sort @country){
             if(!$entry){next}
-            foreach $city ($entry){
+            foreach my $city ($entry){
                 if($city){
                 print "<li><a href=\"config.cgi?tz=$city\">$city</a></li>";
                 }

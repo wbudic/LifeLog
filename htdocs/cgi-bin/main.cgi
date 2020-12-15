@@ -1332,7 +1332,7 @@ sub fetchAutocomplete {
             }
         }
 
-        if ( $aw_cnt > &Settings::autoWordLimit ) {
+        if ( $aw_cnt > Settings::autoWordLimit() ) {
             last;
         }
     }
@@ -1481,7 +1481,7 @@ sub outputPage {
     $BUFFER = $cgi->start_html(
             -title   => "Personal Log",
             -BGCOLOR => $BGCOL,
-            -onload  => "onBodyLoad('$toggle','".&Settings::timezone."','$today','".&Settings::sessionExprs."','$rs_cur',".&Settings::dbVLSZ.");",
+            -onload  => "onBodyLoad('$toggle','".&Settings::language."','".&Settings::timezone."','$today','".&Settings::sessionExprs."','$rs_cur',".&Settings::dbVLSZ.");",
             -style   => [
             { -type => 'text/css', -src => "wsrc/$TH_CSS" },
             { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },

@@ -16,17 +16,22 @@ var DEF_BACKGROUND = 'white';
 var RTF_DOC_RESIZED = false;
 var RTF_DOC_ORIG;
 var TIME_STAMP;
+var LOCALE;
 var TIMEZONE; 
 var DBI_LVAR_SZ;
 
 function onBodyLoadGeneric() {
     $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
     $("#btn_save_doc").button();
+    if(!LOCALE || LOCALE==="English"){
+        LOCALE = "en-US";
+    }
 }
 
-function onBodyLoad(toggle, tz, today, expires, rs_cur, log_limit) {
+function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
 
-    TIMEZONE    = tz;
+    LOCALE      = locale;
+    TIMEZONE    = tz;    
     TIME_STAMP  = new Date(today);
     DBI_LVAR_SZ = parseInt(log_limit);
     onBodyLoadGeneric();
@@ -406,16 +411,20 @@ function setNow() {
 
     var date = document.getElementById("frm_entry").date;
     var dt = new Date();
-    var mm = fix0(dt.getMonth() + 1);
-    var dd = fix0(dt.getDate());
-    date.value = dt.getFullYear() + "-" + mm + "-" + dd + " " +
-        fix0(dt.getHours()) + ":" + fix0(dt.getMinutes()) + ":" + fix0(dt.getSeconds());
+    let options = {timeZone: TIMEZONE};
+    let [month, day, year]      = dt.toLocaleDateString(LOCALE, options).split("/")
+    let [hour, minute, seconds] = dt.toLocaleTimeString(LOCALE, options).split(/:| /);
+    month = fix0(month); day    = fix0(day);
+    hour  = fix0(hour);  minute = fix0(minute); seconds = fix0(seconds);
+
+    date.value =  year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + seconds;
     $("#submit_is_edit").val("0");
     toggleDoc(true);
     return false;
 }
 
 function fix0(v) {
+    v = parseInt(v);
     if (v < 10) {
         return "0" + v;
     }

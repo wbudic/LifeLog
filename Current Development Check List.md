@@ -7,7 +7,7 @@
 ### v.2.1 SUN STABLE New Features in Works
 
 * &#10004; Config. page set session expires times has to be validated not to be under 2 minutes.
-* Implement mapped provision of named timezones via main.inf, for towns not available in global list.
+* &#10004; Implement mapped provision of named timezones via main.inf, for cities not available in global zone list.
   * Javascript also needs to be updated to translate this properly.
 * &#10004; PostgreSQL to be further tested. Implement server managed database.
   * On errors sessions appear not to be closed by driver, maybe this is required and they expire?
@@ -17,15 +17,15 @@
 * &#10004; System configuration variables should be sorted and listed by name and grouped by type. Anons presented at the bottom.
 * &#10004; Provide office share public link for main.inf linked categories, No login required but no log creation or search is possible.
 * &#10004; main.inf - Make the dbname uniform across all source types with Settings, as backups use the file format, not the database name.
-* Static pages setting for the pages directory.
-* Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
-* Provide markdown text functionality to html pages. For quick vanilla plain documentation.
-* Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
 * &#10004; Edit button to show if hidden is the log entry section.
 * &#10004; Implement title bolding on logs using markdown, so tags can be avoided, for multiline logs.
 * &#10004; Multi db driver type support. Earth stage requires same SQL related code to work on at least one more DBMS type other than SQLight.
   * PostgreSQL is the candidate as MySQL is not easy to install and bulky for all systems.
   * Developing and adopting to MySQL or any other system is not prerogative, as it works well as it is with inbuilt simplicity.
+* Static pages setting for the pages directory.
+* Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
+* Provide markdown text functionality to html pages. For quick vanilla plain documentation.
+* Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
 
 ### v.2.0 SUN RC2 Encountered
 

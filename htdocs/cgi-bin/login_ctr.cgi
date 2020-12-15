@@ -24,13 +24,14 @@ my $cookie = $cgi->cookie(CGISESSID => $sid);
 my $db;
 my $alias = $cgi->param('alias');
 my $passw = $cgi->param('passw');
-my ($debug,$frm) = "";
+my ($DBG,$frm) = "";
 #Codebase release version. Release in the created db or existing one can be different, through time.
 my $SCRIPT_RELEASE = Settings::release();
 
 #anons - Are parsed end obtained only here, to be transfered to the DB config.
 my $BACKUP_ENABLED = 0;
 my $AUTO_SET_TIMEZONE = 0;
+my $TIME_ZONE_MAP = 0;
 
 try{
     checkAutologinSet();
@@ -77,7 +78,7 @@ try{
                                 <a href="https://github.com/wbudic/LifeLog" target="_blank">Get latest version of this application here!</a><br>
                             </center><div>);
 
-    Settings::printDebugHTML($debug) if (Settings::debug());
+    Settings::printDebugHTML($DBG) if Settings::debug();
     print $cgi->end_html;
 
     }
@@ -91,10 +92,10 @@ try{
             my $dbg = "" ;
             my $pwd = `pwd`;
             $pwd =~ s/\s*$//;
-            $dbg = "--DEBUG OUTPUT--\n$debug" if $debug;
+            $dbg = "--DEBUG OUTPUT--\n$DBG" if Settings::debug();
             print $cgi->header,
             "<hr><font color=red><b>SERVER ERROR</b></font> on ".DateTime->now().
-            "<pre>".$pwd."/$0 -> &".caller." -> [\n$err]","\n$dbg</pre>",
+            "<pre>".$pwd."/$0 -> [\n$err]","\n$dbg</pre>",
             $cgi->end_html;
  };
 exit;
@@ -129,18 +130,27 @@ sub checkAutologinSet {
     # We don't need to slurp whole file as next are expected settings in begining of the config file.
     open(my $fh, '<', Settings::logPath().'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");
     while (my $line = <$fh>) {
+        chomp $line;
+        $v = Settings::parseAutonom('AUTO_LOGIN',$line);
+        if($v){@cre = split '/', $v; next}
+        $v = Settings::parseAutonom('BACKUP_ENABLED',$line);
+        if($v){$BACKUP_ENABLED = $v; next}
+        $v = Settings::parseAutonom('DBI_SOURCE',$line);
+        if($v){Settings::dbSrc($v); next}
+        $v = Settings::parseAutonom('AUTO_SET_TIMEZONE',$line);                
+        if($v){$AUTO_SET_TIMEZONE = $v; next}
+        $v = Settings::parseAutonom('DBI_LOG_VAR_SIZE',$line);
+        if($v){Settings::dbVLSZ($v); next}
+        if($line =~ /<<TIME_ZONE_MAP</){
+            $TIME_ZONE_MAP = substr($line,16);
+            while ($line = <$fh>) {
                 chomp $line;
-                $v = Settings::parseAutonom('AUTO_LOGIN',$line);
-                if($v){@cre = split '/', $v; next}
-                $v = Settings::parseAutonom('BACKUP_ENABLED',$line);
-                if($v){$BACKUP_ENABLED = $v; next}
-                $v = Settings::parseAutonom('DBI_SOURCE',$line);
-                if($v){Settings::dbSrc($v); next}
-                $v = Settings::parseAutonom('AUTO_SET_TIMEZONE',$line);                
-                if($v){$AUTO_SET_TIMEZONE = $v; next}
-                $v = Settings::parseAutonom('DBI_LOG_VAR_SIZE',$line);
-                if($v){Settings::dbVLSZ($v); next}
-                last if Settings::parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
+                last if($line =~ />$/);
+                $TIME_ZONE_MAP .= $line . "\n";
+            }
+            next;
+        }                
+        last if Settings::parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
     if(@cre &&scalar(@cre)>1){
@@ -210,7 +220,7 @@ sub checkPreparePGDB {
 
 sub checkCreateTables {
 
-    my $today = Settings::today();
+try{    
     my ($pst, $sql,$rv, $changed) = 0;
     
     # We live check database for available tables now only once.
@@ -246,8 +256,10 @@ sub checkCreateTables {
     # Now we got a db with CONFIG, lets get settings from there.
     # Default version is the scripted current one, which could have been updated.
     # We need to maybe update further, if these versions differ.
-    # Source default and the one from the CONFIG table in the (present) database.
-    Settings::getConfiguration($db,{backup_enabled=>$BACKUP_ENABLED,auto_set_timezone=>$AUTO_SET_TIMEZONE, db_log_var_limit=>Settings::dbVLSZ()});
+    # Source default and the one from the CONFIG table in the (present) database.    
+    Settings::getConfiguration($db,{
+         backup_enabled=>$BACKUP_ENABLED,auto_set_timezone=>$AUTO_SET_TIMEZONE,TIME_ZONE_MAP=>$TIME_ZONE_MAP, db_log_var_limit=>Settings::dbVLSZ()
+         });    
     my $DB_VERSION  = Settings::release();
     my $hasLogTbl   = $curr_tables{'LOG'};
     my $hasNotesTbl = $curr_tables{'NOTES'};
@@ -261,8 +273,13 @@ sub checkCreateTables {
     foreach my $ana(@annons){$sql .=  " NAME LIKE '$ana' OR";};$sql =~ s/OR$//; $sql .=';';
     $pst =  Settings::selectRecords($db, $sql);
     while(my @row = $pst->fetchrow_array()) {
-        my ($vid,$n,$sv, $dv) = ($row[0], $row[1], Settings::anon($row[1]), $row[2]);
-        $db->do("UPDATE CONFIG SET VALUE='$sv' WHERE ID=$vid;") if($dv ne $sv);
+        my ($sup,$vid,$n,$sv, $dv) = ("",$row[0], $row[1], Settings::anon($row[1]), $row[2]);
+        try{
+           if($dv ne $sv){
+               $sup = "UPDATE CONFIG SET VALUE='$sv' WHERE ID=$vid;";
+               $db->do($sup);
+           }
+        }catch{$@.="\n$sup"; die "Failed[$@]"}
     }
     #
     # From v.1.8 Log has changed, to have LOG to NOTES relation.
@@ -350,8 +367,8 @@ sub checkCreateTables {
 
         $db->do(Settings::createLOGStmt());
 
-        my $st = $db->prepare('INSERT INTO LOG(ID_CAT,DATE,LOG) VALUES (?,?,?)');
-           $st->execute( 3, $today, "DB Created!");            
+        my $st = $db->prepare('INSERT INTO LOG(ID_CAT,DATE,LOG) VALUES (?,?,?)');        
+           $st->execute( 3, Settings::today(), "DB Created!");            
            $session->param("cdb", "1");
     }
 
@@ -415,7 +432,7 @@ sub checkCreateTables {
         my $did = $r[0];
         my $dnm = $r[1];
         my $cmp = $dnm eq $SCRIPT_RELEASE;
-        $debug .= "Upgrade cmp(RELESE_VER:'$dnm' eq Settings::release:'$SCRIPT_RELEASE') ==  $cmp";
+        $DBG .= "Upgrade cmp(RELESE_VER:'$dnm' eq Settings::release:'$SCRIPT_RELEASE') ==  $cmp";
         #Settings::debug(1);
         if(!$cmp){
             Settings::renumerate($db);
@@ -428,9 +445,9 @@ sub checkCreateTables {
             else{
                 $pv = 0;
             }
-            &Settings::configProperty($db, 200, '^REL_RENUM',$pv);
-            &Settings::configProperty($db, $did>0?$did:0, 'RELEASE_VER', $SCRIPT_RELEASE);
-            &Settings::toLog($db, "Upgraded Life Log from v.$dnm to v.$SCRIPT_RELEASE version, this is the $pv upgrade.") if $pv;
+            Settings::configProperty($db, 200, '^REL_RENUM',$pv);
+            Settings::configProperty($db, $did>0?$did:0, 'RELEASE_VER', $SCRIPT_RELEASE);
+            Settings::toLog($db, "Upgraded Life Log from v.$dnm to v.$SCRIPT_RELEASE version, this is the $pv upgrade.") if $pv;
         }
         &populate($db);
     }
@@ -442,7 +459,9 @@ sub checkCreateTables {
     #Then we check if we are login in intereactively back. Interective, logout should bring us to the login screen.
     #Bypassing auto login. So to start maybe working on another database, and a new session.
     return $cgi->param('autologoff') == 1;
-
+}catch{
+    LifeLogException -> throw(error=>$@,show_trace=>1);
+}
 }
 
 
@@ -492,7 +511,7 @@ $err .= "UID{$id} taken by $vars{$id}-> $line\n";
                                                                             my @arr = Settings::selectRecords($db,"SELECT ID FROM CONFIG WHERE NAME LIKE '$name';")->fetchrow_array();                                                                                 
                                                                             $inData = 1;                                                                                
                                                                             if(!@arr) {
-                                                                                $debug .= "conf.ins->".$name.",".$value.",".$tick[1]."\n";
+                                                                                $DBG .= "conf.ins->".$name.",".$value.",".$tick[1]."\n";
                                                                                if(Settings::isProgressDB()) {$insCnf->execute($name,$value,$tick[1])}
                                                                                else{$insCnf->execute($id,$name,$value,$tick[1])}
                                                                             }
@@ -515,7 +534,7 @@ $err .= "Invalid, spec'd entry -> $line\n";
                                                                         # Then check if the  ID is available. If not just skip, the import. Reseting can fix that latter.
                                                                         if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE NAME LIKE '$pair[1]';")->fetchrow_array()) {
                                                                             if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE ID = $pair[0];")->fetchrow_array()){
-                                                                                $debug .= "cat.ins->".$pair[0].",".$pair[1].",".$tick[1]."\n";
+                                                                                $DBG .= "cat.ins->".$pair[0].",".$pair[1].",".$tick[1]."\n";
                                                                                $insCat->execute($pair[0],$pair[1],$tick[1]);
                                                                             }
                                                                         }
@@ -569,7 +588,7 @@ sub logout {
         my $dbg = "" ;
         my $pwd = `pwd`;
         $pwd =~ s/\s*$//;
-        $dbg = "--DEBUG OUTPUT--\n$debug" if $debug;
+        $dbg = "--DEBUG OUTPUT--\n$DBG" if Settings::debug();
         print $cgi->header,
         "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now().
         "<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n$dbg</pre>",
