@@ -32,6 +32,7 @@ my $SCRIPT_RELEASE = Settings::release();
 my $BACKUP_ENABLED = 0;
 my $AUTO_SET_TIMEZONE = 0;
 my $TIME_ZONE_MAP = 0;
+my $DB_NAME;
 
 try{
     checkAutologinSet();
@@ -110,7 +111,7 @@ sub processSubmit {
                 $session->param('passw', $passw);
                 $session->param('db_source', Settings::dbSrc());
                 $session->param('db_file',   Settings::dbFile());
-                $session->param('database',  Settings::dbname());                
+                $session->param('database',  Settings::dbName());                
                 $session->flush();
                 ### To MAIN PAGE
                 print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
@@ -141,6 +142,9 @@ sub checkAutologinSet {
         if($v){$AUTO_SET_TIMEZONE = $v; next}
         $v = Settings::parseAutonom('DBI_LOG_VAR_SIZE',$line);
         if($v){Settings::dbVLSZ($v); next}
+        # From here are config file only autonoms. Don't need or harm being in database configuration.
+        $v = Settings::parseAutonom('DBI_MULTI_USER_DB',$line);
+        if($v){$DB_NAME=$v;Settings::dbName($v);next}
         if($line =~ /<<TIME_ZONE_MAP</){
             $TIME_ZONE_MAP = substr($line,16);
             while ($line = <$fh>) {
@@ -159,7 +163,7 @@ sub checkAutologinSet {
                 return;                                # Note, we do assign entered password even passw as autologin is set. Not entering one bypasses this.
             }                                          # If stricter access is required set it to zero in main.cnf, or disable in config.
             $passw = $cre[1] if (!$passw);
-            $db = Settings::connectDB($alias, $passw);            
+            $db = Settings::connectDB($DB_NAME, $alias, $passw);            
             #check if autologin enabled.
             my $st = Settings::selectRecords($db,"SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");                        
             if($st){my @set = $st->fetchrow_array();
@@ -178,7 +182,7 @@ sub checkAutologinSet {
 
 sub checkPreparePGDB {
     my $create =1;
-    $passw = $cgi->param('passw'); #PG handles password encryption itself.
+    $passw = $cgi->param('passw'); #We let PG handles password encryption (security) itself.
     my @data_sources = DBI->data_sources("Pg");
     foreach my $ln (@data_sources){
             my $i = rindex $ln, '=';
@@ -227,9 +231,9 @@ try{
     # If brand new database, this sill returns fine an empty array.
     my %curr_tables = ();
 
-    if(Settings::isProgressDB()){
+    if(Settings::isProgressDB()){        
         $changed = checkPreparePGDB();
-        $db = Settings::connectDB($alias, $passw); 
+        $db = Settings::connectDB($DB_NAME, $alias, $passw); 
         my @tbls = $db->tables(undef, 'public');
         foreach (@tbls){
             my $t = uc substr($_,7);
@@ -237,7 +241,7 @@ try{
         }
     }
     else{
-        $db = Settings::connectDB($alias, $passw); 
+        $db = Settings::connectDB($DB_NAME, $alias, $passw); 
         $pst = Settings::selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");        
         while(my @r = $pst->fetchrow_array()){
             $curr_tables{$r[0]} = 1;
@@ -353,7 +357,7 @@ try{
         $db->do('DROP VIEW VW_LOG;');delete($curr_tables{'VW_LOG'});
         delete($curr_tables{'VW_LOG'});
         $changed = 1;
-    }
+    }elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}
 
     if(!$hasLogTbl) {
 
@@ -579,8 +583,8 @@ sub logout {
         $alias = $session->param('alias');
         $passw = $session->param('passw');
         if($alias){
-            my $db = Settings::connectDB($alias, $passw);
-            Settings::toLog($db, "Log properly loged out by $alias.");
+            my $db = Settings::connectDB($DB_NAME, $alias, $passw);
+            Settings::toLog($db, "Log has properly been loged out by $alias.");
             $db->disconnect();
         }
     }catch{

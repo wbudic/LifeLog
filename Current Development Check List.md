@@ -22,9 +22,10 @@
 * &#10004; Multi db driver type support. Earth stage requires same SQL related code to work on at least one more DBMS type other than SQLight.
   * PostgreSQL is the candidate as MySQL is not easy to install and bulky for all systems.
   * Developing and adopting to MySQL or any other system is not prerogative, as it works well as it is with inbuilt simplicity.
+* &#10004; Single database, multi-user login.
 * Static pages setting for the pages directory.
-* Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
 * Provide markdown text functionality to html pages. For quick vanilla plain documentation.
+* Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
 * Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
 
 ### v.2.0 SUN RC2 Encountered

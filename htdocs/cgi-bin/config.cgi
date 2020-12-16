@@ -29,7 +29,7 @@ my $sys     = `uname -n`;
 my $db      = Settings::fetchDBSettings();
 my $cgi     = Settings->cgi();
 my $sid     = Settings::sid(); 
-my $dbname  = Settings::dbname();
+my $dbname  = Settings::dbName();
 my $alias   = Settings::alias();
 my $rv;
 my $dbs;

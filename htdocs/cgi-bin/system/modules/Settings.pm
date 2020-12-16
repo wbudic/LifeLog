@@ -101,7 +101,7 @@ sub dbSrc          {my $r = shift; if($r) {$DBI_SOURCE=$r; $IS_PG_DB = 1 if(inde
                     return $DBI_SOURCE}
 sub dbVLSZ         {my $r = shift; if(!$r){$r = $DBI_LVAR_SZ}else{$r=128 if($r<128);$DBI_LVAR_SZ=$r}  return $r}
 sub dbFile         {my $r = shift; if($r) {$DBFILE=$r} return $DBFILE}
-sub dbName         {return $dbname}
+sub dbName         {my $r = shift; if($r) {$dbname=$r} return $dbname}
 sub dsn            {return $DSN}
 sub isProgressDB   {return $IS_PG_DB}
 sub sqlPubors      {return $SQL_PUB}
@@ -109,7 +109,6 @@ sub sqlPubors      {return $SQL_PUB}
 sub cgi     {return $cgi}
 sub session {return $sss}
 sub sid     {return $sid}
-sub dbname  {return $dbname}
 sub alias   {return $alias}
 sub pass    {return $pass}
 sub pub     {return $pub}
@@ -154,11 +153,11 @@ try {
     # if(!$alias){
     #     $alias = "admin"; $pass  = $alias; dbSrc('dbi:Pg:host=localhost;');
     # }
-     if(!$alias){
+    if(!$alias){
         print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
         exit;
-    }
-    my $ret  = connectDB($alias, $pass);
+    }    
+    my $ret  = connectDB($dbname, $alias, $pass);
     getConfiguration($ret);    
     getTheme();
     $sss->expire($SESSN_EXPR);
@@ -611,18 +610,20 @@ sub configProperty {
 }
 
 sub connectDB {
-    my ($a,$p) = @_;
-    $a = $alias if(!$a);
+    my ($d,$u,$p) = @_;
+    $u = $alias if(!$u);
     $p = $alias if(!$p);
-    $dbname = 'data_'.$a.'_log.db';
-    $DBFILE = $LOG_PATH.$dbname if(!$DBFILE);    
-    if ($IS_PG_DB)  {
-        $DSN = $DBI_SOURCE .'dbname='.$a; $DBFILE = $a;        
-    }else{
-        $DSN = $DBI_SOURCE .'dbname='.$DBFILE;        
-    }
+    my $db =$u;
+    if(!$d){$db = 'data_'.$u.'_log.db';}
+    else{   $db = 'data_'.$d.'_log.db';}
+    $DBFILE = $LOG_PATH.'/'.$db;
+        if ($IS_PG_DB)  {
+            $DSN = $DBI_SOURCE .'dbname='.$d;
+        }else{
+            $DSN = $DBI_SOURCE .'dbname='.$DBFILE;        
+        }    
     try{
-        return DBI->connect($DSN, $a, $p, {AutoCommit => 1, RaiseError => 1, PrintError => 0, show_trace=>1});
+        return DBI->connect($DSN, $u, $p, {AutoCommit => 1, RaiseError => 1, PrintError => 0, show_trace=>1});
     }catch{           
        LifeLogException->throw(error=>"<p>Error->$@</p>",  show_trace=>1);
     }

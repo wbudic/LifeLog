@@ -10,19 +10,20 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 # Default database driver prefix, is SQLite.
 <<DBI_SOURCE<DBI:SQLite:>
 # ProgresSQL DB driver. Remove -> '!' prefix to tag name, to enable, and override the above SQLite one.
-<<!DBI_SOURCE<DBI:Pg:host=localhost;>
+<<DBI_SOURCE<DBI:Pg:host=localhost;>
 # LOG actual variable size limit, - 1024 default, 128 minimum value. 
-#<<DBI_LOG_VAR_SIZE<1024>
-# Set following to an database name, if multiple aliases connect to a single log database.
-# Users have to be set, and alias is then used for their userid to be able to login.
-# By default this setting is disabled with 0, making alias, its own log database.
-<<DBI_MULTI_USER_DB<0>
+<<!DBI_LOG_VAR_SIZE<1024>
+
+# Set the following to an database name, with external managed multiple users, that are to connect to a single database.
+# Users have to be externally set, and alias is then used for their userid to be able to login. (Add user roles to AUTH table).
+# By default this setting is disabled with 0, making alias name, its own log database, per user.
+<<DBI_MULTI_USER_DB<>
 
 #Timezoning, if set to 1, country locale setting for timezone in config page is ignored.
 <<AUTO_SET_TIMEZONE<0>
 
 
-# Public, enabled list of categories. Remove -> '!' prefix to tag name, to enable. Be careful what category you add/enable here.
+# Public, enabled list of categories. Remove -> '!' prefix before tag name, to enable. Be careful what category you add/enable here.
 # Public records view feature only, it doesn't allow new log entries to be added and have pin point searching of all existing.
 <<!PUBLIC_CATS<03,06,09>#File,System log and Event.
 # Following is similar to AUTO_LOGIN setting above, and must be set.
@@ -38,7 +39,7 @@ America/Texas=America/Chicago
 <<CONFIG<4>
 00|$RELEASE_VER = 2.1`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
-03|$TIME_ZONE   = Australia/Sydney`Time zone of your country.
+03|$TIME_ZONE   = Australia/Sydney`Time zone of your country and city.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.
 08|$LOG_PATH    = ../../dbLifeLog/`Path to folder containing data.
 10|$SESSN_EXPR  = +30m`Login session expiration time setting, can be minutes or hours.

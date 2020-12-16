@@ -18,7 +18,7 @@ require Settings;
 
 my $db        = Settings::fetchDBSettings();
 my $cgi       = Settings->cgi();
-my $dbname    = Settings::dbname();
+my $dbname    = Settings::dbName();
 my $imgw      = 210;
 my $imgh      = 120;
 my $human     = DateTime::Format::Human::Duration->new();

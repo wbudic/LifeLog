@@ -25,7 +25,7 @@ my $cgi     = CGI->new();
 my $db      = Settings::fetchDBSettings($cgi);
 my $sss     = Settings::session();
 my $sid     = Settings::sid(); 
-my $dbname  = Settings::dbname();
+my $dbname  = Settings::dbName();
 my $alias   = Settings::alias();
 my $passw   = Settings::pass();
 
