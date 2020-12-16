@@ -82,17 +82,18 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         allowTipHover: false
     });
     $('#el').poshytip({
-        content: "This is the log entry, can't be left empty.",
+        content: "This is your log entry,<br> can't be left empty.",
         className: 'tip-yellowsimple',
         showOn: 'focus',
         alignTo: 'target',
         alignX: 'left',
         alignY: 'center',
         offsetX: 5,
-        showTimeout: 100
+        showTimeout: 50,
+        allowTipHover: true
     });
     $('#am').poshytip({
-        content: "Symbolic ammount in your local or preferred currency. Can be left empty.",
+        content: "Symbolic amount in your local or preferred currency. Can be left empty.",
         className: 'tip-yellowsimple',
         showOn: 'focus',
         alignTo: 'target',
