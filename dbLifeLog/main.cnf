@@ -10,7 +10,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 # Default database driver prefix, is SQLite.
 <<DBI_SOURCE<DBI:SQLite:>
 # ProgresSQL DB driver. Remove -> '!' prefix to tag name, to enable, and override the above SQLite one.
-<<DBI_SOURCE<DBI:Pg:host=localhost;>
+<<!DBI_SOURCE<DBI:Pg:host=localhost;>
 # LOG actual variable size limit, - 1024 default, 128 minimum value. 
 <<!DBI_LOG_VAR_SIZE<1024>
 

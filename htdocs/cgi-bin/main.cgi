@@ -26,7 +26,7 @@ my $db      = Settings::fetchDBSettings();
 my $cgi     = Settings::cgi();
 my $sss     = Settings::session();
 my $sid     = Settings::sid(); 
-my $dbname  = Settings::dbname();
+my $dbname  = Settings::dbName();
 my $alias   = Settings::alias();
 my $passw   = Settings::pass();
 
@@ -1255,6 +1255,9 @@ sub authenticate {
             $st = traceDBExe("UPDATE AUTH SET passw='$passw' WHERE alias='$alias';");
             return;
         }
+
+        #We log failed possible intruder access access
+        Settings::toLog($db,"User $alias, failed to authenticate!");
 
         print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
         print $cgi->start_html(
