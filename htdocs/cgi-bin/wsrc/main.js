@@ -732,6 +732,7 @@ function toggle(id, mtoggle) {
 function showAll() {
 
    show("#menu");
+   hide("#cat_desc");
 
    if(_show_all){
         $("#lnk_show_all").text("Hide All");
