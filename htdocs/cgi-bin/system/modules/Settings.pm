@@ -614,7 +614,7 @@ sub connectDB {
     $u = $alias if(!$u);
     $p = $alias if(!$p);
     my $db =$u;
-    if(!$d){$db = 'data_'.$u.'_log.db';}
+    if(!$d){$db = 'data_'.$u.'_log.db';$d=$u}
     else{   $db = 'data_'.$d.'_log.db';}
     $DBFILE = $LOG_PATH.'/'.$db;
         if ($IS_PG_DB)  {
@@ -625,7 +625,7 @@ sub connectDB {
     try{
         return DBI->connect($DSN, $u, $p, {AutoCommit => 1, RaiseError => 1, PrintError => 0, show_trace=>1});
     }catch{           
-       LifeLogException->throw(error=>"<p>Error->$@</p>",  show_trace=>1);
+       LifeLogException->throw(error=>"<p>Error->$@</p><br><p>$DSN</p>",  show_trace=>1);
     }
 }
 
