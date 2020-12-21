@@ -1051,7 +1051,7 @@ sub restore {
         my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
         my $tar = $dbck.$hndl; $tar =~ s/osz$/tar/;
         my $pipe;
-        open ($pipe, "|" ,"openssl enc -d -des-ede3-cfb -salt -S ".Settings->CIPHER_KEY." -pass pass:$pass-$alias -in /dev/stdin 2>/dev/null > $tar");
+        open ($pipe, "| openssl enc -d -des-ede3-cfb -salt -S ".Settings->CIPHER_KEY." -pass pass:$pass-$alias -in /dev/stdin 2>/dev/null > $tar");
             while(<$hndl>){print $pipe $_;};
         close $pipe;
 
@@ -1066,7 +1066,7 @@ sub restore {
         $cmd = `tar xzvf $tar -C $dbck --strip-components 1 2>/dev/null` or die "Failed extracting $tar";
         print "Extracted->\n".$cmd."\n" or die "Failed extracting $tar";;
 
-        my $b_base = $dbck.$dbname;
+        my $b_base = $dbck.'data_'.$dbname.'_log.db'; 
         my $dsn= "DBI:SQLite:dbname=$b_base";
         my $b_db = DBI->connect($dsn, $alias, $pass, { RaiseError => 1 }) or LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
         print "Connected to -> $dsn\n";
