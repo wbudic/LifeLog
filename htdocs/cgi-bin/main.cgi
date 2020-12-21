@@ -79,7 +79,7 @@ my $today = Settings->today();
  
 if(!$prm_vc && &Settings::keepExcludes){
     if($prm_xc_lst){
-        &Settings::configProperty($db, 201, '^EXCLUDES', $prm_xc_lst);
+        Settings::configProperty($db, 201, '^EXCLUDES', $prm_xc_lst);
     }
     else{
        $prm_xc_lst = &Settings::obtainProperty($db, '^EXCLUDES');
@@ -1046,27 +1046,26 @@ sub processSubmit {
         my $rtf    = $cgi->param('rtf');
         my $sticky = $cgi->param('sticky');
         my $stm;
+        my $SQLID = 'rowid'; 
 
         ##TODO
         if($rtf eq 'on'){$rtf = 1}  else {$rtf = 0}
-        if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}
+        if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}           
         if(!$am){$am=0}
-
+        if(Settings::isProgressDB()){$SQLID = 'ID'; $sticky = castToBool($sticky);}
 try {
 #Apostroph's need to be replaced with doubles  and white space to be fixed for the SQL.
             $log =~ s/'/''/g;
 
             if ( $edit_mode && $edit_mode != "0" ) {
-
                 #Update
-                $date = DateTime::Format::SQLite->parse_datetime($date);
-                $stm = qq( UPDATE LOG SET ID_CAT='$cat', ID_RTF='$rtf',
-                                             DATE='$date',
-                                             LOG='$log',
-                                             AMOUNT=$am,
-                                             AFLAG = $af,
-                                             STICKY=$sticky WHERE rowid="$edit_mode";
-                    <br>);
+                $date = DateTime::Format::SQLite->parse_datetime($date); $date =~ s/T/ /g;
+                $stm = qq(UPDATE LOG SET ID_CAT='$cat', ID_RTF='$rtf',
+                                         DATE='$date',
+                                         LOG='$log',
+                                         AMOUNT=$am,
+                                         AFLAG = $af,
+                                         STICKY=$sticky WHERE $SQLID=$edit_mode;);
                 #
                 toBuf $stm if $DEBUG;
                 #
