@@ -175,7 +175,8 @@ try{
             $stm = $stm . "PID = " . $id . " OR ";
         }
     }
-    $stm =~ s/ OR $//; $stm .= $stmE;    
+    $stm =~ s/ OR $//; $stm .= $stmE;
+    $st = Settings::selectRecords($db, $stm);
               
     if($opr == 0){
         print $cgi->header(-expires=>"+6os");
@@ -183,8 +184,7 @@ try{
                 -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
                 -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
 
-        );
-        $st = Settings::selectRecords($db, $stm);
+        );        
         print $cgi->pre("###NotConfirmed()->[stm:$stm]") if($DEBUG);
 
         my $r_cnt = 0;
@@ -230,12 +230,9 @@ try{
 
         
     } 
-    elsif($opr == 2){
-        
-        my $csv = Text::CSV-> new ( { binary => 1, escape_char => "\\", strict => 1, eol => $/ } );
-           
-        my @columns = ("ID", "CAT", "DATE", "LOG", "AMOUNT");
-        
+    elsif($opr == 2){        
+        my $csv = Text::CSV-> new ( { binary => 1, escape_char => "\\", strict => 1, eol => $/ } );           
+        my @columns = ("ID", "CAT", "DATE", "LOG", "AMOUNT");        
         print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname"."_sel.csv");        
         print $csv->print(*STDOUT, \@columns);
         while (my $row=$st->fetchrow_arrayref()){
@@ -244,6 +241,8 @@ try{
                 print $out if(length $out>1);
         }
     }
+    $st->finish();    
+    exit;
 }catch{
     print "<font color=red><b>SERVER ERROR</b>-> Method NotConfirmed() Page Build Failed!.</font>:<pre>".$@."</pre>";
 }
