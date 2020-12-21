@@ -412,7 +412,7 @@ function setNow() {
 
     var date = document.getElementById("frm_entry").date;
     var dt = new Date();
-    let options = {timeZone: TIMEZONE};
+    let options = {timeZone: TIMEZONE, hour12:false};
     let [month, day, year]      = dt.toLocaleDateString(LOCALE, options).split("/")
     let [hour, minute, seconds] = dt.toLocaleTimeString(LOCALE, options).split(/:| /);
     month = fix0(month); day    = fix0(day);
