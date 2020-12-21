@@ -562,7 +562,7 @@ function submitNext(tbl_rc, limit) {
     var frm = document.getElementById("frm_entry");
     frm.submit_is_view.value = 1;
     frm.rs_all.value = 0;
-    frm.rs_cur.value = tbl_rc;
+    frm.rs_cur.value = parseInt(tbl_rc);
     frm.rs_prev.value = tbl_rc + limit;
     frm.submit_is_view.value = 1;
     frm.submit();
@@ -733,11 +733,9 @@ function toggle(id, mtoggle) {
 function showAll() {
 
    show("#menu");
-   hide("#cat_desc");
-
+   
    if(_show_all){
-        $("#lnk_show_all").text("Hide All");
-        show('#cat_desc');
+        $("#lnk_show_all").text("Hide All");   
         show("#div_log");
         show("#div_srh");
         show("#tbl_hlp");
@@ -756,7 +754,7 @@ function showAll() {
 
 
    $("html, body").animate({ scrollTop: 0 }, "fast");
-
+   
     return false;
 }
 
@@ -1174,7 +1172,7 @@ function setPageSessionTimer(expires) {
                 if(val<2){val=2};
                 timeout = moment(now).add(val, "m");
             }
-
+            var WARNED =0;
            	var timer   =  setInterval(function() {
                 var now = new moment();
                 var dif = timeout.diff(now);
@@ -1182,7 +1180,9 @@ function setPageSessionTimer(expires) {
                 var sec = ((dif % 60000) / 1000).toFixed(0);
                 var out = (min < 10 ? '0' : '') + min + ":" + (sec < 10 ? '0' : '') + sec;
                 var tim = new moment().tz(TIMEZONE).format("hh:mm:ss a");
-                $("#sss_status").html("<font size='1px'>[" + tim + "]</font> Session expires in " + out);
+                var sty = "";if(min<2){sty="style='color:red'";if(!WARNED){WARNED=1;display("<font color='red'>Session is about to expire!</font>",10)}}
+                var dsp = "<font size='1px;'>[" + tim + "]</font><span "+sty+"> Session expires in " + out + "</span>";                
+                $("#sss_status").html(dsp);
                 if(now.isAfter(timeout)){
                     $("#sss_status").html("<span id='sss_expired'><a href='login_ctr.cgi'>Page Session has Expired!</a></span>");
                     clearInterval(timer);
