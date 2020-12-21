@@ -21,24 +21,24 @@ use lib "system/modules";
 use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
 require Settings;
 
-my $cgi     = CGI->new();
-my $db      = Settings::fetchDBSettings($cgi);
+my $db      = Settings::fetchDBSettings();
+my $cgi     = Settings::cgi();
 my $sss     = Settings::session();
 my $sid     = Settings::sid(); 
-my $dbname  = Settings::dbName();
+my $dbname  = Settings::dbFile();
 my $alias   = Settings::alias();
 my $passw   = Settings::pass();
 
 if(!$alias||!$dbname){
-    if (Settings::debug()){
-        $alias  ="admin";
-        $dbname = "data_admin_log.db";
-        $passw  = "admin";
-    }
-    else{
+    # if (Settings::debug()){
+    #     $alias  ="admin";
+    #     $dbname = "data_admin_log.db";
+    #     $passw  = "admin";
+    # }
+    # else{
         print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
         exit;
-    }
+    # }
 }
 try{
 

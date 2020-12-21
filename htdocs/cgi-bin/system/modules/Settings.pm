@@ -120,11 +120,11 @@ try {
     $CGI::POST_MAX = 1024 * 1024 * 5;  # max 5GB file post size limit.
     $cgi     = CGI->new();    
     $sss     = new CGI::Session("driver:File", $cgi, {Directory=>$LOG_PATH});
-    $sid     = $sss->id();
-    $dbname  = $sss->param('database');
+    $sid     = $sss->id();    
     $alias   = $sss->param('alias');
     $pass    = $sss->param('passw');
     $pub     = $cgi->param('pub');
+    $dbname  = $sss->param('database'); $dbname = $alias if(!$dbname);
 
     ##From here we have data source set, currently Progress DB SQL and SQLite SQL compatible.
     dbSrc($sss->param('db_source'));
@@ -616,7 +616,7 @@ sub connectDB {
     my $db =$u;
     if(!$d){$db = 'data_'.$u.'_log.db';$d=$u}
     else{   $db = 'data_'.$d.'_log.db';}
-    $DBFILE = $LOG_PATH.'/'.$db;
+    $DBFILE = $LOG_PATH.$db;
         if ($IS_PG_DB)  {
             $DSN = $DBI_SOURCE .'dbname='.$d;
         }else{
