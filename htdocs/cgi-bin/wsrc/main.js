@@ -321,7 +321,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         this.toggle('#div_log', true);
     }
 
-    display("Log page is ready!");
+    display("Log page is ready!");    
 }
 
 function encodeText(el){
@@ -1180,7 +1180,8 @@ function setPageSessionTimer(expires) {
                 var sec = ((dif % 60000) / 1000).toFixed(0);
                 var out = (min < 10 ? '0' : '') + min + ":" + (sec < 10 ? '0' : '') + sec;
                 var tim = new moment().tz(TIMEZONE).format("hh:mm:ss a");
-                var sty = "";if(min<2){sty="style='color:red'";if(!WARNED){WARNED=1;display("<font color='red'>Session is about to expire!</font>",10)}}
+                var sty = "";if(min<2){sty="style='color:red'";
+                if(!WARNED){WARNED=1;$('#au_door_chime').trigger('play');display("<font color='red'>Session is about to expire!</font>",10);}}
                 var dsp = "<font size='1px;'>[" + tim + "]</font><span "+sty+"> Session expires in " + out + "</span>";                
                 $("#sss_status").html(dsp);
                 if(now.isAfter(timeout)){

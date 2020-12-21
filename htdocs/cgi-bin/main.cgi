@@ -899,14 +899,13 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
             <button id="btnxca" onClick="return addInclude()"/>Add</button>&nbsp;&nbsp;
             <button id="btnxca" type="button" onClick="return removeInclude()">Remove</button>&nbsp;
             <button id="btnxrc" type="button" onClick="return resetInclude()">Reset</button>&nbsp;&nbsp;&nbsp;
-            <button id="btn_cat" onclick="viewByCategory(this);">View</button>
-&nbsp;&nbsp;
-            View by Amount Type:
-&nbsp;&nbsp;
+            <button id="btn_cat" onclick="viewByCategory(this);">View</button></td></tr><tr class="collpsd"><td align="right">
+
+            View by Amount Type:</td><td align="left">
             <select id="amf2" name="aa" class="ui-button">
                 $aopts
             </select>&nbsp;<button id="btn_amt" onclick="viewByAmountType(this);">View</button>
-&nbsp;&nbsp;
+&nbsp;&nbsp; &nbsp;&nbsp;
             <input id="vrtf" name="vrtf" type="hidden" value="0"/>
             View RTF Logs:&nbsp;<button id="btn_rtf" onclick="viewRTFLogs(this);">View</button>
 &nbsp;&nbsp;            
@@ -1021,6 +1020,11 @@ $tail
 <script type="text/javascript">
         var AUTOWORDS = [$autowords];
 </script>
+<audio id="au_door_chime"   preload="true" 
+    src="wsrc/Store_Door_Chime-Mike_Koenig-570742973.mp3">
+        Your browser does not support the
+        <code>audio</code> element.
+</audio>
 ));
 
 outputPage();
