@@ -4,8 +4,8 @@
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 use v5.10;
-use strict;
 use warnings;
+use strict;
 use Exception::Class ('LifeLogException');
 
 use Syntax::Keyword::Try;
@@ -17,7 +17,7 @@ use lib "system/modules";
 require Settings;
 
 my $db        = Settings::fetchDBSettings();
-my $cgi       = Settings->cgi();
+my $cgi       = Settings::cgi();
 my $dbname    = Settings::dbName();
 my $imgw      = 210;
 my $imgh      = 120;
@@ -29,26 +29,17 @@ my $DEBUG     = Settings::debug();
 my $today =  Settings::today();
 my $tbl_rc =0;
 
-my $tbl = '<a name="top"></a><form name="frm_log_del" action="data.cgi" onSubmit="return formDelValidation();">
-           <table class="tbl_rem" width="'.$PRC_WIDTH.'%">
-           <tr class="hdr" style="text-align:left;"><th>Date <a href="#bottom">&#x21A1;</a></th> <th>Time</th> <th>Log</th> <th>Category</th></tr>';
-
-
 my $opr = $cgi->param("opr");
 my $confirmed = $cgi->param('confirmed');
 if ($opr == 1){
         DisplayDateDiffs();
 }elsif ($confirmed){
-        ConfirmedDelition();
+        DeletionConfirmed();
 }else{
     print $cgi->redirect('main.cgi') if not $cgi->param('chk');
     NotConfirmed();
 }
-
-
-print $cgi->end_html;
 $db->disconnect();
-exit;
 
 sub DisplayDateDiffs {
 
@@ -61,7 +52,7 @@ sub DisplayDateDiffs {
 
     );
 
-    $tbl = '<table class="tbl" width="'.$PRC_WIDTH.'%">
+    my $tbl = '<table class="tbl" width="'.$PRC_WIDTH.'%">
         <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
     $stm = 'SELECT DATE, LOG FROM VW_LOG WHERE ';
@@ -130,21 +121,19 @@ return "<b>".$d->ymd()."</b> ".$d->hms;
 }
 
 
-sub ConfirmedDelition {
+sub DeletionConfirmed {
 
-try{
-    my $st;
-    my $SQLID = 'rowid'; $SQLID = 'ID' if( Settings::isProgressDB() );
+try{    
+    my $SQLID = 'rowid'; $SQLID = 'ID' if (Settings::isProgressDB());
+    my $st1 = $db->prepare("DELETE FROM LOG WHERE $SQLID = ?;");
+    my $st2 = $db->prepare("DELETE FROM NOTES WHERE LID = ?;");
+    #print $cgi->header(-expires=>"+6os");
     foreach my $id ($cgi->param('chk')){
-        print $cgi->p("###[deleting:$id]")  if(Settings::debug());
-        $st = $db->prepare("DELETE FROM LOG WHERE $SQLID = '$id';");
-        $st->execute() or die "<p>Error->"& $_ &"</p>";
-        $st = $st = $db->prepare("DELETE FROM NOTES WHERE LID = '$id';");
-        $st->execute();
+        #print $cgi->p("###[deleting:$id]") if(Settings::debug());        
+        $st1->execute($id) or die "<p>Error->"& $_ &"</p>";
+        $st2->execute($id);
     }
-    $st->finish;
-
-    print $cgi->redirect('main.cgi');
+   print $cgi->redirect('main.cgi');  
 
 }catch{
     print $cgi->p("<font color=red><b>ERROR</b></font>  " . $@);
@@ -177,7 +166,8 @@ try{
     }
     $stm =~ s/ OR $//; $stm .= $stmE;
     $st = Settings::selectRecords($db, $stm);
-              
+
+                 
     if($opr == 0){
         print $cgi->header(-expires=>"+6os");
         print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
@@ -189,6 +179,10 @@ try{
 
         my $r_cnt = 0;
         my $rs = "r1";
+
+         my $tbl = '<a name="top"></a><form name="frm_log_del" action="data.cgi" onSubmit="return formDelValidation();">
+           <table class="tbl_rem" width="'.$PRC_WIDTH.'%">
+           <tr class="hdr" style="text-align:left;"><th>Date <a href="#bottom">&#x21A1;</a></th> <th>Time</th> <th>Log</th> <th>Category</th></tr>';
 
 
         while(my @row = $st->fetchrow_array()) {
@@ -216,19 +210,18 @@ try{
 
         $tbl .= '<tr class="r0"><td colspan="4"><a name="bottom"></a><a href="#top">&#x219F;</a>
         <center>
-        <h2>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h2>
+        <h3>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h3>
         (Or hit you Browsers Back Button!)</center>
         </td></tr>
         <tr class="r0"><td colspan="4"><center>
         <input type="submit" value="I AM CONFIRMING!">
-        </center>
-        <input type="hidden" name="confirmed" value="1">
+        </center>        
         </td></tr>
-        </table></form>';
+        </table><input type="hidden" name="confirmed" value="1"></form>';
 
-        print '<center><div>' . $tbl .'</div></center>';
+        print "<center><div>\n$tbl\n</div></center>";
 
-        
+        print $cgi->end_html();
     } 
     elsif($opr == 2){        
         my $csv = Text::CSV-> new ( { binary => 1, escape_char => "\\", strict => 1, eol => $/ } );           
@@ -240,9 +233,9 @@ try{
             my $out = $csv->print(*STDOUT, $row);                  
                 print $out if(length $out>1);
         }
+        exit;
     }
-    $st->finish();    
-    exit;
+    $st->finish();   
 }catch{
     print "<font color=red><b>SERVER ERROR</b>-> Method NotConfirmed() Page Build Failed!.</font>:<pre>".$@."</pre>";
 }
