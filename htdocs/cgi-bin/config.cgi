@@ -1353,7 +1353,12 @@ sub renumerate {
     while(my @row = $dbs->fetchrow_array()) {
         $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
     }
-    $db->do('DROP TABLE LOG CASCADE;');
+    if(Settings::isProgressDB()){
+        $db->do('DROP TABLE LOG CASCADE;');
+    }
+    else{
+        $db->do('DROP TABLE LOG;');
+    }
     $db->do(&Settings::createLOGStmt);
     $db->do(q(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT,AFLAG)
                     SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG FROM life_log_temp_table ORDER by DATE;));
