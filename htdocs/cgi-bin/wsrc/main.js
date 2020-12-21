@@ -346,7 +346,7 @@ function formValidation() {
     return validate(dt, $("#frm_entry [name='log']").val());
 }
 function formDelValidation() {
-
+return true;
 }
 
 function validate(dt, log) {
