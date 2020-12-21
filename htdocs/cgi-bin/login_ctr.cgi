@@ -41,13 +41,16 @@ try{
 
         print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
         print $cgi->start_html(
-        -title   => "Personal Log Login",
-        -BGCOLOR => &Settings::bgcol,
-        -script => [
-                    { -type => 'text/javascript', -src => 'wsrc/main.js' },    ],
-        -style  => [
-                    { -type => 'text/css', -src => 'wsrc/'.&Settings::css }
-                ]
+                    -title   => "Personal Log Login",
+                    -BGCOLOR => &Settings::bgcol,
+                    -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
+                                {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
+                                {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
+                    -style => [{-type => 'text/css', -src => "wsrc/".&Settings::css},
+                                {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
+                                {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
+                                {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}],
+                    -onload  => "onBodyLoadGeneric()"
         );
 
     my @ht = split(m/\s/,`hostname -I`);
@@ -74,10 +77,11 @@ try{
         </table></form>);
 
     print qq(<br><br><div id="rz">
-                            <center>
-                                <h2>Welcome to Life Log</h2><div>$frm</div><br>
-                                <a href="https://github.com/wbudic/LifeLog" target="_blank">Get latest version of this application here!</a><br>
-                            </center><div>);
+            <center>
+                <h2>Welcome to Life Log</h2><div>$frm</div><br>
+                <a href="https://github.com/wbudic/LifeLog" 
+                target="_blank" style="font-size:small">LifeLog v.).Settings::release().qq(</a><br>
+            </center><div>);
 
     Settings::printDebugHTML($DBG) if Settings::debug();
     print $cgi->end_html;
