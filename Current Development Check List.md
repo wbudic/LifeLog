@@ -1,10 +1,14 @@
 # Branch Development Life Log in Perl
 
-*This page lists current development and issues being worked on in the LifeLog app. Being in the **Sun** stage, means there is a production environment. And usable, and in use. When, the project reaches **Earth** stage. It will be at its final specification. No data structures or major new features can be added or requested anymore. Only bug fixes, enhancements and efficiency fixes, if any at the **Earth** stage.*
+*This page lists current development and issues being worked on in the LifeLog app.*
 
 ## Life Log Development
 
 ### v.2.1 SUN STABLE New Features in Works
+
+*It has been 2 years, 4 months, 8 hours, 56 minutes, and 55 seconds
+between 2018-08-22 04:13:55 **Moon Stable** production release and this
+2020-12-22 13:10:50 **Sun Stable v.2.1**, next and final is the Earth release stage.*
 
 * &#10004; Config. page set session expires times has to be validated not to be under 2 minutes.
 * &#10004; Implement mapped provision of named timezones via main.inf, for cities not available in global zone list.

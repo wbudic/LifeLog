@@ -1151,49 +1151,48 @@ function deleteBackup() {
 
 function setPageSessionTimer(expires) {
 
-            var timeout;
+    var timeout;
+    var now = new moment();
+    var val = expires.replace(/\+|[A-Z]|[a-z]/g, '');
+    
+    if(expires.indexOf("h")>0){
+        timeout = moment(now).add(val, "h");
+    }
+    else
+    if(expires.indexOf("m")>0){
+        if(val<2){val=2};
+        timeout = moment(now).add(val, "m");
+    }
+    else
+    if(expires.indexOf("s")>0){
+        if(val<60){val=2}; 
+        timeout = moment(now).add(val, "s");
+    }
+    else{
+        if(val<2){val=2};
+        timeout = moment(now).add(val, "m");
+    }
+    var WARNED =0;
+    var timer   =  setInterval(function() {
             var now = new moment();
-            var val = expires.replace(/\+|[A-Z]|[a-z]/g, '');
-            
-            if(expires.indexOf("h")>0){
-                timeout = moment(now).add(val, "h");
+            var dif = timeout.diff(now);
+            var min = Math.floor(dif / 60000);
+            var sec = ((dif % 60000) / 1000).toFixed(0);
+            var out = (min < 10 ? '0' : '') + min + ":" + (sec < 10 ? '0' : '') + sec;
+            var tim = new moment().tz(TIMEZONE).format("hh:mm:ss a");
+            var sty = "";if(min<2){sty="style='color:red'";
+            if(!WARNED){WARNED=1;$('#au_door_chime').trigger('play');display("<font color='red'>Session is about to expire!</font>",10);}}
+            var dsp = "<font size='1px;'>[" + tim + "]</font><span "+sty+"> Session expires in " + out + "</span>";                
+            $("#sss_status").html(dsp);
+            if(now.isAfter(timeout)){
+                $("#sss_status").html("<span id='sss_expired'><a href='login_ctr.cgi'>Page Session has Expired!</a></span>");
+                clearInterval(timer);
+                $("#ed").prop( "disabled", true );
+                $("#el").prop( "disabled", true );
+                $("#am").prop( "disabled", true );
             }
-            else
-            if(expires.indexOf("m")>0){
-                if(val<2){val=2};
-                timeout = moment(now).add(val, "m");
-            }
-            else
-            if(expires.indexOf("s")>0){
-               if(val<60){val=2}; 
-               timeout = moment(now).add(val, "s");
-            }
-            else{
-                if(val<2){val=2};
-                timeout = moment(now).add(val, "m");
-            }
-            var WARNED =0;
-           	var timer   =  setInterval(function() {
-                var now = new moment();
-                var dif = timeout.diff(now);
-                var min = Math.floor(dif / 60000);
-                var sec = ((dif % 60000) / 1000).toFixed(0);
-                var out = (min < 10 ? '0' : '') + min + ":" + (sec < 10 ? '0' : '') + sec;
-                var tim = new moment().tz(TIMEZONE).format("hh:mm:ss a");
-                var sty = "";if(min<2){sty="style='color:red'";
-                if(!WARNED){WARNED=1;$('#au_door_chime').trigger('play');display("<font color='red'>Session is about to expire!</font>",10);}}
-                var dsp = "<font size='1px;'>[" + tim + "]</font><span "+sty+"> Session expires in " + out + "</span>";                
-                $("#sss_status").html(dsp);
-                if(now.isAfter(timeout)){
-                    $("#sss_status").html("<span id='sss_expired'><a href='login_ctr.cgi'>Page Session has Expired!</a></span>");
-                    clearInterval(timer);
-                    $("#ed").prop( "disabled", true );
-                    $("#el").prop( "disabled", true );
-                    $("#am").prop( "disabled", true );
-                }
 
-                                        }, 1000);
-
+        }, 1000);
 	}
 
  function  checkConfigCatsChange(){
@@ -1223,3 +1222,4 @@ function setPageSessionTimer(expires) {
     });
 return false;
  }
+

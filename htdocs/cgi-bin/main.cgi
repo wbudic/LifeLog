@@ -775,7 +775,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     </td></tr>
 	<tr class="collpsd">
 	<td style="text-align:right; vertical-align:top; width:10%;">Date:</td>
-	<td id="al" colspan="1" style="text-align:top; vertical-align:top"><input id="ed" type="text" name="date" size="18" value=")
+	<td id="al" colspan="2" style="text-align:top; vertical-align:top"><input id="ed" type="text" name="date" size="18" value=")
       . $today->ymd . " " . $today->hms . qq(">
 
 	&nbsp;<button type="button" onclick="return setNow();">Now</button>
@@ -784,17 +784,16 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 
                 <span id="cat_desc" name="cat_desc">Enter log...</span>
 
-            </td>
-			<td style="text-align:top; vertical-align:top">Category:&nbsp;
             
-                <button data-dropdown="#dropdown-standard">
+			&nbsp;&nbsp;&nbsp;Category:&nbsp;
+            
+                <button data-dropdown="#dropdown-standard" style="margin: 0px; padding: 0;">
                 <span id="lcat" class="ui-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>                
-               &nbsp; &#171;</button>
+               &nbsp; &#171; &nbsp;</button>
 
             <div class="dropdown-menu dropdown-anchor-top-right dropdown-has-anchor" id="dropdown-standard">
                         <table class="tbl">$td_cat</table>
             </div>
-<!-- OLD -> \$cats was here -->
 			</td>
 	</tr>
 	<tr class="collpsd"><td style="text-align:right; vertical-align:top">Log:</td>
@@ -885,7 +884,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     $srh .=
     qq(
     <tr class="collpsd">
-     <td align="right">View by Category:</td>
+     <td align="right" style="width:20%">View by Category:</td>
      <td align="left">
             <span id="lcat_v" class="ui-button">$catselected</span>
             <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
@@ -1020,7 +1019,7 @@ $tail
 <script type="text/javascript">
         var AUTOWORDS = [$autowords];
 </script>
-<audio id="au_door_chime"   preload="true" 
+<audio id="au_door_chime"   preload="auto" 
     src="wsrc/Store_Door_Chime-Mike_Koenig-570742973.mp3">
         Your browser does not support the
         <code>audio</code> element.

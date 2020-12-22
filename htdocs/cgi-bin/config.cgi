@@ -40,11 +40,12 @@ my $csvp    = $cgi->param('csv');
 
 exportToCSV() if ($csvp);
 
-if($cgi->param('bck'))        {&backup;}
-elsif($cgi->param('bck_del')) {&backupDelete;}
+if($cgi->param('bck'))        {&backup}
+elsif($cgi->param('bck_del')) {&backupDelete}
 elsif($cgi->param('data_bck')){&restore;}
-elsif($cgi->param('data_cat')){&importCatCSV;}
-elsif($cgi->param('data_log')){&importLogCSV;}
+elsif($cgi->param('bck_file')){restore($cgi->param('bck_file'))}
+elsif($cgi->param('data_cat')){&importCatCSV}
+elsif($cgi->param('data_log')){&importLogCSV}
 
 
 
@@ -356,17 +357,20 @@ next if $file eq '.' or $file eq '..' or index ($file , 'bck_') == -1;
 close $dir;
 foreach $file (sort @backups){
     #my $n = substr $file, length(&Settings::logPath);
-    $bck_list .=  "<input name='bck_file' type='radio' value='$file'>$file</input><br>";
+    $bck_list .=  "<input name='bck_file' type='radio' value='$file' onclick='setBackupFile(this);'>$file</input><br>";
 }
 if(length $bck_list == 0){
-$bck_list = '<p>Restore will bring back and merge log entries from the time of backup.</p>';
+$bck_list = '<p>Restore will bring back and merge log entries from the time of backup.</p>
+                        <input type="submit" name="Submit" value="Submit"/></td>
+                </tr>';
 }
 else{
-    $bck_list = qq(<p>Tick Select Backup to Restore or Delete</p><p>$bck_list</p>);
+    $bck_list = qq(<p>Tick Select Backup to Restore or Delete</p><p>$bck_list</p>
+    <input type="submit" onclick="deleteBackup();return false;" value="Delete"/>&nbsp;&nbsp;<input type="Submit" value="Restore"/></form>);
 }
 
-my $inpRestore = qq(<input type="button" onclick="return deleteBackup();" value="Delete"/>
-<input type="file" name="data_bck" />&nbsp;&nbsp;<input type="Submit" onclick="return true;restoreBackup();" value="Restore"/>);
+my $inpRestore = qq(<b>Local File:</b>&nbsp;&nbsp;
+<input type="file" name="data_bck" />&nbsp;&nbsp;<input type="Submit" value="Restore"/>);
 my $inpCVS = qq(<input type="button" onclick="return exportToCSV('log',0);" value="Export"/>&nbsp;
 <input type="button" onclick="return exportToCSV('log',1);" value="View"/>);
 if((Settings::anon("backup_enabled") == 0)){
@@ -388,12 +392,14 @@ print qq(
     </div>
     <br>
     <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:).&Settings::bgcol.qq(">
-            <form id="bck" action="config.cgi" method="post" enctype="multipart/form-data">
+            <form id="bck" action="config.cgi" method="post">
             <table border="0" width="100%">
                 <tr><td><a name="backup"></a><H3>Backup File Format</H3></td></tr>
                 <tr><td><input type="button" onclick="return fetchBackup();" value="Fetch"/><hr></td></tr>
 
                 <tr><td><div id="div_backups">$bck_list</div><hr></td></tr>
+
+                <form id="bck_file" action="config.cgi" method="post" enctype="multipart/form-data">
                 <tr><td>
                 $inpRestore
                 <hr></td></tr>
@@ -405,8 +411,8 @@ print qq(
                 <tr style="border-left: 1px solid black;"><td style="text-align:right;">
                         <input type="submit" name="Submit" value="Submit"/></td>
                 </tr>
-
                 </form>
+
                 <form action="config.cgi" method="post" enctype="multipart/form-data">
                 <tr><td><b>Export Categories:</b>
                        <input type="button" onclick="return exportToCSV('cat',0);" value="Export"/>&nbsp;
@@ -1039,21 +1045,30 @@ sub backup {
 
 
 sub restore {
-
-    my $hndl = $cgi->upload("data_bck");
-    my ($pipe,@br);
+    my $file = shift;
+    my ($tar,$pipe,@br);
     my $pass = Settings::pass();
+    my $hndl = $cgi->param('data_bck');
+    my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
     try{
-
         getHeader();
         print $cgi->start_html;
-        print "<pre>Reading->$hndl</pre>";
-        my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
-        my $tar = $dbck.$hndl; $tar =~ s/osz$/tar/;
+        if($file){ #Open handle on server to backup to be restored.
+            my $f = &Settings::logPath.$file;
+            open($hndl, '<', $f) or die "Can't open $f: $!";            
+            print "<pre>Reading on server -> $file</pre>";
+            $tar = $dbck.$file;
+        }        
+        else{
+            print "<pre>Reading-> $hndl</pre>";
+            $tar = $dbck.$hndl;
+        }
+
+        $tar =~ s/osz$/tar/;
         my $pipe;
         open ($pipe, "| openssl enc -d -des-ede3-cfb -salt -S ".Settings->CIPHER_KEY." -pass pass:$pass-$alias -in /dev/stdin 2>/dev/null > $tar");
             while(<$hndl>){print $pipe $_;};
-        close $pipe;
+        close $pipe; close $hndl;
 
         print "<pre>\n";
         my $m1 = "it is not permitted to restore another aliases log backup.";
@@ -1073,17 +1088,16 @@ sub restore {
 
         print "Merging from backup categories table...\n";
         my $insCAT   = $db->prepare('INSERT INTO CAT (ID, NAME, DESCRIPTION) VALUES(?,?,?);') or die "Failed CAT prepare.";
-
         my $b_pst = Settings::selectRecords($b_db,'SELECT ID, NAME, DESCRIPTION FROM CAT;');
         while ( @br = $b_pst->fetchrow_array() ) {
-            my $pst = Settings::selectRecords($db, "SELECT ID,NAME,DESCRIPTION FROM CAT WHERE ID='".$br[0]."';");
+            my $pst = Settings::selectRecords($db, "SELECT ID,NAME,DESCRIPTION FROM CAT WHERE ID=".$br[0].";");
             my @ext = $pst->fetchrow_array();
             if(scalar(@ext)==0){
                 $insCAT->execute($br[0],$br[1],$br[2]);
                 print "Added CAT->".$br[0]."|".$br[1]."\n";
             }
             elsif($br[0] ne $ext[0] or $br[1] ne $ext[1]){
-                $db->do("UPDATE CAT SET NAME='".$br[1]."', DESCRIPTION='".$br[2]."' WHERE ID=?;") or die "Cat update failed!";
+                $db->do("UPDATE CAT SET NAME='".$br[1]."', DESCRIPTION='".$br[2]."' WHERE ID=$br[0];") or die "Cat update failed!";
                 print "Updated->".$br[0]."|".$br[1]."|".$br[2]."\n";
             }
 
@@ -1126,7 +1140,7 @@ sub restore {
     }
     catch{
         $ERROR = "<font color='red'><b>Restore Failed!</b></font>hndl->$hndl $@ \n";
-        $ERROR = "br:[@br]" if(@br);
+        $ERROR .= "br:[@br]" if(@br);
     };
 
     my $back = $cgi->url( -relative => 1 );

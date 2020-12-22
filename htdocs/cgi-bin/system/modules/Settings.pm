@@ -254,8 +254,8 @@ if($IS_PG_DB){
             ID_RTF INTEGER    DEFAULT 0,
             DATE TIMESTAMP    NOT NULL,
             LOG VARCHAR ($DBI_LVAR_SZ) NOT NULL,
-            AMOUNT INTEGER,
-            AFLAG INT         DEFAULT 0,
+            AMOUNT money,
+            AFLAG  INT         DEFAULT 0,
             STICKY BOOL       DEFAULT FALSE,
             PRIMARY KEY(ID)
         );)} 
@@ -266,8 +266,8 @@ if($IS_PG_DB){
         ID_RTF INTEGER    DEFAULT 0,
         DATE DATETIME     NOT NULL,
         LOG VARCHAR ($DBI_LVAR_SZ) NOT NULL,
-        AMOUNT INTEGER,
-        AFLAG INT         DEFAULT 0,
+        AMOUNT DOUBLE,
+        AFLAG  INT         DEFAULT 0,
         STICKY BOOL       DEFAULT 0
     );
 )}
@@ -352,7 +352,7 @@ sub getConfiguration {
                 when ("RELEASE_VER") {$RELEASE_VER  = $r[2]}
                 when ("TIME_ZONE")   {$TIME_ZONE    = $r[2]}
                 when ("PRC_WIDTH")   {$PRC_WIDTH    = $r[2]}
-                when ("SESSN_EXPR")  {$SESSN_EXPR   = $r[2]}
+                when ("SESSN_EXPR")  {$SESSN_EXPR   = timeFormatValue($r[2])}
                 when ("DATE_UNI")    {$DATE_UNI     = $r[2]}
                 when ("LANGUAGE")    {$LANGUAGE     = $r[2]}
                 when ("LOG_PATH")    {} # Ommited and code static can't change for now.
@@ -414,6 +414,13 @@ sub getConfiguration {
     catch {
         SettingsException->throw(error=>$@, show_trace=>$DEBUG);
     };
+}
+
+sub timeFormatValue {
+    my $v = shift;
+    if(!$v || $v==0){$v="+2m"}
+    if($v !~ /^\+/){$v='+'.$v.'m'}
+    return $v;
 }
 
 sub getTheme {
