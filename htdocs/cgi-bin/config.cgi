@@ -1146,7 +1146,7 @@ sub restore {
     my $back = $cgi->url( -relative => 1 );
     print $ERROR if($ERROR);
     print "\n</pre><code>";
-    print qq(<a href="config.cgi?CGISESSID=$sid"><hr>Go Back</a> or <a href="main.cgi"><brr>Go to LOG</a></code>);
+    print qq(<a href="config.cgi?CGISESSID=$sid"><hr>Go Back</a> or <a href="main.cgi"><br>Go to LOG</a></code>);
     print $cgi->end_html;
        exit;
 
