@@ -985,7 +985,7 @@ if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
         <a class="a_" onclick="return deleteSelected();">Delete</a><hr>
         <a class="a_" onclick="return toggle('#tbl_hlp',true);">Help</a><hr>
         <a class="a_" href="stats.cgi" onclick="display('Please Wait!');">Stats</a><hr>
-        <a class="a_" href="config.cgi" onclick="display('Please Wait!');>Config</a><hr>
+        <a class="a_" href="config.cgi" onclick="display('Please Wait!');">Config</a><hr>
         <a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></span></a><hr>
         $sm_reset_all
         <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br><hr>
@@ -1021,7 +1021,7 @@ $tail
         var AUTOWORDS = [$autowords];
 </script>
 <audio id="au_door_chime"   preload="auto" 
-    src="wsrc/Store_Door_Chime-Mike_Koenig-570742973.mp3">
+    src="wsrc/Miki-Matsubara-WASH-WASH.mp3">
         Your browser does not support the
         <code>audio</code> element.
 </audio>
