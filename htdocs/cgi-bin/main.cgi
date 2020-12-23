@@ -744,11 +744,12 @@ $log_output .= <<_TXT;
 <a href="#top">&#x219F;</a></td>
 <td colspan="4" align="right">
     <input type="hidden" name="opr" id="opr" value="0"/>
-    <input type="submit" value="Export Selected" onclick="return exportSelected()"/>&nbsp;
+    <input type="submit" value="Export Selected" onclick="return exportSelected()"/>&nbsp;    
     <input type="submit" value="Sum Selected" onclick="return sumSelected()"/>&nbsp;
     <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
     <button onclick="return selectAllLogs()">Select All</button>
     <input type="reset" value="Unselect All"/>
+    <input type="submit" value="Print View Selected" onclick="return viewSelected()"/>&nbsp;
     <input id="del_sel" type="submit" value="Delete Selected"/>
 </td></tr>
 </TABLE></FORM>
@@ -983,8 +984,8 @@ if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
         <a class="a_" onclick="return toggle('#div_srh',true);">Search</a><hr>
         <a class="a_" onclick="return deleteSelected();">Delete</a><hr>
         <a class="a_" onclick="return toggle('#tbl_hlp',true);">Help</a><hr>
-        <a class="a_" href="stats.cgi">Stats</a><hr>
-        <a class="a_" href="config.cgi">Config</a><hr>
+        <a class="a_" href="stats.cgi" onclick="display('Please Wait!');">Stats</a><hr>
+        <a class="a_" href="config.cgi" onclick="display('Please Wait!');>Config</a><hr>
         <a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></span></a><hr>
         $sm_reset_all
         <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br><hr>

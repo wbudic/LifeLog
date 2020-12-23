@@ -527,11 +527,6 @@ function selectAllLogs() {
     return false;
 }
 
-function deleteSelected() {    
-    $("#del_sel").click();
-    display("Please Wait!",150);
-    return false;
-}
 
 function submitTop(top) {
     var frm = document.getElementById("frm_entry");
@@ -586,7 +581,7 @@ function submitEnd(limit) {
 
 
 function viewAll() {
-
+    display("Please Wait!");
     var frm = document.getElementById("frm_entry");
     frm.submit_is_view.value = 1;
     frm.rs_all.value = 1;
@@ -594,7 +589,7 @@ function viewAll() {
     frm.rs_prev.value = 0;
     frm.submit_is_view.value = 1;
     frm.submit();
-
+    
     return false;
 }
 
@@ -929,15 +924,31 @@ function submitNewCategory() {
     return true;
 }
 
+function deleteSelected() { 
+    display("Please Wait!",150);
+    $("#opr").val(0);  
+    $("#del_sel").click();
+    display("Please Wait!",150);
+    return false;
+}
 function dateDiffSelected() {
-   $("#opr").val(1);
+    display("Please Wait!");
+    $("#opr").val(1);
+    return true;
+}
+function exportSelected() {
+    display("Please Wait!");
+    $("#opr").val(2);
+    return true;
+    
+}
+function viewSelected() {
+    display("Please Wait!");
+    $("#opr").val(3);
     return true;
 }
 
-function exportSelected() {
-    $("#opr").val(2);
-    
-}
+
 
 function exportToCSV(dat, view){
     var csv;

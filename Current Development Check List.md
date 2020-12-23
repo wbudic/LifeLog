@@ -10,6 +10,7 @@
 between 2018-08-22 04:13:55 **Moon Stable** production release and this
 2020-12-22 13:10:50 **Sun Stable v.2.1**, next and final is the Earth release stage.*
 
+* &#10004; Print View Selected.
 * &#10004; Config. page set session expires times has to be validated not to be under 2 minutes.
 * &#10004; Implement mapped provision of named timezones via main.inf, for cities not available in global zone list.
   * Javascript also needs to be updated to translate this properly.
