@@ -742,15 +742,20 @@ $log_output .= <<_TXT;
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 
 <a href="#top">&#x219F;</a></td>
-<td colspan="4" align="right">
+<td colspan="4" align="right" style="margin:5px;">
     <input type="hidden" name="opr" id="opr" value="0"/>
-    <input type="submit" value="Export Selected" onclick="return exportSelected()"/>&nbsp;    
-    <input type="submit" value="Sum Selected" onclick="return sumSelected()"/>&nbsp;
-    <input type="submit" value="Date Diff Selected" onclick="return dateDiffSelected()"/>&nbsp;
-    <button onclick="return selectAllLogs()">Select All</button>
+    <input type="submit" value="Sum" onclick="return sumSelected()"/>&nbsp;
+
+    <span style="border-left: 1px solid black;padding:5px;margin:15px;">
+    <button onclick="return selectAllLogs()">Select All</button>    
     <input type="reset" value="Unselect All"/>
-    <input type="submit" value="Print View Selected" onclick="return viewSelected()"/>&nbsp;
-    <input id="del_sel" type="submit" value="Delete Selected"/>
+
+    <input type="submit" value="Date Diff" onclick="return dateDiffSelected()"/>&nbsp;
+    <input type="submit" value="Export" onclick="return exportSelected()"/>&nbsp;        
+    <input type="submit" value="Print" onclick="return viewSelected()"/>&nbsp;
+    <input id="del_sel" type="submit" value="Delete"/>
+    </span>
+
 </td></tr>
 </TABLE></FORM>
 _TXT
@@ -1020,7 +1025,7 @@ $tail
 <script type="text/javascript">
         var AUTOWORDS = [$autowords];
 </script>
-<audio id="au_door_chime"   preload="auto" 
+<audio id="au_door_chime"  enabled preload="auto" 
     src="wsrc/Miki-Matsubara-WASH-WASH.mp3">
         Your browser does not support the
         <code>audio</code> element.
