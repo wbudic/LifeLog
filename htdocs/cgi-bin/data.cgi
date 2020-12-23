@@ -23,10 +23,8 @@ my $imgw      = 210;
 my $imgh      = 120;
 my $human     = DateTime::Format::Human::Duration->new();
 my $PRC_WIDTH = Settings::pagePrcWidth();
-my $TH_CSS    = Settings::css();
-my $BGCOL     = Settings::bgcol();
 my $DEBUG     = Settings::debug();
-my $today =  Settings::today();
+my $today     =  Settings::today();
 my $tbl_rc =0;
 
 my $opr = $cgi->param("opr");
@@ -42,20 +40,12 @@ if ($opr == 1){
 $db->disconnect();
 
 sub DisplayDateDiffs {
-
-    my ($stm,$st);
-
-    print $cgi->header(-expires=>"+6os");
-    print $cgi->start_html(-title => "Date Difference Report", -BGCOLOR => $BGCOL,
-                -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-                -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
-
-    );
-
+   
+    printHeader();
     my $tbl = '<table class="tbl" width="'.$PRC_WIDTH.'%">
         <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
-    $stm = 'SELECT DATE, LOG FROM VW_LOG WHERE ';
+    my $stm = 'SELECT DATE, LOG FROM VW_LOG WHERE ';
     my  @ids = $cgi->param('chk');
 
      @ids = reverse @ids;
@@ -68,9 +58,7 @@ sub DisplayDateDiffs {
     }
     $stm .= ' ORDER BY PID;';
     print $cgi->pre("###[stm:$stm]") if($DEBUG);
-    $st = $db->prepare( $stm );
-    $st->execute();
-
+    my $st = Settings::selectRecords($db, $stm);
     my ($dt,$dif,$first,$last,$tnext, $dt_prev) = (0,0,0,0,0,$today);
     while(my @row = $st->fetchrow_array()) {
          my $rdat = $row[0];
@@ -142,6 +130,19 @@ try{
 
 }
 
+sub printHeader {
+print $cgi->header(-expires=>"+6os");
+print $cgi->start_html(-title => "Date Difference Report", -BGCOLOR => &Settings::bgcol,                
+            -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
+                        {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
+                        {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],                
+            -style => [{-type => 'text/css', -src => "wsrc/".&Settings::css},
+                        {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
+                        {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
+                        {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}],
+            -onload => "onBodyLoadGeneric()");
+}
+
 sub NotConfirmed {
 
 try{
@@ -168,13 +169,8 @@ try{
     $st = Settings::selectRecords($db, $stm);
 
                  
-    if($opr == 0){
-        print $cgi->header(-expires=>"+6os");
-        print $cgi->start_html(-title => "Personal Log Record Removal", -BGCOLOR => $BGCOL,
-                -script=>{-type => 'text/javascript', -src => 'wsrc/main.js'},
-                -style =>{-type => 'text/css', -src => "wsrc/$TH_CSS"}
-
-        );        
+    if($opr == 0){        
+        printHeader();
         print $cgi->pre("###NotConfirmed()->[stm:$stm]") if($DEBUG);
 
         my $r_cnt = 0;
@@ -210,8 +206,7 @@ try{
 
         $tbl .= '<tr class="r0"><td colspan="4"><a name="bottom"></a><a href="#top">&#x219F;</a>
         <center>
-        <h3>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h3>
-        (Or hit you Browsers Back Button!)</center>
+        <h3>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h3><br><button onclick="window.history.back();">No Go Back</button></center>
         </td></tr>
         <tr class="r0"><td colspan="4"><center>
         <input type="submit" value="I AM CONFIRMING!">

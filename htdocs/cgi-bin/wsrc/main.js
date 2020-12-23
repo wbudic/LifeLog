@@ -527,8 +527,9 @@ function selectAllLogs() {
     return false;
 }
 
-function deleteSelected() {
+function deleteSelected() {    
     $("#del_sel").click();
+    display("Please Wait!",150);
     return false;
 }
 
