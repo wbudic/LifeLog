@@ -262,3 +262,20 @@ The full URL to the LifeLog is the following link (if not working try without cg
          http://localhost:8080/cgi-bin/
 #
 #
+
+## Network Troubleshooting ##
+
+With some server software/hardware the following setting, might help if experiencing an lag.
+
+### Modify sysctl.conf:
+sudo vim /etc/sysctl.conf
+
+So it lists later:
+sudo sysctl -p
+
+net.ipv4.tcp_no_metrics_save = 1
+net.core.netdev_max_backlog = 5000
+net.ipv4.tcp_rmem = 10240 87380 12582912
+net.core.wmem_max = 12582912
+net.core.rmem_max = 12582912
+net.ipv4.tcp_window_scaling = 1
