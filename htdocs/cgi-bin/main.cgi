@@ -970,8 +970,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     $srh .= '</table></form>';
 
 my $sideMenu;
-my $tail = q(<div><a class="a_" href="stats.cgi">View Statistics</a></div><br>
-<div><a class="a_" href="config.cgi">Configure Log</a></div><hr>
+my $tail = q(<div><a class="a_" href="stats.cgi">View Statistics</a>&nbsp;&nbsp;<a class="a_" href="config.cgi">Configure Log</a></div><hr>
 <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"></a></div>);
 if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
     $sideMenu = qq(
@@ -1304,51 +1303,33 @@ sub authenticate {
 }
 
 sub fetchAutocomplete {
+
     my $st = traceDBExe('SELECT LOG from LOG' . $stmE );
+    my $awl = Settings::autoWordLength();
+    my %hsh = ();
     while ( my @row = $st->fetchrow_array() ) {
         my ($wl,$log) = ("",$row[0]);
-
         #Decode escaped \\n
         $log =~ s/\\n/\n/gs;
         $log =~ s/''/'/g;
-
-        #Replace link to empty string
-        my @words = split( /($re_a_tag)/si, $log );
-        foreach my $ch_i (@words) {
-            next if $ch_i =~ /$re_a_tag/;
-            next if index( $ch_i, "<img" ) > -1;
-            $ch_i =~ s/https//gsi;
-            $ch_i =~ s/($RE{URI}{HTTP})//gsi;
-        }
-        $log   = join( ' ', @words );
-        @words = split( ' ', $log );
+        my @words = split( /\s/, $log );
         foreach my $word (@words) {
-
             #remove all non alphanumerics
             $word =~ s/[^a-zA-Z]//gs;
             $wl = length($word);
-            if ( $wl > 2 && $wl < Settings::autoWordLength()) {
+            if ( $wl > 2 && $wl < $awl) {
                 $word = lc $word;
-                #parse for already placed words, instead of using an hash.
-                my $idx = index( $autowords, $word, 0 );
-                if ( $idx > 0 ) {
-                    my $end = index( $autowords, '"', $idx );
-                    my $existing =
-                        substr( $autowords, $idx, $end - $idx );
-                    next if $word eq $existing;
-                }
-
-                $autowords .= qq(,"$word");
+                if(!$hsh{$word}){ $hsh{$word}=$word;$autowords .= qq(,"$word");} else{ next; }                
                 if ( $aw_cnt++ > &Settings::autoWordLimit ) {
                     last;
                 }
             }
         }
-
         if ( $aw_cnt > Settings::autoWordLimit() ) {
             last;
         }
     }
+    undef %hsh;
 }
 
 sub cam {
