@@ -652,7 +652,7 @@ sub buildLog {
         $log_output .= qq(<tr class="r$ssid">
 		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
 		<td id="t$id" width="10%" class="tbl">$dth</td>
-		<td id="v$id" class="log" width="40%">$log</td>
+		<td id="v$id"><div class="log">$log</div></td>
 		<td id="a$id" width="10%" class="tbl">$am</td>
 		<td id="c$id" width="10%" class="tbl">$ct</td>
         );

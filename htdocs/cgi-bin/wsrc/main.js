@@ -1129,6 +1129,7 @@ function RGBToHex(rgb) {
 
 function fetchBackup() {
     window.location = "config.cgi?bck=1";
+    setTimeout("location.reload(true);", 1000);
 }
 function deleteBackup() {
     $('<div></div>').dialog({
