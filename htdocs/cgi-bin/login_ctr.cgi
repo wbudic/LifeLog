@@ -167,7 +167,7 @@ sub checkAutologinSet {
                 return;                                # Note, we do assign entered password even passw as autologin is set. Not entering one bypasses this.
             }                                          # If stricter access is required set it to zero in main.cnf, or disable in config.
             $passw = $cre[1] if (!$passw);
-            $db = Settings::connectDB($DB_NAME, $alias, $passw);            
+            $db = Settings::connectDB($alias, $passw);            
             #check if autologin enabled.
             my $st = Settings::selectRecords($db,"SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");                        
             if($st){my @set = $st->fetchrow_array();

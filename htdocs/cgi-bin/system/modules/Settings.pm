@@ -622,7 +622,7 @@ sub connectDB {
     $p = $alias if(!$p);
     my $db =$u;
     if(!$d){$db = 'data_'.$u.'_log.db';$d=$u}
-    else{   $db = 'data_'.$d.'_log.db';}
+    else{   $db = 'data_'.$d.'_log.db';$dbname = $d if !$dbname}
     $DBFILE = $LOG_PATH.$db;
         if ($IS_PG_DB)  {
             $DSN = $DBI_SOURCE .'dbname='.$d;

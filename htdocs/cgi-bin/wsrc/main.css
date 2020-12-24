@@ -20,7 +20,7 @@ div {
 }
 
 #div_log {
-    font-weight: bold;
+    font-weight: bold; 
 }
 #div_srh {
     text-align: center;
@@ -142,12 +142,32 @@ th,
 }
 
 .log {
+    max-width:550px;
     text-align: left;
     word-wrap: break-word;
-    padding-left: 5px;
+    white-space: normal;
+    padding-left: 5px;            
+    overflow-y:hidden;
 }
 
 
+.log::-webkit-scrollbar {
+    -webkit-appearance: none;
+}
+
+.log::-webkit-scrollbar:vertical {
+    width: 12px;
+}
+
+.log::-webkit-scrollbar:horizontal {
+    height: 12px;
+}
+
+.log::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    border: 2px solid white; /* should match background, can't be transparent */
+    background-color: rgba(0, 0, 0, .5);
+}
 
 div#rz {
     border: 1px solid black;

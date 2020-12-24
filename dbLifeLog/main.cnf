@@ -3,16 +3,22 @@
 This is the main configuration file for the LifeLog applications settings.
 https://github.com/wbudic/LifeLog
 This is an Open Source License project -> https://choosealicense.com/licenses/isc/
-Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AUTO_LOGIN option bellow, use config in app.
+
+# Credential format:<<AUTO_LOGIN <{alias}/{password}> , to enable AUTO_LOGIN option bellow,
+ the config in app, has to also be enabled.
 <<AUTO_LOGIN</>
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>
 # Default database driver prefix, is SQLite.
+
+Remove -> '!' prefix to tag name, to enable, 
+and override any previously set from now on, top to end of file approach.
+
 <<!DBI_SOURCE<DBI:SQLite:>
-# ProgresSQL DB driver. Remove -> '!' prefix to tag name, to enable, and override the above SQLite one.
+# ProgresSQL DB driver. 
 <<!DBI_SOURCE<DBI:Pg:host=localhost;>
 # LOG actual variable size limit, - 1024 default, 128 minimum value. 
-<<DBI_LOG_VAR_SIZE<8024>
+<<!DBI_LOG_VAR_SIZE<8024>
 
 # Set the following to an database name, with external managed multiple users, that are to connect to a single database.
 # Users have to be externally set, and alias is then used for their userid to be able to login. (Add user roles to AUTH table).
@@ -27,7 +33,7 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 # Public records view feature only, it doesn't allow new log entries to be added and have pin point searching of all existing.
 <<!PUBLIC_CATS<03,06,09>#File,System log and Event.
 # Following is similar to AUTO_LOGIN setting above, and must be set.
-<<!PUBLIC_LOGIN<admin/admin>
+<<!PUBLIC_LOGIN</>
 <<TIME_ZONE_MAP<
 Australia/Marsfield=Australia/Sydney
 Australia/Bondi=Australia/Sydney
