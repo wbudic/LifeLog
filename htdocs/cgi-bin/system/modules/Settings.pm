@@ -24,7 +24,7 @@ use experimental qw( switch );
 use constant CIPHER_KEY => '95d7a85ba891da';
 
 #DEFAULT SETTINGS HERE!
-our $RELEASE_VER  = '2.1';
+our $RELEASE_VER  = '2.2';
 our $TIME_ZONE    = 'Australia/Sydney';
 our $LANGUAGE     = 'English';
 our $PRC_WIDTH    = '60';

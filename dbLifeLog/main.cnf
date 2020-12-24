@@ -37,7 +37,7 @@ America/Texas=America/Chicago
 
 
 <<CONFIG<4>
-00|$RELEASE_VER = 2.1`LifeLog Application Version.
+00|$RELEASE_VER = 2.2`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
 03|$TIME_ZONE   = Australia/Sydney`Time zone of your country and city.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.
