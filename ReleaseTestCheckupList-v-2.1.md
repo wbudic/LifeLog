@@ -35,6 +35,14 @@
 - &#9744; Are being deleted if log entry is deleted.
 - &#9744; Check text formatting, colours, fonts, styles is working.
 
+### Config Page config.cgi
+
+- &#9744; Look & Feel, autonom variables, like release version showing at end of System Configuration, clustered as uneditable.
+- &#9744; Editing and changing works.
+- &#9744; Categories, adding deleting renaming works.
+- &#9744; Database fixes all work.
+- &#9744; Backup/Restore working, security around it also correct and works.
+
 ### Configuration Check main.cnf
 
 - &#9745; Autologin works.
