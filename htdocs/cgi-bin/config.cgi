@@ -361,7 +361,7 @@ foreach $file (sort @backups){
 }
 if(length $bck_list == 0){
 $bck_list = '<p>Restore will bring back and merge log entries from the time of backup.</p>
-                        <input type="submit" name="Submit" value="Submit"/></td>
+                        </td>
                 </tr>';
 }
 else{
@@ -403,7 +403,7 @@ print qq(
                 <tr><td>
                 $inpRestore
                 <hr></td></tr>
-
+                </form>
                 <tr><td><H3>CSV File Format</H3> Notice: (<font color=red>Obsolete feature, use not recommended!</font>)</td></tr>
 
                 <tr style="border-left: 1px solid black;"><td>
@@ -1031,14 +1031,10 @@ sub backup {
    my $pipe = "tar czf - ".Settings::logPath().'main.cnf' ." ". Settings::dbFile()." | openssl enc -e -des-ede3-cfb -salt -S ".Settings->CIPHER_KEY." -pass pass:$pass-$alias -out ".Settings::logPath().$ball." 2>/dev/null";
    my $rez = `$pipe`;
 
-    #print $cgi->header;
-    #print $cgi->start_html;
     print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>$ball);
     open (my $TAR, "<", Settings::logPath().$ball) or die "Failed creating backup -> $ball";
     while(<$TAR>){print $_;}
     close $TAR;
-
-    #print $cgi->end_html;
     exit;
 
 }

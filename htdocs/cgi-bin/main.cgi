@@ -738,7 +738,7 @@ if($isPUBViewMode){
 }
 else{
 $log_output .= <<_TXT;
-<tr class="r0" id="brw_row"><td colspan="2">Show All hidden with &#10132;
+<tr class="r0" id="brw_row"><td colspan="2" style="font-size:small;text-align:left;">Show All hidden &#10132;
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 
 <a href="#top">&#x219F;</a></td>
@@ -753,7 +753,7 @@ $log_output .= <<_TXT;
     <input type="submit" value="Date Diff" onclick="return dateDiffSelected()"/>&nbsp;
     <input type="submit" value="Export" onclick="return exportSelected()"/>&nbsp;        
     <input type="submit" value="Print" onclick="return viewSelected()"/>&nbsp;
-    <input id="del_sel" type="submit" value="Delete"/>
+    <input id="del_sel" type="submit" value="Delete" onclick="display('Please Wait!')"/>
     </span>
 
 </td></tr>
@@ -892,9 +892,10 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     <tr class="collpsd">
      <td align="right" style="width:20%">View by Category:</td>
      <td align="left">
+            <button class="bordered" data-dropdown="#dropdown-standard-v" style="margin: 0px; padding: 0; padding-right:8px;">
             <span id="lcat_v" class="ui-button">$catselected</span>
-            <button class="bordered" data-dropdown="#dropdown-standard-v">&#171;</button>
-            <div id="dropdown-standard-v" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
+            &#171;</button>
+            <div id="dropdown-standard-v" class="dropdown-menu dropdown-anchor-left-center dropdown-has-anchor">
                         <table class="tbl">$td_cat</table>
             </div>
 
@@ -922,8 +923,9 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
      <td align="right">Exclude Category:</td>
      <td align="left">
 
+            <button class="bordered" data-dropdown="#dropdown-standard-x" style="margin: 0px; padding: 0; padding-right:8px;">
             <span id="lcat_x" class="ui-button">$xcatselected</span>
-            <button class="bordered" data-dropdown="#dropdown-standard-x">&#171;</button>
+            &#171;</button>
             <div id="dropdown-standard-x" class="dropdown-menu        dropdown-anchor-left-center      dropdown-has-anchor">
                         <table class="tbl">$td_cat</table>
             </div>
@@ -1207,26 +1209,26 @@ my $dbg = qq(--DEBUG OUTPUT--\n
             $tfId = 1;
         }
 
-        $vmode = "[In Page Mode]&nbsp;";
-        $vmode = "<font color='red'>[In View Mode]</font>&nbsp;" if$isInViewMode;
+        $vmode = qq(<span style="font-size:small;">[In Page Mode]</span>&nbsp;);
+        $vmode = qq(<span style="font-color:red;font-size:small">[In View Mode]</span>&nbsp;) if$isInViewMode;
         if($isPUBViewMode){
-           $log_output .=qq!<tr class="r$tfId" id="brw_row"><td>$vmode</td><td colspan="3"></td>!;
+           $log_output .=qq!<tr class="r$tfId" id="brw_row"><td style="text-align:left;">$vmode</td><td colspan="3"></td>!;
         }
         elsif($rec_limit == 0){
-            $log_output .= qq!<tr class="r$tfId" id="brw_row"><td>$vmode</td><td colspan="3">
+            $log_output .= qq!<tr class="r$tfId" id="brw_row"><td style="text-align:left;">$vmode</td><td colspan="3">
                                <input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="Back To Page View"/>!;
 
         }
         else{
                 if ($rs_cur < $log_top && $rs_prev && $rs_prev > 0 && $log_start > 0 && $rs_page > 0) {
 
-                    $log_output .= qq!<tr class="r$tfId" id="brw_row"><td>$vmode</td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
+                    $log_output .= qq!<tr class="r$tfId" id="brw_row"><td style="text-align:left;">$vmode</td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
                     <input type="hidden" value="$rs_prev"/>
                     <input class="ui-button" type="button" onclick="submitPrev($log_rc_prev, $rec_limit);return false;" value="&lsaquo;&lsaquo;&nbsp; Previous"/>&nbsp;&nbsp;!;
 
                 }
                 else {
-                    $log_output .= qq(<tr class="r$tfId" id="brw_row"><td>$vmode</td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
+                    $log_output .= qq(<tr class="r$tfId" id="brw_row"><td style="text-align:left;">$vmode</td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
                 }
 
 
