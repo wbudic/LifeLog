@@ -2,7 +2,12 @@
 
 *This page lists current development and issues being worked on in the LifeLog app.*
 
-## Life Log Development
+## Life Log Application Development
+
+### v.2.2 EARTH RC 1
+
+* Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
+* Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
 
 ### v.2.1 SUN STABLE New Features in Works
 
@@ -30,8 +35,6 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 * &#10004; Single database, multi-user login.
 * Static pages setting for the pages directory.
 * Provide markdown text functionality to html pages. For quick vanilla plain documentation.
-* Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
-* Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
 
 ### v.2.0 SUN RC2 Encountered
 
