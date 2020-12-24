@@ -35,6 +35,15 @@
 - &#9744; Are being deleted if log entry is deleted.
 - &#9744; Check text formatting, colours, fonts, styles is working.
 
+### Configuration Check main.cnf
+
+- &#9744; Autologin works.
+- &#9744; Auto Timezone setting.
+- &#9744; Timezone Mapping.
+- &#9744; Backup disabled/enabled works.
+- &#9744; Database source change works.
+- &#9744; Central database external users access works.
+
 ---
 :sleeping:
 | Unchecked | Checked |
