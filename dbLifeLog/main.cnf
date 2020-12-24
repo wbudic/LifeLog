@@ -8,11 +8,11 @@ Credential format:<<AUTO_LOGIN <{alias}/{password}> , don't enable here using AU
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>
 # Default database driver prefix, is SQLite.
-<<DBI_SOURCE<DBI:SQLite:>
+<<!DBI_SOURCE<DBI:SQLite:>
 # ProgresSQL DB driver. Remove -> '!' prefix to tag name, to enable, and override the above SQLite one.
 <<!DBI_SOURCE<DBI:Pg:host=localhost;>
 # LOG actual variable size limit, - 1024 default, 128 minimum value. 
-<<!DBI_LOG_VAR_SIZE<1024>
+<<DBI_LOG_VAR_SIZE<8024>
 
 # Set the following to an database name, with external managed multiple users, that are to connect to a single database.
 # Users have to be externally set, and alias is then used for their userid to be able to login. (Add user roles to AUTH table).
