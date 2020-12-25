@@ -502,6 +502,8 @@ function edit(row) {
     } else {
         var txt = log.html();
         txt = txt.replace(/<br>/g,"\n");
+        txt = txt.replace(/^<div class=\"log\">/,"");
+        txt = txt.replace(/<\/div>$/,"");
         $("#el").val(decodeToText(txt));
     }
 
