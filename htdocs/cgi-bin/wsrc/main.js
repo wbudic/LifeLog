@@ -43,13 +43,6 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         _show_all = false;//toggle type switch
         showAll();
     }
-
-    $(function() {        
-        $( "#rs_keys, #rs_keys2" ).autocomplete({
-            source: AUTOWORDS
-            });
-    });
-
     $('#ed').datetimepicker({
         dateFormat: 'yy-mm-dd',
         timeFormat: 'HH:mm:ss',
@@ -269,7 +262,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         lbl = lbl + "&nbsp;".repeat(16-lbl.length);
         $("#lcat_x").html(lbl);
         $("#xc").val(ci);
-        $("#cat_desc").show();        
+        $("#cat_desc").show();
     }).mouseenter(function(e){
         var pr = $(event.target).parent(); pr = pr.attr('id');
         if(pr){
@@ -289,7 +282,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             }
           }
         ]
-    });
+      });
     //Following is needed as the dropdown registers somewhere in lib. to show on when enter key is hit.
     $.fn.enterKey = function (fnc) {
         return this.each(function () {
@@ -311,10 +304,15 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         }
       });
 
-    
+
     setPageSessionTimer(expires);
 
 
+    $(function() {        
+        $( "#rs_keys, #rs_keys2" ).autocomplete({
+            source: AUTOWORDS
+            });
+    });
     var CHK_PREV;
     
     $("#frm_log td").mouseover(function(e){
@@ -342,6 +340,12 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         this.toggle('#div_srh', true); 
         this.toggle('#div_log', true);
     }
+
+    $(function() {        
+        $( "#rs_keys, #rs_keys2" ).autocomplete({
+            source: AUTOWORDS
+            });
+    });
 
     display("Log page is ready!");    
 }

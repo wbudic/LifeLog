@@ -978,7 +978,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 
 my $sideMenu;
 my $tail = q(<div><a class="a_" href="stats.cgi">View Statistics</a>&nbsp;&nbsp;<a class="a_" href="config.cgi">Configure Log</a></div><hr>
-<div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"></a></div>);
+             <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"></a></div>);
 if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
     $sideMenu = qq(
         <div id="menu" title="To close this menu click on its heart, and wait.">
@@ -1308,7 +1308,6 @@ sub authenticate {
         exit;
     }
 }
-
 sub fetchAutocomplete {
     my $st = traceDBExe('SELECT LOG from LOG' . $stmE);
     while ( my @row = $st->fetchrow_array() ) {
