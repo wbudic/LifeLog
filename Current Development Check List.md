@@ -6,6 +6,8 @@
 
 ### v.2.2 EARTH RC 1
 
+* &#10004; Page categories exclusion option in main.cnf. Log view server side is modified not to include excluded categories 
+older by certain amount of days, default is 0, for from today older.
 * Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
 * Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
 

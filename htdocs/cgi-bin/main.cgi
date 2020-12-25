@@ -29,6 +29,7 @@ my $sid     = Settings::sid();
 my $dbname  = Settings::dbName();
 my $alias   = Settings::alias();
 my $passw   = Settings::pass();
+my $VW_PAGE = Settings->VW_LOG; 
 
 my $sssCDB  = $sss->param('cdb');
 my ($vmode, $imgw, $imgh );
@@ -56,7 +57,13 @@ my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
 my $rs_cur      = $cgi->param('rs_cur');
 my $rs_page     = $cgi->param('rs_page');
-my $sqlView     = 'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY, PID FROM VW_LOG';#Only to be found here, the main SQL select statement.
+if(Settings::anon('^PAGE_EXCLUDES')){
+   if(!$cgi->param('srch_reset')&&!$prm_vc&&!$prm_vc_lst&&!$prm_aa&&!$prm_rtf&&!$prm_xc&&!$prm_xc_lst&&!$rs_dat_from&&!$rs_dat_to&&!$rs_keys){
+       $VW_PAGE = Settings->VW_LOG_WITH_EXCLUDES;
+    }
+}
+
+my $sqlView     = 'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY, PID FROM '.$VW_PAGE;#Only to be found here, the main SQL select statement.
 my $stmS        = $sqlView." WHERE";
 my $stmE        = ' LIMIT '.&Settings::viewAllLimit.';';
 my $stmD        = "";
@@ -367,7 +374,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     if ( $log_start > 0 ) {
 
         #check if we are at the beggining of the LOG table?
-        my $stc = traceDBExe('SELECT PID from VW_LOG LIMIT 1;');
+        my $stc = traceDBExe('SELECT PID from '.$VW_PAGE.' LIMIT 1;');
         my @row = $stc->fetchrow_array();
             $log_top = $row[0];
         if ($log_top == $rs_prev && $rs_cur == $rs_prev ) {
@@ -403,10 +410,10 @@ sub traceDBExe {
         return $st;
     }catch{
         #BUG 31 fix.
-        if(Settings::isProgressDB() &&  index($sql,'VW_LOG')>0){
+        if(Settings::isProgressDB() &&  index($sql,Settings->VW_LOG)>0){
             $db -> do(Settings::createViewLOGStmt());
             my $st = $db->prepare($sql);
-           $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
+               $st -> execute() or LifeLogException->throw("Execute failed [$DBI::errstri]", show_trace=>1);
             return $st;
         }
         LifeLogException->throw(error=>"DSN: [".Settings::dsn()."] Error encountered -> $@", show_trace=>1);
@@ -1151,7 +1158,7 @@ try {
                 }
                 if($rtf){ #Update 0 ground NOTES entry to the just inserted log.
 
-                   $st = traceDBExe('SELECT ID FROM VW_LOG LIMIT 1;');
+                   $st = traceDBExe('SELECT ID FROM '.Settings->VW_LOG.' LIMIT 1;');
                    my @lid = $st->fetchrow_array();
                    $st = traceDBExe('SELECT DOC FROM NOTES WHERE LID = 0;');
                    my @gzero = $st->fetchrow_array();
@@ -1304,7 +1311,7 @@ sub authenticate {
 }
 
 sub fetchAutocomplete {
-    my $st = traceDBExe('SELECT LOG from LOG' . $stmE );
+    my $st = traceDBExe('SELECT LOG from LOG' . $stmE.';;' );
     while ( my @row = $st->fetchrow_array() ) {
         my ($wl,$log) = ("",$row[0]);
 

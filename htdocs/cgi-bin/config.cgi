@@ -1103,9 +1103,9 @@ sub restore {
         print "\n\nMerging from backup LOG table...\n";
         my $insLOG   = $db->prepare('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES(?,?,?,?,?,?,?);')or die "Failed LOG prepare.";
 
-        $b_pst = Settings::selectRecords($b_db,'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM VW_LOG;');
+        $b_pst = Settings::selectRecords($b_db,'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM '.Settings->VW_LOG);
         while ( @br = $b_pst->fetchrow_array() ) {
-            my $pst = Settings::selectRecords($db,"SELECT DATE FROM VW_LOG WHERE DATE='".$br[3]."';");
+            my $pst = Settings::selectRecords($db,"SELECT DATE FROM ".Settings->VW_LOG." WHERE DATE='".$br[3]."';");
             my @ext = $pst->fetchrow_array();
             if(scalar(@ext)==0){
                 $insLOG->execute($br[1],$br[2],$br[3],$br[4],$br[5],$br[6],$br[7]);
