@@ -1308,8 +1308,12 @@ sub authenticate {
         exit;
     }
 }
+
 sub fetchAutocomplete {
-    my $st = traceDBExe('SELECT LOG from LOG' . $stmE);
+
+    my $st = traceDBExe('SELECT LOG from LOG' . $stmE );
+    my $awl = Settings::autoWordLength();
+    my %hsh = ();
     while ( my @row = $st->fetchrow_array() ) {
         my ($wl,$log) = ("",$row[0]);
         #Decode escaped \\n
