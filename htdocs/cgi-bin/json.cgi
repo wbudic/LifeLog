@@ -5,8 +5,7 @@
 #
 use strict;
 use warnings;
-use Try::Tiny;
-use Switch;
+use Syntax::Keyword::Try;
 
 use CGI;
 use CGI::Session '-ip_match';
@@ -25,61 +24,48 @@ use JSON;
 use IO::Compress::Gzip qw(gzip $GzipError);
 use Compress::Zlib;
 
-
 use lib "system/modules";
 require Settings;
 
+my $db      = Settings::fetchDBSettings();
+my $cgi     = Settings::cgi();
+my $session = Settings::session();
+my $sid     = Settings::sid(); 
+my $dbname  = Settings::dbName();
+my $alias   = Settings::alias();
+my $passw   = Settings::pass();
+my $today   = Settings::today();
 
-my $cgi = CGI->new;
-my $session = new CGI::Session("driver:File",$cgi, {Directory => Settings::logPath()});
-my $sid=$session->id();
-my $dbname   = $session->param('database');
-my $userid   = $session->param('alias');
-my $password = $session->param('passw');
 my $action   = $cgi->param('action');
 my $lid      = $cgi->param('id');
 my $doc      = $cgi->param('doc');
 my $bg       = $cgi->param('bg');
 my $error    = "";
-my ($nid,$response, $json) = 'Session Expired';
 
-#my $lang  = Date::Language->new($LANGUAGE);
-my $today = DateTime->now;
-$today->set_time_zone(&Settings::timezone);
+my ($nid,$response, $JSON) = 'Session Expired';
 
-
-if  ( !$userid || !$dbname ) {
+if  ( !$alias || !$dbname ) {
 
     &defaultJSON;
     print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
-    print $json;
+    print $JSON;
 
    exit;
 }
 
-my $database = Settings::logPath().$dbname;
-my $dsn= "DBI:SQLite:dbname=$database";
-my $db = DBI->connect($dsn, $userid, $password, { RaiseError => 1 });
-
-Settings::getConfiguration($db);
-
-
-my $strp = DateTime::Format::Strptime->new(
+my $formater = DateTime::Format::Strptime->new(
     pattern   => '%F %T',
     locale    => 'en_AU',
     time_zone => Settings::timezone(),
     on_error  => 'croak',
 );
-
-
 ###############
 &processSubmit;
 ###############
-
 &defaultJSON;
 
 print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
-print $json;
+print $JSON;
 
 $db->disconnect();
 undef($session);
@@ -92,10 +78,10 @@ sub defaultJSON {
      if($action eq 'load' && !$error){
          $content = JSON->new->utf8->decode($doc);
      }
-     $json = JSON->new->utf8->space_after->pretty->allow_blessed->encode
-     ({date => $strp->format_datetime($today),
+     $JSON = JSON->new->utf8->space_after->pretty->allow_blessed->encode
+     ({date => $formater->format_datetime($today),
        response_origin =>  "LifeLog.".Settings::release(),
-       alias => $userid, log_id => $lid, database=>$database, action => $action, error=>$error,
+       alias => $alias, log_id => $lid, database=>Settings::dbFile(), action => $action, error=>$error,
        response=>$response,
        content=>$content
        #received => $doc
@@ -160,26 +146,26 @@ sub authenticate {
     try {
 
 
-          my $st = $db->prepare("SELECT * FROM AUTH WHERE alias='$userid' and passw='$password';");
+          my $st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias' and passw='$passw';");
           $st->execute();
           if ( $st->fetchrow_array() ) { return; }
 
           #Check if passw has been wiped for reset?
-          $st = $db->prepare("SELECT * FROM AUTH WHERE alias='$userid';");
+          $st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias';");
           $st->execute();
           my @w = $st->fetchrow_array();
           if ( @w && $w[1] == "" ) {
 
               #Wiped with -> UPDATE AUTH SET passw='' WHERE alias='$userid';
               $st = $db->prepare(
-                  "UPDATE AUTH SET passw='$password' WHERE alias='$userid';");
+                  "UPDATE AUTH SET passw='$passw' WHERE alias='$alias';");
               $st->execute();
               return;
           }
 
 
 
-          print $cgi->center( $cgi->div("<b>Access Denied!</b> alias:$userid pass:$password") );
+          print $cgi->center( $cgi->div("<b>Access Denied!</b> alias:$alias pass:$passw") );
 
 
           $db->disconnect();

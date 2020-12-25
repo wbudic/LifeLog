@@ -20,6 +20,7 @@
 - &#9745; Log entry time zone, and order, properly displayed.
 - &#9745; Help clouds, display and position.
 - &#9745; Sticky log entries working and showing on top.
+- &#9745; Check RTF document creation, saving. RTF doc. pane showing with menu.
 
 
 ### Search Form
@@ -33,13 +34,13 @@
 
 - &#9744; Are saving and linking to an log entry.
 - &#9744; Are being deleted if log entry is deleted.
-- &#9744; Check text formatting, colours, fonts, styles is working.
+- &#9744; Menu showing, check text formatting, colours, fonts, styles is working.
 
 ### Config Page config.cgi
 
-- &#9744; Look & Feel, autonom variables, like release version showing at end of System Configuration, clustered as uneditable.
-- &#9744; Editing and changing works.
-- &#9744; Categories, adding deleting renaming works.
+- &#9745; Look & Feel, autonom variables, like release version showing at end of System Configuration, clustered as uneditable.
+- &#9745; Editing and changing works.
+- &#9744; Categories, adding, deleting, renaming works.
 - &#9744; Database fixes all work.
 - &#9744; Backup/Restore working, security around it also correct and works.
 
