@@ -5,8 +5,13 @@ body {
     color: #000;
 }
 
-.ctr{
-    text-align: center;
+.ctr {
+    text-align:center;
+    width:110px;
+}
+.cat {
+    text-align:left;
+    width:120px;
 }
 
 .tbl_print {
@@ -15,7 +20,7 @@ body {
     border-collapse: collapse
 }
 .hdr, th, td{
-    padding-left: 5px;  
+    padding: 10px;  
     border: 1px solid #000;
 }
 tr{

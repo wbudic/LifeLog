@@ -1228,14 +1228,14 @@ my $dbg = qq(--DEBUG OUTPUT--\n
         }
         else{
                 if ($rs_cur < $log_top && $rs_prev && $rs_prev > 0 && $log_start > 0 && $rs_page > 0) {
-
                     $log_output .= qq!<tr class="r$tfId" id="brw_row"><td style="text-align:left;">$vmode</td><td colspan="3"><input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="TOP"/>&nbsp;&nbsp;
                     <input type="hidden" value="$rs_prev"/>
                     <input class="ui-button" type="button" onclick="submitPrev($log_rc_prev, $rec_limit);return false;" value="&lsaquo;&lsaquo;&nbsp; Previous"/>&nbsp;&nbsp;!;
 
                 }
                 else {
-                    $log_output .= qq(<tr class="r$tfId" id="brw_row"><td style="text-align:left;">$vmode</td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
+                    my $v = "<font style='font-size:small'>You Are In &#10132; $vmode</font>";
+                    $log_output .= qq(<tr class="r$tfId" id="brw_row"><td colspan="2" style="text-align:left;">$v</td><td colspan="1"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
                 }
 
 
@@ -1254,7 +1254,7 @@ my $dbg = qq(--DEBUG OUTPUT--\n
                 }
         }
 
-        $log_output .= '<td colspan="2"></td></tr>';
+        $log_output .= '<td colspan="1"></td></tr>';
     }
 
 sub authenticate {
