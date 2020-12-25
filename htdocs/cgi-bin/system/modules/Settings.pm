@@ -21,7 +21,11 @@ use DBI;
 use experimental qw( switch );
 
 #This is the default developer release key, replace on istallation. As it is not secure.
-use constant CIPHER_KEY => '95d7a85ba891da';
+use constant CIPHER_KEY             => '95d7a85ba891da';
+# Default VIEW for all pages.
+use constant VW_LOG                 => 'VW_LOG';
+# Optional instructional VIEW from config file replacing above default.
+use constant VW_LOG_WITH_EXCLUDES   => 'VW_LOG_WITH_EXCLUDES';
 
 #DEFAULT SETTINGS HERE!
 our $RELEASE_VER  = '2.2';
@@ -283,19 +287,20 @@ sub selStartOfYear {
 }
 
 sub createViewLOGStmt {
+    my($name,$where) = @_;
+    $name = VW_LOG  if not $name;
     if($IS_PG_DB){
     return qq(
-        CREATE VIEW public.VW_LOG AS
+        CREATE VIEW public.$name AS
         SELECT *, (select count(ID) from LOG as recount where a.id >= recount.id) as PID
-            FROM LOG as a ORDER BY DATE DESC;
+            FROM LOG as a $where ORDER BY DATE DESC;
         );
     } 
 return qq(
-CREATE VIEW VW_LOG AS
+CREATE VIEW $name AS
     SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
-        FROM LOG as a ORDER BY Date(DATE) DESC, Time(DATE) DESC;
+        FROM LOG as a $where ORDER BY Date(DATE) DESC, Time(DATE) DESC;
 )}
-
 sub createAUTHStmt {
     if($IS_PG_DB){
     return qq(
@@ -316,7 +321,6 @@ return qq(
     ) WITHOUT ROWID;
     CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);
 )}
-
 sub createNOTEStmt {
     return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC TEXT);)
 }
@@ -367,7 +371,7 @@ sub getConfiguration {
                 when ("DEBUG")       {$DEBUG        = $r[2]}
                 when ("KEEP_EXCS")   {$KEEP_EXCS    = $r[2]}
                 when ("TRACK_LOGINS"){$TRACK_LOGINS = $r[2]}
-                when ("COMPRESS_ENC"){$COMPRESS_ENC = $r[2]}                
+                when ("COMPRESS_ENC"){$COMPRESS_ENC = $r[2]}
                 default              {$anons{$r[1]} = $r[2]}
                 }
         }
@@ -606,7 +610,6 @@ sub configProperty {
                 $db->do($sql);
             }
             catch{
-
                 SettingsException->throw(
                     error => "ERROR $@ with $sql -> Settings::configProperty('$db',$id,'$name','$value')\n",
                     show_trace=>$DEBUG
