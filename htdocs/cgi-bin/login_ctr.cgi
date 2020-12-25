@@ -500,14 +500,15 @@ try{
 
 sub createPageViewExcludeSQL {
     
-    my $days = 0;
+    my ($where,$days) = 0;
     my $parse = $PAGE_EXCLUDES;
     my @a = split('=',$parse);
     if(scalar(@a)==2){
         $days  = $a[0];
         $parse = $a[1];
-    }
-    my $where =qq(WHERE date >= date('now', '-$days day') OR);
+    }    
+    if(Settings::isProgressDB()){$where = "WHERE a.date >= (timestamp 'now' - interval '$days days') OR"}
+    else{$where = "WHERE a.date >= date('now', '-$days day') OR"}
     @a = split(',',$parse);
     foreach (@a){
         $where .= " ID_CAT!=$_ AND";
