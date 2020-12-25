@@ -634,7 +634,7 @@ sub logout {
         $passw = $session->param('passw');
         if($alias){
             my $db = Settings::connectDB($DB_NAME, $alias, $passw);
-            Settings::toLog($db, "Log has properly been loged out by $alias.");
+            Settings::toLog($db, "Log has properly been logged out by $alias.");
             $db->disconnect();
         }
     }catch{
@@ -657,7 +657,7 @@ sub logout {
                            -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
             );
 
-    print qq(<font color="white"><center><h2>You have properly loged out of the Life Log Application!</h2>
+    print qq(<font color="white"><center><h2>You have properly logged out of the Life Log Application!</h2>
     <br>
     <form action="login_ctr.cgi"><input type="hidden" name="autologoff" value="1"/><input type="submit" value="No, no, NO! Log me In Again."/></form><br>
     </br>
