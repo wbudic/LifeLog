@@ -115,31 +115,27 @@ $sss->param('theme', $TH_CSS);
 $sss->param('bgcolor', $BGCOL);
 #sss->param('sss_main', $today);
 #
-
 #Reset Clicked
 if($cgi->param('srch_reset') == 1){
-   $sss->clear('sss_vc');
-   $sss->clear('sss_xc');
+   $sss->clear('sss_vc');$sss->clear('sss_xc');$sss->clear('sss_ord_cat');
 }
-
-
 
 if($prm_vc &&$prm_vc ne ""){
 #TODO (2020-11-05) This is a subrotine candidate. It gets too complicated. should not have both $prm_vc and $prm_vc_lst;
-       $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
-       if(!$prm_vc_lst||$prm_vc_lst==0){#} && index($prm_xc, ',') > 0){
-           $prm_vc_lst =  $prm_vc;
-       }else{
-            my $f;
-            my @vc_lst = split /\,/, $prm_vc_lst; @vc_lst = uniq(sort { $a <=> $b }  @vc_lst);
-            foreach my $n(@vc_lst){
-                if($n == $prm_vc){ $f=1; last; }
-            }
-            if(!$f){#not found view was clicked changing category but not adding it to vc list. Let's add it to the list.
-                $prm_vc_lst .= ",$prm_vc";
-            }
-            $prm_vc_lst=~ s/\,$//g;$prm_vc_lst=~ s/\,\,/\,/g;
-       }
+    $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
+    if(!$prm_vc_lst||$prm_vc_lst==0){#} && index($prm_xc, ',') > 0){
+        $prm_vc_lst =  $prm_vc;
+    }else{
+        my $f;
+        my @vc_lst = split /\,/, $prm_vc_lst; @vc_lst = uniq(sort { $a <=> $b }  @vc_lst);
+        foreach my $n(@vc_lst){
+            if($n == $prm_vc){ $f=1; last; }
+        }
+        if(!$f){#not found view was clicked changing category but not adding it to vc list. Let's add it to the list.
+            $prm_vc_lst .= ",$prm_vc";
+        }
+        $prm_vc_lst=~ s/\,$//g;$prm_vc_lst=~ s/\,\,/\,/g;
+    }
 
 
    if ($cgi->param('sss_vc') eq 'on'){
@@ -185,10 +181,13 @@ if($prm_xc &&$prm_xc ne ""){
 
 }else{
        $prm_xc = $sss->param('sss_xc');
-       $prm_xc_lst = $sss->param('sss_xc_lst');
+       $prm_xc_lst = $sss->param('sss_xc_lst');       
 }
-
-
+#Either Session or requested.
+if($cgi->param('sss_ord_cat') eq 'on'){
+      $stmE = ' ORDER BY ID_CAT '.$stmE;
+      $sss->param('sss_ord_cat', 1);
+}else{$sss->param('sss_ord_cat', 0)}
 ##
 my @vc_lst = split /\,/, $prm_vc_lst; @vc_lst = uniq(sort { $a <=> $b }  @vc_lst);
 my @xc_lst = split /\,/, $prm_xc_lst; @xc_lst = uniq(sort { $a <=> $b }  @xc_lst);
@@ -856,12 +855,14 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
         </td>
       </tr>
     );
-    my $sss_checked = 'checked' if $isInViewMode;
+    my ($sss_checked, $sss_orderby);
     my ($vc_lst,$xc_lst) = ("","");
     my $tdivvc = '<td id="divvc_lbl" align="right" style="display:none">Includes:</td><td align="left" id="divvc"></td>';
     my $tdivxc = '<td id="divxc_lbl" align="right" style="display:none">Excludes:</td><td align="left" id="divxc"></td>';
     my $catselected  = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
     my $xcatselected = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
+    if ($isInViewMode) {  $sss_checked = 'checked'}
+    if ($sss->param('sss_ord_cat')){  $sss_orderby = 'checked'}
 
     if($prm_vc){
         $catselected = $hshCats{$prm_vc};
@@ -949,6 +950,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
         <button id="btnxca" type="button" onClick="return resetExclude()">Reset</button>&nbsp;&nbsp;&nbsp;
         <button id="btn_cat" onclick="return viewExcludeCategory(this);">View</button>&nbsp;&nbsp;
         <input id="sss_xc" name="sss_xc" type="checkbox" $sss_checked/> Keep In Session
+        <input id="sss_ord_cat" name="sss_ord_cat" type="checkbox" $sss_orderby/> Order By Category
      </td>
    </tr>
    <tr class="collpsd">$tdivxc</tr>
@@ -1092,10 +1094,6 @@ try {
                 my $dbUpd = Settings::connectDB($alias, $passw);#@  or LifeLogException->throw("Execute failed [$DBI::errstri]");
                 traceDBExe($stm);
                 return;
-            }
-
-            if ( $view_all && $view_all == "1" ) {
-                $rec_limit = &Settings::viewAllLimit;
             }
 
             if ( $view_mode == "1" ) {

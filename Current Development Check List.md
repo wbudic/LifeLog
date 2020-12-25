@@ -6,6 +6,10 @@
 
 ### v.2.2 EARTH RC 1
 
+* Search keep in session should preserve and always set options as selection till it is ticked.
+  * Reset Whole View to page view, should still set the search set the search option till it is ticked.
+  * Unticking Keep in Session should be honored on next browsing.
+* Order by Categories added to search/view.
 * &#10004; Page categories exclusion option in main.cnf. Log view server side is modified not to include excluded categories 
 older by certain amount of days, default is 0, for from today older.
 * Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
