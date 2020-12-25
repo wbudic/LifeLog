@@ -912,8 +912,10 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
             <button id="btnxca" onClick="return addInclude()"/>Add</button>&nbsp;&nbsp;
             <button id="btnxca" type="button" onClick="return removeInclude()">Remove</button>&nbsp;
             <button id="btnxrc" type="button" onClick="return resetInclude()">Reset</button>&nbsp;&nbsp;&nbsp;
-            <button id="btn_cat" onclick="viewByCategory(this);">View</button></td></tr><tr class="collpsd"><td align="right">
-
+            <button id="btn_cat" onclick="viewByCategory(this);">View</button>
+    </td></tr>
+    <tr class="collpsd">$tdivvc</tr>
+    <tr class="collpsd"><td align="right">
             View by Amount Type:</td><td align="left">
             <select id="amf2" name="aa" class="ui-button">
                 $aopts
@@ -925,7 +927,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 
      </td>
    </tr>
-   <tr class="collpsd">$tdivvc</tr>
+   
    <tr class="collpsd">
      <td align="right">Exclude Category:</td>
      <td align="left">
@@ -1216,14 +1218,13 @@ my $dbg = qq(--DEBUG OUTPUT--\n
         }
 
         $vmode = qq(<span style="font-size:small;">[In Page Mode]</span>&nbsp;);
-        $vmode = qq(<span style="font-color:red;font-size:small">[In View Mode]</span>&nbsp;) if$isInViewMode;
+        $vmode = qq(<span style="font-color:red;font-size:x-small">[In View Mode]</span>&nbsp;) if$isInViewMode;
         if($isPUBViewMode){
            $log_output .=qq!<tr class="r$tfId" id="brw_row"><td style="text-align:left;">$vmode</td><td colspan="3"></td>!;
         }
         elsif($rec_limit == 0){
             $log_output .= qq!<tr class="r$tfId" id="brw_row"><td style="text-align:left;">$vmode</td><td colspan="3">
                                <input class="ui-button" type="button" onclick="submitTop($log_top);return false;" value="Back To Page View"/>!;
-
         }
         else{
                 if ($rs_cur < $log_top && $rs_prev && $rs_prev > 0 && $log_start > 0 && $rs_page > 0) {
