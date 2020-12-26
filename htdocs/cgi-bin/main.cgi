@@ -673,8 +673,9 @@ sub buildLog {
 
         if ( $rtf > 0 ) {
              $log_output .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
-                         <td colspan="6">
-                          <div id="q-scroll$id" style="height:auto; max-height:480px; padding: 10px; background:#fffafa; overflow-y: auto;">
+                         <td colspan="6"> # Left here style, is complex and css file might cache.
+                          <div id="q-scroll$id" 
+    style="height:auto; max-height:480px; padding: 10px; background:#fffafa; overflow-x:auto; overflow-y:auto;  max-width:920px; width: max-content;">
                             <div id="q-container$id"></div>
                           </div>
                         </td></tr>);
