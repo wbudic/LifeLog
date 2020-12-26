@@ -148,10 +148,14 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
 ## Bugs
 
+### v. 2.2 Encountered/Fixed
+
+* &#10004; Bug 32 RTF creating/saving is broken.
+
 ### v. 2.1 Encountered/Fixed
 
 * &#10004; Bug 31 PostgreSQL new created log view is not being created.
- * On a newly created database the view without the schema specified are seen as temporary views.
+  * On  newly created database the view without the schema specified are seen as temporary views.
 * &#10004; Bug 30 Wrongly entered or modified locale can't be reset no more to an valid one.
 
 ### v. 2.0 Encountered/Fixed
@@ -164,7 +168,7 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 * Bug 27 - Restore of old backups not working anymore.
 * Bug 26 - In Chrome editing log entry not working. Something refreshes page, after 5 seconds.
 * &#10004; Bug 25 - SQLite view not properly sorting in new databases. Newer records listed last.
-  * View should order by time function desc, ascendig is default.
+  * View should order by time function desc, ascended is default.
 * &#10004; Bug 24 - Logs row sum calculation not working/wrong, with negative and positive values.
 * &#10004; Bug 23 - Delete not working in view mode.
 * &#10004; Bug 22 - Delete selection of entries not working after a while, db fix in config page required.
