@@ -983,7 +983,9 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 my $sideMenu;
 my $tail = q(<div><a class="a_" href="stats.cgi">View Statistics</a>&nbsp;&nbsp;<a class="a_" href="config.cgi">Configure Log</a></div><hr>
              <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"></a></div>);
-if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
+if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{ 
+    my $sql = Settings::dbSrc(); my $s = $sql =~ qr/:/; $s = $`; $' =~ qr/:/; 
+    if(lc $` eq 'pg'){$sql = $s.'&#10132;'.'PostgreSQL'}else{$sql = $s.'&#10132;'.$`};
     $sideMenu = qq(
         <div id="menu" title="To close this menu click on its heart, and wait.">
         <div class="hdr" style="marging=0;padding:0px;">
@@ -1007,6 +1009,7 @@ if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
         $sm_reset_all
         <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br><hr>
         <span style="font-size: x-small; font-weight: bold;">$vmode</span><br>
+        <span style="font-size: x-small; font-weight: bold;">).$sql.q(</span><br>
         </div>
         );
 }
