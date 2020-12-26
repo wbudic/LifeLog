@@ -356,7 +356,7 @@ sub getConfiguration {
                 when ("RELEASE_VER") {$RELEASE_VER  = $r[2]}
                 when ("TIME_ZONE")   {$TIME_ZONE    = $r[2]}
                 when ("PRC_WIDTH")   {$PRC_WIDTH    = $r[2]}
-                when ("SESSN_EXPR")  {$SESSN_EXPR   = timeFormatValue($r[2])}
+                when ("SESSN_EXPR")  {$SESSN_EXPR   = timeFormatSessionValue($r[2])}
                 when ("DATE_UNI")    {$DATE_UNI     = $r[2]}
                 when ("LANGUAGE")    {$LANGUAGE     = $r[2]}
                 when ("LOG_PATH")    {} # Ommited and code static can't change for now.
@@ -420,13 +420,26 @@ sub getConfiguration {
     };
 }
 
-sub timeFormatValue {
+sub timeFormatSessionValue {
     my $v = shift;
-    if(!$v || $v==0){$v="+2m"}
-    if($v !~ /^\+/){$v='+'.$v.'m'}
-    return $v;
+    my $ret = "+2m";
+    if(!$v){$v=$ret}    
+    if($v !~ /^\+/){$v='+'.$v.'m'}# Must be positive added time
+    # Find first match in whatever passed.
+    my @a = $v =~ m/(\+\d+[shm])/gis;    
+    if(scalar(@a)>0){$v=$a[0]}
+    # Test acceptable setting, which is any number from 2, having any s,m or h. 
+    if($v =~ m/(\+[2-9]\d*[smh])|(\+[1-9]+\d+[smh])/){
+        # Next is actually, the dry booger in the nose. Let's pick it out!
+        # Someone might try to set in seconds value to be under two minutes.
+        @a = $v =~ m/(\d[2-9]\d+)/gs;        
+        if(scalar(@a)>0 && int($a[0])<120){return $ret}else{return $v}
+    }
+    elsif($v =~ m/\+\d+/){# is passedstill without time unit? Minutetise!
+        $ret=$v."m"
+    }
+    return $ret;
 }
-
 sub getTheme {
     given ($THEME){
         when ("Sun")   { $BGCOL = '#D4AF37'; $TH_CSS = "main_sun.css"; }

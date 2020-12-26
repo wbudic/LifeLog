@@ -83,7 +83,67 @@ my $v3 = $' =~ qr/:/;
 # $`=DBI
 # $&=:
 # $'=Pg:host=elite;name=androi
-
-
 print $v2.'->'.$`,"\n";
+$v1 ="";
+
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="1";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+1m";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+10minutes";
+print "[$v1]->".timeFormatValue($v1),"\n";
+#default
+$v1 ="+30m";
+print "[$v1]->".timeFormatValue($v1),"\n";
+
+#Let's try sneak in garbage.
+$v1 ="+20bitcons";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+20hitcons";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+30hr";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+1hr";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+8.2severe";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+8severe";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+2severe";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+120severe";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+119severe";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+121severe";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+280severe";
+print "[$v1]->".timeFormatValue($v1),"\n";
+$v1 ="+120";
+print "[$v1]->".timeFormatValue($v1),"\n";
+
+
+sub timeFormatValue {
+    my $v = shift;
+    my $ret = "+2m";
+    if(!$v){$v=$ret}    
+    if($v !~ /^\+/){$v='+'.$v.'m'}# Must be positive added time
+    # Find first match in whatever passed.
+    my @a = $v =~ m/(\+\d+[shm])/gis;    
+    if(scalar(@a)>0){$v=$a[0]}
+    # Test acceptable setting, which is any number from 2, having any s,m or h. 
+    if($v =~ m/(\+[2-9]\d*[smh])|(\+[1-9]+\d+[smh])/){
+        # Next is actually, the dry booger in the nose. Let's pick it out!
+        # Someone might try to set in seconds value to be under two minutes.
+        @a = $v =~ m/(\d[2-9]\d+)/gs;        
+        if(scalar(@a)>0 && int($a[0])<120){return $ret}else{return $v}
+    }
+    elsif($v =~ m/\+\d+/){# is passedstill without time unit? Minutetise!
+        $ret=$v."m"
+    }
+    return $ret;
+}
+
+
 1;
