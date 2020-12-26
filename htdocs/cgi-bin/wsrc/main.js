@@ -702,17 +702,6 @@ function toggleDoc(whole) {
         setInterval(function() {
             if (CHANGE.length() > 0) {
                 console.log('Saving changes', CHANGE);
-                /*
-                Send partial changes
-                $.post('/your-endpoint', {
-                  partial: JSON.stringify(change)
-                });
-
-                Send entire document
-                $.post('/your-endpoint', {
-                  doc: JSON.stringify(QUILL.getContents())
-                });
-                */
                 CHANGE = new Delta();
             }
         }, 10 * 1000);
@@ -1026,7 +1015,8 @@ function saveRTF(id, action) {
     }
     RTF_SUBMIT = true;
     var bg = $("#fldBG").val();
-    $.post('json.cgi', {action:'store', id:id, bg:bg, doc: JSON.stringify(QUILL.getContents())}, saveRTFResult);
+    $.post('json.cgi', {action:'store', id:id, bg:bg, doc: JSON.stringify(QUILL.getContents())},saveRTFResult).fail(
+        function(response) {dialogModal("Server Error: "+response.status,response.responseText);});
     if(is_submit){
         //we must wait before submitting actual form!
         $("#idx_cat").value = "SAVING DOCUMENT...";
@@ -1036,16 +1026,7 @@ function saveRTF(id, action) {
     return false;
 }
 
-function delayedSubmit(){
-    if(RTF_SUBMIT){
-        setTimeout(delayedSubmit, 200);
-        return;
-    }
-    $("#frm_entry").submit();
-}
-
-function saveRTFResult(result) {
-    //alert("Result->" + result);
+function saveRTFResult(result) {    
     console.log("Result->" + result);
     var obj = JSON.parse(result);
     //alert(obj.response);
@@ -1059,6 +1040,15 @@ function saveRTFResult(result) {
     }
     RTF_SUBMIT = false;
 }
+
+function delayedSubmit(){
+    if(RTF_SUBMIT){
+        setTimeout(delayedSubmit, 200);
+        return;
+    }
+    $("#frm_entry").submit();
+}
+
 
 function loadRTF(under, id){
 
@@ -1093,8 +1083,11 @@ function loadRTF(under, id){
     }
 
     //var json = "[{'insert': 'Loading Document...', 'attributes': { 'bold': true }}, {'insert': '\n'}]";
-    QUILL.setText('Loading Document...\n');
-    $.post('json.cgi', {action:'load', id:id}, loadRTFResult);
+    QUILL.setText('Loading Document...\n');    
+    $.post('json.cgi', {action:'load', id:id}, loadRTFResult).fail(
+           function(response) {dialogModal("Server Error: "+response.status,response.responseText);}
+    );
+
     $("#rtf_doc").show();
     $('#tbl_doc').show();
     $('#toolbar-container').show();
@@ -1251,7 +1244,7 @@ function setPageSessionTimer(expires) {
         modal: true,
         title: title,
         width: "40%",
-        show: { effect: "clip", duration: 800 },
+        show: { effect: "clip", duration: 400 },
         open: function() {
           $(this).html(message);
         },
