@@ -47,33 +47,43 @@ require CNFParser;
 # my $ret = Settings::setTimezone(undef, 'America/Texas');
 # my $a = Settings::anon('TIME_ZONE_MAP');
 
-use constant VW_LOG_WITH_EXCLUDES => "TEST_VIEW";
+# use constant VW_LOG_WITH_EXCLUDES => "TEST_VIEW";
 
 # print "tz:".$cnf_tz." time:". $time. "\n", $a , "\n\nTime America/Texas:$ret\n";
-my $PAGE_EXCLUDES = "1=88,6";
+# my $PAGE_EXCLUDES = "1=88,6";
 
-print "SELECT * from LOG ",createPageViewSQL(), "\n";
+# print "SELECT * from LOG ",createPageViewSQL(), "\n";
 
 #  SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
 #         FROM LOG as a WHERE (ID_CAT!=88 AND ID_CAT!=6) OR date >= date('now', '-1 day') ORDER BY Date(DATE) DESC, Time(DATE) DESC;
 
-    sub createPageViewSQL {
-        my $days = 1;
-        my $parse = $PAGE_EXCLUDES;
-        my @a = split('=',$parse);
-        if(scalar(@a)==2){
-           $days  = $a[0];
-           $parse = $a[1];
-        }
-        my $where =qq(WHERE date >= date('now', '-$days day') OR);
-        @a = split(',',$parse);
-        foreach (@a){
-            $where .= " ID_CAT!=$_ AND";
-        }
-        $where =~ s/\s+OR$//;
-        $where =~ s/\s+AND$//;
-        return Settings::createViewLOGStmt(VW_LOG_WITH_EXCLUDES,$where);
-    }
+    # sub createPageViewSQL {
+    #     my $days = 1;
+    #     my $parse = $PAGE_EXCLUDES;
+    #     my @a = split('=',$parse);
+    #     if(scalar(@a)==2){
+    #        $days  = $a[0];
+    #        $parse = $a[1];
+    #     }
+    #     my $where =qq(WHERE date >= date('now', '-$days day') OR);
+    #     @a = split(',',$parse);
+    #     foreach (@a){
+    #         $where .= " ID_CAT!=$_ AND";
+    #     }
+    #     $where =~ s/\s+OR$//;
+    #     $where =~ s/\s+AND$//;
+    #     return Settings::createViewLOGStmt(VW_LOG_WITH_EXCLUDES,$where);
+    # }
+my $server = 'DBI:Pg:host=elite;name=android';
+
+my $v1 = $server =~ qr/:/;
+my $v2 = $`;
+my $v3 = $' =~ qr/:/;
+# $var=1
+# $`=DBI
+# $&=:
+# $'=Pg:host=elite;name=androi
 
 
+print $v2.'->'.$`,"\n";
 1;
