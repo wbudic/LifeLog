@@ -6,8 +6,9 @@
 
 ### v.2.2 EARTH RC 1
 
+* Deleting multiple items, RTF, should mark for vacuum on next logout.
 * Search keep in session should preserve and always set options as selection till it is ticked.
-  * Reset Whole View to page view, should still set the search set the search option till it is ticked.
+  * Reset Whole View to page view, should still set the search option till it is ticked.
   * Unticking Keep in Session should be honored on next browsing.
 * Order by Categories added to search/view.
 * &#10004; Page categories exclusion option in main.cnf. Log view server side is modified not to include excluded categories 
@@ -150,6 +151,8 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
 ### v. 2.2 Encountered/Fixed
 
+* &#10004; Bug 33 Changing session timeout in config to an lib. background unparsable format cause unrecoverable system error.
+  * i.e. Putting +1hr instead of +1h.
 * &#10004; Bug 32 RTF creating/saving is broken.
 
 ### v. 2.1 Encountered/Fixed
