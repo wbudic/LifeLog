@@ -5,15 +5,57 @@ Preferably on a small inexpensive server connected to your local network.
 
 Written in Perl, easy to implement and modify.
 
-Latest  stable version is **2.2** in **SUN** stage, requiring some Perl knowledge to install and enable, tweak. The main application sources are located in the ../htdocs/cgi-bin directory. Current unstable, development ver. 1.6 is in the GIT branch. The development and features are stable progressive, starting from Moon, Sun and finally Earth stable stage. This application was and is usable since its Moon stage.
+Latest stable version is **2.1** in **SUN** stage.
 
-https://www.sqlite.org/index.html database is required to run this web application. Note this isn't a full on blown database server requirment, that runs in your background and uses your computers resources.
 
 ## PC Requirements
 
 * Any Operating System
-* Processor Celeron 1.2+ GHZ or any better, 2+ cores.
-* RAM from 2 GB+, to allow for OS. For this application 125KB+ reserved, is recommended.
+* Processor 1.2+ GHZ or better, 2+ cores.
+* Only 2 GB+ physical. 
+ 
+Setup is requiring some Perl knowledge to install and enable, and tweak this application. The main application sources are located in the ../htdocs/cgi-bin directory. Current unstable, development ver. 1.6 is in the GIT branch. The development and features are stable progressive, starting from Moon, Sun and finally Earth stable stage. This application was and is usable since its Moon stage.
+
+https://www.sqlite.org/index.html database is required to run this web application. Note this isn't a full on blown database server requirment, that runs in your background and uses your computers resources.
+
+## What is the purpose of having this log kept?
+
+Here are some that come to mind:
+
+* Allows you to keep an organized historical log of every day and time events.
+* All logs are categorized, easy to search, view modify.
+* Only latest and last entries are listed of the current, which usually is of interest.
+    ** Special log entries can be made sticky on top to be listed, and in future dated logs can be added, for what ever reason or flow.
+* Fast search based on categories, keywords, from to date, all integrated.
+  * Historical view of data as such is not cluttered by none relevant log entries. Which is a common problem in spreadsheets.
+  * Export/DateDiff/Print selected log entries.
+* Optionally assign accounting values to log entries, is it an asset, income or expense? 
+  * These are per page calculated.
+  * View through the static page your logged current income and expense, for the current year.
+    * Your Expense there is of interest. No?
+      * Statics page also gives you runtime information of your server and log.  
+* RTF documents can be attached to an log.
+  * These range from simple to further more styled documentation of the log entry.
+  * Web snippets can be copied and pasted. The Reach Text Format is real a document object, stored in one place, with others.
+  * Images added to RTF can be links or virtually embedded, making it part of you db type file.
+* Having an vast historical log, it is easy to backup and transport.
+* To access the log, security is applied based on alias.
+  * Backup and Restore is user or alias specific, so it is not possible to restore from another alias db into yours, to view data.
+  * Backup is inbuilt, you make one, if unsure if deleting and rampaging and exploring with the log, might make you loose data.
+  * Each alias creates its own log database, so if working on something specific, this you use to that by alias separately can access/share.
+    * In turn this database configuration can have its own list of categories, it is independent.
+    * All is unique and configurable in its own instance. Defaults are provided by this applications unique fast configuration file system.
+      * main.cnf is used with own bummed configuration parsing routines, all part of the executing script.
+* Interaction and configuration is user friendly, provided in the interface, no need to access a file, for most parts.
+* Data migration on software updates are automatically provided.
+  * Data structures and footprint is tiny.
+  * Amount of data a log can contain is unlimited.
+    * You only browse in a small view sections of it.
+* **Perl** is used to deliver the pages and all the interaction.
+  * It is being interpreted using libraries that directly link to fast system routines.
+    * Nothing unnecessary is loaded or searched for, to provide execution on the fly.
+    * There is no waste on reference to reference in memory, referencing an instance, that references the actual address.
+    * You don't need virtual machine loading, path resolving, then encapsulated traverse on complex object structure being created, to start the program execution. However, it is necessary unfortunate, that other languages have to do that.
 
 ## Life Log version v.2.+
 
