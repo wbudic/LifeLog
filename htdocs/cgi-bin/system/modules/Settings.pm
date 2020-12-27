@@ -28,7 +28,7 @@ use constant VW_LOG                 => 'VW_LOG';
 use constant VW_LOG_WITH_EXCLUDES   => 'VW_LOG_WITH_EXCLUDES';
 
 #DEFAULT SETTINGS HERE!
-our $RELEASE_VER  = '2.2';
+our $RELEASE_VER  = '2.1';
 our $TIME_ZONE    = 'Australia/Sydney';
 our $LANGUAGE     = 'English';
 our $PRC_WIDTH    = '60';
