@@ -361,7 +361,7 @@ try{
         $tbl = $tbl . '<tr><td class="ctr">'. $dt->ymd . "</td>" .
             '<td class="ctr">' . $dt->hms . "</td>" .
             '<td>'."$log</td>\n".
-            '<td>' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';
+            '<td class="cat">' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';
     }
     $tbl .= '</table>';
     

@@ -114,6 +114,7 @@ sub processSubmit {
                $st->execute($zip);
                $response = "Updated Document (id:$lid)!";
            }
+           
         }
         elsif($action eq 'load'){
            $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = $lid;");

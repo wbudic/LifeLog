@@ -43,13 +43,6 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         _show_all = false;//toggle type switch
         showAll();
     }
-
-    $(function() {        
-        $( "#rs_keys, #rs_keys2" ).autocomplete({
-            source: AUTOWORDS
-            });
-    });
-
     $('#ed').datetimepicker({
         dateFormat: 'yy-mm-dd',
         timeFormat: 'HH:mm:ss',
@@ -152,18 +145,19 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
     $("#RTF").prop("checked", false);
     // $('#tbl_doc').toggle();
     // $('#toolbar-container').toggle();
-    if ($('#editor-container').length) {
+    if ($('#editor-container').length) {        
         QUILL = new Quill('#editor-container', {
+            placeholder: 'Enter your Document here...',
+            theme: 'snow',
             modules: {
                 formula: true,
-                syntax: true,
-                toolbar: '#toolbar-container'
-            },
-            placeholder: 'Enter your Document here...',
-            theme: 'snow'
+                syntax: true,                
+                toolbar: '#toolbar-container'            
+            }
         });
         Delta = Quill.import('delta');
         CHANGE = new Delta();
+        
         // toggleDocument();
     }
 
@@ -269,7 +263,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         lbl = lbl + "&nbsp;".repeat(16-lbl.length);
         $("#lcat_x").html(lbl);
         $("#xc").val(ci);
-        $("#cat_desc").show();        
+        $("#cat_desc").show();
     }).mouseenter(function(e){
         var pr = $(event.target).parent(); pr = pr.attr('id');
         if(pr){
@@ -289,7 +283,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             }
           }
         ]
-    });
+      });
     //Following is needed as the dropdown registers somewhere in lib. to show on when enter key is hit.
     $.fn.enterKey = function (fnc) {
         return this.each(function () {
@@ -311,10 +305,15 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         }
       });
 
-    
+
     setPageSessionTimer(expires);
 
 
+    $(function() {        
+        $( "#rs_keys, #rs_keys2" ).autocomplete({
+            source: AUTOWORDS
+            });
+    });
     var CHK_PREV;
     
     $("#frm_log td").mouseover(function(e){
@@ -322,7 +321,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             var chk = $(e.target).find('input[name="chk"]');
             var tr = e.target.parentNode.closest("tr");
             if(tr.id != "summary_row" && tr.id !="brw_row"){
-                if(!CHK_PREV.prop('checked')){        
+                if(CHK_PREV && !CHK_PREV.prop('checked')){        
                     CHK_PREV.closest("tr").removeClass("hover");
                 }
                 $(e.target.parentNode).closest("tr").addClass("hover");
@@ -342,6 +341,12 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         this.toggle('#div_srh', true); 
         this.toggle('#div_log', true);
     }
+
+    $(function() {        
+        $( "#rs_keys, #rs_keys2" ).autocomplete({
+            source: AUTOWORDS
+            });
+    });
 
     display("Log page is ready!");    
 }
@@ -469,10 +474,20 @@ function decodeToHTMLText(txt) {
     return txt;
 }
 
+var BOLD_MATCH = /(?<o>^\<b\>)(?<title>.+)(?<c>\<\/b\>)\s+(?<text>.*)/gi;
 function decodeToText(txt) {
     //bug 7 fix
     txt = txt.replace(/<hr>.*RTF<\/button>/gm, "");
     txt = txt.replace(/<br\s*[\/]?>/gi, "\n");
+    //If first line bolded
+    
+    let res = txt.matchAll(BOLD_MATCH);
+    if(res){
+        for(let r of res) { //WB: In a loop? JS can be weird, nested iter...
+            let {o, title, close, text} = r.groups;
+            txt = "*" + title + "*\n" + text;
+        }//
+    }
     return txt;
 }
 
@@ -698,17 +713,6 @@ function toggleDoc(whole) {
         setInterval(function() {
             if (CHANGE.length() > 0) {
                 console.log('Saving changes', CHANGE);
-                /*
-                Send partial changes
-                $.post('/your-endpoint', {
-                  partial: JSON.stringify(change)
-                });
-
-                Send entire document
-                $.post('/your-endpoint', {
-                  doc: JSON.stringify(QUILL.getContents())
-                });
-                */
                 CHANGE = new Delta();
             }
         }, 10 * 1000);
@@ -1022,7 +1026,8 @@ function saveRTF(id, action) {
     }
     RTF_SUBMIT = true;
     var bg = $("#fldBG").val();
-    $.post('json.cgi', {action:'store', id:id, bg:bg, doc: JSON.stringify(QUILL.getContents())}, saveRTFResult);
+    $.post('json.cgi', {action:'store', id:id, bg:bg, doc: JSON.stringify(QUILL.getContents())},saveRTFResult).fail(
+        function(response) {dialogModal("Server Error: "+response.status,response.responseText);});
     if(is_submit){
         //we must wait before submitting actual form!
         $("#idx_cat").value = "SAVING DOCUMENT...";
@@ -1032,16 +1037,7 @@ function saveRTF(id, action) {
     return false;
 }
 
-function delayedSubmit(){
-    if(RTF_SUBMIT){
-        setTimeout(delayedSubmit, 200);
-        return;
-    }
-    $("#frm_entry").submit();
-}
-
-function saveRTFResult(result) {
-    //alert("Result->" + result);
+function saveRTFResult(result) {    
     console.log("Result->" + result);
     var obj = JSON.parse(result);
     //alert(obj.response);
@@ -1055,6 +1051,15 @@ function saveRTFResult(result) {
     }
     RTF_SUBMIT = false;
 }
+
+function delayedSubmit(){
+    if(RTF_SUBMIT){
+        setTimeout(delayedSubmit, 200);
+        return;
+    }
+    $("#frm_entry").submit();
+}
+
 
 function loadRTF(under, id){
 
@@ -1089,8 +1094,11 @@ function loadRTF(under, id){
     }
 
     //var json = "[{'insert': 'Loading Document...', 'attributes': { 'bold': true }}, {'insert': '\n'}]";
-    QUILL.setText('Loading Document...\n');
-    $.post('json.cgi', {action:'load', id:id}, loadRTFResult);
+    QUILL.setText('Loading Document...\n');    
+    $.post('json.cgi', {action:'load', id:id}, loadRTFResult).fail(
+           function(response) {dialogModal("Server Error: "+response.status,response.responseText);}
+    );
+
     $("#rtf_doc").show();
     $('#tbl_doc').show();
     $('#toolbar-container').show();
@@ -1247,7 +1255,7 @@ function setPageSessionTimer(expires) {
         modal: true,
         title: title,
         width: "40%",
-        show: { effect: "clip", duration: 800 },
+        show: { effect: "clip", duration: 400 },
         open: function() {
           $(this).html(message);
         },

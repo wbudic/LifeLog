@@ -32,7 +32,7 @@ my $SCRIPT_RELEASE = Settings::release();
 my $BACKUP_ENABLED = 0;
 my $AUTO_SET_TIMEZONE = 0;
 my $TIME_ZONE_MAP = 0;
-my $DB_NAME;
+my ($DB_NAME,$PAGE_EXCLUDES);
 
 try{
     checkAutologinSet();
@@ -157,10 +157,13 @@ sub checkAutologinSet {
                 $TIME_ZONE_MAP .= $line . "\n";
             }
             next;
-        }                
+        }
+        $v = Settings::parseAutonom('PAGE_VIEW_EXCLUDES',$line);
+        if($v){$PAGE_EXCLUDES=$v;next}
         last if Settings::parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
+    # Autologin credential in file next.
     if(@cre &&scalar(@cre)>1){
 
             if($alias && $passw && $alias ne $cre[0]){ # Is this an new alias login attempt? If so, autologin is of the agenda.
@@ -170,7 +173,8 @@ sub checkAutologinSet {
             $db = Settings::connectDB($alias, $passw);            
             #check if autologin enabled.
             my $st = Settings::selectRecords($db,"SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");                        
-            if($st){my @set = $st->fetchrow_array();
+            if($st){
+                my @set = $st->fetchrow_array();
                 if($set[0]=="1"){
                         $alias = $cre[0];
                         $passw = $passw; 
@@ -182,7 +186,6 @@ sub checkAutologinSet {
     }
 
 }
-
 
 sub checkPreparePGDB {
     my $create =1;
@@ -321,7 +324,7 @@ try{
             }
             if($DB_VERSION > 1.6){
                 #is above v.1.6 notes table.
-                $db->do('DROP TABLE VW_LOG;');                
+                $db->do('DROP TABLE '.Settings->VW_LOG);                
             }
             $db->do('DROP TABLE LOG;');
             #v.1.8 Has fixes, time also properly to take into the sort. Not crucial to drop.
@@ -358,8 +361,8 @@ try{
     }
     elsif($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 2.0){
         #dev 1.9 main log view has changed in 1.8..1.9, above scope will perform anyway, its drop, to be recreated later.
-        $db->do('DROP VIEW VW_LOG;');delete($curr_tables{'VW_LOG'});
-        delete($curr_tables{'VW_LOG'});
+        $db->do('DROP VIEW '.Settings->VW_LOG);delete($curr_tables{Settings->VW_LOG});
+        delete($curr_tables{Settings->VW_LOG});
         $changed = 1;
     }elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}
 
@@ -382,8 +385,31 @@ try{
 
     # From v.1.6 view uses server side views, for pages and correct record by ID and PID lookups.
     # This should make queries faster, less convulsed, and log renumeration less needed for accurate pagination.
-    if(!$curr_tables{'VW_LOG'}) {
-        $db->do(Settings::createViewLOGStmt()) or LifeLogException -> throw("ERROR:".$@)        ;
+    if(!$curr_tables{Settings->VW_LOG}) {
+        $db->do(Settings::createViewLOGStmt()) or LifeLogException -> throw("ERROR:".$@);
+    }
+    if(!$curr_tables{Settings->VW_LOG_WITH_EXCLUDES}) {
+        # To cover all possible situations, this test elses too. 
+        # As an older existing view might need to be recreated, to keep in synch.
+        if($PAGE_EXCLUDES){
+           $db->do(createPageViewExcludeSQL());
+           Settings::configProperty($db, 204, '^PAGE_EXCLUDES',$PAGE_EXCLUDES);          
+        }        
+    }else{ # Updating here too if excludes in config file have been removed.
+           my @ret=Settings::selectRecords($db, "SELECT value FROM CONFIG WHERE NAME='^PAGE_EXCLUDES';")->fetchrow_array();
+           if(!$ret[0] && $PAGE_EXCLUDES){
+               $db->do('DROP VIEW '.Settings->VW_LOG_WITH_EXCLUDES);
+               $db->do(createPageViewExcludeSQL());
+               Settings::configProperty($db, 204, '^PAGE_EXCLUDES',$PAGE_EXCLUDES);
+               
+           }elsif($ret[0]){
+               if($PAGE_EXCLUDES && $PAGE_EXCLUDES ne $ret[0]){
+                   $db->do('DROP VIEW '.Settings->VW_LOG_WITH_EXCLUDES);
+                   $db->do(createPageViewExcludeSQL());
+               }{
+                   $db->do("DELETE FROM CONFIG WHERE NAME='^PAGE_EXCLUDES'");
+               }
+            }
     }
 
     if(!$curr_tables{'CAT'}) {
@@ -427,8 +453,8 @@ try{
             my $t = uc substr($_,7);
             $curr_tables{$t} = 1;
         }
-        if(!$curr_tables{'VW_LOG'}) {
-            LifeLogException -> throw("VW_LOG not created! Try logging in again.");
+        if(!$curr_tables{Settings->VW_LOG}) {
+            LifeLogException -> throw(Settings->VW_LOG." not created! Try logging in again.");
         }
     }
 
@@ -470,6 +496,27 @@ try{
 }catch{
     LifeLogException -> throw(error=>$@,show_trace=>1);
 }
+}
+
+sub createPageViewExcludeSQL {
+    
+    my ($where,$days) = 0;
+    my $parse = $PAGE_EXCLUDES;
+    my @a = split('=',$parse);
+    if(scalar(@a)==2){
+        $days  = $a[0];
+        $parse = $a[1];
+    }    
+    if(Settings::isProgressDB()){$where = "WHERE a.date >= (timestamp 'now' - interval '$days days') OR"}
+    else{$where = "WHERE a.date >= date('now', '-$days day') OR"}
+    @a = split(',',$parse);
+    foreach (@a){
+        $where .= " ID_CAT!=$_ AND";
+    }
+    $where =~ s/\s+OR$//;
+    $where =~ s/\s+AND$//;
+    return Settings::createViewLOGStmt(Settings->VW_LOG_WITH_EXCLUDES,$where);
+    
 }
 
 
