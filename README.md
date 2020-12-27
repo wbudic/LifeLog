@@ -20,7 +20,7 @@ https://www.sqlite.org/index.html database is required to run this web applicati
 
 ## What is the purpose of having this log kept?
 
-Here are some that come to mind:
+Here are some things that come to mind:
 
 * Allows you to keep an organized historical log of every day and time events.
 * All logs are categorized, easy to search, view modify.
@@ -29,6 +29,7 @@ Here are some that come to mind:
 * Fast search based on categories, keywords, from to date, all integrated.
   * Historical view of data as such is not cluttered by none relevant log entries. Which is a common problem in spreadsheets.
   * Export/DateDiff/Print selected log entries.
+  * Need to compare current purchase, with any last times of the same. Be it in days or cost, total of the expense? Now you can.
 * Optionally assign accounting values to log entries, is it an asset, income or expense? 
   * These are per page calculated.
   * View through the static page your logged current income and expense, for the current year.
@@ -44,13 +45,21 @@ Here are some that come to mind:
   * Backup is inbuilt, you make one, if unsure if deleting and rampaging and exploring with the log, might make you loose data.
   * Each alias creates its own log database, so if working on something specific, this you use to that by alias separately can access/share.
     * In turn this database configuration can have its own list of categories, it is independent.
-    * All is unique and configurable in its own instance. Defaults are provided by this applications unique fast configuration file system.
-      * main.cnf is used with own bummed configuration parsing routines, all part of the executing script.
-* Interaction and configuration is user friendly, provided in the interface, no need to access a file, for most parts.
+    * All is unique and configurable in its own instance. Defaults are provided by this applications in an custom unique fast configuration file system.
+      * i.e. The main.cnf is used with own bummed configuration parsing routines, all part of this applications program, you have the code.
+      * The configuration system here is rare. As it takes into account three states of preservation of concerns.
+        1. System and application provided default. (Application release defaults, gets overridden on app code update.)
+        2. Application own default. (Application in code provided defaults, has someone deleted/damaged the text config file?)
+        3. User set configuration. (Application, user set, added, amended in database configuration, must be preserved on software or release update.) 
+* Interaction and configuration is user friendly, provided in the interface, no need to access a server located main.inf file, for most parts.
 * Data migration on software updates are automatically provided.
   * Data structures and footprint is tiny.
   * Amount of data a log can contain is unlimited.
     * You only browse in a small view sections of it.
+* Data is stored in a standard SQL based database.
+  * System admins, database developers, managers, large or small; will find this useful in case they need to do something with it, in the future or current situation.
+  * Web developers with no Perl coding skills, can access and modify the HTML containing .cgi files and modify them as needed, for simple edits.
+    * All relevant *perl code* and HTML is in one file per web page, shared settings, configuration, session, parameter names, constance's, in one place, not scattered around in several files.
 * **Perl** is used to deliver the pages and all the interaction.
   * It is being interpreted using libraries that directly link to fast system routines.
     * Nothing unnecessary is loaded or searched for, to provide execution on the fly.
