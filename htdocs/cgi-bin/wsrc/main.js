@@ -321,7 +321,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             var chk = $(e.target).find('input[name="chk"]');
             var tr = e.target.parentNode.closest("tr");
             if(tr.id != "summary_row" && tr.id !="brw_row"){
-                if(!CHK_PREV.prop('checked')){        
+                if(CHK_PREV && !CHK_PREV.prop('checked')){        
                     CHK_PREV.closest("tr").removeClass("hover");
                 }
                 $(e.target.parentNode).closest("tr").addClass("hover");
@@ -474,10 +474,20 @@ function decodeToHTMLText(txt) {
     return txt;
 }
 
+var BOLD_MATCH = /(?<o>^\<b\>)(?<title>.+)(?<c>\<\/b\>)\s+(?<text>.*)/gi;
 function decodeToText(txt) {
     //bug 7 fix
     txt = txt.replace(/<hr>.*RTF<\/button>/gm, "");
     txt = txt.replace(/<br\s*[\/]?>/gi, "\n");
+    //If first line bolded
+    
+    let res = txt.matchAll(BOLD_MATCH);
+    if(res){
+        for(let r of res) { //WB: In a loop? JS can be weird, nested iter...
+            let {o, title, close, text} = r.groups;
+            txt = "*" + title + "*\n" + text;
+        }//
+    }
     return txt;
 }
 
