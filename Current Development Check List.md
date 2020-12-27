@@ -6,6 +6,12 @@
 
 ### v.2.2 EARTH RC 1
 
+* Page section plugins.
+  * Configured in main.cnf.
+  * Accessed via side menu to appear.
+  * Default is to link to documentation, and about page.
+  * Plugin behavior is to be invoked in real time on demand, utilizing in most complex scenario JSON as medium.
+    * i.e. News or service feed, special view, file interaction.
 * Deleting multiple items, RTF, should mark for vacuum on next logout.
 * Search keep in session should preserve and always set options as selection till it is ticked.
   * Reset Whole View to page view, should still set the search option till it is ticked.
