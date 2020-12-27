@@ -673,10 +673,11 @@ sub buildLog {
 
         if ( $rtf > 0 ) {
              $log_output .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
-                         <td colspan="6"> # Left here style, is complex and css file might cache.
+                         <td colspan="6">
                           <div id="q-scroll$id" 
-    style="height:auto; max-height:480px; padding: 10px; background:#fffafa; overflow-x:auto; overflow-y:auto;  max-width:920px; width: max-content;">
-                            <div id="q-container$id"></div>
+    style="height:auto; max-height:480px; padding: 10px; background:#fffafa; overflow-x:auto; overflow-y:auto;">
+    <div class="log" style="overflow-x:scroll; max-width:100%">
+                            <div id="q-container$id"></div></div>
                           </div>
                         </td></tr>);
         }
@@ -1391,7 +1392,7 @@ return qq(
     </span>
     <span class="ql-formats">
       <button class="ql-header" value="1"></button>
-      <button class="ql-header" value="2"></button>
+      <select class="ql-header" value="2"></select>
       <button class="ql-blockquote"></button>
       <button class="ql-code-block"></button>
     </span>
@@ -1493,8 +1494,7 @@ sub outputPage {
             {
                 -type => 'text/css',
                 -src  => 'wsrc/jquery-ui-timepicker-addon.css'
-            },
-            { -type => 'text/css', -src => 'wsrc/tip-skyblue/tip-skyblue.css' },
+            },            
             {
                 -type => 'text/css',
                 -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
@@ -1510,19 +1510,13 @@ sub outputPage {
             { -type => 'text/javascript', -src => 'wsrc/main.js' },
             { -type => 'text/javascript', -src => 'wsrc/jquery.js' },
             { -type => 'text/javascript', -src => 'wsrc/jquery-ui.js' },
-            {
-                -type => 'text/javascript',
-                -src  => 'wsrc/jquery-ui-timepicker-addon.js'
-            },
-            {
-                -type => 'text/javascript',
-                -src  => 'wsrc/jquery-ui-sliderAccess.js'
-            },
+            { -type => 'text/javascript', -src => 'wsrc/jquery-ui-timepicker-addon.js'},
+            { -type => 'text/javascript', -src => 'wsrc/jquery-ui-sliderAccess.js'},
             { -type => 'text/javascript', -src => 'wsrc/jquery.poshytip.js' },
 
             { -type => 'text/javascript', -src => 'wsrc/quill/katex.min.js' },
-            { -type => 'text/javascript', -src => 'wsrc/quill/highlight.min.js' },
-            { -type => 'text/javascript', -src => 'wsrc/quill/quill.min.js' },
+            { -type => 'text/javascript', -src => 'wsrc/quill/highlight.min.js' },            
+            { -type => 'text/javascript', -src => 'wsrc/quill/quill.min.js' },        
             { -type => 'text/javascript', -src => 'wsrc/jscolor.js' },
             { -type => 'text/javascript', -src => 'wsrc/moment.js' },
             { -type => 'text/javascript', -src => 'wsrc/moment-timezone-with-data.js' },
