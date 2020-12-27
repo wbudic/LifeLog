@@ -145,18 +145,19 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
     $("#RTF").prop("checked", false);
     // $('#tbl_doc').toggle();
     // $('#toolbar-container').toggle();
-    if ($('#editor-container').length) {
+    if ($('#editor-container').length) {        
         QUILL = new Quill('#editor-container', {
+            placeholder: 'Enter your Document here...',
+            theme: 'snow',
             modules: {
                 formula: true,
-                syntax: true,
-                toolbar: '#toolbar-container'
-            },
-            placeholder: 'Enter your Document here...',
-            theme: 'snow'
+                syntax: true,                
+                toolbar: '#toolbar-container'            
+            }
         });
         Delta = Quill.import('delta');
         CHANGE = new Delta();
+        
         // toggleDocument();
     }
 
