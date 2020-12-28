@@ -35,6 +35,7 @@
 - &#9744; Are saving and linking to an log entry.
 - &#9744; Are being deleted if log entry is deleted.
 - &#9744; Menu showing, check text formatting, colours, fonts, styles is working.
+- &#9744; Check if RTF documents are backed up restored.
 
 ### Config Page config.cgi
 
@@ -42,6 +43,7 @@
 - &#9745; Editing and changing works.
 - &#9744; Categories, adding, deleting, renaming works.
 - &#9744; Database fixes all work.
+- &#9744; Does a database fix issued, reassigns also documents to new remunerated log entries.
 - &#9744; Backup/Restore working, security around it also correct and works.
 
 ### Configuration Check main.cnf
