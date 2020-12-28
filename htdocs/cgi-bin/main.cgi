@@ -297,14 +297,19 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
         }
 
         if ($stmD) {
+            #was previous an OR?, replace with an AND we filter further by keywords.
+            $stmS =~ s/\sOR$/ and/gi;
             $stmS .= $stmD . " AND";
         }
 
         if (@keywords) {
             foreach (@keywords) {
-                if(Settings::isProgressDB()){$stmS .= " LOWER(LOG) ~ '" . lc $_ . "'"}else{$stmS .= " LOWER(LOG) REGEXP '\\b" . lc $_ . "\\b'"}
+                #was previous an OR?, replace with an AND we filter further by keywords.
+                $stmS =~ s/\sOR$/ and/gi;
+                if(Settings::isProgressDB()){$stmS .= " LOWER(LOG) ~ '" . lc $_ . "'"}
+                else{$stmS .= " LOWER(LOG) REGEXP '\\b" . lc $_ . "\\b'"}        
                 if ( \$_ != \$keywords[-1] ) {
-                    $stmS = $stmS . " OR ";
+                    $stmS = $stmS . " and ";
                 }
             }
             $sqlVWL = $stmS . $stmE;
@@ -1313,24 +1318,31 @@ sub authenticate {
     }
 }
 
+
 sub fetchAutocomplete {
 
-    my $st = traceDBExe('SELECT LOG from LOG' . $stmE );
+    my $st = traceDBExe('select LOG from LOG ' . $stmE. '-- > '. &Settings::autoWordLimit.'  < -- fetchAutocomplete');
     my $awl = Settings::autoWordLength();
-    my %hsh = ();
+    my %hsh = (); 
+    my $lst = "\"\"";
     while ( my @row = $st->fetchrow_array() ) {
         my ($wl,$log) = ("",$row[0]);
         #Decode escaped \\n
         $log =~ s/\\n/\n/gs;
         $log =~ s/''/'/g;
         my @words = split( /\s/, $log );
-        foreach my $word (@words) {
+        foreach my $word (sort @words) {
             #remove all non alphanumerics
             $word =~ s/[^a-zA-Z]//gs;
             $wl = length($word);
-            if ( $wl > 2 && $wl < $awl) {
-                $word = lc $word;
-                if(!$hsh{$word}){ $hsh{$word}=$word;$autowords .= qq(,"$word");} else{ next; }                
+            if ( $wl > 2 && $wl < $awl) {# Gas Bootle
+                $word = lc $word;                
+                if(!$hsh{$word}){ 
+                    $hsh{$word}=1;
+                    $lst .= qq(,"$word");
+                } else{
+                    next; 
+                } 
                 if ( $aw_cnt++ > &Settings::autoWordLimit ) {
                     last;
                 }
@@ -1340,6 +1352,7 @@ sub fetchAutocomplete {
             last;
         }
     }
+    $autowords = $lst if(length($lst)>1);
     undef %hsh;
 }
 
