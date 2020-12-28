@@ -6,6 +6,7 @@
 
 ### v.2.2 EARTH RC 1
 
+* Bug 34 - DB fix in config, removes associated RTF documents to logs, for some reason.
 * Page section plugins.
   * Configured in main.cnf.
   * Accessed via side menu to appear.
@@ -157,6 +158,7 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
 ### v. 2.2 Encountered/Fixed
 
+* Bug 34, DB fix in config, removes associated RTF documents, for some reason.
 * &#10004; Bug 33 Changing session timeout in config to an lib. background unparsable format cause unrecoverable system error.
   * i.e. Putting +1hr instead of +1h.
 * &#10004; Bug 32 RTF creating/saving is broken.
