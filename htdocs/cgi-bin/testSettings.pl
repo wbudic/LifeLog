@@ -145,5 +145,14 @@ sub timeFormatValue {
     return $ret;
 }
 
+# my @AUTOWORDS = ("searchificould","itworks","funeral","gasbottle","electricitybill","ctwodaysinrow","carrego","cartwonewtires","flashlightout","test","check","tmshsample","new");
+
+
+
+
+# foreach my $v (sort @AUTOWORDS){
+#     print "$v~";
+# }
+# print "\n";
 
 1;
