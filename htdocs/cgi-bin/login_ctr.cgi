@@ -295,10 +295,11 @@ try{
     }
     #Is it pre or around v.2.1, where ID_RTF is instead of RTF in the LOG table?
     if($hasLogTbl && !Settings::isProgressDB()){ 
-        $pst = Settings::selectRecords($db, "SELECT * from pragma_table_info('LOG') where name like 'ID_RTF'");        
-        if($pst->fetchrow_array()){
-            $db->do("ALTER TABLE LOG RENAME COLUMN ID_RTF TO RTF");
-        }
+        $pst = Settings::selectRecords($db, "SELECT * from pragma_table_info('LOG') where name like 'ID_RTF';");
+        my @row = $pst = $pst->fetchrow_array();  
+        if(scalar (@row)>0){
+            $db->do("ALTER TABLE LOG RENAME COLUMN ID_RTF TO RTF;");           
+        }        
     }
     #
     # From v.1.8 Log has changed, to have LOG to NOTES relation.
