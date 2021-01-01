@@ -8,7 +8,7 @@ package Settings;
 use v5.10;
 use strict;
 use warnings;
-use Exception::Class ('SettingsException','LifeLogException');
+use Exception::Class ('SettingsException','LifeLogException','SettingsLimitSizeException');
 use Syntax::Keyword::Try;
 use CGI;
 use CGI::Session '-ip_match';
@@ -20,8 +20,9 @@ use DateTime::Duration;
 use DBI;
 use experimental qw( switch );
 
-#This is the default developer release key, replace on istallation. As it is not secure.
+# This is the default developer release key, replace on istallation. As it is not secure.
 use constant CIPHER_KEY             => '95d7a85ba891da';
+use constant CIPHER_PADDING         => 'fe0a2b6a83e81f13a2d76ab104763773310df6b0a01c7cf9807b4b0ce2a02';
 # Default VIEW for all pages.
 use constant VW_LOG                 => 'VW_LOG';
 # Optional instructional VIEW from config file replacing above default.
@@ -191,7 +192,7 @@ sub setTimezone {
                 }
             }
             my $try = $tz_map{$TIME_ZONE};
-               $try = $tz_map{$to} if(!$try);
+               $try = $tz_map{$to} if(!$try && $to);
             if($try){
                 $TIME_ZONE = $try; #translated to mapped lib. provided zone.
                 $ret -> set_time_zone($try);
@@ -249,29 +250,30 @@ return qq(
     );
     CREATE INDEX idx_cat_name ON CAT (NAME);
 )}
-sub createLOGStmt {
-if($IS_PG_DB){
+sub createLOGStmt { 
+#ID_RTF in v.2.0 and lower is not an id, changed to byte from v.2.1.
+if($IS_PG_DB){ 
         return qq(
         CREATE TABLE LOG (
             ID INT UNIQUE GENERATED ALWAYS AS IDENTITY,
-            ID_CAT INT        NOT NULL,
-            ID_RTF INTEGER    DEFAULT 0,
+            ID_CAT INT        NOT NULL,            
             DATE TIMESTAMP    NOT NULL,
             LOG VARCHAR ($DBI_LVAR_SZ) NOT NULL,
+            RTF    BOOL       DEFAULT 0,
             AMOUNT money,
-            AFLAG  INT         DEFAULT 0,
+            AFLAG  INT        DEFAULT 0,
             STICKY BOOL       DEFAULT FALSE,
             PRIMARY KEY(ID)
         );)} 
 
   return qq(
     CREATE TABLE LOG (
-        ID_CAT INT        NOT NULL,
-        ID_RTF INTEGER    DEFAULT 0,
+        ID_CAT INT        NOT NULL,        
         DATE DATETIME     NOT NULL,
         LOG VARCHAR ($DBI_LVAR_SZ) NOT NULL,
+        RTF    BYTE       DEFAULT 0,
         AMOUNT DOUBLE,
-        AFLAG  INT         DEFAULT 0,
+        AFLAG  INT        DEFAULT 0,
         STICKY BOOL       DEFAULT 0
     );
 )}
@@ -461,12 +463,12 @@ sub renumerate {
     selectRecords($db,'CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;');
     my $CI = 'rowid'; $CI = 'ID' if $IS_PG_DB;
     #update  notes table with new log id only for reference sake.
-    my $st = selectRecords($db, "SELECT $CI, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;");
+    my $st = selectRecords($db, "SELECT $CI, DATE FROM LOG WHERE RTF > 0 ORDER BY DATE;");
     while(my @row =$st->fetchrow_array()) {
         my $sql_date = $row[1];
         #$sql_date =~ s/T/ /;
         $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
-        $sql = "SELECT $CI, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
+        $sql = "SELECT $CI, DATE FROM life_log_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';";
         my @new  = selectRecords($db, $sql)->fetchrow_array();
         if(scalar @new > 0){
              try{#can fail here, for various reasons.
@@ -489,23 +491,23 @@ sub renumerate {
     if($IS_PG_DB){$db->do('DROP TABLE LOG CASCADE;');}else{$db->do('DROP TABLE LOG;');}
     
     $db->do(&createLOGStmt);
-    $db->do('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT,AFLAG,STICKY)
-                       SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM life_log_temp_table ORDER by DATE;');    
+    $db->do('INSERT INTO LOG (ID_CAT, DATE, LOG, RTF ,AMOUNT, AFLAG, STICKY)
+                       SELECT ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY FROM life_log_temp_table ORDER by DATE;');    
     $db->do('DROP TABLE life_log_temp_table;');
 }
 
 sub selectRecords {
     my ($db, $sql) = @_;
     if(scalar(@_) < 2){
-                SettingsException->throw("ERROR Argument number is wrong->db is:$db\n", show_trace=>$DEBUG);
+         die  "Wrong number of arguments, expecting Settings::selectRecords(\$db, \$sql) got Settings::selectRecords('@_').\n";
     }
     try{
-                my $pst	= $db->prepare($sql);
-                $pst->execute();
-                return 0 if(!$pst);
-                return $pst;
+        my $pst	= $db->prepare($sql);                
+        return 0 if(!$pst);
+        $pst->execute();
+        return $pst;
     }catch{
-                SettingsException->throw(error=>"Database error encountered!\n ERROR->".$@." SQL-> $sql DSN:".$DSN, show_trace=>$DEBUG);
+                SettingsException->throw(error=>"Database error encountered!\n ERROR->$@\n SQL-> $sql DSN:".$DSN, show_trace=>$DEBUG);
     };
 }
 

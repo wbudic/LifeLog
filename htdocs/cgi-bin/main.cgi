@@ -63,7 +63,7 @@ if(Settings::anon('^PAGE_EXCLUDES')){
     }
 }
 
-my $sqlView     = 'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY, PID FROM '.$VW_PAGE;#Only to be found here, the main SQL select statement.
+my $sqlView     = 'SELECT ID, ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY, PID FROM '.$VW_PAGE;#Only to be found here, the main SQL select statement.
 my $stmS        = $sqlView." WHERE";
 my $stmE        = ' LIMIT '.&Settings::viewAllLimit.';';
 my $stmD        = "";
@@ -264,7 +264,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 </tr>);
     #We use js+perl, trickery to filter by amount type, as well.
     if($prm_aa >0){my $s = $prm_aa - 1;$prm_aa = " AFLAG=$s AND";}else{$prm_aa=""}
-    if($prm_rtf){$stmS .= " ID_RTF>0 AND";}
+    if($prm_rtf){$stmS .= " RTF>0 AND";}
 
     if($isPUBViewMode){
         $sqlVWL = $stmS." ".Settings::sqlPubors().$stmE;
@@ -431,10 +431,10 @@ sub buildLog {
         my $i = 0;
         $id = $row[$i++]; #ID must be rowid in LOG.
         my $cid = $row[$i++]; #CID ID_CAT not used.
-        my $ct  = $hshCats{$cid}; #ID_CAT
-        my $rtf = $row[$i++];           #ID_RTF since v.1.8
+        my $ct  = $hshCats{$cid}; #ID_CAT        
         my $dt  = DateTime::Format::SQLite->parse_datetime( $row[$i++] ); #LOG.DATE
         my $log = $row[$i++]; #LOG.LOG
+        my $rtf = $row[$i++];     #ID_RTF since v.1.8 but just RTF from v.2.1
         my $am  = $row[$i++]; #LOG.AMOUNT
         my $af  = $row[$i++]; #AFLAG -> Asset as 0, Income as 1, Expense as 2
         my $sticky = $row[$i++]; #Sticky to top
@@ -1088,10 +1088,9 @@ try {
 #Apostroph's need to be replaced with doubles  and white space to be fixed for the SQL.
             $log =~ s/'/''/g;
 
-            if ( $edit_mode && $edit_mode != "0" ) {
-                #Update
+            if ( $edit_mode && $edit_mode != "0" ) {                
                 $date = DateTime::Format::SQLite->parse_datetime($date); $date =~ s/T/ /g;
-                $stm = qq(UPDATE LOG SET ID_CAT='$cat', ID_RTF='$rtf',
+                $stm = qq(UPDATE LOG SET ID_CAT='$cat', RTF='$rtf',
                                          DATE='$date',
                                          LOG='$log',
                                          AMOUNT=$am,
@@ -1099,9 +1098,8 @@ try {
                                          STICKY=$sticky WHERE $SQLID=$edit_mode;);
                 #
                 toBuf $stm if $DEBUG;
-                #
-
-                my $dbUpd = Settings::connectDB($alias, $passw);#@  or LifeLogException->throw("Execute failed [$DBI::errstri]");
+                #             
+                
                 traceDBExe($stm);
                 return;
             }
@@ -1159,7 +1157,7 @@ try {
                 }
                 if ($dtCur > $dt){$sticky = 1; toBuf $cgi->p("<b>Insert forced to be sticky, it is in the past!</b>");}
                 $sticky=castToBool($sticky);
-                $stm = qq(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES ($cat,$rtf,'$date','$log',$am,$af,$sticky););
+                $stm = qq(INSERT INTO LOG (ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY) VALUES ($cat,'$date','$log',$rtf, $am,$af,$sticky););
                 $st = traceDBExe($stm);
                 if($sssCDB){
                     #Allow further new database creation, it is not an login infinite db creation attack.

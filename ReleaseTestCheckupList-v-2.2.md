@@ -39,7 +39,7 @@
 
 ### Config Page config.cgi
 
-- &#9745; Look & Feel, autonom variables, like release version showing at end of System Configuration, clustered as uneditable.
+- &#9745; Look & Feel, autonom variables, like release version showing at end of System Configuration, clustered as edit enabled.
 - &#9745; Editing and changing works.
 - &#9744; Categories, adding, deleting, renaming works.
 - &#9744; Database fixes all work.

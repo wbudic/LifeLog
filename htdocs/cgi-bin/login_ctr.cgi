@@ -237,6 +237,7 @@ try{
     # We live check database for available tables now only once.
     # If brand new database, this sill returns fine an empty array.
     my %curr_tables = ();
+    #my %curr_colums = (); # %("table", @{...columns...})
 
     if(Settings::isProgressDB()){        
         $changed = checkPreparePGDB();
@@ -292,6 +293,13 @@ try{
            }
         }catch{$@.="\n$sup"; die "Failed[$@]"}
     }
+    #Is it pre or around v.2.1, where ID_RTF is instead of RTF in the LOG table?
+    if($hasLogTbl && !Settings::isProgressDB()){ 
+        $pst = Settings::selectRecords($db, "SELECT * from pragma_table_info('LOG') where name like 'ID_RTF'");        
+        if($pst->fetchrow_array()){
+            $db->do("ALTER TABLE LOG RENAME COLUMN ID_RTF TO RTF");
+        }
+    }
     #
     # From v.1.8 Log has changed, to have LOG to NOTES relation.
     #
@@ -345,7 +353,7 @@ try{
             foreach my $date (keys %notes_ids){
                 #next if(ref($notes_ids{$date}) eq 'HASH');
                 my $nid = $notes_ids{$date};
-                my $stmt= "UPDATE LOG SET ID_RTF =". $nid." WHERE DATE == '".$date."';";
+                my $stmt= "UPDATE LOG SET RTF =". $nid." WHERE DATE == '".$date."';";
                 try{
                     $db->do($stmt);
                 }

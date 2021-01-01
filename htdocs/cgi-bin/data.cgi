@@ -19,14 +19,13 @@ require Settings;
 my $db        = Settings::fetchDBSettings();
 my $cgi       = Settings::cgi();
 my $dbname    = Settings::dbName();
-my $imgw      = 210;
-my $imgh      = 120;
 my $human     = DateTime::Format::Human::Duration->new();
 my $PRC_WIDTH = Settings::pagePrcWidth();
 my $DEBUG     = Settings::debug();
 my $today     =  Settings::today();
-my $tbl_rc =0;
-
+my $tbl_rc    = 0;
+my $imgw      = 210;
+my $imgh      = 120;
 my $opr = $cgi->param("opr");
 my $confirmed = $cgi->param('confirmed');
 if ($opr == 1){
@@ -182,7 +181,8 @@ try{
 
          my $tbl = '<a name="top"></a><form name="frm_log_del" action="data.cgi" onSubmit="return formDelValidation();">
            <table class="tbl_rem" width="'.$PRC_WIDTH.'%">
-           <tr class="hdr" style="text-align:left;"><th>Date <a href="#bottom">&#x21A1;</a></th> <th>Time</th> <th>Log</th> <th>Category</th></tr>';
+           <tr class="hdr" style="text-align:left;">
+               <th>Date <a href="#bottom">&#x21A1;</a></th> <th>Time</th> <th>Log</th> <th>Category <a href="#bottom">&#x21A1;</a></th></tr>';
 
 
         while(my @row = $st->fetchrow_array()) {
@@ -191,12 +191,13 @@ try{
             my $dt = DateTime::Format::SQLite->parse_datetime( $row[3] );
             my $log = log2html($row[4]);
 
-            $tbl = $tbl . '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" .
+            $tbl .= '<tr class="r1"><td class="'.$rs.'">'. $dt->ymd . "</td>" .
                 '<td class="'.$rs.'">' . $dt->hms . "</td>" .
-                '<td class="'.$rs.'" style="font-weight:bold; color:maroon;">'."$log</td>\n".
+                '<td class="'.$rs.'" style="font-weight:bold; color:maroon;">
+                    <div class="log" style="overflow-x:none; max-width:600">'."$log</div></td>\n".
                 '<td class="'.$rs.'">' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';
             if($rs eq "r1"){
-            $rs = "r0";
+               $rs = "r0";
             }
             else{
                 $rs = "r1";
@@ -218,7 +219,7 @@ try{
         </td></tr>
         </table><input type="hidden" name="confirmed" value="1"></form>';
 
-        print "<center><div>\n$tbl\n</div></center>";
+        print "<center><div style='background-color:".&Settings::bgcol."'>\n$tbl\n</div></center>";
 
         print $cgi->end_html();
     } 

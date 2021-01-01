@@ -6,7 +6,7 @@
 
 ### v.2.2 EARTH RC 1
 
-* Bug 34 - DB fix in config, removes associated RTF documents to logs, for some reason.
+* &#10004; Bug 34 - DB fix in config, removes associated RTF documents to logs, for some reason.
 * Page section plugins.
   * Configured in main.cnf.
   * Accessed via side menu to appear.

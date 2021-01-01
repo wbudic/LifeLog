@@ -23,6 +23,8 @@ use Regexp::Common qw /URI/;
 use JSON;
 use IO::Compress::Gzip qw(gzip $GzipError);
 use Compress::Zlib;
+use Crypt::Blowfish;
+use Crypt::CBC;
 
 use lib "system/modules";
 require Settings;
@@ -88,57 +90,67 @@ sub defaultJSON {
    });
 }
 
+sub cryptKey {
+    $passw    = $alias.$passw.Settings->CIPHER_KEY;
+    $passw    =~ s/(.)/sprintf '%04x', ord $1/seg;        
+   return  substr $passw.Settings->CIPHER_PADDING, 0, 58;
+}
+
 sub processSubmit {
 
      # my $date = $cgi->param('date');
-     my $st;
+     my ($st, @arr);
 
     try {
         if($action eq 'store'){
 
-           $doc = qq({
-                        "lid":"$lid",
-                        "bg":"$bg",
-                        "doc":$doc
-                 });
-           my $zip = compress($doc, Z_BEST_COMPRESSION);
-              $st = $db->prepare("SELECT LID FROM NOTES WHERE LID = $lid;");
-              $st -> execute();
-           if($st->fetchrow_array() eq undef) {
-               $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
-               $st->execute($lid, $zip);
-               $response = "Stored Document (id:$lid)!";
+           my $cipher = Crypt::CBC->new(-key  => cryptKey(), -cipher => 'Blowfish');
+              $doc = qq({
+                                "lid": "$lid",
+                                "bg":  "$bg",
+                                "doc": $doc
+              });           
+        
+           my  $zip = compress($cipher->encrypt($doc), Z_BEST_COMPRESSION); 
+               @arr = Settings::selectRecords($db, "SELECT LID FROM NOTES WHERE LID = $lid;")->fetchrow_array();
+           if (!@arr) {
+                        $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
+                        $st->execute($lid, $zip);
+                        $response = "Stored Document (id:$lid)!";
            }
            else{
-               $st = $db->prepare("UPDATE NOTES SET DOC = ? WHERE LID = $lid;");
-               $st->execute($zip);
-               $response = "Updated Document (id:$lid)!";
+                        $st = $db->prepare("UPDATE NOTES SET DOC = ? WHERE LID = $lid;");
+                        $st->execute($zip);
+                        $response = "Updated Document (id:$lid)!";
            }
            
         }
         elsif($action eq 'load'){
-           $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = $lid;");
-           $st -> execute();
-           my @arr = $st->fetchrow_array();
+              @arr = Settings::selectRecords($db, "SELECT DOC FROM NOTES WHERE LID = $lid;")->fetchrow_array();
            if(@arr eq undef){
-               $st = $db->prepare("SELECT DOC FROM NOTES WHERE LID = '0';");
-               $st -> execute();
-               @arr = $st->fetchrow_array();
+              @arr = Settings::selectRecords($db,"SELECT DOC FROM NOTES WHERE LID = '0';")->fetchrow_array();
            }
+            my $cipher = Crypt::CBC->new(-key  => cryptKey(), -cipher => 'Blowfish');
            $doc = $arr[0];
-           $doc = uncompress($doc);
-        #    print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
-        #    print($doc);
-        #    exit;
+           my $d = uncompress($doc);
+           $doc = $cipher->decrypt($d);
+            # print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
+            # print($doc);
+            # exit;
            $response = "Loaded Document!";
 
         }
-        else{
+        else{            
             $error = "Your action ($action) sux's a lot!";
         }
 
     }catch {
-        $error = ":LID[$lid]-> ".$_;
+        if($action eq 'load' && $@ =~ /Ciphertext does not begin with a valid header for 'salt'/){# Maybe an pre v.2.2 old document?
+            $doc = uncompress($doc);
+            $response = "Your document LID[$lid] is not secure. Please resave it.";
+            return;
+        }
+        $error = "Error on:LID[$lid]-> ".$@;
     }
 }
 

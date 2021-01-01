@@ -15,12 +15,30 @@ use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
 require CNFParser;
 
 
+my @set = ('0' ..'9', 'A' .. 'F');
+#@my $str = join '' => map $set[rand @set], 1 .. 56;
+#print join '' => map $set[rand @set], 1 .. 56, "\n\n";
+
+
+print cryptKey('admin','admin'), "\n";
+
+
+#B6B829430583F8C03EBEFB1677232194EEC8D211609226EC516F7BB4B
+sub cryptKey {
+    my $admin = shift;
+    my $passw = shift;
+    $passw    = $admin.$passw.Settings->CIPHER_KEY;
+    $passw    =~ s/(.)/sprintf '%04x', ord $1/seg;        
+   return  substr $passw.Settings->CIPHER_PADDING, 0, 58;
+}
+
+
 # my $TIME_ZONE_MAP ="";
 # open(my $fh, '<',$ENV{'PWD'}.'/dbLifeLog/main.cnf') or LifeLogException->throw("Can't open main.cnf: $!");
 #     while (my $line = <$fh>) {
 #         chomp $line;
 #         if($line =~ /<<TIME_ZONE_MAP</){
-#             $TIME_ZONE_MAP = substr($line,16);
+#             $TIME_ZONE_MAP = substr($line,16);prin
 #                 while ($line = <$fh>) {
 #                     chomp $line;
 #                     last if($line =~ />$/);
@@ -74,76 +92,76 @@ require CNFParser;
     #     $where =~ s/\s+AND$//;
     #     return Settings::createViewLOGStmt(VW_LOG_WITH_EXCLUDES,$where);
     # }
-my $server = 'DBI:Pg:host=elite;name=android';
+# my $server = 'DBI:Pg:host=elite;name=android';
 
-my $v1 = $server =~ qr/:/;
-my $v2 = $`;
-my $v3 = $' =~ qr/:/;
-# $var=1
-# $`=DBI
-# $&=:
-# $'=Pg:host=elite;name=androi
-print $v2.'->'.$`,"\n";
-$v1 ="";
+# my $v1 = $server =~ qr/:/;
+# my $v2 = $`;
+# my $v3 = $' =~ qr/:/;
+# # $var=1
+# # $`=DBI
+# # $&=:
+# # $'=Pg:host=elite;name=androi
+# print $v2.'->'.$`,"\n";
+# $v1 ="";
 
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="1";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+1m";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+10minutes";
-print "[$v1]->".timeFormatValue($v1),"\n";
-#default
-$v1 ="+30m";
-print "[$v1]->".timeFormatValue($v1),"\n";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="1";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+1m";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+10minutes";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# #default
+# $v1 ="+30m";
+# print "[$v1]->".timeFormatValue($v1),"\n";
 
-#Let's try sneak in garbage.
-$v1 ="+20bitcons";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+20hitcons";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+30hr";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+1hr";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+8.2severe";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+8severe";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+2severe";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+120severe";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+119severe";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+121severe";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+280severe";
-print "[$v1]->".timeFormatValue($v1),"\n";
-$v1 ="+120";
-print "[$v1]->".timeFormatValue($v1),"\n";
+# #Let's try sneak in garbage.
+# $v1 ="+20bitcons";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+20hitcons";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+30hr";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+1hr";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+8.2severe";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+8severe";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+2severe";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+120severe";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+119severe";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+121severe";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+280severe";
+# print "[$v1]->".timeFormatValue($v1),"\n";
+# $v1 ="+120";
+# print "[$v1]->".timeFormatValue($v1),"\n";
 
 
-sub timeFormatValue {
-    my $v = shift;
-    my $ret = "+2m";
-    if(!$v){$v=$ret}    
-    if($v !~ /^\+/){$v='+'.$v.'m'}# Must be positive added time
-    # Find first match in whatever passed.
-    my @a = $v =~ m/(\+\d+[shm])/gis;    
-    if(scalar(@a)>0){$v=$a[0]}
-    # Test acceptable setting, which is any number from 2, having any s,m or h. 
-    if($v =~ m/(\+[2-9]\d*[smh])|(\+[1-9]+\d+[smh])/){
-        # Next is actually, the dry booger in the nose. Let's pick it out!
-        # Someone might try to set in seconds value to be under two minutes.
-        @a = $v =~ m/(\d[2-9]\d+)/gs;        
-        if(scalar(@a)>0 && int($a[0])<120){return $ret}else{return $v}
-    }
-    elsif($v =~ m/\+\d+/){# is passedstill without time unit? Minutetise!
-        $ret=$v."m"
-    }
-    return $ret;
-}
+# sub timeFormatValue {
+#     my $v = shift;
+#     my $ret = "+2m";
+#     if(!$v){$v=$ret}    
+#     if($v !~ /^\+/){$v='+'.$v.'m'}# Must be positive added time
+#     # Find first match in whatever passed.
+#     my @a = $v =~ m/(\+\d+[shm])/gis;    
+#     if(scalar(@a)>0){$v=$a[0]}
+#     # Test acceptable setting, which is any number from 2, having any s,m or h. 
+#     if($v =~ m/(\+[2-9]\d*[smh])|(\+[1-9]+\d+[smh])/){
+#         # Next is actually, the dry booger in the nose. Let's pick it out!
+#         # Someone might try to set in seconds value to be under two minutes.
+#         @a = $v =~ m/(\d[2-9]\d+)/gs;        
+#         if(scalar(@a)>0 && int($a[0])<120){return $ret}else{return $v}
+#     }
+#     elsif($v =~ m/\+\d+/){# is passedstill without time unit? Minutetise!
+#         $ret=$v."m"
+#     }
+#     return $ret;
+# }
 
 # my @AUTOWORDS = ("searchificould","itworks","funeral","gasbottle","electricitybill","ctwodaysinrow","carrego","cartwonewtires","flashlightout","test","check","tmshsample","new");
 
@@ -154,5 +172,11 @@ sub timeFormatValue {
 #     print "$v~";
 # }
 # print "\n";
+
+
+
+
+
+
 
 1;

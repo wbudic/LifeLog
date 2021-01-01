@@ -13,6 +13,7 @@ use Syntax::Keyword::Try;
 
 use DateTime::Format::SQLite;
 use Date::Language;
+use Capture::Tiny ':all';
 use Text::CSV;
 use Scalar::Util qw(looks_like_number);
 use Sys::Syslog qw(:DEFAULT :standard :macros); #openLog, closelog macros
@@ -808,7 +809,6 @@ sub encryptPassw {
 }
 
 
-
 sub processDBFix {
 
      my $rs_syst = $cgi->param("reset_syst");
@@ -822,16 +822,20 @@ sub processDBFix {
 try{
 
 
-        my %dates  = ();
-        my @dlts = ();
-        #Hash is unreliable for returning sequential order of keys so array must do.
-        my @updts = ();
-        my $cntr_del =0;
-        my $existing;
-        my @row;
+    my %dates  = ();
+    #Hash is unreliable for returning sequential order of keys so array must do.
+    my @dlts = ();    
+    my $cntr_del =0;
+    my $existing;
+    my @row;
+
+        getHeader() if(&Settings::debug);
+        print "<h3>Database Records Fix Result</h3>\n<hr>" if(&Settings::debug);
+        print "<body><pre>Started transaction!\n" if(&Settings::debug);
 
         $db->do('BEGIN TRANSACTION;');
-        #Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
+        # Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
+        # @TODO This should be selecting an cross SQL compatibe view.
         if(Settings::isProgressDB()){
             $dbs = Settings::selectRecords($db, 'SELECT ID, DATE FROM LOG ORDER BY DATE;');
         }else{
@@ -844,7 +848,6 @@ try{
             }
             else{
                 $dates{$row[0]} = $row[1];
-                $updts[$cntr_upd++] = $row[0];
             }
         }
 
@@ -854,29 +857,32 @@ try{
              }else{
                  $sql = "DELETE FROM LOG WHERE ID=$del;";
              }
-                    #print "$sql\n<br>";
-                    my $st_del = $db->prepare($sql);
-                    $st_del->execute();
+            print "$sql\n<br>";
+            my $st_del = $db->prepare($sql);
+            $st_del->execute();
         }
-
+        print "Doing renumerate next...\n" if(&Settings::debug);
         &renumerate;
+        print "done!\n";
+        print "Doing removeOldSessions next..." if(&Settings::debug);
         &Settings::removeOldSessions;
+        print "done!\n " if(&Settings::debug);
         &resetCategories if $rs_cats;
         &resetSystemConfiguration($db) if $rs_syst;
         &wipeSystemConfiguration if $wipe_ss;
 
-
-
-        $db->do('COMMIT;');
-        $db->disconnect();
+        $db->do('COMMIT;')if(&Settings::debug);
+        print "Commited ALL!<br>"if(&Settings::debug);
+       # $db->disconnect();
         $db  = Settings::connectDB();
-        $dbs = $db->do("VACUUM;");
-
-
+        $dbs = $db->do("VACUUM;")if(&Settings::debug);
+        print "Issued  VACUUM!<br>"if(&Settings::debug);
+        
         if($LOGOUT){
                 &logout;
         }
 
+        exit if(&Settings::debug);
 
 }
 catch{
@@ -884,6 +890,99 @@ catch{
     LifeLogException->throw(error=>qq(@&processDBFix error -> $_ with statement->[$sql] for $date update counter:$cntr_upd \nERROR->$@),show_trace=>1);
 }
 }
+
+sub renumerate {
+
+    # NOTE: This is most likelly all performed under an transaction.
+    my $sql; 
+    # Fetch list by date identified rtf attached logs, with possibly now an old LID, to be updated to new one.    
+    if(Settings::isProgressDB()){
+        $sql = "SELECT ID, DATE FROM LOG WHERE RTF > 0;"
+    }else{
+        $sql = "SELECT rowid, DATE FROM LOG WHERE RTF > 0;"
+    }
+    my @row = Settings::selectRecords($db, $sql)->fetchrow_array();
+    my %notes  = ();
+    if (scalar @row > 0){
+        $notes{$row[1]} = $row[0]; #<- This is current LID, will change.
+        print "Expecting Note entry for  ".$row[1]."  LOG.ID[".$row[0]."]<- LID...\n";
+    }
+
+    ### RENUMERATE LOG
+    $db->do("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
+    if(Settings::isProgressDB()){
+        $db->do('DROP TABLE LOG CASCADE;');
+    }
+    else{
+        $db->do('DROP TABLE LOG;');
+    }
+    $db->do(&Settings::createLOGStmt);
+    $db->do(q(INSERT INTO LOG (ID_CAT, DATE, LOG, RTF, AMOUNT,AFLAG)
+                    SELECT ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG FROM life_log_temp_table ORDER by DATE;));
+    $db->do('DROP TABLE life_log_temp_table;');
+    ###
+
+    # Update  notes with new log id, if it changed.
+
+    foreach my $date (keys %notes){
+        my $old = $notes{$date};
+        #my $sql_date = DateTime::Format::SQLite->parse_datetime($date);
+        
+        if(Settings::isProgressDB()){
+            $sql = "SELECT ID FROM LOG WHERE RTF > 0 AND DATE = '".$date."';";
+        }else{
+            $sql = "SELECT rowid FROM LOG WHERE RTF > 0 AND DATE = '".$date."';";
+        }
+        print "Selecting ->  $sql\n";
+        $dbs = Settings::selectRecords($db, $sql);        
+        @row = $dbs->fetchrow_array();
+        if(scalar @row > 0){                            
+            my $new = $row[0];
+            if($new ne $old){
+               $db->do("UPDATE NOTES SET LID =$new WHERE LID=$old;");
+               print "Updated Note in LID[$old] to be LID[$new]\n";
+            }
+            else{
+               print "All fine skipping LID[$new]\n";
+            }
+        }else{
+            print "ERROR NOT FOUND: $date for LID:$old!\n";
+        }
+
+    }
+
+    # Delete Orphaned Notes entries if any?
+    if(Settings::isProgressDB()){
+        $dbs = Settings::selectRecords($db, "SELECT LID, LOG.ID from NOTES LEFT JOIN LOG ON
+                                        NOTES.LID = LOG.ID WHERE LOG.ID is NULL;");
+    }else{
+        $dbs = Settings::selectRecords($db, "SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
+                                        NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
+    }
+    if ($dbs) {  foreach (@row = $dbs->fetchrow_array()) {
+                $db->do("DELETE FROM NOTES WHERELID=$row[0];") if $row[0]; # 0 is the place keeper for the shared zero record. 
+    }}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 sub resetCategories {
     $db->do("DELETE FROM CAT;");
@@ -1036,23 +1135,51 @@ sub backup {
     while(<$TAR>){print $_;}
     close $TAR;
     exit;
+}
+
+package DBMigStats {
+
+    
+    sub new {
+        my $class = shift;
+        my $self = bless {cats_ins  => 0, cats_upd  => 0, logs_ins  => 0, logs_upd  => 0, notes => 0}, $class;
+    }
+
+    sub cats_inserts(){my $s = shift;return $s->{cats_ins}}
+    sub cats_inserts_incr() {my $s = shift; $s->{cats_ins}++}
+    sub cats_updates(){my $s = shift;return $s->{cats_upd}}
+    sub cats_updates_incr() {my $s = shift; $s->{cats_upd}++}
+    
+    sub logs_inserts(){my $s = shift;return $s->{logs_ins}}
+    sub logs_inserts_incr(){my $s = shift;  $s->{logs_ins}++}
+    sub logs_updates(){my $s = shift;return $s->{logs_upd}}
+    sub logs_updates_incr(){my $s = shift;  $s->{logs_upd}++}
+    
+    sub notes()      {my $s = shift;return  $s->{notes}}
+    sub notes_incr() {my $s = shift; $s->{notes}++}
 
 }
 
-
 sub restore {
+
     my $file = shift;
-    my ($tar,$pipe,@br);
+    my ($tar,$pipe,@br,$stdout,$b_db);
     my $pass = Settings::pass();
     my $hndl = $cgi->param('data_bck');
     my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
+
     try{
         getHeader();
         print $cgi->start_html;
+
+my $stdout = capture_stdout {
+
+        print "<h3>Restore Result</h3>\n<hr>";
+        print "Restore started: ".Settings::today(), "\n";
         if($file){ #Open handle on server to backup to be restored.
             my $f = &Settings::logPath.$file;
             open($hndl, '<', $f) or die "Can't open $f: $!";            
-            print "<pre>Reading on server -> $file</pre>";
+            print "<pre>Reading on server backup file -> $file</pre>";
             $tar = $dbck.$file;
         }        
         else{
@@ -1067,72 +1194,94 @@ sub restore {
         close $pipe; close $hndl;
 
         print "<pre>\n";
+        
+
         my $m1 = "it is not permitted to restore another aliases log backup.";
         $m1= "has your log password changed?" if ($tar=~/_data_$alias/);
 
         my $cmd = `tar tvf $tar 2>/dev/null` 
          or die qq(, possible an security issue, $m1\nBACKUP FILE INVALID! $tar\nYour data alias is: <b>$alias</b>\nYour LifeLog version is:), Settings::release()."\n";
 
-        print "Contents->".$cmd."\n\n";
+        print "Contents->\n".$cmd."\n\n";
         $cmd = `tar xzvf $tar -C $dbck --strip-components 1 2>/dev/null` or die "Failed extracting $tar";
         print "Extracted->\n".$cmd."\n" or die "Failed extracting $tar";;
 
         my $b_base = $dbck.'data_'.$dbname.'_log.db'; 
         my $dsn= "DBI:SQLite:dbname=$b_base";
-        my $b_db = DBI->connect($dsn, $alias, $pass, { RaiseError => 1 }) or LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
+        $b_db = DBI->connect($dsn, $alias, $pass, { RaiseError => 1 }) or LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
         print "Connected to -> $dsn\n";
 
-        print "Merging from backup categories table...\n";
+        print "Merging from backup categories table...";
+        my $stats =  DBMigStats -> new();
         my $insCAT   = $db->prepare('INSERT INTO CAT (ID, NAME, DESCRIPTION) VALUES(?,?,?);') or die "Failed CAT prepare.";
         my $b_pst = Settings::selectRecords($b_db,'SELECT ID, NAME, DESCRIPTION FROM CAT;');
+        
         while ( @br = $b_pst->fetchrow_array() ) {
-            my $pst = Settings::selectRecords($db, "SELECT ID,NAME,DESCRIPTION FROM CAT WHERE ID=".$br[0].";");
+            my $pst = Settings::selectRecords($db, "SELECT ID, NAME, DESCRIPTION FROM CAT WHERE ID=".$br[0].";");
             my @ext = $pst->fetchrow_array();
             if(scalar(@ext)==0){
                 $insCAT->execute($br[0],$br[1],$br[2]);
-                print "Added CAT->".$br[0]."|".$br[1]."\n";
+                print "\nAdded CAT->".$br[0]."|".$br[1]; $stats->DBMigStats::cats_inserts_incr();
             }
             elsif($br[0] ne $ext[0] or $br[1] ne $ext[1]){
                 $db->do("UPDATE CAT SET NAME='".$br[1]."', DESCRIPTION='".$br[2]."' WHERE ID=$br[0];") or die "Cat update failed!";
-                print "Updated->".$br[0]."|".$br[1]."|".$br[2]."\n";
+                print "\nUpdated->".$br[0]."|".$br[1]."|".$br[2]; $stats->DBMigStats::cats_updates_incr();
             }
 
         }
+        
         print "\nFinished with merging CAT table.\n";
+        print "There where -> ". $stats->cats_inserts(). " inserts, and ". $stats->cats_updates(). " updates.\n";
 
         print "\n\nMerging from backup LOG table...\n";
-        my $insLOG   = $db->prepare('INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY) VALUES(?,?,?,?,?,?,?);')or die "Failed LOG prepare.";
+        my %backupLIDS =();
+        my $insLOG   = $db->prepare('INSERT INTO LOG (ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY) VALUES(?,?,?,?,?,?,?);')or die "Failed LOG prepare.";
 
-        $b_pst = Settings::selectRecords($b_db,'SELECT ID, ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG, STICKY FROM '.Settings->VW_LOG);
+        $b_pst = Settings::selectRecords($b_db,'SELECT ID, ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY FROM '.Settings->VW_LOG);
         while ( @br = $b_pst->fetchrow_array() ) {
-            my $pst = Settings::selectRecords($db,"SELECT DATE FROM ".Settings->VW_LOG." WHERE DATE='".$br[3]."';");
+            my $pst = Settings::selectRecords($db,"SELECT DATE FROM ".Settings->VW_LOG." WHERE DATE='".$br[2]."';");
             my @ext = $pst->fetchrow_array();
             if(scalar(@ext)==0){
                 $insLOG->execute($br[1],$br[2],$br[3],$br[4],$br[5],$br[6],$br[7]);
-                print "Added->".$br[0]."|".$br[3]."|".$br[4]."\n";
+                print "Added->".$br[0]."|".$br[2]."|".$br[3]."\n"; $stats->logs_inserts_incr();
+                if($br[5]){                    
+                    $pst = Settings::selectRecords($db, "SELECT max(id) FROM ".Settings->VW_LOG);
+                    my @r = $pst->fetchrow_array();
+                    $backupLIDS{$br[0]} = $r[0];
+                }
             }
-
         }
         print "\nFinished with merging LOG table.\n";
+        print "There where -> ". $stats->logs_inserts(). " inserts.\n";
 
-        print "\n\nMerging from backup NOTES table...\n";
-        my $insNOTES   = $db->prepare('INSERT INTO NOTES (LID, DOC) VALUES(?,?);')or die "Failed NOTESprepare.";
+        print "\nMerging from backup NOTES table...\n";
+        my $insNOTES   = $db->prepare('INSERT INTO NOTES (LID, DOC) VALUES(?,?);')or die "Failed NOTES prepare.";
         $b_pst = Settings::selectRecords($b_db,'SELECT LID, DOC FROM NOTES;');
         while ( @br = $b_pst->fetchrow_array() ) {
-            my $pst = Settings::selectRecords($db,"SELECT LID FROM NOTES WHERE LID=".$br[0].";");
-            my @ext = $pst->fetchrow_array();
-            if(@ext==0&&$br[0]&&$br[1]){
-                $insNOTES->execute($br[0], $br[1]) or die "Failed NOTES INSERT[".$br[0]."]";
-                print "Added NOTES->".$br[0]."\n";
+            my $in_id = $backupLIDS{$br[0]};
+            if($in_id){
+                my $pst = Settings::selectRecords($db,"SELECT LID FROM NOTES WHERE LID=".$br[0].";");
+                my @ext = $pst->fetchrow_array();                
+                if(@ext==0&&$br[1]){
+                   $insNOTES->execute($in_id, $br[1]) or die "Failed NOTES INSERT[".$br[0]."]";
+                    print "Added NOTES -> LID:".$br[0]."\n";
+                }
             }
-
         }
         print "\nFinished with merging NOTES table.\n";
-
-        $b_db->disconnect();
-        $db->disconnect();
+        print "Note that the merge didn't recover documents for any existing log entries.\n";
+        print "To do this, delete those log entries, then run restore again.\n";
         `rm -rf $dbck/`;
         print "Done!";
+        print "Restore ended: ".Settings::today(), "\n";
+};      print $stdout;
+
+        my $fh; open( $fh, ">>", Settings::logPath()."backup_restore.log");
+                print $fh $stdout;
+                close $fh;
+
+        $b_db->disconnect();
+        $db->disconnect();       
     }
     catch{
         $ERROR = "<font color='red'><b>Restore Failed!</b></font>hndl->$hndl $@ \n";
@@ -1260,22 +1409,22 @@ sub updateLOGDB {
     if(scalar(@fields)>6){
 
         my $i = 0;
-        my $id_cat = $fields[$i++];
-        my $id_rtf = $fields[$i++];
+        my $id_cat = $fields[$i++];        
         my $date   = $fields[$i++];
         my $log    = $fields[$i++];
+        my $rtf    = $fields[$i++];
         my $amv    = $fields[$i++];
         my $amf    = $fields[$i++];
         my $sticky = $fields[$i++];
         # Is it old pre. 1.8 format -> ID, DATE, LOG, AMOUNT, AFLAG, RTF, STICKY
-        if(!looks_like_number($id_rtf)){
+        if(!looks_like_number($rtf)){
             $i = 0;
             $id_cat = $fields[$i++];
-            $date   = $fields[$i++];
+            $rtf    = $fields[$i++];
+            $date   = $fields[$i++];            
             $log    = $fields[$i++];
             $amv    = $fields[$i++];
-            $amf    = $fields[$i++];
-            $id_rtf = $fields[$i++];
+            $amf    = $fields[$i++];            
             $sticky = $fields[$i++];
         }
         my $pdate = DateTime::Format::SQLite->parse_datetime($date);
@@ -1288,7 +1437,7 @@ sub updateLOGDB {
         my @rows = $dbs->fetchrow_array();
         if(scalar @rows == 0){
                     $dbs = $db->prepare('INSERT INTO LOG VALUES (?,?,?,?,?,?,?)');
-                    $dbs->execute($id_cat, $id_rtf, $pdate, $log, $amv, $amf, $sticky);
+                    $dbs->execute($id_cat, $pdate, $log, $rtf, $amv, $amf, $sticky);
         }
         $dbs->finish();
     }
@@ -1324,55 +1473,34 @@ sub error {
 }
 
 
-sub renumerate {
-    #Renumerate Log! Copy into temp. table.
-    my $sql;
-    $db->do("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
-    if(Settings::isProgressDB()){
-        $dbs = Settings::selectRecords($db, 'SELECT ID, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;');
-    }else{
-        $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;');
-    }
-    #update  notes with new log id
-    while(my @row = $dbs->fetchrow_array()) {
-        my $sql_date = $row[1];
-        if($sql_date){#could be an improperly deleted record in there? Skip if there is!
-                        #$sql_date =~ s/T/ /;
-                        $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
-                         if(Settings::isProgressDB()){
-                            $sql = "SELECT ID, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
-                         }else{
-                            $sql = "SELECT rowid, DATE FROM life_log_temp_table WHERE ID_RTF > 0 AND DATE = '".$sql_date."';";
-                         }
-                        $dbs = Settings::selectRecords($db, $sql);
-                        my @new  = $dbs->fetchrow_array();
-                        if(scalar @new > 0){
-                            $db->do("UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";");
-                        }
-        }
-    }
+    my %dates  = ();
+    #Hash is unreliable for returning sequential order of keys so array must do.
+    my @dlts = ();    
+    my $cntr_del =0;
+    my $existing;
+    my @row;
 
-    # Delete Orphaned Notes entries.
-    if(Settings::isProgressDB()){
-        $dbs = Settings::selectRecords($db, "SELECT LID, LOG.ID from NOTES LEFT JOIN LOG ON
-                                        NOTES.LID = LOG.ID WHERE LOG.ID is NULL;");
-    }else{
-    $dbs = Settings::selectRecords($db, "SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
-                                        NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
-    }
-    while(my @row = $dbs->fetchrow_array()) {
-        $db->do("DELETE FROM NOTES WHERE LID=$row[0];");
-    }
-    if(Settings::isProgressDB()){
-        $db->do('DROP TABLE LOG CASCADE;');
-    }
-    else{
-        $db->do('DROP TABLE LOG;');
-    }
-    $db->do(&Settings::createLOGStmt);
-    $db->do(q(INSERT INTO LOG (ID_CAT, ID_RTF, DATE, LOG, AMOUNT,AFLAG)
-                    SELECT ID_CAT, ID_RTF, DATE, LOG, AMOUNT, AFLAG FROM life_log_temp_table ORDER by DATE;));
-    $db->do('DROP TABLE life_log_temp_table;');
-}
+        getHeader();
+        print "<body><pre>Started transaction!\n";
+
+        $db->do('BEGIN TRANSACTION;');
+        # Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
+        # @TODO This should be done through an view?
+        if(Settings::isProgressDB()){
+            $dbs = Settings::selectRecords($db, 'SELECT ID, DATE FROM LOG ORDER BY DATE;');
+        }else{
+            $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG ORDER BY DATE;');
+        }
+        while(@row = $dbs->fetchrow_array()) {
+            my $existing = $dates{$row[0]};
+            if($existing && $existing eq $row[1]){
+                $dlts[$cntr_del++] = $row[0];
+            }
+            else{
+                $dates{$row[0]} = $row[1];
+            }
+        }
+
+
 
 1;
