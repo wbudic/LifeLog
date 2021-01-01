@@ -83,14 +83,18 @@ sudo cpan Number/Bytes/Human.pm;
 sudo cpan Regexp::Common;
 sudo cpan JSON;
 sudo cpan Switch;
-sudo cpan IPC::Run
+sudo cpan IPC::Run;
 sudo cpan Syntax::Keyword::Try;
 sudo cpan Text::Markdown
+sudo cpan Crypt::Blowfish;
+
+#Install next after installing desired ciphers, we use Blowfish only.
+sudo cpan Crypt::CBC;
 
 #Install DBI module
 sudo cpan DBI;
 sudo cpan DBD::SQLite;
-#For ProgrsSQL see Installation_ProgresSQL.txt before installing perl driver:
+#For ProgreSQL see Installation_ProgreSQL.txt before installing perl driver:
 #cpan DBD::Pg;
 
 #Final Perl Installation Notes
