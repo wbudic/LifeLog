@@ -474,19 +474,18 @@ function decodeToHTMLText(txt) {
     return txt;
 }
 
-var BOLD_MATCH = /(?<o>^\<b\>)(?<title>.+)(?<c>\<\/b\>)\s+(?<text>.*)/gi;
+const REGX_BTM = /(?<o>^\<b\>)(?<title>.+)(?<c>\<\/b\>)/gi;
+const REGX_BTM_SUBST = `*$2*`;
+
 function decodeToText(txt) {
     //bug 7 fix
     txt = txt.replace(/<hr>.*RTF<\/button>/gm, "");
     txt = txt.replace(/<br\s*[\/]?>/gi, "\n");
     //If first line bolded
     
-    let res = txt.matchAll(BOLD_MATCH);
+    let res = txt.matchAll(REGX_BTM);
     if(res){
-        for(let r of res) { //WB: In a loop? JS can be weird, nested iter...
-            let {o, title, close, text} = r.groups;
-            txt = "*" + title + "*\n" + text;
-        }//
+       txt = txt.replace(REGX_BTM, REGX_BTM_SUBST);        
     }
     return txt;
 }
