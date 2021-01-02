@@ -1244,7 +1244,7 @@ my $stdout = capture_stdout {
             if(scalar(@ext)==0){
                 $insLOG->execute($br[1],$br[2],$br[3],$br[4],$br[5],$br[6],$br[7]);
                 print "Added->".$br[0]."|".$br[2]."|".$br[3]."\n"; $stats->logs_inserts_incr();
-                if($br[5]){                    
+                if($br[4]){                    
                     $pst = Settings::selectRecords($db, "SELECT max(id) FROM ".Settings->VW_LOG);
                     my @r = $pst->fetchrow_array();
                     $backupLIDS{$br[0]} = $r[0];
@@ -1255,24 +1255,20 @@ my $stdout = capture_stdout {
         print "There where -> ". $stats->logs_inserts(). " inserts.\n";
 
         print "\nMerging from backup NOTES table...\n";
-        my $insNOTES   = $db->prepare('INSERT INTO NOTES (LID, DOC) VALUES(?,?);')or die "Failed NOTES prepare.";
+        my $insNOTES   = $db->prepare('INSERT INTO NOTES (LID, DOC) VALUES(?,?);') or die "Failed NOTES prepare.";
         $b_pst = Settings::selectRecords($b_db,'SELECT LID, DOC FROM NOTES;');
         while ( @br = $b_pst->fetchrow_array() ) {
             my $in_id = $backupLIDS{$br[0]};
-            if($in_id){
-                my $pst = Settings::selectRecords($db,"SELECT LID FROM NOTES WHERE LID=".$br[0].";");
-                my @ext = $pst->fetchrow_array();                
-                if(@ext==0&&$br[1]){
-                   $insNOTES->execute($in_id, $br[1]) or die "Failed NOTES INSERT[".$br[0]."]";
-                    print "Added NOTES -> LID:".$br[0]."\n";
-                }
+            if($in_id && $br[1]){
+               $insNOTES->execute($in_id, $br[1]) or die "Failed NOTES INSERT[".$br[0]."]";
+               print "Added NOTES -> LID:$in_id\n";                
             }
         }
         print "\nFinished with merging NOTES table.\n";
         print "Note that the merge didn't recover documents for any existing log entries.\n";
         print "To do this, delete those log entries, then run restore again.\n";
-        `rm -rf $dbck/`;
-        print "Done!";
+        #`rm -rf $dbck/`;
+        print "Done!\n";
         print "Restore ended: ".Settings::today(), "\n";
 };      print $stdout;
 
