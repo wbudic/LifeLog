@@ -297,7 +297,7 @@ try{
     if($hasLogTbl && !Settings::isProgressDB()){ 
         $pst = Settings::selectRecords($db, "SELECT * from pragma_table_info('LOG') where name like 'ID_RTF';");
         my @row = $pst = $pst->fetchrow_array();  
-        if(scalar (@row)>0 &&$row[0]!=0){
+        if(scalar (@row)>0 &&$row[0]==1){
             $db->do("ALTER TABLE LOG RENAME COLUMN ID_RTF TO RTF;");           
         }        
     }
