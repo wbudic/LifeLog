@@ -6,7 +6,9 @@
 
 ### v.2.2 EARTH RC 1
 
-* &#10004; Bug 34 - DB fix in config, removes associated RTF documents to logs, for some reason.
+* Search keep in session should preserve and always set options as selection till it is ticked.
+  * Reset Whole View to page view, should still set the search option till it is ticked.
+  * Unticking Keep in Session should be honored on next browsing.
 * Page section plugins.
   * Configured in main.cnf.
   * Accessed via side menu to appear.
@@ -14,14 +16,12 @@
   * Plugin behavior is to be invoked in real time on demand, utilizing in most complex scenario JSON as medium.
     * i.e. News or service feed, special view, file interaction.
 * Deleting multiple items, RTF, should mark for vacuum on next logout.
-* Search keep in session should preserve and always set options as selection till it is ticked.
-  * Reset Whole View to page view, should still set the search option till it is ticked.
-  * Unticking Keep in Session should be honored on next browsing.
 * Order by Categories added to search/view.
-* &#10004; Page categories exclusion option in main.cnf. Log view server side is modified not to include excluded categories 
-older by certain amount of days, default is 0, for from today older.
 * Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
 * Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
+* &#10004; Bug 34 - DB fix in config, removes associated RTF documents to logs, for some reason.
+* &#10004; Page categories exclusion option in main.cnf. Log view server side is modified not to include excluded categories 
+older by certain amount of days, default is 0, for from today older.
 
 ### v.2.1 SUN STABLE New Features in Works
 
@@ -227,4 +227,4 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
    An open source application.
 
-<center>Life Log - Sun Stable Stage v.2.0 (2020)</center>
+<center>Life Log - Sun Stable Stage v.2.1 (2020)</center>
