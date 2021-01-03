@@ -23,10 +23,23 @@ use experimental qw( switch );
 # This is the default developer release key, replace on istallation. As it is not secure.
 use constant CIPHER_KEY             => '95d7a85ba891da';
 use constant CIPHER_PADDING         => 'fe0a2b6a83e81f13a2d76ab104763773310df6b0a01c7cf9807b4b0ce2a02';
-# Default VIEW for all pages.
+
+# Default VIEW for all pages, it lists and sorts on all logs, super fast server side.
 use constant VW_LOG                 => 'VW_LOG';
-# Optional instructional VIEW from config file replacing above default.
+
+# Optional instructional VIEW from config file replacing VW_LOG. 
+# Filtering out by category ID certain specified entries.
 use constant VW_LOG_WITH_EXCLUDES   => 'VW_LOG_WITH_EXCLUDES';
+
+# Optional instructional VIEW from config directly overriding the 
+# where clause for data being delivered for pages.
+# This view will always return all last 24 hour entered log entries.
+# This view AND's by extending on VW_LOG_WITH_EXCLUDES, if is also set, which is something to be aware.
+# Otherwise, similar just replaces the VW_LOG to deliver pages.
+#
+use constant VW_LOG_OVERRIDE_WHERE  => 'VW_LOG_OVR_WHERE';
+
+
 
 #DEFAULT SETTINGS HERE!
 our $RELEASE_VER  = '2.1';

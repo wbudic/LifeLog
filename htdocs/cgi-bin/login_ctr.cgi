@@ -397,6 +397,7 @@ try{
     if(!$curr_tables{Settings->VW_LOG}) {
         $db->do(Settings::createViewLOGStmt()) or LifeLogException -> throw("ERROR:".$@);
     }
+    # From 2.2+
     if(!$curr_tables{Settings->VW_LOG_WITH_EXCLUDES}) {
         # To cover all possible situations, this test elses too. 
         # As an older existing view might need to be recreated, to keep in synch.
@@ -525,6 +526,28 @@ sub createPageViewExcludeSQL {
     $where =~ s/\s+OR$//;
     $where =~ s/\s+AND$//;
     return Settings::createViewLOGStmt(Settings->VW_LOG_WITH_EXCLUDES,$where);
+    
+}
+
+sub createPageViewWhereOverrideSQL {
+    
+    my ($where,$days) = ("",0);
+    my $parse = $PAGE_EXCLUDES;
+    my @a = split('=',$parse);
+    if(scalar(@a)==2){
+        $days  = $a[0];
+        $parse = $a[1];
+    }
+    @a = split(',',$parse);
+    foreach (@a){
+        $where .= " ID_CAT!=$_ AND";
+    }    
+    
+    if(Settings::isProgressDB()){$where = "WHERE $where AND a.date >= (timestamp 'now' - interval '24 hours')"}
+    else{$where = "WHERE $where AND a.date >= date('now', '-24 hour')"}
+    
+
+    return Settings::createViewLOGStmt(Settings->VW_LOG_OVERRIDE_WHERE,$where);
     
 }
 

@@ -46,6 +46,28 @@ America/Austin=America/Chicago
 America/Texas=America/Chicago
 >>
 
+/*
+   Global view overrides. These get generated in the db if set on logon. And used instead of the normal data view.
+   Overrides must always show todays log entries, regardless of criteria.
+   Overrides don't affect category and keywords desired searches and views. They are mainly useful to filter out 
+   the not required to see on the main pages.
+   NOTE - These settings AND on VW_LOG_WITH_EXCLUDES if they are set. VW_ prefix signifies, database view, 
+   meaning this will be created. Based on the settings bellow you make. An interesting concept, don't you think?
+*/
+
+#######################
+# VIEW_OVERRIDE_SYSLOGS overrides not to show system logs older than today.
+# Default for 0, disabled.
+<<VIEW_OVERRIDE_SYSLOGS<0>>>
+
+#######################
+# VIEW_OVERRIDE_WHERE overrides what to, or not to select.
+# Default is not being used. OLDER_THAN keyword translates to appropriate SQL. 
+# By either months, days, hours. From current time.
+# i.e VIEW_OVERRIDE_WHERE<ID_CAT!=6 OR OLDER_THAN=2months>, this instructs skip older then to months logs and all sys logs.
+# i.e VIEW_OVERRIDE_WHERE<ID_CAT>=6>, this instructs skip all categories bellow and including sys logs..
+<<VIEW_OVERRIDE_WHERE<"">>>
+
 
 <<CONFIG<4>
 00|$RELEASE_VER = 2.1`LifeLog Application Version.

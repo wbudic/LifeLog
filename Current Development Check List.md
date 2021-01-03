@@ -10,10 +10,11 @@
   * Reset Whole View to page view, should still set the search option till it is ticked.
   * Unticking Keep in Session should be honored on next browsing.
 * Global view overrides. These get generated in the db if set on logon. And used instead of the normal view.
+  * Overrides must always show todays log entries, regardless of criteria.
   * VIEW_OVERRIDE_SYSLOGS={0/1}, anon if set 1-true, will hide older than today system logs. Doesn't affect category and keywords searches/views.
   * VIEW_OVERRIDE_WHERE={""/{your where clause}}, allows your own WHERE override. Doesn't affect category and keywords searches/views.
    * i.e. <<VIEW_OVERRIDE_WHERE<"RTF==1 OR STICKY==1">>>, will show only these type of log entries.  
-   * i.e. <<VIEW_OVERRIDE_WHERE<"DATE<TODAY+30days">>>, will show only logs less then 30 days old.
+   * i.e. <<VIEW_OVERRIDE_WHERE<"DATE > DATE('now','start of month', '-2 month')">>>, will show only logs from current last two months.
    * i.e. <<VIEW_OVERRIDE_WHERE<"ID_CAT!==(select id from cat where name like 'system log')>>>, same as setting <<VIEW_OVERRIDE_SYSLOGS<<1>>>.
 * Page section plugins.
   * Configured in main.cnf.
