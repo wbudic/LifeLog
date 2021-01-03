@@ -4,11 +4,17 @@
 
 ## Life Log Application Development
 
-### v.2.2 EARTH RC 1
+### v.2.2 SUN STABLE
 
 * Search keep in session should preserve and always set options as selection till it is ticked.
   * Reset Whole View to page view, should still set the search option till it is ticked.
   * Unticking Keep in Session should be honored on next browsing.
+* Global view overrides. These get generated in the db if set on logon. And used instead of the normal view.
+  * VIEW_OVERRIDE_SYSLOGS={0/1}, anon if set 1-true, will hide older than today system logs. Doesn't affect category and keywords searches/views.
+  * VIEW_OVERRIDE_WHERE={""/{your where clause}}, allows your own WHERE override. Doesn't affect category and keywords searches/views.
+   * i.e. <<VIEW_OVERRIDE_WHERE<"RTF==1 OR STICKY==1">>>, will show only these type of log entries.  
+   * i.e. <<VIEW_OVERRIDE_WHERE<"DATE<TODAY+30days">>>, will show only logs less then 30 days old.
+   * i.e. <<VIEW_OVERRIDE_WHERE<"ID_CAT!==(select id from cat where name like 'system log')>>>, same as setting <<VIEW_OVERRIDE_SYSLOGS<<1>>>.
 * Page section plugins.
   * Configured in main.cnf.
   * Accessed via side menu to appear.
@@ -23,7 +29,7 @@
 * &#10004; Page categories exclusion option in main.cnf. Log view server side is modified not to include excluded categories 
 older by certain amount of days, default is 0, for from today older.
 
-### v.2.1 SUN STABLE New Features in Works
+### v.2.1 RC1
 
 *It has been 2 years, 4 months, 8 hours, 56 minutes, and 55 seconds
 between 2018-08-22 04:13:55 **Moon Stable** production release and this
