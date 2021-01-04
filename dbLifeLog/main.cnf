@@ -28,12 +28,6 @@ and override any previously set from now on, top to end of file approach.
 # Timezoning, if set to 1, country locale setting for timezone in config page is ignored.
 <<AUTO_SET_TIMEZONE<0>
 
-# Setting to modify the page view to exclude older log entries by a list of categories from today minus days back.
-# This is to avoid and page only list relevant logs on logon. Searching by category will list them and still make visible.
-# value: {days=}{category id},.. days default to zero, if you don't want from yesterday to the past category entries listed.
-<<!PAGE_VIEW_EXCLUDES<0=88,6,69> <- (Diary,System Log,Poetry) category id's only, does set in the config page also work.
-
-
 # Public, enabled list of categories. Remove -> '!' prefix before tag name, to enable. Be careful what category you add/enable here.
 # Public records view feature only, it doesn't allow new log entries to be added and have pin point searching of all existing.
 <<!PUBLIC_CATS<03,06,09>#File,System log and Event.
@@ -45,6 +39,12 @@ Australia/Bondi=Australia/Sydney
 America/Austin=America/Chicago
 America/Texas=America/Chicago
 >>
+
+
+# Setting to modify the page view to exclude older log entries by a list of categories from today minus days back.
+# This is to avoid and page only list relevant logs on logon. Searching by category will list them and still make visible.
+# value: {days=}{category id},.. days default to zero, if you don't want from yesterday to the past category entries listed.
+<<!PAGE_VIEW_EXCLUDES<0=88,6,69> <- (Diary,System Log,Poetry) category id's only, does set in the config page also work.
 
 /*
    Global view overrides. These get generated in the db if set on logon. And used instead of the normal data view.

@@ -14,23 +14,36 @@ require Settings;
 use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
 require CNFParser;
 
+ my $t = '<<VIEW_OVERRIDE_WHERE<"1">>>';
 
-my @set = ('0' ..'9', 'A' .. 'F');
-#@my $str = join '' => map $set[rand @set], 1 .. 56;
-#print join '' => map $set[rand @set], 1 .. 56, "\n\n";
+ my $r = qr/(^<<)(.+?<)(.+)(>{3,})/mp;
+
+ if($t =~ /$r/g){
+        my ($tag,$val) = ($2,$3);
+        $tag =~ s/<$//g; 
+        $val =~ s/""$//g; #empty is like not set
+        $val =~ s/^"|"$//g; 
+        if($tag&&$val){
+            print "$tag=$val\n";
+        }   
+ }
+
+# my @set = ('0' ..'9', 'A' .. 'F');
+# #@my $str = join '' => map $set[rand @set], 1 .. 56;
+# #print join '' => map $set[rand @set], 1 .. 56, "\n\n";
 
 
-print cryptKey('admin','admin'), "\n";
+# print cryptKey('admin','admin'), "\n";
 
 
-#B6B829430583F8C03EBEFB1677232194EEC8D211609226EC516F7BB4B
-sub cryptKey {
-    my $admin = shift;
-    my $passw = shift;
-    $passw    = $admin.$passw.Settings->CIPHER_KEY;
-    $passw    =~ s/(.)/sprintf '%04x', ord $1/seg;        
-   return  substr $passw.Settings->CIPHER_PADDING, 0, 58;
-}
+# #B6B829430583F8C03EBEFB1677232194EEC8D211609226EC516F7BB4B
+# sub cryptKey {
+#     my $admin = shift;
+#     my $passw = shift;
+#     $passw    = $admin.$passw.Settings->CIPHER_KEY;
+#     $passw    =~ s/(.)/sprintf '%04x', ord $1/seg;        
+#    return  substr $passw.Settings->CIPHER_PADDING, 0, 58;
+# }
 
 
 # my $TIME_ZONE_MAP ="";

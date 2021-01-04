@@ -10,12 +10,11 @@ use Syntax::Keyword::Try;
 use CGI;
 use CGI::Session '-ip_match';
 use DBI;
-
 use lib "system/modules";
 require Settings;
 
 my $cgi = CGI->new();
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>Settings::logPath()});
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
    $session->expire(Settings::sessionExprs());
 my $sssCreatedDB = $session->param("cdb");
 my $sid=$session->id();
@@ -33,6 +32,8 @@ my $BACKUP_ENABLED = 0;
 my $AUTO_SET_TIMEZONE = 0;
 my $TIME_ZONE_MAP = 0;
 my ($DB_NAME,$PAGE_EXCLUDES);
+my $VW_OVR_SYSLOGS=0;
+my $VW_OVR_WHERE="";
 
 try{
     checkAutologinSet();
@@ -157,9 +158,13 @@ sub checkAutologinSet {
                 $TIME_ZONE_MAP .= $line . "\n";
             }
             next;
-        }
+        }        
         $v = Settings::parseAutonom('PAGE_VIEW_EXCLUDES',$line);
         if($v){$PAGE_EXCLUDES=$v;next}
+        $v = Settings::parseAutonom('VIEW_OVERRIDE_SYSLOGS',$line);
+        if($v){$VW_OVR_SYSLOGS=$v;next}
+        $v = Settings::parseAutonom('VIEW_OVERRIDE_WHERE',$line);
+        if($v){$VW_OVR_WHERE=$v;next}
         last if Settings::parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
@@ -230,14 +235,15 @@ sub checkPreparePGDB {
 }
 
 sub checkCreateTables {
-
+my ($pst, $sql,$rv, $changed) = 0;
 try{    
-    my ($pst, $sql,$rv, $changed) = 0;
+    
     
     # We live check database for available tables now only once.
     # If brand new database, this sill returns fine an empty array.
     my %curr_tables = ();
-    #my %curr_colums = (); # %("table", @{...columns...})
+    my %curr_config = ();
+
 
     if(Settings::isProgressDB()){        
         $changed = checkPreparePGDB();
@@ -258,19 +264,26 @@ try{
     if($curr_tables{'CONFIG'}) {
         #Set changed if has configuration data been wiped out.
         $changed = 1 if Settings::countRecordsIn($db, 'CONFIG') == 0;
+        $pst = Settings::selectRecords($db,"SELECT NAME, VALUE FROM CONFIG;");
+        while(my @r = $pst->fetchrow_array()){
+              $curr_config{$r[0]} = $r[1];
+        }
     }
     else{
         #v.1.3 -> v.1.4
         #has alter table CONFIG add DESCRIPTION VCHAR(128);
         $rv = $db->do(Settings::createCONFIGStmt());
         $changed = 1;
-    }
+    }     
     # Now we got a db with CONFIG, lets get settings from there.
     # Default version is the scripted current one, which could have been updated.
     # We need to maybe update further, if these versions differ.
     # Source default and the one from the CONFIG table in the (present) database.    
     Settings::getConfiguration($db,{
-         backup_enabled=>$BACKUP_ENABLED,auto_set_timezone=>$AUTO_SET_TIMEZONE,TIME_ZONE_MAP=>$TIME_ZONE_MAP, db_log_var_limit=>Settings::dbVLSZ()
+                backup_enabled=>$BACKUP_ENABLED,
+                auto_set_timezone=>$AUTO_SET_TIMEZONE,
+                TIME_ZONE_MAP=>$TIME_ZONE_MAP, 
+                db_log_var_limit=>Settings::dbVLSZ()
          });    
     my $DB_VERSION  = Settings::release();
     my $hasLogTbl   = $curr_tables{'LOG'};
@@ -398,32 +411,44 @@ try{
         $db->do(Settings::createViewLOGStmt()) or LifeLogException -> throw("ERROR:".$@);
     }
     # From 2.2+
+    #Do we need to create, view overrides?  
+    if($VW_OVR_SYSLOGS){
+        if($PAGE_EXCLUDES && $PAGE_EXCLUDES =~ /,6,/){
+            $PAGE_EXCLUDES .= ",6";
+        }
+        else{
+            $PAGE_EXCLUDES = "6";
+        }
+    }
+    if(!$curr_tables{Settings->VW_LOG_OVERRIDE_WHERE}){
+        if($VW_OVR_WHERE){
+            $db->do($sql=createPageViewWhereOverrideSQL());
+            Settings::configProperty($db, 206,'^VW_OVR_WHERE',$VW_OVR_WHERE);
+        }
+
+    }elsif($VW_OVR_WHERE && $VW_OVR_WHERE ne $curr_config{'^VW_OVR_WHERE'}){
+           $db->do('DROP VIEW '.Settings->VW_LOG_OVERRIDE_WHERE);
+           $db->do($sql=createPageViewWhereOverrideSQL());
+           Settings::configProperty($db, 206,'^VW_OVR_WHERE',$VW_OVR_WHERE);
+    }elsif($curr_config{'^VW_OVR_WHERE'}){Settings::configProperty($db, 206,'^VW_OVR_WHERE',0);}
+
     if(!$curr_tables{Settings->VW_LOG_WITH_EXCLUDES}) {
         # To cover all possible situations, this test elses too. 
         # As an older existing view might need to be recreated, to keep in synch.
         if($PAGE_EXCLUDES){
-           $db->do(createPageViewExcludeSQL());
-           Settings::configProperty($db, 204, '^PAGE_EXCLUDES',$PAGE_EXCLUDES);          
-        }        
-    }else{ # Updating here too if excludes in config file have been removed.
-           my @ret=Settings::selectRecords($db, "SELECT value FROM CONFIG WHERE NAME='^PAGE_EXCLUDES';")->fetchrow_array();
-           if(!$ret[0] && $PAGE_EXCLUDES){
-               $db->do('DROP VIEW '.Settings->VW_LOG_WITH_EXCLUDES);
-               $db->do(createPageViewExcludeSQL());
-               Settings::configProperty($db, 204, '^PAGE_EXCLUDES',$PAGE_EXCLUDES);
-               
-           }elsif($ret[0]){
-               if($PAGE_EXCLUDES && $PAGE_EXCLUDES ne $ret[0]){
-                   $db->do('DROP VIEW '.Settings->VW_LOG_WITH_EXCLUDES);
-                   $db->do(createPageViewExcludeSQL());
-               }{
-                   $db->do("DELETE FROM CONFIG WHERE NAME='^PAGE_EXCLUDES'");
-               }
-            }
-    }
-
+           $db->do($sql=createPageViewExcludeSQL());
+           Settings::configProperty($db, 204, '^PAGE_EXCLUDES',$PAGE_EXCLUDES);
+        }
+    } # Updating here too if excludes in config file have been removed.
+    elsif($PAGE_EXCLUDES && $PAGE_EXCLUDES ne $curr_config{'^PAGE_EXCLUDES'}){
+           $db->do('DROP VIEW '.Settings->VW_LOG_WITH_EXCLUDES);
+           $db->do($sql=createPageViewExcludeSQL());
+           Settings::configProperty($db, 204, '^PAGE_EXCLUDES',$PAGE_EXCLUDES);
+            
+    }elsif($curr_config{'^PAGE_EXCLUDES'}){Settings::configProperty($db, 204, '^PAGE_EXCLUDES',0);}
+    
     if(!$curr_tables{'CAT'}) {
-        $db->do(Settings::createCATStmt());
+        $db->do($sql=Settings::createCATStmt());
         $changed = 1;
     }else{
         # If empty something happened to it. It shouldn't be EMPTY!
@@ -435,11 +460,11 @@ try{
 
     #TODO Future table for multiple cats per log if ever required.
     if(!$curr_tables{'LOGCATSREF'}) {
-        $db->do(Settings::createLOGCATSREFStmt());
+        $db->do($sql=Settings::createLOGCATSREFStmt());
     }
 
     if(!$curr_tables{'AUTH'}) {
-        $db->do(Settings::createAUTHStmt());
+        $db->do($sql=Settings::createAUTHStmt());
         my $st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?);');
            $st->execute($alias, $passw,"",0);
            $st->finish();
@@ -455,7 +480,7 @@ try{
     #
     # New Implementation as of 1.5, cross SQLite Database compatible.
     #
-    if(!$hasNotesTbl) {$db->do(Settings::createNOTEStmt())}
+    if(!$hasNotesTbl) {$db->do($sql=Settings::createNOTEStmt())}
 
     if(Settings::isProgressDB()){        
         my @tbls = $db->tables(undef, 'public');
@@ -504,7 +529,7 @@ try{
     #Bypassing auto login. So to start maybe working on another database, and a new session.
     return $cgi->param('autologoff') == 1;
 }catch{
-    LifeLogException -> throw(error=>$@,show_trace=>1);
+    LifeLogException -> throw(error=>$@."\nLAST_SQL:".$sql,show_trace=>1);
 }
 }
 
@@ -520,9 +545,7 @@ sub createPageViewExcludeSQL {
     if(Settings::isProgressDB()){$where = "WHERE a.date >= (timestamp 'now' - interval '$days days') OR"}
     else{$where = "WHERE a.date >= date('now', '-$days day') OR"}
     @a = split(',',$parse);
-    foreach (@a){
-        $where .= " ID_CAT!=$_ AND";
-    }
+    foreach (@a){      $where .= " ID_CAT!=$_ AND";   }
     $where =~ s/\s+OR$//;
     $where =~ s/\s+AND$//;
     return Settings::createViewLOGStmt(Settings->VW_LOG_WITH_EXCLUDES,$where);
@@ -539,12 +562,10 @@ sub createPageViewWhereOverrideSQL {
         $parse = $a[1];
     }
     @a = split(',',$parse);
-    foreach (@a){
-        $where .= " ID_CAT!=$_ AND";
-    }    
+    foreach (@a){ $where .= " ID_CAT!=$_ AND"; }    
     
-    if(Settings::isProgressDB()){$where = "WHERE $where AND a.date >= (timestamp 'now' - interval '24 hours')"}
-    else{$where = "WHERE $where AND a.date >= date('now', '-24 hour')"}
+    if(Settings::isProgressDB()){$where = "WHERE $where a.date >= (timestamp 'now' - interval '24 hours')"}
+    else{$where = "WHERE $where a.date >= date('now', '-24 hour')"}
     
 
     return Settings::createViewLOGStmt(Settings->VW_LOG_OVERRIDE_WHERE,$where);

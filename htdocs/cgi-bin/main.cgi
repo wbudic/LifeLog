@@ -57,7 +57,13 @@ my $rs_dat_to   = $cgi->param('v_to');
 my $rs_prev     = $cgi->param('rs_prev');
 my $rs_cur      = $cgi->param('rs_cur');
 my $rs_page     = $cgi->param('rs_page');
-if(Settings::anon('^PAGE_EXCLUDES')){
+
+if(Settings::anon('^VW_OVR_WHERE')){
+   if(!$cgi->param('srch_reset')&&!$prm_vc&&!$prm_vc_lst&&!$prm_aa&&!$prm_rtf&&!$prm_xc&&!$prm_xc_lst&&!$rs_dat_from&&!$rs_dat_to&&!$rs_keys){
+       $VW_PAGE = Settings->VW_LOG_OVERRIDE_WHERE;
+    }
+}
+elsif(Settings::anon('^PAGE_EXCLUDES')){
    if(!$cgi->param('srch_reset')&&!$prm_vc&&!$prm_vc_lst&&!$prm_aa&&!$prm_rtf&&!$prm_xc&&!$prm_xc_lst&&!$rs_dat_from&&!$rs_dat_to&&!$rs_keys){
        $VW_PAGE = Settings->VW_LOG_WITH_EXCLUDES;
     }
