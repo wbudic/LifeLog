@@ -39,8 +39,6 @@ use constant VW_LOG_WITH_EXCLUDES   => 'VW_LOG_WITH_EXCLUDES';
 #
 use constant VW_LOG_OVERRIDE_WHERE  => 'VW_LOG_OVR_WHERE';
 
-
-
 #DEFAULT SETTINGS HERE!
 our $RELEASE_VER  = '2.1';
 our $TIME_ZONE    = 'Australia/Sydney';
@@ -604,7 +602,9 @@ sub obtainProperty {
        return 0;
     }
 }
-
+# The config property can't be set to empty string "", set to 0 to disable is the mechanism.
+# So we have an shortcut when checking condition, zero is not set, false or empty. So to kick in then the app settings default.
+# Setting to zero, is similar having the property (anon) disabled in config file. Which in the db must be reflected to zero.
 sub configProperty {
     my($db, $id, $name, $value) = @_;
     $id = '0' if not $id;
@@ -666,15 +666,22 @@ sub connectDB {
        LifeLogException->throw(error=>"<p>Error->$@</p><br><p>$DSN</p>",  show_trace=>1);
     }
 }
+my $reg_autonom = qr/(^<<)(.+?<)(.+)(>{3,})/mp;
 
 sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
-    my $t = '<<'.shift.'<';
-    my $line = shift;
-    if(rindex ($line, $t, 0)==0){#@TODO change the following to regex parsing:
-        my $l = length $t;
-        my $e = index $line, ">", $l + 1;
-        return substr $line, $l, $e - $l;
+
+    my $t = shift;
+
+    if($t =~ /$reg_autonom/g){
+        my ($tag,$val) = ($2,$3);
+        $tag =~ s/<$//g; 
+        $val =~ s/""$//g; #empty is like not set
+        $val =~ s/^"|"$//g;
+        if($tag&&$val){
+            return $val;
+        }        
     }
+
     return;
 }
 
