@@ -41,36 +41,15 @@ America/Texas=America/Chicago
 >>
 
 
-# Setting to modify the page view to exclude older log entries by a list of categories from today minus days back.
-# This is to avoid and page only list relevant logs on logon. Searching by category will list them and still make visible.
-# value: {days=}{category id},.. days default to zero, if you don't want from yesterday to the past category entries listed.
+# @See help at bottom of config for all the following.
+
 <<!PAGE_VIEW_EXCLUDES<0=88,6,69> <- (Diary,System Log,Poetry) category id's only, does set in the config page also work.
-
-/*
-   Global view overrides. These get generated in the db if set on logon. And used instead of the normal data view.
-   Overrides must always show todays log entries, regardless of criteria.
-   Overrides don't affect category and keywords desired searches and views. They are mainly useful to filter out 
-   the not required to see on the main pages.
-   NOTE - These settings AND on VW_LOG_WITH_EXCLUDES if they are set. VW_ prefix signifies, database view, 
-   meaning this will be created. Based on the settings bellow you make. An interesting concept, don't you think?
-*/
-
-#######################
-# VIEW_OVERRIDE_SYSLOGS overrides not to show system logs older than today.
-# Default for 0, disabled.
 <<VIEW_OVERRIDE_SYSLOGS<0>>>
-
-#######################
-# VIEW_OVERRIDE_WHERE overrides what to, or not to select.
-# Default is not being used. OLDER_THAN keyword translates to appropriate SQL. 
-# By either months, days, hours. From current time.
-# i.e VIEW_OVERRIDE_WHERE<ID_CAT!=6 OR OLDER_THAN=2months>, this instructs skip older then to months logs and all sys logs.
-# i.e VIEW_OVERRIDE_WHERE<ID_CAT>=6>, this instructs skip all categories bellow and including sys logs..
-<<VIEW_OVERRIDE_WHERE<"">>>
+<<VIEW_OVERRIDE_WHERE<ID_CAT>=6 AND >>>
 
 
 <<CONFIG<4>
-00|$RELEASE_VER = 2.1`LifeLog Application Version.
+00|$RELEASE_VER = 2.2`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
 03|$TIME_ZONE   = Australia/Sydney`Time zone of your country and city.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.
@@ -111,51 +90,54 @@ America/Texas=America/Chicago
 NOTES|DROP TABLE NOTES;' ver. 1.5 fts4 virtual tables have been scratched as they require special SQLite compilation.
 LOG<5>|Run Query ' ver. 1.5
 
-## Following are historical migration changes.
-
-//ALTER TABLE LOG RENAME AMOUNT TO AMOUNT;
-
-CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;
-DROP TABLE LOG;
-//CREATE TABLE LOG ( ID_CAT TINY NOT NULL, DATE   DATETIME    NOT NULL, LOG    VCHAR (128) NOT NULL,  AMOUNT INTEGER,  AFLAG TINY DEFAULT 0, RTF BOOL DEFAULT 0);
-CREATE TABLE LOG (
-    ID_CAT TINY        NOT NULL,
-    DATE   DATETIME    NOT NULL,
-    LOG    VCHAR (128) NOT NULL,
-    AMOUNT INTEGER,
-    AFLAG TINY DEFAULT 0,
-    RTF BOOL DEFAULT 0
-);
-
-INSERT INTO LOG (
-                    ID_CAT,
-                    DATE,
-                    LOG,
-                    AMOUNT
-                )
-                SELECT ID_CAT,
-                       DATE,
-                       LOG,
-                       AMOUNT
-                  FROM life_log_temp_table;
-
-DROP TABLE life_log_temp_table;
-PRAGMA foreign_keys = 1;
-
-%INCOME_ID% = SELECT ID FROM CAT WHERE CAT.NAME LIKE 'Income';
-%EXPENSE_ID% = SELECT ID FROM CAT WHERE CAT.NAME LIKE 'Income';
+## HELP SECTION ON OPTIONS
 
 
+   Global view overrides. These get generated in the db if set on logon. And used instead of the normal data view.
+   Overrides must always show todays log entries, regardless of criteria.
+   Overrides don't affect category and keywords desired searches and views. They are mainly useful to filter out 
+   the not required to see on the main pages.
+   NOTE - These settings AND on VW_LOG_WITH_EXCLUDES if they are set. VW_ prefix signifies, database view, 
+   meaning this will be created. Based on the settings bellow you make. An interesting concept, don't you think?
 
-UPDATE LOG SET AFLAG=1 WHERE ID_CAT=%INCOME_ID%;
-UPDATE LOG SET AFLAG=2 WHERE ID_CAT=%EXPENSE_ID%;
+### PAGE_VIEW_EXCLUDES
 
-LOG<6>|Run Query ' ver. 1.6
-ALTER TABLE LOG ADD STICKY BOOL DEFAULT 0;
+ Setting to modify the page view to exclude older log entries by a list of categories from today minus days back.
+ This is to avoid and page only list relevant logs on logon. Searching by category will list them and still make visible.
+ value: {days=}{category id},.. days default to zero, if you don't want from yesterday to the past category entries listed.
 
-LOG<6>|Run Query ' ver. 1.8
+<<!PAGE_VIEW_EXCLUDES<0=88,6,69> <- (Diary,System Log,Poetry) category id's only, does set in the config page also work.
 
-CREATE TABLE notes_temp_table (LID INTEGER PRIMARY KEY NOT NULL, DOC TEXT);
-INSERT INTO notes_temp_table SELECT `LID`,`DOC` FROM `NOTES`;
-DROP TABLE `NOTES`;
-ALTER TABLE `notes_temp_table` RENAME TO `NOTES`;
+
+### VIEW_OVERRIDE_SYSLOGS overrides not to show system logs that are older than today. Same to CAT!=6 by default,
+# Default is 0, disabled.
+
+### VIEW_OVERRIDE_WHERE 
+
+ This option overrides what log entries to filter out from the page view, in more detail.
+ It translated via keywords to appropriate required SQL. This filter by default is
+ not active on 24 hours old entries. PAGE_VIEW_EXCLUDES option entries are included.
+
+#### CAT is the ID_CAT column, keyword.
+* i.e VIEW_OVERRIDE_WHERE<CAT >= 6>, selects all categories from and category id 6. 
+PAGE_VIEW_EXCLUDES and VIEW_OVERRIDE_SYSLOGS don't have to be set. But preside if set.
+
+#### AND/OR keyword, logically joins the instructions.
+* i.e VIEW_OVERRIDE_WHERE< CAT > 6 AND CAT != 'Personal' >, selects all categories from 
+category id 6, excluding resolved category entries.
+
+#### OLDER_THAN keyword translates to date column older than from today up to an specified date in the past.
+* This is assigned by either months, days, hours. 
+** i.e VIEW_OVERRIDE_WHERE<CAT !=6 AND OLDER_THAN=2 months>, this instructs skip older then to months logs and all sys logs.
+
+#### FROM/TO in either months, days, hours.
+* Selects only FROM or TO an specified date only log entries.
+** i.e VIEW_OVERRIDE_WHERE<FROM=12 hours AND NOT OLDER_THAN=1 year>
+
+#### NOT keyword, logically negates.
+** i.e VIEW_OVERRIDE_WHERE<RTF>, select only log entries that contain attached RTF documents, if they
+are older than 24 hours. Remember, the default filtering is on 24 hour and older log entries.
+** i.e VIEW_OVERRIDE_WHERE<NOT RTF>, don't select log entries that contain attached RTF documents.
+** i.e VIEW_OVERRIDE_WHERE<CAT NOT 'Diary' AND CAT NOT 'System Log' AND DATE FROM=24 days AND NOT OLDER_THAN=1 year>, 
+category is not (!=), resolved category id by name. And also exclude all logs older than an year. 
+All is FROM to OLDER_THAN, affected. So from today (now) to FROM 'will' be paged, visible.

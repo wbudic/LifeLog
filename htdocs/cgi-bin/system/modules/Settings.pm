@@ -1,11 +1,13 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
+#
+# Web interaction, reusable tri state of configuration concerns, set of utilities. 
 #
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 package Settings;
 
-use v5.10;
+use v5.14;
 use strict;
 use warnings;
 use Exception::Class ('SettingsException','LifeLogException','SettingsLimitSizeException');
@@ -18,7 +20,7 @@ use DateTime::Format::SQLite;
 use DateTime::Duration;
 
 use DBI;
-use experimental qw( switch );
+use experimental 'switch';
 
 # This is the default developer release key, replace on istallation. As it is not secure.
 use constant CIPHER_KEY             => '95d7a85ba891da';
@@ -40,7 +42,7 @@ use constant VW_LOG_WITH_EXCLUDES   => 'VW_LOG_WITH_EXCLUDES';
 use constant VW_LOG_OVERRIDE_WHERE  => 'VW_LOG_OVR_WHERE';
 
 #DEFAULT SETTINGS HERE!
-our $RELEASE_VER  = '2.1';
+our $RELEASE_VER  = '2.2';
 our $TIME_ZONE    = 'Australia/Sydney';
 our $LANGUAGE     = 'English';
 our $PRC_WIDTH    = '60';
@@ -666,23 +668,34 @@ sub connectDB {
        LifeLogException->throw(error=>"<p>Error->$@</p><br><p>$DSN</p>",  show_trace=>1);
     }
 }
-my $reg_autonom = qr/(^<<)(.+?<)(.+)(>{3,})/mp;
+
+my @F = ('', '""', 'false', 'off', 'no', 0);# Placed 0 last, as never will be checked for in toPropertyValue.
+my @T  = (1, 'true', 'on', 'yes');
+my $reg_autonom = qr/(<<)(.+?)(<)(\n*.+\s*)(>{3,})/mp;
 
 sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
-
-    my $t = shift;
-
-    if($t =~ /$reg_autonom/g){
-        my ($tag,$val) = ($2,$3);
-        $tag =~ s/<$//g; 
+    my $tag  = shift;
+    my $line = shift;
+    if($line =~ /$reg_autonom/g){
+        my ($t,$val) = ($2,$4);       
         $val =~ s/""$//g; #empty is like not set
         $val =~ s/^"|"$//g;
-        if($tag&&$val){
-            return $val;
+        if($t eq $tag&&$val){           
+           return toPropertyValue( $val );
         }        
     }
 
     return;
+}
+
+sub toPropertyValue {
+    my $prm = shift;
+    if($prm){
+       my $p = lc $prm; 
+       foreach(@T){return 1 if $_ eq $p;}
+       foreach(@F){return 0 if $_ eq $p;}       
+    }
+    return $prm;
 }
 
 1;
