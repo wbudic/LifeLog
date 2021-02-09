@@ -6,6 +6,9 @@
 
 ### v.2.2 SUN STABLE
 
+* Command line logging, server side. i.e. LifeLog/log.pl -database {name} {-alias} {-password:}
+ * Update CNFParser v.2.0.
+* Send to system log, password change, backup issued, main.inf page view changes.
 * Search keep in session should preserve and always set options as selection till it is ticked.
   * Reset Whole View to page view, should still set the search option till it is ticked.
   * Unticking Keep in Session should be honored on next browsing.

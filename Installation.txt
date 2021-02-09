@@ -87,6 +87,12 @@ sudo cpan IPC::Run;
 sudo cpan Syntax::Keyword::Try;
 sudo cpan Text::Markdown
 sudo cpan Crypt::Blowfish;
+sudo cpan Compress::Zlib;
+sudo cpan IO::Compress::Gzip;
+sudo cpan IO::Prompter;
+sudo cpan IO::Interactive;
+
+
 
 #Install next after installing desired ciphers, we use Blowfish only.
 sudo cpan Crypt::CBC;
