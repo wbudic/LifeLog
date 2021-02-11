@@ -165,9 +165,11 @@ sub checkAutologinSet {
         if($v){$VW_OVR_SYSLOGS=$v;next}
         $v = Settings::parseAutonom('VIEW_OVERRIDE_WHERE',$line);
         if($v){$VW_OVR_WHERE=$v;next}
-        last if Settings::parseAutonom('CONFIG',$line); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
+        last if (0 == index $line,'<<CONFIG<'); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
+    #print "[$VW_OVR_WHERE] \n";
+    #exit;
     # Autologin credential in file next.
     if(@cre &&scalar(@cre)>1){
 
@@ -529,7 +531,7 @@ try{
     #Bypassing auto login. So to start maybe working on another database, and a new session.
     return $cgi->param('autologoff') == 1;
 }catch{
-    LifeLogException -> throw(error=>$@."\nLAST_SQL:".$sql,show_trace=>1);
+    LifeLogException -> throw(error=>"DSN:".Settings::dsn()." Error:".$@."\nLAST_SQL:".$sql,show_trace=>1);
 }
 }
 
@@ -562,14 +564,133 @@ sub createPageViewWhereOverrideSQL {
         $parse = $a[1];
     }
     @a = split(',',$parse);
-    foreach (@a){ $where .= " ID_CAT!=$_ AND"; }    
+    foreach (@a){ $where .= " ID_CAT!=$_ AND"; }
+    
+    @a = toTokens($VW_OVR_WHERE);    
+    foreach (@a){$where .= $_.' '}
+        #    my @b = split('=',$_);
+        #    if($b[1]){
+        #        my $interval ="";
+        #        my $d = "a.date >= (timestamp 'now' - interval '$interval";
+        #    }else{
+        #        LifeLogException->throw(error=>"Invalid SQL assignment for:VW_OVR_WHERE=[$VW_OVR_WHERE]",show_trace=>1);
+        #    }
+
+    #OLDER_THAN=2months
+    #a.date >= date('now', '-24 hour') 
     
     if(Settings::isProgressDB()){$where = "WHERE $where a.date >= (timestamp 'now' - interval '24 hours')"}
-    else{$where = "WHERE $where a.date >= date('now', '-24 hour')"}
+    else{$where = "WHERE $where a.date >= date('now', '-24 hours')"}
     
 
     return Settings::createViewLOGStmt(Settings->VW_LOG_OVERRIDE_WHERE,$where);
     
+}
+
+my %reserved = ('AND'=>1, 'OR'=>1, 'NOT'=>1, 'DATE'=>1,'OLDER_THAN'=>1, 'FROM'=>1,'TO'=>1,'>'=>1,'<'=>1,'>='=>1,'<='=>1,'=='=>1,'!='=>1);
+my %columns  = ('CAT'=>1,'STICKY'=>1, 'RTF'=>1, 'LOG'=>1);
+sub toTokens {
+    my $base = shift;
+    my @ret = ();
+    my @splt = split(/\s+/, $base);
+    my ($prev,$prevCol,$prevNeg,$resolve, $grp) = ("");
+    foreach my $token(@splt){
+        if($token eq '=' || $token eq '=\''){
+            $grp = $prev; next;
+        }
+        elsif($token=~ /[^!=<>\n]+=$/){            
+            $grp = $token =~ s/=$//g; next;
+        }
+        elsif($grp){
+            if($reserved{$token}){
+                push @ret, $grp; $grp = "";
+            }
+            else{
+                $grp .= ' '.$token; 
+                if($token =~ m/'$/){
+                   $grp .=')';
+                   if($reserved{$prev}){push @ret, $prev}
+                   push @ret, $grp; $grp = "";
+                }
+                next;
+            }
+        }
+        elsif($reserved{$token}){
+
+            if($reserved{$prev} && $ret[-1] ne $prev){
+                push @ret, $prev;
+            }
+            if($token eq 'NOT'){
+                if (!$prevCol){
+                    $prevNeg = ' !=0 '; next;
+                }else{
+                     $token = $prevCol . ' !=0 '; push @ret,$token; $prevCol = 0; next;
+                }
+            }
+            elsif($token eq 'OLDER_THAN'){
+                $prev =  "a.DATE >= date('now',-";
+                next;
+            }
+            elsif($token eq 'FROM'){
+                $prev =  "a.DATE <= date('now',";
+                next;
+            }elsif($token eq 'TO'){
+                $prev =  "a.DATE >= '";
+                next;
+            }
+
+            if($prevCol){
+               $token = $prevCol.' '.$token; $prevCol=0;
+               push @ret,$token;
+            }elsif($prev eq $token){
+               push @ret,$token;
+            }
+            else{
+                $prev =$token;
+            }
+        }
+        elsif($columns{$token}){
+            if($reserved{$prev}&& $ret[-1] ne $prev){
+                push @ret, $prev;
+            }
+            if($token eq 'CAT'){
+               $prevCol = 'ID_CAT'; next;
+            }
+            elsif($prevNeg){
+                $token .= ' != 0'; push @ret,$token; $prevNeg = 0; next;
+            }
+            elsif($reserved{$prev}){
+                $token .= ' == 1';
+            }
+            else{
+                $prevCol=$token;
+            }
+             push @ret, $token;
+
+        }
+        else{ #value
+            if($token =~ m/^'/){
+               $resolve = $token =~ s/^'//g;
+               if($resolve =~ m/'$/){
+                   $token = $resolve =~  s/'$//g; $resolve ="";
+               }else{next}               
+            }
+            elsif($token =~ m/'$/ and $resolve){
+                $token =~ s/^$//g;
+                $token = $resolve.' '.$token; $resolve ="";
+            }
+            elsif($resolve){
+                $resolve .= ' '. $token; next;
+            }
+            if($prevCol){
+                $token = $prev.' '.$token;
+            }
+            $prevCol = 0;
+            push @ret,$token;
+        }
+     $prev = $token;
+    }
+return @ret;
 }
 
 
@@ -594,13 +715,14 @@ sub populate {
     my $insCat = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
                  $db->begin_work();
     foreach my $line (@lines) {
-
+    
                     last if ($line =~ /<MIG<>/);#Not doing it with CNF1.0
 
                        if( index( $line, '<<CONFIG<' ) == 0 )  {$tt = 0; $inData = 0;}
                     elsif( index( $line, '<<CAT<'    ) == 0 )  {$tt = 1; $inData = 0;}
                     elsif( index( $line, '<<LOG<'    ) == 0 )  {$tt = 2; $inData = 0;}
-
+                    next if($line=~m/^>>/);
+                    
                     my @tick = split("`",$line);
                     if( scalar @tick  == 2 ) {
 
@@ -665,7 +787,8 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
 
                     }
         }
-    LifeLogException->throw(error=>"Configuration script ".&Settings::logPath."/main.cnf [$fh] contains errors. Err:$err", show_trace=>1) if $err;
+    LifeLogException->throw(error=>"Configuration script ".&Settings::logPath."/main.cnf [$fh] contains errors. DSN:".
+                                Settings::dsn()." Err:$err", show_trace=>1) if $err;
     $db->commit();
 }
 
