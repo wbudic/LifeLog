@@ -33,6 +33,7 @@ sudo apt upgrade -y
 
 ## Install the latest version of PostgreSQL.
 ## If you want a specific version, use 'postgresql-12' or similar instead of 'postgresql':
+sudo apt-get -y install libpq-dev
 sudo apt-get -y install postgresql-12
 
 ## Optional -> Enable port 5432 for PG server for local network on server.
@@ -51,18 +52,23 @@ sudo cpan DBD::Pg;
 
 
 # To assign default Postgres SQL user roles.
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+sudo -u postgres psql -c "ALTER USER  postgres PASSWORD 'postgres';"
 sudo -u postgres psql -c "CREATE ROLE lifelog WITH LOGIN SUPERUSER CREATEDB CREATEROLE INHERIT NOREPLICATION CONNECTION LIMIT -1 PASSWORD 'xxxxxxx'";
 sudo -u postgres psql -c "CREATE DATABASE lifelog;"
+sudo -u postgres psql -c "grant all privileges on database lifelog to lifelog;"
 
 ## Start stop Postgres SQL
 sudo service postgresql start
 
-###manually Obtain dep. if encountering lib problems. with i.e.:
+## Manually Obtain dep. if encountering lib problems. with i.e.:
 wget https://apt.postgresql.org/pub/repos/apt/pool/main/p/postgresql-12/libpq-dev_12.4-1.pgdg20.04+1_amd64.deb
 dpkg -i libpq-dev_12.4-1.pgdg20.04+1_amd64.deb
 ###Than run again driver install
 sudo cpan DBD::Pg;
+
+# Installing pgAdmin4
+sudo apt install python3-pip
+sudo python3 -m pip install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.30/pip/pgadmin4-4.30-py3-none-any.whl
 
 
 
