@@ -1285,7 +1285,7 @@ sub authenticate {
             return;
         }
 
-        #We log failed possible intruder access access
+        #We log failed possible intruder access.
         Settings::toLog($db,"User $alias, failed to authenticate!");
 
         print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
