@@ -4,10 +4,16 @@
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 package CNFParser;
+
 use strict;
 use warnings;
 use Exception::Class ('CNFParserException');
 use Try::Tiny;
+use Switch;
+
+our $VERSION = '2.0';
+
+
 
 our %anons  = ();
 our %consts = ();
@@ -43,7 +49,7 @@ sub anons {
         }
         return $ret;
     }
-    return \%anons;
+    return %anons;
 }
 sub constant {my $s=shift;if(@_ > 0){$s=shift;} return $consts{$s}}
 sub constants {my @ret = sort keys %consts; return @ret}
@@ -176,33 +182,43 @@ try{
             my $i = index $t, "\n";
             #trim accidental spacing in property value or instruction tag
             $t =~ s/^\s+//g;
+            if((@kv)==2 && $t =~ m/\w>$/){ # arbitary instructed and values
+                $i = index $content, $tag;
+                $i = $i + length($tag);
+                $st = index $content, ">>", $i;
+                if($st==-1){$st = index $content, "<<", $i}#Maybe still in old format CNF1.0
+                if(substr($content, $i,1)eq'\n'){$i++}#value might be new line steped?
+                $v = substr $content, $i, $st - $i ;
 
-            if($i==-1){
+                $anons{$e} = "<$t"."\n".$v;
+                next;
+            }
+            #TODO This section is problematic, a instruction is not the value of the property. Space is after the instruction on single line.
+            if($i==-1){#It is single line
                 my $te = index $t, " ";
                 if($te>0){
                     $v = substr($t, $te+1, (rindex $t, ">>")-($te+1));
                     if(isReservedWord($v)){
-                        $t = substr($t, 0, $te);
-                       # print "[FAIL[[[$t]]]]]]\n";
+                        $t = substr($t, 0, $te);                       
                     }
                     else{
-                        $v = $t =substr $t, 0, (rindex $t, ">>");#single line declared anon most likely.
-                        #print "[[<<[$t]>>]]\n";
-                    }
-                    #print "Ins($i): with $e val-> $v|\n";
+                        $v = $t =substr $t, 0, (rindex $t, ">>");#single line declared anon most likely.                     
+                    }                    
                 }
                 else{
-                   $t = $v = substr $t, 0, (rindex $t, ">>");
-                   # print "[FAIL2[[[$t]]]]]]\n";
+                     my $ri = (rindex $t, ">>>");
+                        $ri = (rindex $t, ">>") if($ri==-1);
+                        $t = $v = substr $t, 0, $ri;                   
                 }
             }
             else{
-               my $ri = (rindex $t, ">>");
+               my $ri = (rindex $t, ">>>");
+               $ri = (rindex $t, ">>") if($ri==-1);
                #print "[[1[$t]]]\n";
                if($ri>$i){
                     $v = substr $t, $i;
                     #opting to trim on multilines, just in case number of ending "<<" count is scripted in a mismatch!
-                    $v =~ s/\s>+$//g;
+                    $v =~ s/\s*>+$//g; 
                    # print "[[2[$e->$v]]\n";
                }
                else{
@@ -377,11 +393,12 @@ try{
 };
 }
 
-my @resw =("DATA", "FILE", "TABLE", "INDEX", "VIEW", "SQL", "MIGRATE");
-
 sub isReservedWord {
     my $word = shift;
-    foreach(@resw){if($word eq $_){return 1}}
+    switch($word){
+        case "DATA" { return 1; } case "FILE"  { return 1; } case "TABLE" { return 1; } case "INDEX"  { return 1; }
+        case "VIEW" { return 1; } case "SQL" { return 1; } case "MIGRATE" { return 1; }
+    }
     return 0;
 }
 
@@ -389,7 +406,7 @@ sub isReservedWord {
 # Required to be called when using CNF with an database based storage.
 #
 sub initiDatabase {
-    my ($self,$db,$st,$dbver) = @_;
+    my($self,$db,$st,$dbver)=@_;
 #Check and set SYS_CNF_CONFIG
 try{
     $st=$db->do("select count(*) from SYS_CNF_CONFIG;");
