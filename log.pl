@@ -54,28 +54,23 @@ Options:
 	    There is a limit of data presented and dumped to a \$LIMIT=$LIMIT of entries (modify in $0 to \$LIMIT=\"\"; if you want unlimited).
 	    Data dumps are only by category from the latest entry as returned by the view of VW_LOG.
     Examples:
-    ./log.pl -db_src "DBI:Pg:host=localhost;" -database lifelog -sys_table=BITCOIN:VALUE:INTEGER
+    $0 -db_src "DBI:Pg:host=localhost;" -database lifelog -sys_table=BITCOIN:VALUE:INTEGER
 
     echo 789 | ./log.pl -inbuilt
 
     uvar -r LAST_MONITOR_READING | ./log.pl -system -sys_table REMOTE_MONITOR:LOG:VARCHAR(1024)
 
-    ./log.pl -database lifelog -list 01:2:3
+    The following selects an externaly created view AVG_BITCOIN and greps the data as output only:
+    $0 -database lifelog -list 01:2:3
+    -db_src "DBI:Pg:host=localhost;" -database lifelog -sys_table=AVG_BITCOIN -list -system | grep "|"
+    Result:
+    46804.49|Avg: 46804.49|Min: 44321|Max: 48043|
 
 );
 
 	my ($database, $alias, $passw, $db_source, $set, $table, $cat_id,$list,$log, $dump, $out) = 0;
 	my ($IS_PG_DB, $DSN, $DBFILE);
 	my $LOG_PATH = "dbLifeLog/";
-
-	my $io;
-	if (!is_interactive) { 
-	   #die "Input from terminal (pipe) not allowed!\n" 
-	   busy {
-	       $log = readline STDIN;	       
-	       open STDIN, "<", "/dev/tty" or die "IO Error @_";
-	   } 
-	}
 
 	foreach my $arg(@ARGV){
 	    #print "{{{$arg}}}"; 
@@ -102,7 +97,7 @@ Options:
                 }
                 elsif($arg=~/(^\-*inbuilt)/){
                     # Use Inbuild here and configurate here in perl script. Why not?
-                    # Tip - Setup main.inf and login with bellow creadentials, to create lifelog database.
+                    # Tip - Setup main.inf and login with bellow creadentials, to create the lifelog database.
                     $db_source = "DBI:Pg:host=localhost;";
                     $database  = "lifelog";
                     $alias     = "lifelog";
@@ -132,6 +127,14 @@ Options:
         }
 	}#rof
 
+	if (!$log && !is_interactive) { 
+	   #die "Input from terminal (pipe) not allowed!\n" 
+	   busy {
+	       $log = readline STDIN;	       
+	       open STDIN, "<", "/dev/tty" or die "IO Error @_";       
+	   } 
+	}
+
 if($set && $set > 7 && !$db_source){
     my $prp = $cnf->anons('AUTO_LOGIN', undef);
     my @a = split('/', $prp);
@@ -151,7 +154,7 @@ if($list){
 }
 
 if(!$database && !$alias){
-    say "Error: Database -database or -alias option not set!";  exit 0;
+    say "Error: Database -database or -alias option not set! See help with: $0 -?";  exit 0;
 }
 if(!$alias){$alias=$database}
 if(!$db_source){
@@ -186,7 +189,7 @@ if (@c && $c[0] eq $alias) {
         $log = $t;
         while($t ne ""){
             $t=prompt ":";
-            $log .= "\n".$t;
+            $log .= "\n".$t if $t;
         }
 
         say "\nLog:$log";
@@ -199,7 +202,15 @@ if (@c && $c[0] eq $alias) {
         $log =~ s/'/''/g if $log;
     }
     if($list){
-        my $fh; my $cnt = 0;        
+        my ($fh, $is_view, $cnt) = (undef,0,0);
+        if($table) {
+            if($IS_PG_DB){
+             $SELECT = "SELECT * FROM public.\"$table\";"; 
+            }else{
+             $SELECT = "SELECT * FROM '$table';"; 
+            }
+            $is_view = 1;
+        }
         if (!$SELECT){
              $SELECT = "SELECT DATE, LOG FROM VW_LOG WHERE $list LIMIT $LIMIT_REC"; 
         }
@@ -211,7 +222,13 @@ if (@c && $c[0] eq $alias) {
         print $fh $dot."\n";
         while(@c=$st->fetchrow_array()){
             if($LIMIT && $cnt>$LIMIT){last}
-            print $fh "".$c[0]."|".$c[1]."\n"; $cnt++;
+            if($is_view){
+                foreach(@c){print $fh $_."|";}
+                print "\n";
+            }else{
+                print $fh "".$c[0]."|".$c[1]."\n"; 
+            }
+            $cnt++;
         }
         print $fh $dot."\n";
         close $fh if $dump;
