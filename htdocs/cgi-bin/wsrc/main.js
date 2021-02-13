@@ -945,9 +945,8 @@ function viewByDate(btn) {
 
 function submitNewCategory() {
 
-    var frm = $("#frm_config");
-    var cid = frm.caid;
-    frm.cchg.value = cid.value;
+    var frm = $("#frm_config");    
+    $("#frm_config [name='cchg']").val(2);
     return true;
 }
 
