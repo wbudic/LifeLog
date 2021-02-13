@@ -686,12 +686,17 @@ sub buildLog {
              $log_output .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
                          <td colspan="6">
                           <div id="q-scroll$id" 
-    style="height:auto; max-height:480px; padding: 10px; background:#fffafa; overflow-x:auto; overflow-y:auto;">
-    <div class="log" style="overflow-x:scroll; max-width:100%">
-                            <div id="q-container$id"></div></div>
+                                style="max-height:480px; max-width:1000px; padding: 5px; background:#fffafa; overflow-x:scroll;scrollbar-width:none;">                            
+                            <div id="q-container$id"></div>
                           </div>
                         </td></tr>);
         }
+
+                        #      <span id="q-scroll$id" 
+                        #         style="height:auto;  max-width:100%; max-height:480px; padding: 10px; background:#fffafa; overflow-x:scroll; overflow-y:auto;">
+                        #     <div class="log" style="overflow-x:scroll; max-width:100%; scrollbar-width:none;">
+                        #     <div id="q-container$id"></div></div>
+                        #   </span>
 
         $log_rc += 1;
 

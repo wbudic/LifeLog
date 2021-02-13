@@ -1122,7 +1122,7 @@ function loadRTFResult(content, result, prms, quill) {
     else{
         var id = json.content.lid;
         var css = $("#q-scroll"+id).prop('style');
-        if(css){css.backgroundColor = json.content.bg}
+        if(css){css.backgroundColor = json.content.bg;}
     }
     display(json.response, 5);
     //alert(obj.response);
