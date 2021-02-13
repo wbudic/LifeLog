@@ -392,7 +392,7 @@ try{
     }
     elsif($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 2.2){
         my $t ="BYTE"; $t = "SMALLINT" if Settings::isProgressDB();
-        $db->do('ALTER TABLE LOG ADD COLUMN "RTF" BYTE default 0');$changed = 1;
+        $db->do("ALTER TABLE LOG ADD COLUMN \"RTF\" $t default 0");$changed = 1;
     }    
     elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}
 
