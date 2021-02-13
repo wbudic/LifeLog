@@ -22,6 +22,16 @@ use DateTime::Duration;
 use DBI;
 use experimental 'switch';
 
+use CGI::Carp qw(fatalsToBrowser set_message);
+BEGIN {
+   sub handle_errors {
+      my $msg = shift;
+      print "<h1>LifeLog Server Error</h1>";
+      print "<pre>@[$ENV{PWD}].Error: $msg</pre>";
+  }
+  set_message(\&handle_errors);
+}
+
 # This is the default developer release key, replace on istallation. As it is not secure.
 use constant CIPHER_KEY             => '95d7a85ba891da';
 use constant CIPHER_PADDING         => 'fe0a2b6a83e81f13a2d76ab104763773310df6b0a01c7cf9807b4b0ce2a02';
@@ -272,8 +282,8 @@ if($IS_PG_DB){
             ID_CAT INT        NOT NULL,            
             DATE TIMESTAMP    NOT NULL,
             LOG VARCHAR ($DBI_LVAR_SZ) NOT NULL,
-            RTF    BOOL       DEFAULT 0,
-            AMOUNT money,
+            RTF    SMALLINT   DEFAULT 0,
+            AMOUNT MONEY,
             AFLAG  INT        DEFAULT 0,
             STICKY BOOL       DEFAULT FALSE,
             PRIMARY KEY(ID)
@@ -553,7 +563,7 @@ sub toLog {
         }
        $log =~ s/'/''/g;
        if(length($log)>$DBI_LVAR_SZ){SettingsLimitSizeException->throw("Log size limit ($DBI_LVAR_SZ) exceeded, log length is:".length($log))}
-       $db->do("INSERT INTO LOG (ID_CAT, DATE, LOG) VALUES($cat,'$stamp', '$log');");
+       $db->do("INSERT INTO LOG (ID_CAT, DATE, LOG) VALUES($cat, '$stamp', '$log');");
 }
 
 sub countRecordsIn {
@@ -665,7 +675,7 @@ sub connectDB {
     try{
         return DBI->connect($DSN, $u, $p, {AutoCommit => 1, RaiseError => 1, PrintError => 0, show_trace=>1});
     }catch{           
-       LifeLogException->throw(error=>"<p>Error->$@</p><br><p>$DSN</p>",  show_trace=>1);
+       LifeLogException->throw(error=>"<p>Error->$@</p><br><pre>DSN: $DSN</pre>",  show_trace=>1);
     }
 }
 
