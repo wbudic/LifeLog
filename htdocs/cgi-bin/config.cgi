@@ -25,7 +25,7 @@ require Settings;
 
 #15mg data post limit
 $CGI::POST_MAX = 1024 * 15000;
-my ($LOGOUT,$ERROR) = (0,"");
+my ($TR_STATUS,$LOGOUT,$ERROR) = ("",0,"");
 my $sys     = `uname -n`;
 my $db      = Settings::fetchDBSettings();
 my $cgi     = Settings->cgi();
@@ -52,7 +52,7 @@ elsif($cgi->param('data_log')){&importLogCSV}
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 my $status = "Ready for change!";
-my $cats;
+my $cats; 
 my %hshCats = {};
 cats();
 ###############
@@ -88,8 +88,7 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 
 my $tbl = '<table id="cnf_cats" class="tbl" border="1" width="'.&Settings::pagePrcWidth.'%">
               <tr class="r0"><td colspan="4"><b>* CATEGORIES CONFIGURATION *</b></td></tr>
-            <tr class="r1"><th>ID</th><th>Category</th><th  align="left">Description</th></tr>
-          ';
+            <tr class="r1"><th>ID</th><th>Category</th><th  align="left">Description</th></tr>';
 my $foot = "";
 $dbs = Settings::selectRecords($db, $stmtCat);
 while(my @row = $dbs->fetchrow_array()) {
@@ -124,7 +123,7 @@ my $frmCats = qq(
         </tr>
         </table><input type="hidden" name="cchg" value="1"/></form><br>);
 
-$tbl = qq(<table id="cnf_sys" class="tbl" border="1" width=").&Settings::pagePrcWidth.qq(%">
+$tbl = qq(<table id="cnf_sys" class="tbl" border="1" width=").&Settings::pagePrcWidth.qq(%">$TR_STATUS
               <tr class="r0"><td colspan="3"><b>* SYSTEM CONFIGURATION *</b></td></tr>
             <tr class="r1" align="left">
                             <th width="20%">Variable</th>
@@ -338,15 +337,15 @@ $tbl = qq(<table id="cnf_fix" class="tbl" border="1" width=").&Settings::pagePrc
              );
 my  $frmPASS = qq(
      <form id="frm_PASS" action="config.cgi">$tbl
-        <tr class="r1" align="left"><td style="width:100px">Existing:</td><td><input type="pass" name="existing" value="" size="12"/></td></tr>
-        <tr class="r1" align="left"><td>New:</td><td><input type="pass" name="new" value="" size="12"/></td></tr>
-        <tr class="r1" align="left"><td>Confirmation:</td><td><input type="pass" name="confirm" value="" size="12"/></td></tr>
+        <tr class="r1" align="left"><td style="width:100px">Existing:</td><td><input type="password" name="existing" value="" size="12"/></td></tr>
+        <tr class="r1" align="left"><td>New:</td><td><input type="password" name="new" value="" size="12"/></td></tr>
+        <tr class="r1" align="left"><td>Confirmation:</td><td><input type="password" name="confirm" value="" size="12"/></td></tr>
         <tr class="r1">
          <td colspan="2" align="right"><b>Pass change for -> $alias</b>&nbsp;<input type="submit" value="Change"/></td>
         </tr>
         </table><input type="hidden" name="pass_change" value="1"/></form><br>
         );
-
+$frmPASS = qq(<tr><td>Password changing has been dissabled!</td></tr>) if Settings::isProgressDB(); 
 
 my @backups = ();
 my ($file, $bck_list) ="";
@@ -588,10 +587,10 @@ if($passch){
     my ($ex,$ne,$cf) = ($cgi->param("existing"),$cgi->param("new"),$cgi->param("confirm"));
     if($ne ne $cf){
          $status = "New pass must match confirmation!";
-         print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
+         print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";         
     }
     else{
-        if(&confirmExistingPass($ex)){
+        if(confirmExistingPass($ex)){
              &changePass($ne);
              $status = "Pass Has Been Changed";
         }
@@ -600,12 +599,12 @@ if($passch){
             print "<center><div><p><font color=red>Client Error</font>: $status</p></div></center>";
         }
     }
-
+    Settings::toLog($db,$status);
     openlog(Settings::dsn(), 'cons,pid', "user");
         syslog('info', 'Status:%s', $status);
         syslog('info', 'Password change request for %s', $alias);
     closelog();
-
+    $TR_STATUS = qq(<tr><td colspan="3"><b><font color=red>$status</font></b></td></tr>);
 
 }
 elsif ($change == 1){
@@ -785,13 +784,12 @@ catch{
     closelog();
 }
 
-sub confirmExistingPass {
-        my $pass = $_[0];
-        my $crypt = encryptPassw($pass);
-        my $sql = "SELECT ALIAS, PASSW from AUTH WHERE ALIAS='$alias' AND PASSW='$crypt';";
-    #		print "<center><div><p><font color=red><b>DEBUG</b></font>:[$pass]<br>$sql</p></div></center>";
-        $dbs = Settings::selectRecords($db, $stmtCat );
-        if($dbs->fetchrow_array()){
+sub confirmExistingPass {        
+        my $crypt = encryptPassw($_[0]);
+        my $sql = "SELECT ALIAS from AUTH WHERE ALIAS='$alias' AND PASSW='$crypt';";
+    
+        $dbs = Settings::selectRecords($db, $sql ); my @a = $dbs->fetchrow_array();
+        if(@a==1 && $a[0] eq $alias){
             return 1;
         }
         return 0;
@@ -799,7 +797,8 @@ sub confirmExistingPass {
 sub changePass {
       my $pass = encryptPassw($_[0]);
         $dbs = Settings::selectRecords($db, "UPDATE AUTH SET PASSW='$pass' WHERE ALIAS='$alias';");
-        if($dbs->fetchrow_array()){
+        my @a = $dbs->fetchrow_array();
+        if(@a==1 && $a[0] eq $alias){
             return 1;
         }
         return 0;
