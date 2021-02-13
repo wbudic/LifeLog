@@ -287,7 +287,7 @@ try{
                 TIME_ZONE_MAP=>$TIME_ZONE_MAP, 
                 db_log_var_limit=>Settings::dbVLSZ()
          });    
-    my $DB_VERSION  = Settings::release();
+    my $DB_VERSION  = Settings::release(); #$After loading of config this has now been changed to the current database one.
     my $hasLogTbl   = $curr_tables{'LOG'};
     my $hasNotesTbl = $curr_tables{'NOTES'};
     my @annons = Settings::anons();
@@ -330,7 +330,7 @@ try{
             $db->do('CREATE TABLE life_log_login_ctr_temp_table AS SELECT * FROM LOG;');
             my %notes_ids = ();
             if($hasNotesTbl){
-                $pst =  Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE RTF > 0 ORDER BY DATE;');
+                $pst =  Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;');
                 while(my @row = $pst->fetchrow_array()) {
                         my $sql_date = $row[1];;
                         $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
@@ -386,9 +386,16 @@ try{
     elsif($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 2.0){
         #dev 1.9 main log view has changed in 1.8..1.9, above scope will perform anyway, its drop, to be recreated later.
         $db->do('DROP VIEW '.Settings->VW_LOG);delete($curr_tables{Settings->VW_LOG});
+        $db->do('ALTER TABLE "main"."LOG" ADD COLUMN "RTF" BYTE default 0');
         delete($curr_tables{Settings->VW_LOG});
         $changed = 1;
-    }elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}
+    }
+    elsif($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 2.2){
+        $db->do('ALTER TABLE "main"."LOG" ADD COLUMN "RTF" BYTE default 0');$changed = 1;
+    }    
+    elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}
+
+    
 
     if(!$hasLogTbl) {
 
