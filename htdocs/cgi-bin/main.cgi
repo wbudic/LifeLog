@@ -277,7 +277,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     }
     elsif ( $rs_keys && $rs_keys ne '*' ) {
 
-        my @keywords = split / /, $rs_keys;
+        my @keywords = split /\W/, $rs_keys;
         if ($prm_vc && $prm_vc != $prm_xc) {
 
 
@@ -309,7 +309,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
         }
 
         if (@keywords) {
-            foreach (@keywords) {
+            foreach (@keywords) { next if $_ eq "";
                 #was previous an OR?, replace with an AND we filter further by keywords.
                 $stmS =~ s/\sOR$/ and/gi;
                 if(Settings::isProgressDB()){$stmS .= " LOWER(LOG) ~ '" . lc $_ . "'"}

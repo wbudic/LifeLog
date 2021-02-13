@@ -9,6 +9,7 @@
 * Search keep in session should preserve and always set options as selection till it is ticked.
   * Reset Whole View to page view, should still set the search option till it is ticked.
   * Unticking Keep in Session should be honored on next browsing.
+  * Keyword should be stripped from, punctuations.
 * Global view overrides. These get generated in the db if set on logon. And used instead of the normal view.
   * Overrides must always show todays log entries, regardless of criteria.
   * VIEW_OVERRIDE_SYSLOGS={0/1}, anon if set 1-true, will hide older than today system logs. Doesn't affect category and keywords searches/views.
