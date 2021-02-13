@@ -385,14 +385,15 @@ try{
     }
     elsif($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 2.0){
         #dev 1.9 main log view has changed in 1.8..1.9, above scope will perform anyway, its drop, to be recreated later.
+        my $t ="BYTE"; $t = "SMALLINT" if Settings::isProgressDB();
         $db->do('DROP VIEW '.Settings->VW_LOG);delete($curr_tables{Settings->VW_LOG});
-        $db->do('ALTER TABLE "main"."LOG" ADD COLUMN "RTF" BYTE default 0');
+        $db->do("ALTER TABLE LOG ADD COLUMN RTF $t default 0");
         delete($curr_tables{Settings->VW_LOG});
         $changed = 1;
     }
     elsif($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 2.2){
         my $t ="BYTE"; $t = "SMALLINT" if Settings::isProgressDB();
-        $db->do("ALTER TABLE LOG ADD COLUMN \"RTF\" $t default 0");$changed = 1;
+        $db->do("ALTER TABLE LOG ADD COLUMN RTF $t default 0");$changed = 1;
     }    
     elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}
 
