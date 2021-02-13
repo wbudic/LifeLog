@@ -25,7 +25,7 @@ require Settings;
 
 #15mg data post limit
 $CGI::POST_MAX = 1024 * 15000;
-my ($TR_STATUS,$LOGOUT,$ERROR) = ("",0,"");
+my ($RDS,$TR_STATUS,$LOGOUT,$ERROR) = ("","",0,"");
 my $sys     = `uname -n`;
 my $db      = Settings::fetchDBSettings();
 my $cgi     = Settings->cgi();
@@ -51,7 +51,7 @@ elsif($cgi->param('data_log')){&importLogCSV}
 
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
-my $status = "Ready for change!";
+my $status  = $RDS = "Ready for change!";
 my $cats; 
 my %hshCats = {};
 cats();
@@ -604,8 +604,7 @@ if($passch){
         syslog('info', 'Status:%s', $status);
         syslog('info', 'Password change request for %s', $alias);
     closelog();
-    $TR_STATUS = qq(<tr><td colspan="3"><b><font color=red>$status</font></b></td></tr>);
-
+    $TR_STATUS = qq(<tr><td colspan="3"><b><font color=red>$status</font></b></td></tr>) if $status !~ m/$RDS/;
 }
 elsif ($change == 1){
 
@@ -645,7 +644,7 @@ elsif ($change == 1){
         }
       }
     }
-    $status = "Updated Categories!";
+    $status = "Updated Categories!";$TR_STATUS = qq(<tr><td colspan="3"><b>$status</b></td></tr>);
 }
 
 
@@ -761,7 +760,7 @@ elsif($chdbfix){
     else{processDBFix()}
     $status = "Performed Database Fixes!";
 }
-
+$TR_STATUS = qq(<tr><td colspan="3"><b>Status -> </b>$status</td></tr>)if $status !~ m/$RDS/;
 
 }
 catch{
