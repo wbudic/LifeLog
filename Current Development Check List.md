@@ -6,9 +6,6 @@
 
 ### v.2.2 SUN STABLE
 
-* Command line logging, server side. i.e. LifeLog/log.pl -database {name} {-alias} {-password:}
- * Update CNFParser v.2.0.
-* Send to system log, password change, backup issued, main.inf page view changes.
 * Search keep in session should preserve and always set options as selection till it is ticked.
   * Reset Whole View to page view, should still set the search option till it is ticked.
   * Unticking Keep in Session should be honored on next browsing.
@@ -16,9 +13,9 @@
   * Overrides must always show todays log entries, regardless of criteria.
   * VIEW_OVERRIDE_SYSLOGS={0/1}, anon if set 1-true, will hide older than today system logs. Doesn't affect category and keywords searches/views.
   * VIEW_OVERRIDE_WHERE={""/{your where clause}}, allows your own WHERE override. Doesn't affect category and keywords searches/views.
-   * i.e. <<VIEW_OVERRIDE_WHERE<"RTF==1 OR STICKY==1">>>, will show only these type of log entries.  
-   * i.e. <<VIEW_OVERRIDE_WHERE<"DATE > DATE('now','start of month', '-2 month')">>>, will show only logs from current last two months.
-   * i.e. <<VIEW_OVERRIDE_WHERE<"ID_CAT!==(select id from cat where name like 'system log')>>>, same as setting <<VIEW_OVERRIDE_SYSLOGS<<1>>>.
+    * i.e. <<VIEW_OVERRIDE_WHERE<"RTF==1 OR STICKY==1">>>, will show only these type of log entries.  
+    * i.e. <<VIEW_OVERRIDE_WHERE<"DATE > DATE('now','start of month', '-2 month')">>>, will show only logs from current last two months.
+    * i.e. <<VIEW_OVERRIDE_WHERE<"ID_CAT!==(select id from cat where name like 'system log')>>>, same as setting <<VIEW_OVERRIDE_SYSLOGS<<1>>>.
 * Page section plugins.
   * Configured in main.cnf.
   * Accessed via side menu to appear.
@@ -29,6 +26,9 @@
 * Order by Categories added to search/view.
 * Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
 * Auto collapse/expand on multi line logs by 0-none as default. Setting to 1 or more shows only that number of lines. (That one is difficult)
+* &#10004; Send to system log, password change, backup issued, main.inf page view changes.
+* &#10004; Command line logging, server side. i.e. LifeLog/log.pl -database {name} {-alias} {-password:}
+  * Update CNFParser v.2.0.
 * &#10004; Bug 34 - DB fix in config, removes associated RTF documents to logs, for some reason.
 * &#10004; Page categories exclusion option in main.cnf. Log view server side is modified not to include excluded categories 
 older by certain amount of days, default is 0, for from today older.
