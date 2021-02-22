@@ -4,25 +4,48 @@
 
 ## Life Log Application Development
 
-### v.2.2 SUN STABLE
+### New Development
 
-* Search keep in session should preserve and always set options as selection till it is ticked.
-  * Reset Whole View to page view, should still set the search option till it is ticked.
-  * Unticking Keep in Session should be honored on next browsing.
-  * Keyword should be stripped from, punctuations.
+* Email selected log entries.
+  * Sendmail must be working, and configuration file has an jason property <<JS_SENDMAIL>>>.
+  * Selection on foot might need an menu instead of buttons.
+
+ ``` JSON
+        <<JS_SENDMAIL< 
+        {
+          From:""
+          To_emails_choise:[
+            "1","2","3"
+          ]
+          mailhub: default
+          body_head:""
+          body_foot:""
+        }
+        >>> 
+ ```
+
+* Migration from SQLite to Server SQL script provided.
+ * This one will use the new config settings in main.cnf to migrate log data from and SQLite local db file.
 * Global view overrides. These get generated in the db if set on logon. And used instead of the normal view.
-  * Overrides must always show todays log entries, regardless of criteria.
-  * VIEW_OVERRIDE_SYSLOGS={0/1}, anon if set 1-true, will hide older than today system logs. Doesn't affect category and keywords searches/views.
-  * VIEW_OVERRIDE_WHERE={""/{your where clause}}, allows your own WHERE override. Doesn't affect category and keywords searches/views.
-    * i.e. <<VIEW_OVERRIDE_WHERE<"RTF==1 OR STICKY==1">>>, will show only these type of log entries.  
-    * i.e. <<VIEW_OVERRIDE_WHERE<"DATE > DATE('now','start of month', '-2 month')">>>, will show only logs from current last two months.
-    * i.e. <<VIEW_OVERRIDE_WHERE<"ID_CAT!==(select id from cat where name like 'system log')>>>, same as setting <<VIEW_OVERRIDE_SYSLOGS<<1>>>.
+* Overrides must always show todays log entries, regardless of criteria.
+* VIEW_OVERRIDE_SYSLOGS={0/1}, anon if set 1-true, will hide older than today system logs. Doesn't affect category and keywords searches/views.
+* VIEW_OVERRIDE_WHERE={""/{your where clause}}, allows your own WHERE override. Doesn't affect category and keywords searches/views.
+  * i.e. <<VIEW_OVERRIDE_WHERE<"RTF==1 OR STICKY==1>>>, will show only these type of log entries.  
+  * i.e. <<VIEW_OVERRIDE_WHERE<"DATE > DATE('now','start of month', '-2 month')">>>, will show only logs from current last two months.
+  * i.e. <<VIEW_OVERRIDE_WHERE<"ID_CAT!==(select id from cat where name like 'system log')>>>, same as setting <<VIEW_OVERRIDE_SYSLOGS<<1>>>.
 * Page section plugins.
   * Configured in main.cnf.
   * Accessed via side menu to appear.
   * Default is to link to documentation, and about page.
   * Plugin behavior is to be invoked in real time on demand, utilizing in most complex scenario JSON as medium.
     * i.e. News or service feed, special view, file interaction.
+  
+### v.2.2 SUN STABLE
+  
+* Search keep in session should preserve and always set options as selection till it is ticked.
+  * Reset Whole View to page view, should still set the search option till it is ticked.
+  * Unticking Keep in Session should be honored on next browsing.
+  * Keyword should be stripped from, punctuations.
 * Deleting multiple items, RTF, should mark for vacuum on next logout.
 * Order by Categories added to search/view.
 * Search on multiple words should rank by encounter of words specified and display first. (That one is difficult)
