@@ -352,7 +352,7 @@ try{
 
     
     my $tbl = '<table class="tbl_print" border="0" width="'.$PRC_WIDTH.'%">
-        <tr class="hdr"><th>Date</th> <th>Time</th> <th>Log</th><th>Category</th></tr>';
+        <tr class="hdr"><th>Date</th><th>Time</th> <th>Log</th><th>Category</th></tr>';
 
     while(my @row = $st->fetchrow_array()) {
         my $ct = $row[2];
@@ -362,7 +362,7 @@ try{
         $tbl = $tbl . '<tr><td class="ctr">'. $dt->ymd . "</td>" .
             '<td class="ctr">' . $dt->hms . "</td>" .
             '<td>'."$log</td>\n".
-            '<td class="cat">' . $ct. '<input type="hidden" name="chk" value="'.$row[0].'"></td></tr>';
+            '<td class="cat">' . $ct. '</td></tr>';
     }
     $tbl .= '</table>';
     
@@ -375,91 +375,5 @@ try{
     print "<font color=red><b>SERVER ERROR</b>-> Method NotConfirmed() Page Build Failed!.</font>:<pre>".$@."</pre>";
 }
 }
-
-sub log2html{
-    my $log = shift;
-    my ($re_a_tag, $sub)  = qr/<a\s+.*?>.*<\/a>/si;
-    $log =~ s/^(^\*)(.*)(\*)(\\n)/<b>$2<\/b><br>/oi;
-    $log =~ s/''/'/g;
-    $log =~ s/\r\n/<br>/gs;
-    $log =~ s/\\n/<br>/gs;
-    
-
-    if ( $log =~ /<<LNK</ ) {
-        my $idx = $-[0] + 5;
-        my $len = index( $log, '>', $idx );
-        $sub = substr( $log, $idx + 1, $len - $idx - 1 );
-        my $url = qq(<a href="$sub" target=_blank>$sub</a>);
-        $log =~ s/<<LNK<(.*?)>+/$url/osi;
-    }
-
-    if ( $log =~ /<<IMG</ ) {
-            my $idx = $-[0] + 5;
-            my $len = index( $log, '>', $idx );
-            $sub = substr( $log, $idx + 1, $len - $idx - 1 );
-            my $url = qq(<img src="$sub"/>);
-            $log =~ s/<<IMG<(.*?)>+/$url/osi;
-    }
-    elsif ( $log =~ /<<FRM</ ) {
-            my $idx = $-[0] + 5;
-            my $len = index( $log, '>', $idx );
-            $sub = substr( $log, $idx + 1, $len - $idx - 1 );
-            my $lnk = $sub;
-            if ( $lnk =~ /_frm.png/ ) {
-                my $ext = substr( $lnk, index( $lnk, '.' ) );
-                $lnk =~ s/_frm.png/$ext/;
-                if ( not -e "./images/$lnk" ) {
-                    $lnk =~ s/$ext/.jpg/;
-                    if ( not -e "./images/$lnk" ) {
-                        $lnk =~ s/.jpg/.gif/;
-                    }
-                }
-                $lnk =
-                  qq(\n<a href="./images/$lnk" style="border=0;" target="_IMG">
-			      <img src="./images/$sub" width="$imgw" height="$imgh" class="tag_FRM"/></a>);
-            }
-            else {
-                #TODO fetch from web locally the original image.
-                $lnk =  qq(\n<img src="$lnk" width="$imgw" height="$imgh" class="tag_FRM"/>);
-            }
-            $log =~ s/<<FRM<(.*?)>+/$lnk/o;
-        }
-
-    #Replace with a full link an HTTP URI
-    if ( $log =~ /<iframe / ) {
-        my $a = q(<iframe width="560" height="315");
-        my $b;
-        given (&Settings::frameSize) {
-            when("0") { $b = q(width="390" height="215") }
-            when("1") { $b = q(width="280" height="180") }
-            when("2") { $b = q(width="160" height="120") }
-            default {
-                $b = &Settings::frameSize;
-            }
-        }
-        $b = qq(<div><iframe align="center" $b);
-        $log =~ s/$a/$b/o;
-        $a = q(</iframe>);
-        $b = q(</iframe></div>);
-        $log =~ s/$a/$b/o;
-    }
-    else {
-        my @chnks = split( /($re_a_tag)/si, $log );
-        foreach my $ch_i (@chnks) {
-            next if $ch_i =~ /$re_a_tag/;
-            next if index( $ch_i, "<img" ) > -1;
-            $ch_i =~ s/https/http/gsi;
-            $ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
-        }
-        $log = join( '', @chnks );
-    }
-
-    #$log =~ s/\<\</&#60;&#60/gs;
-    #$log =~ s/\>\>/&#62&#62;/gs;
-    
-return $log;
-}
-
-
 
 1;
