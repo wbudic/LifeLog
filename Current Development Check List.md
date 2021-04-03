@@ -25,7 +25,7 @@
  ```
 
 * Migration from SQLite to Server SQL script provided.
- * This one will use the new config settings in main.cnf to migrate log data from and SQLite local db file.
+  * This one will use the new config settings in main.cnf to migrate log data from and SQLite local db file.
 * Global view overrides. These get generated in the db if set on logon. And used instead of the normal view.
 * Overrides must always show todays log entries, regardless of criteria.
 * VIEW_OVERRIDE_SYSLOGS={0/1}, anon if set 1-true, will hide older than today system logs. Doesn't affect category and keywords searches/views.
@@ -34,6 +34,7 @@
   * i.e. <<VIEW_OVERRIDE_WHERE<"DATE > DATE('now','start of month', '-2 month')">>>, will show only logs from current last two months.
   * i.e. <<VIEW_OVERRIDE_WHERE<"ID_CAT!==(select id from cat where name like 'system log')>>>, same as setting <<VIEW_OVERRIDE_SYSLOGS<<1>>>.
 * Page section plugins.
+  * Appears and is rendered in page section, via dynamic loading, json rendered html, server side in real time.
   * Configured in main.cnf.
   * Accessed via side menu to appear.
   * Default is to link to documentation, and about page.
