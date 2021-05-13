@@ -70,6 +70,12 @@ sudo cpan DBD::Pg;
 sudo apt install python3-pip
 sudo python3 -m pip install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.30/pip/pgadmin4-4.30-py3-none-any.whl
 
+# Data directory location for backup
+sudo -u postgres psql -c "SHOW data_directory;" | grep -G /
+## Quick tar all
+sudo tar ~/czvf postgresql.db.backup.tar $(sudo -u postgres psql -c "SHOW data_directory;" | grep -G /)
+
+
 
 
 
