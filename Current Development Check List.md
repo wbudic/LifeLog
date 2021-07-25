@@ -6,6 +6,18 @@
 
 ### New Development
 
+* Update to CNF v.2.2, branch to $RELEASE_VER = 2.3, Earth Stage initial.
+* Plugins
+  * Perl files enabled by being including them in main.cnf file under the <<PLUGINS<>>> list, and placed in the plugins directory.
+  * This plugin perl file is then be executed, to provide auto installation and checks.
+  * The plugins are further stored and made available to the system via database settings and dynamics.
+    * Removed entry in config file, will also start the process of removing it from the database settings.
+* Config file custom SQL tables.
+* Bank Statements Page
+  * Import/Display by Account
+    * CSV Format, stored in separate table.
+      * BANK_ACCOUNT  = ID, BANK, ACC_NAME(16), ACC_NUMBER(20) 
+      * BANK_TRANSACTIONS = ACC_ID, DATE, AMOUNT, DETAILS(64)
 * Email selected log entries.
   * Sendmail must be working, and configuration file has an jason property <<JS_SENDMAIL>>>.
   * Selection on foot might need an menu instead of buttons.
@@ -30,7 +42,7 @@
 * Overrides must always show todays log entries, regardless of criteria.
 * VIEW_OVERRIDE_SYSLOGS={0/1}, anon if set 1-true, will hide older than today system logs. Doesn't affect category and keywords searches/views.
 * VIEW_OVERRIDE_WHERE={""/{your where clause}}, allows your own WHERE override. Doesn't affect category and keywords searches/views.
-  * i.e. <<VIEW_OVERRIDE_WHERE<"RTF==1 OR STICKY==1>>>, will show only these type of log entries.  
+  * i.e. <<VIEW_OVERRIDE_WHERE<"RTF==1 OR STICKY==1">>>, will show only these type of log entries.  
   * i.e. <<VIEW_OVERRIDE_WHERE<"DATE > DATE('now','start of month', '-2 month')">>>, will show only logs from current last two months.
   * i.e. <<VIEW_OVERRIDE_WHERE<"ID_CAT!==(select id from cat where name like 'system log')>>>, same as setting <<VIEW_OVERRIDE_SYSLOGS<<1>>>.
 * Page section plugins.
