@@ -6,7 +6,8 @@
 
 ### New Development
 
-* Update to CNF v.2.2, branch to $RELEASE_VER = 2.3, Earth Stage initial.
+* JS - Event, on expense sum in log numbers found at beginning of lines.
+* &#10004; Update to CNF v.2.2, branch to $RELEASE_VER = 2.3, Earth Stage initial.
 * Plugins
   * Perl files enabled by being including them in main.cnf file under the <<PLUGINS<>>> list, and placed in the plugins directory.
   * This plugin perl file is then be executed, to provide auto installation and checks.

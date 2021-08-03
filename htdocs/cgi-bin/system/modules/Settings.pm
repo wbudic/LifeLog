@@ -52,7 +52,7 @@ use constant VW_LOG_WITH_EXCLUDES   => 'VW_LOG_WITH_EXCLUDES';
 use constant VW_LOG_OVERRIDE_WHERE  => 'VW_LOG_OVR_WHERE';
 
 #DEFAULT SETTINGS HERE!
-our $RELEASE_VER  = '2.2';
+our $RELEASE_VER  = '2.3';
 our $TIME_ZONE    = 'Australia/Sydney';
 our $LANGUAGE     = 'English';
 our $PRC_WIDTH    = '60';
@@ -98,85 +98,97 @@ our $DEBUG         = 1;
 our $SQL_PUB = undef;
 our $TIME_ZONE_MAP ="";
 
-sub anons {my @ret=sort(keys %anons); return @ret;}
+#The all purpose '$S_' class get/setter variable, we do better with less my new variable assignments.
+our $S_ =""; 
+#
+sub anons { keys %anons}
 #Check call with defined(Settings::anon('my_anon'))
-sub anon {my $n=shift; return $anons{$n}}
+sub anon {$S_=shift; $S_ = $anons{$S_} if $S_;$S_}
 sub anonsSet {my $a = shift;%anons=%{$a}}
 
-sub release        {return $RELEASE_VER}
-sub logPath        {return $LOG_PATH}
-sub theme          {return $THEME}
-sub language       {return $LANGUAGE}
-sub timezone       {return $TIME_ZONE}
-sub sessionExprs   {return $SESSN_EXPR}
-sub imgWidthHeight {return $IMG_W_H}
-sub pagePrcWidth   {return $PRC_WIDTH}
-sub frameSize      {return $FRAME_SIZE}
-sub universalDate  {return $DATE_UNI;}
-sub recordLimit    {return $REC_LIMIT}
-sub autoWordLimit  {return $AUTO_WRD_LMT}
-sub autoWordLength {return $AUTO_WRD_LEN}
-sub viewAllLimit   {return $VIEW_ALL_LMT}
-sub displayAll     {return $DISP_ALL}
-sub trackLogins    {return $TRACK_LOGINS}
-sub windowRTFSize  {return $RTF_SIZE}
-sub keepExcludes   {return $KEEP_EXCS}
-sub bgcol          {return $BGCOL}
-sub css            {return $TH_CSS}
-sub compressPage   {return $COMPRESS_ENC}
-sub debug          {my $r = shift; if(!$r){$r = $DEBUG}else{$DEBUG=$r}  return $r}
-sub dbSrc          {my $r = shift; if($r) {$DBI_SOURCE=$r; $IS_PG_DB = 1 if(index (uc $r, 'DBI:PG') ==0)}  
-                    return $DBI_SOURCE}
-sub dbVLSZ         {my $r = shift; if(!$r){$r = $DBI_LVAR_SZ}else{$r=128 if($r<128);$DBI_LVAR_SZ=$r}  return $r}
-sub dbFile         {my $r = shift; if($r) {$DBFILE=$r} return $DBFILE}
-sub dbName         {my $r = shift; if($r) {$dbname=$r} return $dbname}
-sub dsn            {return $DSN}
-sub isProgressDB   {return $IS_PG_DB}
-sub sqlPubors      {return $SQL_PUB}
+sub release        {$RELEASE_VER}
+sub logPath        {$S_ = shift;$LOG_PATH = $S_ if $S_;$LOG_PATH}
+sub theme          {$THEME}                               
+sub timezone       {$TIME_ZONE}
+sub sessionExprs   {$SESSN_EXPR}
+sub imgWidthHeight {$IMG_W_H}
+sub pagePrcWidth   {$PRC_WIDTH}
+sub frameSize      {$FRAME_SIZE}
+sub universalDate  {$DATE_UNI;}
+sub recordLimit    {$REC_LIMIT}
+sub autoWordLimit  {$AUTO_WRD_LMT}
+sub autoWordLength {$AUTO_WRD_LEN}
+sub viewAllLimit   {$VIEW_ALL_LMT}
+sub displayAll     {$DISP_ALL}
+sub trackLogins    {$TRACK_LOGINS}
+sub windowRTFSize  {$RTF_SIZE}
+sub keepExcludes   {$KEEP_EXCS}
+sub bgcol          {$BGCOL}
+sub css            {$TH_CSS}
+sub compressPage   {$COMPRESS_ENC}
+sub debug          {$S_ = shift; $DEBUG = $S_ if $S_; $DEBUG}
+sub dbSrc          {$S_= shift; if($S_) {$DBI_SOURCE=$S_; $IS_PG_DB = 1 if(index (uc $S_, 'DBI:PG') ==0)}  
+                    $DBI_SOURCE}
+sub dbVLSZ         {$S_ = shift; if(!$S_){$S_ = $DBI_LVAR_SZ}else{$S_=128 if($S_<128);$DBI_LVAR_SZ=$S_}}
+sub dbFile         {$S_ = shift; $DBFILE = $S_ if $S_; $DBFILE}
+sub dbName         {$S_ = shift; $dbname = $S_ if $S_; $dbname}
+sub dsn            {$DSN}
+sub isProgressDB   {$IS_PG_DB}
+sub sqlPubors      {$SQL_PUB}
 
-sub cgi     {return $cgi}
-sub session {return $sss}
-sub sid     {return $sid}
-sub alias   {return $alias}
-sub pass    {return $pass}
-sub pub     {return $pub}
+sub cgi     {$cgi}
+sub session {$sss}
+sub sid     {$sid}
+sub alias   {$alias}
+sub pass    {$pass}
+sub pub     {$pub}
 
-sub trim {my $r=shift; $r=~s/^\s+|\s+$//g; return $r}
-
+sub trim {my $r=shift; $r=~s/^\s+|\s+$//g;  $r}
+#The following has to be called from an CGI seesions container that provides parameters.
 sub fetchDBSettings {
 try {
     $CGI::POST_MAX = 1024 * 1024 * 5;  # max 5GB file post size limit.
-    $cgi     = CGI->new();    
-    $sss     = new CGI::Session("driver:File", $cgi, {Directory=>$LOG_PATH});
+    $cgi     = $cgi = CGI->new();
+    $sss     = shift; #shift will only and should, ONLY happen for test scripts.
+    $sss= new CGI::Session("driver:File", $cgi, {Directory=>$LOG_PATH}) if !$sss;
     $sid     = $sss->id();    
     $alias   = $sss->param('alias');
     $pass    = $sss->param('passw');
-    $pub     = $cgi->param('pub');
+    $pub     = $cgi->param('pub');$pub = $sss->param('pub') if !$pub; #maybe test script session set, sss.
     $dbname  = $sss->param('database'); $dbname = $alias if(!$dbname);
 
     ##From here we have data source set, currently Progress DB SQL and SQLite SQL compatible.
     dbSrc($sss->param('db_source'));
 
     if($pub){#we override session to obtain pub(alias)/pass from file main config.
-        open(my $fh, '<', logPath().'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");        
+        open(my $fh, '<', logPath().'main.cnf') or LifeLogException->throw("Can't open main.cnf: $!");        
         while (my $line = <$fh>) {
-                    chomp $line;
-                    my $v = parseAutonom('PUBLIC_LOGIN',$line);
-                    if($v){my @cre = split '/', $v; 
+                  chomp $line;
+                  my $v = parseAutonom('PUBLIC_LOGIN',$line);
+                  if($v){my @cre = split '/', $v; 
                            $alias = $cre[0];                           
                            $pass = uc crypt $cre[1], hex Settings->CIPHER_KEY;
-                    }                    
-                       $v = parseAutonom('PUBLIC_CATS',$line);
-                    if($v){my @cats= split(',',$v);
+                  }                    
+                  $v = parseAutonom('PUBLIC_CATS',$line);
+                  if($v){my @cats= split(',',$v);
                         foreach(@cats){
                             $SQL_PUB .= "ID_CAT=".trim($_)." OR ";
                         }
                         $SQL_PUB =~ s/\s+OR\s+$//;
-                    }
-                    last if parseAutonom('CONFIG',$line);
+                   }elsif($line =~ /<<PLUGINS</){        
+                        $S_ = substr($line, 10);               
+                        while ($line = <$fh>) {
+                            chomp $line;
+                            last if($line =~ />$/);
+                            $S_ .= $line . "\n";
+                        }
+                        $anons{'PLUGINS'} = $S_;
+                        next;
+                    }     
+                   last if parseAutonom('CONFIG',$line);
         }
         close $fh; 
-        if(!$SQL_PUB){$alias=undef}       
+        if(!$SQL_PUB&&$pub ne 'test'){$alias=undef}       
     }
     # if(!$alias){
     #     $alias = "admin"; $pass  = $alias; dbSrc('dbi:Pg:host=localhost;');
@@ -368,7 +380,7 @@ return qq(
     FOREIGN KEY (CID) REFERENCES CAT(ID)
     );
 )}
-
+#Selects the actual database set configuration for the application, not from the config file.
 sub getConfiguration {
     my ($db, $hsh) = @_;
     my $fh;
@@ -441,7 +453,7 @@ sub getConfiguration {
         &setTimezone;
     }
     catch {
-        SettingsException->throw(error=>$@, show_trace=>$DEBUG);
+        SettingsException->throw(error=>"DSN:$DSN &getConfiguration.ERR->[$@]", show_trace=>$DEBUG);
     };
 }
 
