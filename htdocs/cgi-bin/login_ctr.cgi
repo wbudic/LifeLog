@@ -103,7 +103,7 @@ try{
             "<hr><font color=red><b>SERVER ERROR</b></font> on ".DateTime->now().
             "<pre>".$pwd."/$0 -> [\n$err]","\n$dbg</pre>",
             $cgi->end_html;
- };
+ }
 exit;
 
 sub processSubmit {
@@ -172,7 +172,6 @@ sub checkAutologinSet {
     #exit;
     # Autologin credential in file next.
     if(@cre &&scalar(@cre)>1){
-
             if($alias && $passw && $alias ne $cre[0]){ # Is this an new alias login attempt? If so, autologin is of the agenda.
                 return;                                # Note, we do assign entered password even passw as autologin is set. Not entering one bypasses this.
             }                                          # If stricter access is required set it to zero in main.cnf, or disable in config.
@@ -191,7 +190,6 @@ sub checkAutologinSet {
             }
             $db -> disconnect();
     }
-
 }
 
 sub checkPreparePGDB {
@@ -236,11 +234,8 @@ sub checkPreparePGDB {
     return 0;
 }
 
-sub checkCreateTables {
-my ($pst, $sql,$rv, $changed) = 0;
-try{    
-    
-    
+sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
+ try{
     # We live check database for available tables now only once.
     # If brand new database, this sill returns fine an empty array.
     my %curr_tables = ();
@@ -330,18 +325,27 @@ try{
             $db->do('CREATE TABLE life_log_login_ctr_temp_table AS SELECT * FROM LOG;');
             my %notes_ids = ();
             if($hasNotesTbl){
-                $pst =  Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;');
+               if(Settings::isProgressDB()){
+                     $sql='SELECT ID, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;'}
+                else{$sql='SELECT rowid, DATE FROM LOG WHERE ID_RTF > 0 ORDER BY DATE;'}
+                $pst =  Settings::selectRecords($db, $sql);
                 while(my @row = $pst->fetchrow_array()) {
                         my $sql_date = $row[1];;
                         $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
-                        my $pst2  = Settings::selectRecords($db, "SELECT rowid, DATE FROM life_log_login_ctr_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';");
+                        if(Settings::isProgressDB()){
+                             $sql="SELECT ID, DATE FROM life_log_login_ctr_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';"}
+                        else{$sql="SELECT rowid, DATE FROM life_log_login_ctr_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';"}                        
+                        my $pst2  = Settings::selectRecords($db, $sql);
                         my @rec   = $pst2->fetchrow_array();
                         if(@rec){
-                            $db->do("UPDATE NOTES SET LID =". $rec[0]." WHERE LID ==".$row[0].";");
-                            $pst2  = Settings::selectRecords($db, "SELECT rowid FROM NOTES WHERE LID == ".$rec[0].";");
+                            $db->do("UPDATE NOTES SET LID=". $rec[0]." WHERE LID=".$row[0].";");
+                            if(Settings::isProgressDB()){
+                                 $sql="SELECT LID FROM NOTES WHERE LID = ".$rec[0].";"}
+                            else{$sql="SELECT rowid FROM NOTES WHERE LID = ".$rec[0].";"}
+                            $pst2  = Settings::selectRecords($db, $sql);
                             @rec   = $pst2->fetchrow_array();
                             if(@rec){
-                                    $notes_ids{$sql_date} = $rec[0];
+                               $notes_ids{$sql_date} = $rec[0];
                             }
                         }
                 }
@@ -369,7 +373,7 @@ try{
             foreach my $date (keys %notes_ids){
                 #next if(ref($notes_ids{$date}) eq 'HASH');
                 my $nid = $notes_ids{$date};
-                my $stmt= "UPDATE LOG SET RTF =". $nid." WHERE DATE == '".$date."';";
+                my $stmt= "UPDATE LOG SET RTF =". $nid." WHERE DATE = '".$date."';";
                 try{
                     $db->do($stmt);
                 }
@@ -395,9 +399,7 @@ try{
         my $t ="BYTE"; $t = "SMALLINT" if Settings::isProgressDB();
         $db->do("ALTER TABLE LOG ADD COLUMN RTF $t default 0");$changed = 1;
     }    
-    elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}
-
-    
+    elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}    
 
     if(!$hasLogTbl) {
 
@@ -539,9 +541,9 @@ try{
     #Then we check if we are login in intereactively back. Interective, logout should bring us to the login screen.
     #Bypassing auto login. So to start maybe working on another database, and a new session.
     return $cgi->param('autologoff') == 1;
-}catch{
-    LifeLogException -> throw(error=>"DSN:".Settings::dsn()." Error:".$@."\nLAST_SQL:".$sql,show_trace=>1);
-}
+ }catch{
+     LifeLogException -> throw(error=>"DSN:".Settings::dsn()." Error:".$@."\nLAST_SQL:".$sql,show_trace=>1);
+ }
 }
 
 sub createPageViewExcludeSQL {

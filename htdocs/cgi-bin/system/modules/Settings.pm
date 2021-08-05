@@ -110,6 +110,7 @@ sub release        {$RELEASE_VER}
 sub logPath        {$S_ = shift;$LOG_PATH = $S_ if $S_;$LOG_PATH}
 sub theme          {$THEME}                               
 sub timezone       {$TIME_ZONE}
+sub language       {$LANGUAGE}
 sub sessionExprs   {$SESSN_EXPR}
 sub imgWidthHeight {$IMG_W_H}
 sub pagePrcWidth   {$PRC_WIDTH}
@@ -507,11 +508,11 @@ sub renumerate {
         my @new  = selectRecords($db, $sql)->fetchrow_array();
         if(scalar @new > 0){
              try{#can fail here, for various reasons.
-                $sql="UPDATE NOTES SET LID =". $new[0]." WHERE LID==".$row[0].";";
+                $sql="UPDATE NOTES SET LID =". $new[0]." WHERE LID=".$row[0].";";
                 $db->do($sql);
              }
              catch{
-                 SettingsException->throw(error=>"Database error encountered. sql->$sql", show_trace=>$DEBUG);
+                 SettingsException->throw(error=>"\@Settings::renumerate Database error encountered. sql->$sql", show_trace=>$DEBUG);
              };
         }
     }
