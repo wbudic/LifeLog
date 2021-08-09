@@ -102,6 +102,30 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         offsetX: 5,
         showTimeout: 100
     });
+    $('#am').click(function(e){
+        e.preventDefault();
+        let v = $('#am').val();
+        if(v.length==0 || v==0.00){
+            const regex = /^\D*\d+\.*\d*/gm;
+            let str = $('#el').val();
+            let m; let tot = 0;
+
+            while ((m = regex.exec(str)) !== null) {                
+                if (m.index === regex.lastIndex) {
+                    regex.lastIndex++;
+                }
+                m.forEach( (match, groupIndex) => {
+                    //console.log(`Found match, group ${groupIndex}: ${match}`);
+                    tot += parseFloat(`${match}`.replace(/^\$/g,''));
+
+                });
+            }
+            $('#am').val(tot);
+            
+        }
+
+
+     });
 
     $('#sss_xc').poshytip({
         content: "When checked, system will try to remember your view mode while in session.",
@@ -273,6 +297,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         }
     }).mouseleave(function(e){$("#cat_desc").hide();});
 
+    
     $( "#dlgValidation" ).dialog({
         dialogClass: "alert",
         buttons: [

@@ -6,8 +6,8 @@
 
 ### New Development
 
-* Bug 35. SQL migration, version update, not working for PG based databases.
-* JS - Event, on expense sum in log numbers found at beginning of lines.
+* &#10004; Bug 35. SQL migration, version update, not working for PG based databases.
+* &#10004; JS - Event, on expense sum in log numbers found at beginning of lines.
 * &#10004; Update to CNF v.2.2, branch to $RELEASE_VER = 2.3, Earth Stage initial.
 * Plugins
   * Perl files enabled by being including them in main.cnf file under the <<PLUGINS<>>> list, and placed in the plugins directory.
@@ -207,7 +207,7 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
 ### v. 2.2 Encountered/Fixed
 
-* Bug 35, Migration and version updating SQL is wrong for PG database, it doesn't have rowid's.
+* &#10004; Bug 35, Migration and version updating SQL is wrong for PG database, it doesn't have rowid's.
 * Bug 34, DB fix in config, removes associated RTF documents, for some reason.
 * &#10004; Bug 33 Changing session timeout in config to an lib. background unparsable format cause unrecoverable system error.
   * i.e. Putting +1hr instead of +1h.

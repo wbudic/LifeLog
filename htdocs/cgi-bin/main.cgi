@@ -239,7 +239,6 @@ while ( my @row = $st->fetchrow_array() ) {
     }
     $td_cat .= "<li id='$row[0]'><a href='#'>$row[1]</a></li>";
     $td_itm_cnt++;
-
 }
 if($td_itm_cnt<5){#fill spacing.
     for (my $i=0;$i<5-$td_itm_cnt;$i++){
@@ -279,7 +278,6 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 
         my @keywords = split /\W/, $rs_keys;
         if ($prm_vc && $prm_vc != $prm_xc) {
-
 
                 if(@vc_lst){
                     $stmS .= $prm_aa;
@@ -440,11 +438,13 @@ sub buildLog {
         my $ct  = $hshCats{$cid}; #ID_CAT        
         my $dt  = DateTime::Format::SQLite->parse_datetime( $row[$i++] ); #LOG.DATE
         my $log = $row[$i++]; #LOG.LOG
-        my $rtf = $row[$i++];     #ID_RTF since v.1.8 but just RTF from v.2.1
+        my $rtf = $row[$i++]; #ID_RTF since v.1.8 but just RTF from v.2.1
         my $am  = $row[$i++]; #LOG.AMOUNT
         my $af  = $row[$i++]; #AFLAG -> Asset as 0, Income as 1, Expense as 2
         my $sticky = $row[$i++]; #Sticky to top
         my $pid = $row[$i++]; #PID actual log ID in View.
+
+        $am =~ s/^\D|\,//g; #trim if it is money sql data type formated.
 
         if ( $af == 1 ) { #AFLAG Income, assets are neutral.
             $sum += $am;
@@ -691,13 +691,6 @@ sub buildLog {
                           </div>
                         </td></tr>);
         }
-
-                        #      <span id="q-scroll$id" 
-                        #         style="height:auto;  max-width:100%; max-height:480px; padding: 10px; background:#fffafa; overflow-x:scroll; overflow-y:auto;">
-                        #     <div class="log" style="overflow-x:scroll; max-width:100%; scrollbar-width:none;">
-                        #     <div id="q-container$id"></div></div>
-                        #   </span>
-
         $log_rc += 1;
 
         if ( $rec_limit > 0 && $log_rc == $rec_limit ) {
