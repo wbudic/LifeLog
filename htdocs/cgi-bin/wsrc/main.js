@@ -1072,26 +1072,19 @@ function loadRTF(under, id){
 
 
         QUILL_PNL = new Quill('#q-container'+id, {
-            /*
-            modules: {
-              toolbar: [
-                [{ header: [1, 2, false] }],
-                ['bold', 'italic', 'underline'],
-                ['image', 'code-block']
-              ]
-            },*/
             scrollingContainer: '#q-scroll'+id,
             placeholder: 'Loading Document...',
             readOnly: true,
             //theme: 'bubble'
           });
-
+          //console.log("Panel query json.cgi action -> load, id:" + id);
           $.post('json.cgi', {action:'load', id:id}, loadRTFPnlResult);
           $("#q-rtf"+id).show();
         return false;
     }
 
     //var json = "[{'insert': 'Loading Document...', 'attributes': { 'bold': true }}, {'insert': '\n'}]";
+    //console.log("Query json.cgi action -> load, id:" + id);
     QUILL.setText('Loading Document...\n');    
     $.post('json.cgi', {action:'load', id:id}, loadRTFResult).fail(
            function(response) {dialogModal("Server Error: "+response.status,response.responseText);}
@@ -1109,7 +1102,7 @@ function loadRTFPnlResult(content, result, prms) {
 }
 
 function loadRTFResult(content, result, prms, quill) {
-    console.log("Result->" + content);
+    //console.log("Result->" + content);
     var json = JSON.parse(content);
     if(!quill)quill=QUILL;
 
