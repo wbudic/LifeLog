@@ -115,7 +115,7 @@ sub sessionExprs   {$SESSN_EXPR}
 sub imgWidthHeight {$IMG_W_H}
 sub pagePrcWidth   {$PRC_WIDTH}
 sub frameSize      {$FRAME_SIZE}
-sub universalDate  {$DATE_UNI;}
+sub universalDate  {$DATE_UNI}
 sub recordLimit    {$REC_LIMIT}
 sub autoWordLimit  {$AUTO_WRD_LMT}
 sub autoWordLength {$AUTO_WRD_LEN}
@@ -360,6 +360,11 @@ return qq(
     CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);
 )}
 sub createNOTEStmt {
+    if($IS_PG_DB){
+        #TODO 09082021 - Couldn't figure out how to PGDB via STD driver send binary data in one go.
+        # Hence data there is not compressed and encrypted.
+       return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC jsonb);) 
+    }
     return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC TEXT);)
 }
 sub createLOGCATSREFStmt {
