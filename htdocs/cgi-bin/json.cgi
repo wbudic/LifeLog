@@ -47,11 +47,9 @@ my $error    = "";
 my ($nid,$response, $JSON) = 'Session Expired';
 
 if  ( !$alias || !$dbname ) {
-
     &defaultJSON;
     print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
     print $JSON;
-
    exit;
 }
 
@@ -78,7 +76,7 @@ sub defaultJSON {
 
      my $content = "";
      if($action eq 'load' && !$error){
-         $content = JSON->new->utf8->decode($doc);
+         try{ $content = JSON->new->utf8->decode($doc) } catch {$error = "Error on doc with LID[$lid]-> ".$@}
      }
      $JSON = JSON->new->utf8->space_after->pretty->allow_blessed->encode
      ({date => $formater->format_datetime($today),
@@ -109,31 +107,35 @@ sub processSubmit {
                                 "lid": "$lid",
                                 "bg":  "$bg",
                                 "doc": $doc
-              });           
+              });       
         
-           my  $zip = compress($cipher->encrypt($doc), Z_BEST_COMPRESSION); 
+                   
+               $doc = compress($cipher->encrypt($doc), Z_BEST_COMPRESSION) if !Settings::isProgressDB(); 
                @arr = Settings::selectRecords($db, "SELECT LID FROM NOTES WHERE LID = $lid;")->fetchrow_array();
            if (!@arr) {
                         $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
-                        $st->execute($lid, $zip);
+                        $st->execute($lid, $doc);
                         $response = "Stored Document (id:$lid)!";
            }
            else{
                         $st = $db->prepare("UPDATE NOTES SET DOC = ? WHERE LID = $lid;");
-                        $st->execute($zip);
+                        $st->execute($doc);
                         $response = "Updated Document (id:$lid)!";
            }
            
         }
         elsif($action eq 'load'){
-              @arr = Settings::selectRecords($db, "SELECT DOC FROM NOTES WHERE LID = $lid;")->fetchrow_array();
+
+           @arr = Settings::selectRecords($db, "SELECT DOC FROM NOTES WHERE LID = $lid;")->fetchrow_array();
            if(@arr eq undef){
-              @arr = Settings::selectRecords($db,"SELECT DOC FROM NOTES WHERE LID = '0';")->fetchrow_array();
-           }
-            my $cipher = Crypt::CBC->new(-key  => cryptKey(), -cipher => 'Blowfish');
+                @arr = Settings::selectRecords($db,"SELECT DOC FROM NOTES WHERE LID = '0';")->fetchrow_array();
+           }            
            $doc = $arr[0];
-           my $d = uncompress($doc);
-           $doc = $cipher->decrypt($d);
+           if(!Settings::isProgressDB()){
+            my $d = uncompress($doc);
+            my $cipher = Crypt::CBC->new(-key  => cryptKey(), -cipher => 'Blowfish');
+            $doc = $cipher->decrypt($d);
+           }
             # print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
             # print($doc);
             # exit;
@@ -147,7 +149,7 @@ sub processSubmit {
     }catch {
         if($action eq 'load' && $@ =~ /Ciphertext does not begin with a valid header for 'salt'/){# Maybe an pre v.2.2 old document?
             $doc = uncompress($doc);
-            $response = "Your document LID[$lid] is not secure. Please resave it.";
+            $response = "Your document LID[$lid] is not secure. Please resave it. [$@]";
             return;
         }
         $error = "Error on:LID[$lid]-> ".$@;
@@ -157,8 +159,6 @@ sub processSubmit {
 
 sub authenticate {
     try {
-
-
           my $st = $db->prepare("SELECT * FROM AUTH WHERE alias='$alias' and passw='$passw';");
           $st->execute();
           if ( $st->fetchrow_array() ) { return; }
