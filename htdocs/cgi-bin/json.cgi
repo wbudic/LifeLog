@@ -11,6 +11,8 @@ use CGI;
 use CGI::Session '-ip_match';
 use CGI::Carp qw ( fatalsToBrowser );
 use DBI;
+use DBD::Pg;
+use DBD::Pg qw(:pg_types);
 
 use DateTime;
 use DateTime::Format::SQLite;
@@ -103,26 +105,30 @@ sub processSubmit {
         if($action eq 'store'){
 
            my $cipher = Crypt::CBC->new(-key  => cryptKey(), -cipher => 'Blowfish');
-              $doc = qq({
-                                "lid": "$lid",
-                                "bg":  "$bg",
-                                "doc": $doc
-              });       
-        
-                   
-               $doc = compress($cipher->encrypt($doc), Z_BEST_COMPRESSION) if !Settings::isProgressDB(); 
-               @arr = Settings::selectRecords($db, "SELECT LID FROM NOTES WHERE LID = $lid;")->fetchrow_array();
-           if (!@arr) {
-                        $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
-                        $st->execute($lid, $doc);
-                        $response = "Stored Document (id:$lid)!";
-           }
-           else{
-                        $st = $db->prepare("UPDATE NOTES SET DOC = ? WHERE LID = $lid;");
-                        $st->execute($doc);
-                        $response = "Updated Document (id:$lid)!";
-           }
-           
+            $doc = qq({
+                        "lid": "$lid",
+                        "bg":  "$bg",
+                        "doc": $doc
+            });
+            $doc = compress($cipher->encrypt($doc), Z_BEST_COMPRESSION);
+            @arr = Settings::selectRecords($db, "SELECT LID FROM NOTES WHERE LID = $lid;")->fetchrow_array();
+            if (!@arr) {
+                            $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
+                            $st->bind_param(1, $lid);
+                            if(Settings::isProgressDB()){
+                                $st->bind_param(2, $doc, { pg_type => DBD::Pg::PG_BYTEA })
+                            }else{
+                                $st->bind_param(2, $doc)
+                            }
+                            $st->execute();
+                            $response = "Stored Document (id:$lid)!";
+            }
+            else{
+                            $st = $db->prepare("UPDATE NOTES SET DOC = ? WHERE LID = $lid;");
+                            if(Settings::isProgressDB()){$st->bind_param(1, $doc, { pg_type => DBD::Pg::PG_BYTEA })}else{$st->bind_param(1,$doc);}
+                            $st->execute();                                
+                            $response = "Updated Document (id:$lid)!";
+            }
         }
         elsif($action eq 'load'){
 
@@ -131,11 +137,11 @@ sub processSubmit {
                 @arr = Settings::selectRecords($db,"SELECT DOC FROM NOTES WHERE LID = '0';")->fetchrow_array();
            }            
            $doc = $arr[0];
-           if(!Settings::isProgressDB()){
+          
             my $d = uncompress($doc);
             my $cipher = Crypt::CBC->new(-key  => cryptKey(), -cipher => 'Blowfish');
             $doc = $cipher->decrypt($d);
-           }
+          
             # print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
             # print($doc);
             # exit;

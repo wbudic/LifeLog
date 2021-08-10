@@ -361,9 +361,8 @@ return qq(
 )}
 sub createNOTEStmt {
     if($IS_PG_DB){
-        #TODO 09082021 - Couldn't figure out how to PGDB via STD driver send binary data in one go.
-        # Hence data there is not compressed and encrypted.
-       return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC jsonb);) 
+      # return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC jsonb);)
+      return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC bytea);) 
     }
     return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC TEXT);)
 }
