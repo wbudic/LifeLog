@@ -498,41 +498,47 @@ sub getTheme {
 #From v.1.8 Changed
 sub renumerate {
     my $db = shift;
+    my $CI = 'rowid'; $CI = 'ID' if $IS_PG_DB;
     #Renumerate Log! Copy into temp. table.
     my $sql;
-    selectRecords($db,'CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;');
-    my $CI = 'rowid'; $CI = 'ID' if $IS_PG_DB;
-    #update  notes table with new log id only for reference sake.
-    my $st = selectRecords($db, "SELECT $CI, DATE FROM LOG WHERE RTF > 0 ORDER BY DATE;");
-    while(my @row =$st->fetchrow_array()) {
-        my $sql_date = $row[1];
-        #$sql_date =~ s/T/ /;
-        $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
-        $sql = "SELECT $CI, DATE FROM life_log_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';";
+
+    $db->do("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG order by $CI;");    
+    # Delete any possible orphaned Notes records.
+    my $st = selectRecords($db, "SELECT LID, LOG.$CI from NOTES LEFT JOIN LOG ON NOTES.LID = LOG.$CI WHERE LOG.$CI is NULL;");
+    while(my @row=$st->fetchrow_array()) {
+        $db->do("DELETE FROM NOTES WHERE LID=".$row[0].";")
+    }    
+    $st->finish();
+
+    if($IS_PG_DB){$db->do('DROP TABLE LOG CASCADE;')}else{$db->do('DROP TABLE LOG;')}
+    
+    $db->do(&createLOGStmt);
+    $db->do('INSERT INTO LOG (ID_CAT, DATE, LOG, RTF ,AMOUNT, AFLAG, STICKY)
+                       SELECT ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY FROM life_log_temp_table ORDER by DATE;');
+
+    #Update  notes table with date ordered log id for reference sake.
+    $st = selectRecords($db, "SELECT $CI, DATE FROM life_log_temp_table WHERE RTF > 0 ORDER BY DATE;");
+    while(my @row=$st->fetchrow_array()) {
+        my $ID_OLD   = $row[0];
+        my $sql_date = $row[1];  #$sql_date =~ s/T/ /;
+        # if(!$IS_PG_DB){           
+        #   $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
+        # }
+        $sql = "SELECT $CI DATE FROM LOG WHERE RTF > 0 AND DATE = '".$sql_date."';";
         my @new  = selectRecords($db, $sql)->fetchrow_array();
-        if(scalar @new > 0){
+        if(scalar @new > 0 && $new[0] ne $ID_OLD){
              try{#can fail here, for various reasons.
-                $sql="UPDATE NOTES SET LID =". $new[0]." WHERE LID=".$row[0].";";
+                $sql="UPDATE NOTES SET LID =". $new[0]." WHERE LID=". $ID_OLD .";";
                 $db->do($sql);
              }
              catch{
                  SettingsException->throw(error=>"\@Settings::renumerate Database error encountered. sql->$sql", show_trace=>$DEBUG);
              };
-        }
-    }
+        }    
+    }    
+    $st->finish();
 
-    # Delete any possible orphaned Notes records.
-    $st->finish();
-    $st = selectRecords($db, "SELECT LID, LOG.$CI from NOTES LEFT JOIN LOG ON NOTES.LID = LOG.$CI WHERE LOG.$CI is NULL;");
-    while($st->fetchrow_array()) {
-        $db->do("DELETE FROM NOTES WHERE LID=".$_[0].";")
-    }
-    $st->finish();
-    if($IS_PG_DB){$db->do('DROP TABLE LOG CASCADE;');}else{$db->do('DROP TABLE LOG;');}
-    
-    $db->do(&createLOGStmt);
-    $db->do('INSERT INTO LOG (ID_CAT, DATE, LOG, RTF ,AMOUNT, AFLAG, STICKY)
-                       SELECT ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY FROM life_log_temp_table ORDER by DATE;');    
+
     $db->do('DROP TABLE life_log_temp_table;');
 }
 

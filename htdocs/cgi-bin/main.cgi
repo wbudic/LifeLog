@@ -9,6 +9,8 @@ use strict;
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use DBI;
+use DBD::Pg;
+use DBD::Pg qw(:pg_types);
 use Date::Language;
 use Date::Parse;
 use Time::localtime;
@@ -128,10 +130,10 @@ if($cgi->param('srch_reset') == 1){
 
 if($prm_vc &&$prm_vc ne ""){
 #TODO (2020-11-05) This is a subrotine candidate. It gets too complicated. should not have both $prm_vc and $prm_vc_lst;
-    $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
-    if(!$prm_vc_lst||$prm_vc_lst==0){#} && index($prm_xc, ',') > 0){
+   $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
+   if(!$prm_vc_lst||$prm_vc_lst==0){#} && index($prm_xc, ',') > 0){
         $prm_vc_lst =  $prm_vc;
-    }else{
+   }else{
         my $f;
         my @vc_lst = split /\,/, $prm_vc_lst; @vc_lst = uniq(sort { $a <=> $b }  @vc_lst);
         foreach my $n(@vc_lst){
@@ -141,7 +143,7 @@ if($prm_vc &&$prm_vc ne ""){
             $prm_vc_lst .= ",$prm_vc";
         }
         $prm_vc_lst=~ s/\,$//g;$prm_vc_lst=~ s/\,\,/\,/g;
-    }
+   }
 
 
    if ($cgi->param('sss_vc') eq 'on'){
@@ -149,8 +151,8 @@ if($prm_vc &&$prm_vc ne ""){
        $sss->param('sss_vc_lst', $prm_xc_lst);
    }
    else{
-        $sss->clear('sss_vc');
-        $sss->clear('sss_vc_lst');
+       $sss->clear('sss_vc');
+       $sss->clear('sss_vc_lst');
    }
 
 }else{
@@ -160,30 +162,28 @@ if($prm_vc &&$prm_vc ne ""){
 
 if($prm_xc &&$prm_xc ne ""){
 #TODO (2020-02-23) It gets too complicated. should not have both $prm_xc and $prm_xc_lst;
-       $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
-       if(!$prm_xc_lst||$prm_xc_lst==0){#} && index($prm_xc, ',') > 0){
-           $prm_xc_lst =  $prm_xc;
-       }else{
-            my $f;
-            my @xc_lst = split /\,/, $prm_xc_lst; @xc_lst = uniq(sort { $a <=> $b }  @xc_lst);
-            foreach my $n(@xc_lst){
-                if($n == $prm_xc){ $f=1; last; }
-            }
-            if(!$f){#not found view was clicked changing category but not adding it to ex list. Let's add it to the list.
-                $prm_xc_lst .= ",$prm_xc";
-            }
-            $prm_xc_lst=~ s/\,$//g;$prm_xc_lst=~ s/\,\,/\,/g;
-       }
-
-
-   if ($cgi->param('sss_xc') eq 'on'){
-       $sss->param('sss_xc', $prm_xc);
-       $sss->param('sss_xc_lst', $prm_xc_lst);
-   }
-   else{
-        $sss->clear('sss_xc');
-        $sss->clear('sss_xc_lst');
-   }
+    $prm_xc =~ s/^0*//g;$prm_xc_lst=~ s/^\,$//g;
+    if(!$prm_xc_lst||$prm_xc_lst==0){#} && index($prm_xc, ',') > 0){
+        $prm_xc_lst =  $prm_xc;
+    }else{
+        my $f;
+        my @xc_lst = split /\,/, $prm_xc_lst; @xc_lst = uniq(sort { $a <=> $b }  @xc_lst);
+        foreach my $n(@xc_lst){
+            if($n == $prm_xc){ $f=1; last; }
+        }
+        if(!$f){#not found view was clicked changing category but not adding it to ex list. Let's add it to the list.
+            $prm_xc_lst .= ",$prm_xc";
+        }
+        $prm_xc_lst=~ s/\,$//g;$prm_xc_lst=~ s/\,\,/\,/g;
+    }
+    if ($cgi->param('sss_xc') eq 'on'){
+        $sss->param('sss_xc', $prm_xc);
+        $sss->param('sss_xc_lst', $prm_xc_lst);
+    }
+    else{
+            $sss->clear('sss_xc');
+            $sss->clear('sss_xc_lst');
+    }
 
 }else{
        $prm_xc = $sss->param('sss_xc');
@@ -197,7 +197,6 @@ if($cgi->param('sss_ord_cat') eq 'on'){
 ##
 my @vc_lst = split /\,/, $prm_vc_lst; @vc_lst = uniq(sort { $a <=> $b }  @vc_lst);
 my @xc_lst = split /\,/, $prm_xc_lst; @xc_lst = uniq(sort { $a <=> $b }  @xc_lst);
-
 
 $sss->flush();
 
@@ -319,53 +318,48 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
             $sqlVWL = $stmS . $stmE;
         }
     }
-    elsif ($prm_vc) {
-                
-                if(@vc_lst){
-                    foreach (@vc_lst){
-                            $stmS .= " ID_CAT=$_ OR";
-                    }
-                    $sqlVWL = $stmS . $prm_aa; $sqlVWL =~ s/OR$//g;
-                    $sqlVWL .= $stmE;
-                }
-                elsif ($stmD) {
-                    $sqlVWL = $stmS . $prm_aa . $stmD . " AND ID_CAT=" . $prm_vc . $stmE;
-                }
-                else {
-                    $sqlVWL = $stmS . $prm_aa . " ID_CAT=" . $prm_vc . $stmE;
-                }
-
-
+    elsif ($prm_vc) {                
+        if(@vc_lst){
+            foreach (@vc_lst){
+                    $stmS .= " ID_CAT=$_ OR";
+            }
+            $sqlVWL = $stmS . $prm_aa; $sqlVWL =~ s/OR$//g;
+            $sqlVWL .= $stmE;
+        }
+        elsif ($stmD) {
+            $sqlVWL = $stmS . $prm_aa . $stmD . " AND ID_CAT=" . $prm_vc . $stmE;
+        }
+        else {
+            $sqlVWL = $stmS . $prm_aa . " ID_CAT=" . $prm_vc . $stmE;
+        }
     }
     else {
-            if($prm_xc>0){
-                if(@xc_lst){
-                    my $ands = "";
-                    foreach (@xc_lst){
-                            $ands .= " ID_CAT!=$_ AND";
-                    }
+        if($prm_xc>0){
+            if(@xc_lst){
+                my $ands = "";
+                foreach (@xc_lst){
+                        $ands .= " ID_CAT!=$_ AND";
+                }
 
-                    $ands =~ s/AND$//g;
-                    $sqlVWL = $stmS .$prm_aa. $ands . $stmE;
-                }
-                else{
-                    $sqlVWL = $stmS . $prm_aa." ID_CAT!=$prm_xc;" . $stmE;
-                }
+                $ands =~ s/AND$//g;
+                $sqlVWL = $stmS .$prm_aa. $ands . $stmE;
             }
-            if ($stmD) {
-                $sqlVWL = $stmS . $prm_aa.' '. $stmD . $stmE;
+            else{
+                $sqlVWL = $stmS . $prm_aa." ID_CAT!=$prm_xc;" . $stmE;
             }
-            elsif($prm_aa){
-                        $prm_aa =~ s/AND$//g;
-                        $sqlVWL = $stmS .$prm_aa.' '.$stmE;
-            }
-            elsif($prm_rtf){
-                $stmS   =~ s/AND$//g;
-                $sqlVWL = $stmS.$stmE;
-            }
+        }
+        if ($stmD) {
+            $sqlVWL = $stmS . $prm_aa.' '. $stmD . $stmE;
+        }
+        elsif($prm_aa){
+                    $prm_aa =~ s/AND$//g;
+                    $sqlVWL = $stmS .$prm_aa.' '.$stmE;
+        }
+        elsif($prm_rtf){
+            $stmS   =~ s/AND$//g;
+            $sqlVWL = $stmS.$stmE;
+        }
     }
-
-
 
 ###################
     &processSubmit;
@@ -580,7 +574,6 @@ sub buildLog {
             $log =~ s/<<TITLE<(.*?)>+/$sub/o;
             $tagged = 1;
         }
-
         while ( $log =~ /<<LIST</ ) {
             my $idx = $-[0];
             my $len = index( $log, '>', $idx ) - 7;
@@ -661,9 +654,9 @@ sub buildLog {
 
         my $ssymb = "Edit";
         my $ssid  = $tfId;
-        if ($sticky){
-            $ssymb = "Edit &#10037;";
-            $ssid = $tfId + 2;
+        if($sticky){
+           $ssymb = "Edit &#10037;";
+           $ssid = $tfId + 2;
         }
 
         $log_output .= qq(<tr class="r$ssid">
@@ -833,8 +826,8 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
                 <option value="1">Income</option>
                 <option value="2">Expense</option>
             </select>&nbsp;
-            <input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> RTF Document
-            <input id="STICKY" name="sticky" type="checkbox"/> Sticky
+            RTF Attach <input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> 
+            Sticky <input id="STICKY" name="sticky" type="checkbox"/>
 		</td>
 		<td align="right">
                 <span id="sss_status"></span>&nbsp;
@@ -1037,8 +1030,8 @@ if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
 toBuf (qq(
 $sideMenu
 <div id="div_log">$frm</div>
-<div id="div_srh">$srh</div>
 $quill
+<div id="div_srh">$srh</div>
 <div id="div_hlp">$help</div>
 <div>\n$log_output\n</div><br>
 $tail
@@ -1065,95 +1058,95 @@ $db->disconnect();
 undef($sss);
 exit;
 
+sub castToBool {
+    my $v=shift;
+    if($v eq"1"||$v eq"on"){return 'true'}else{return 'false'}
+}
 
 sub processSubmit {
 
-        my $date = $cgi->param('date');
-        my $log  = $cgi->param('log');
-        my $cat  = $cgi->param('ec');
-        my $cnt ="";
-        my $am = $cgi->param('am');
-        my $af = $cgi->param('amf');
+    my $date = $cgi->param('date');
+    my $log  = $cgi->param('log');
+    my $cat  = $cgi->param('ec');
+    my $cnt ="";
+    my $am = $cgi->param('am');
+    my $af = $cgi->param('amf');
 
-        my $edit_mode = $cgi->param('submit_is_edit');
-        my $view_mode = $cgi->param('submit_is_view');
-        my $view_all  = $cgi->param('rs_all');
-        my $rtf    = $cgi->param('rtf');
-        my $sticky = $cgi->param('sticky');
-        my $stm;
-        my $SQLID = 'rowid'; 
+    my $edit_mode = $cgi->param('submit_is_edit');
+    my $view_mode = $cgi->param('submit_is_view');
+    my $view_all  = $cgi->param('rs_all');
+    my $rtf    = $cgi->param('rtf');
+    my $sticky = $cgi->param('sticky');
+    my $stm;
+    my $SQLID = 'rowid'; 
 
-        ##TODO
-        if($rtf eq 'on'){$rtf = 1}  else {$rtf = 0}
-        if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}           
-        if(!$am){$am=0}
-        if(Settings::isProgressDB()){$SQLID = 'ID'; $sticky = castToBool($sticky);}
+    if($rtf eq 'on'){$rtf = 1}  else {$rtf = 0}
+    if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}           
+    if(!$am){$am=0}
+    if(Settings::isProgressDB()){$SQLID = 'ID'; $sticky = castToBool($sticky);}
 try {
 #Apostroph's need to be replaced with doubles  and white space to be fixed for the SQL.
-            $log =~ s/'/''/g;
+        $log =~ s/'/''/g;
 
-            if ( $edit_mode && $edit_mode != "0" ) {                
-                $date = DateTime::Format::SQLite->parse_datetime($date); $date =~ s/T/ /g;
-                $stm = qq(UPDATE LOG SET ID_CAT='$cat', RTF='$rtf',
-                                         DATE='$date',
-                                         LOG='$log',
-                                         AMOUNT=$am,
-                                         AFLAG = $af,
-                                         STICKY=$sticky WHERE $SQLID=$edit_mode;);
-                #
-                toBuf $stm if $DEBUG;
-                #             
-                
-                traceDBExe($stm);
+        if ( $edit_mode && $edit_mode != "0" ) {                
+            $date = DateTime::Format::SQLite->parse_datetime($date); $date =~ s/T/ /g;
+            $stm = qq(UPDATE LOG SET ID_CAT='$cat', RTF='$rtf',
+                                        DATE='$date',
+                                        LOG='$log',
+                                        AMOUNT=$am,
+                                        AFLAG = $af,
+                                        STICKY=$sticky WHERE $SQLID=$edit_mode;);
+            #
+            toBuf $stm if $DEBUG;
+            #             
+            
+            traceDBExe($stm);
+            return;
+        }
+
+        if ( $view_mode == "1" ) {
+
+            if ($rs_cur) {
+                my $sand = "";
+                if($rs_cur == $rs_prev)
+                {    #Mid page back button if id ordinal.
+                    $rs_cur += $rec_limit;
+                    $rs_prev = $rs_cur;
+                    $rs_page--;
+                }
+                else {
+                    $rs_page++;
+                }
+                if($prm_vc){
+                    $sand = "and ID_CAT == $prm_vc";
+                }
+                elsif($prm_xc){
+
+                    if(@xc_lst){
+                       foreach (@xc_lst){
+                          $sand .= "and ID_CAT!=$_ ";
+                       }
+                    }
+                    else{ $sand = "and ID_CAT != $prm_xc"; }
+
+                }
+                $sqlVWL = qq($stmS PID<=$rs_cur and STICKY=false $sand $stmE);
                 return;
             }
-
-            if ( $view_mode == "1" ) {
-
-                if ($rs_cur) {
-                    my $sand = "";
-                    if ( $rs_cur == $rs_prev )
-                    {    #Mid page back button if id ordinal.
-                        $rs_cur += $rec_limit;
-                        $rs_prev = $rs_cur;
-                        $rs_page--;
-                    }
-                    else {
-                        $rs_page++;
-                    }
-
-                    if($prm_vc){
-                        $sand = "and ID_CAT == $prm_vc";
-                    }
-                    elsif($prm_xc){
-
-                        if(@xc_lst){
-                                foreach (@xc_lst){
-                                        $sand .= "and ID_CAT!=$_ ";
-                                }
-                        }
-                        else{ $sand = "and ID_CAT != $prm_xc"; }
-
-                    }
-
-                    $sqlVWL = qq($stmS PID<=$rs_cur and STICKY=false $sand $stmE);
-                    return;
-                }
-            }
+        }
 
             if ( $log && $date && $cat ) {
-
-                                #
-                # After Insert renumeration check
                 #
+                # After Insert renumeration check
+                #                
                 my $dt    = DateTime::Format::SQLite->parse_datetime($date);
                 my $dtCur = DateTime->now();
-                $dtCur->set_time_zone(&Settings::timezone);
-                $dtCur = $dtCur - DateTime::Duration->new( days => 1 );
-
-                #check for double entry
+                   $dtCur->set_time_zone(&Settings::timezone);
+                   $dtCur = $dtCur - DateTime::Duration->new( days => 1 );
                 #
-                $date = DateTime::Format::SQLite->parse_datetime($date);
+                # check and prevent double entry
+                #
+                $date = $dt;
                 $stm = qq(SELECT DATE,LOG FROM LOG where DATE='$date' AND LOG='$log';);
                 my $st = traceDBExe($stm);
                 if ($st->fetchrow_array() ) {
@@ -1163,28 +1156,45 @@ try {
                 $sticky=castToBool($sticky);
                 $stm = qq(INSERT INTO LOG (ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY) VALUES ($cat,'$date','$log',$rtf, $am,$af,$sticky););
                 $st = traceDBExe($stm);
+                # my $rv = $db->last_insert_id(undef, undef, "log", undef);
+                #  toBuf "\n<b>[".$rv."]</b>";
+                $st->finish();
                 if($sssCDB){
                     #Allow further new database creation, it is not an login infinite db creation attack.
                     $sss->param("cdb", 0);
                 }
                 if($rtf){ #Update 0 ground NOTES entry to the just inserted log.
-
-                   $st = traceDBExe('SELECT ID FROM '.Settings->VW_LOG.' LIMIT 1;');
-                   my @lid = $st->fetchrow_array();
+                   if ($dtCur > $dt){#New entry is set in the past. And wtf; has RTF attached.
+                       if(Settings::isProgressDB()){$stm = "SELECT ID FROM LOG WHERE date = timestamp '$date';"}
+                       else{$stm = 'SELECT ID FROM '.Settings->VW_LOG." WHERE datetime(date) = datetime('$date');"}
+                       $st = traceDBExe($stm); 
+                   }else{
+                       $st = traceDBExe('SELECT ID FROM '.Settings->VW_LOG.' LIMIT 1;');
+                   }
+                   my @lids = $st->fetchrow_array();
                    $st = traceDBExe('SELECT DOC FROM NOTES WHERE LID = 0;');
                    my @gzero = $st->fetchrow_array();
-                   if(scalar @lid > 0){
+                   if(scalar @lids > 0){
             #By Notes.LID constraint, there should NOT be an already existing log rowid entry just submitted in the Notes table!
             #What happened? We must check and delete, regardles. As data is renumerated and shuffled from perl in database. :(
-                      $st = traceDBExe("SELECT LID FROM NOTES WHERE LID=".$lid[0].";");
+                      $st = traceDBExe("SELECT LID FROM NOTES WHERE LID=".$lids[0].";");
                       if($st->fetchrow_array()){
-                          $st = $db->do("DELETE FROM NOTES WHERE LID=".$lid[0].";");
-                          toBuf qq(<p>Warning deleted (possible old) NOTES.LID[$lid[0]] -> lid:@lid</p>);
+                          $st = $db->do("DELETE FROM NOTES WHERE LID=".$lids[0].";");
+                          # NOTICE -  There will be disparities here if renumeration failed, to update, run. 
+                          # These are expected after upgrades. And if switching DB engine and SQL compatibilities.
+                          toBuf qq(<p>Warning deleted (possible old) NOTES.LID[$lids[0]] -> lid:@lids</p>);
                       }
+                      toBuf("\nINSERT INTO NOTES($lids[0], {DOC[$date]})") if ($DEBUG);
                       $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
-                      $st->execute($lid[0], $gzero[0]);
+                      if(Settings::isProgressDB()){
+                          $st->bind_param(1, $lids[0]);                            
+                          $st->bind_param(2, $gzero[0],{ pg_type => DBD::Pg::PG_BYTEA });
+                          $st->execute();
+                      }else{
+                        $st->execute($lids[0], $gzero[0]);
+                      }
                        #Flatten ground zero
-                      $st = $db->prepare("UPDATE NOTES SET DOC='' WHERE LID=0;");
+                      $st = $db->prepare("UPDATE NOTES SET DOC=null WHERE LID=0;");
                       $st->execute();
                    }
                 }
@@ -1551,6 +1561,5 @@ sub outputPage {
     print $cgi->end_html;
 }
 
-sub castToBool {if(shift){return 'true'}else{return 'false'}}
 
 1;

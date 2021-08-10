@@ -115,15 +115,17 @@ return "<b>".$d->ymd()."</b> ".$d->hms;
 sub DeletionConfirmed {
 
 try{    
-    my $SQLID = 'rowid'; $SQLID = 'ID' if (Settings::isProgressDB());
+    my $SQLID = 'rowid'; $SQLID = 'ID' if Settings::isProgressDB();
     my $st1 = $db->prepare("DELETE FROM LOG WHERE $SQLID = ?;");
     my $st2 = $db->prepare("DELETE FROM NOTES WHERE LID = ?;");
     #print $cgi->header(-expires=>"+6os");
     foreach my $id ($cgi->param('chk')){
-        #print $cgi->p("###[deleting:$id]") if(Settings::debug());        
-        $st1->execute($id) or die "<p>Error->"& $_ &"</p>";
-        $st2->execute($id);
+        my $st = Settings::selectRecords($db, 'select RTF from LOG where '.$SQLID.'='.$id);
+        my @ra = $st->fetchrow_array();
+        $st1->execute($id) or die "<p>Error->"& $_ &"</p>";        
+        $st2->execute($id) if $ra[0];
     }
+    Settings::renumerate($db);#<- 2021-08-11 Added just in case renumeration. Above also chack now if log was flagged an RTF before deleting note entry.
    print $cgi->redirect('main.cgi');  
 
 }catch{
