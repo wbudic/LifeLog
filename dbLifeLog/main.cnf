@@ -12,10 +12,11 @@ This is an Open Source License project -> https://choosealicense.com/licenses/is
 # Default database driver prefix, is SQLite.
 Note Remove -> '!' prefix to tag name, to enable, set,
 and override any previously set from now on, top to end of file approach.
-
-<<!DBI_SOURCE<DBI:SQLite:>>>
+# SQLite DB driver. 
+<<DBI_SOURCE<DBI:SQLite:>>>
 # ProgresSQL DB driver. 
-<<DBI_SOURCE<DBI:Pg:host=localhost;>>>
+<<!DBI_SOURCE<DBI:Pg:host=localhost;>>>
+
 # LOG actual variable size limit, - 1024 default, 128 minimum value. 
 <<DBI_LOG_VAR_SIZE<8024>>>
 

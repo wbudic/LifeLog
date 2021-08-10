@@ -22,14 +22,15 @@
 sudo apt install cpanminus
 
 
-#Install SQLite
-https://www.sqlite.org/download.html
-
+# Install SQLite
+sudo cpan DBD::SQLite;
+# or download latest from: https://www.sqlite.org/download.html
+# Optional but recommended install a ProgresSQL database server and driver see: Installation_ProgresSQL.txt
 
 ## Development Environment Perl Install
 
 # Developer? Install VSCode, not from flatpack. Use Microsoft site -> https://code.visualstudio.com/
-Requirments: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
+Requirements: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
 
 # Install Perl, properly, don't use the distro provided perl interpreter (might be outdated or has missing modules).
 ##
