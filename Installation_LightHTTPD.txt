@@ -61,8 +61,13 @@ accesslog.filename = “/var/log/lighttpd/elite.net.access.log”
 /usr/sbin/lighttpd -D -f  ~/dev/LifeLog/lighttpd.conf
 
 
-## Run as service , def is: lighttpd -D -f  /etc/lighttpd/lighttpd.conf
+## Run as service, we don't want default: lighttpd -D -f  /etc/lighttpd/lighttpd.conf
 
 sudo systemctl start lighttpd -D -f  /home/will/dev/LifeLog/lighttpd.conf
 sudo systemctl enable lighttpd
 sudo systemctl status lighttpd
+
+## Optional Enable as separate service, so it runs always, after reboot too.
+sudo systemctl link /home/will/dev/LifeLog/LifeLogLighttpd.service
+sudo systemctl enable LifeLogLighttpd
+sudo systemctl start LifeLogLighttpd
