@@ -5,7 +5,7 @@ Preferably on a small inexpensive server connected to your local network.
 
 Written in Perl, easy to implement and modify.
 
-Latest stable version is **2.1** in **SUN** stage.
+Latest stable version is **2.3** in **SUN** stable stage.
 
 
 ## PC Requirements
@@ -14,10 +14,17 @@ Latest stable version is **2.1** in **SUN** stage.
 * Processor 1.2+ GHZ or better, 2+ cores.
 * Only 2 GB+ physical. 
  
-Setup is requiring some Perl knowledge to install and enable, and tweak this application. The main application sources are located in the ../htdocs/cgi-bin directory. Current unstable, development ver. 1.6 is in the GIT branch. The development and features are stable progressive, starting from Moon, Sun and finally Earth stable stage. This application was and is usable since its Moon stage.
+Setup is requiring some Perl knowledge to install and enable, and tweak this application. The main application sources are located in the ../htdocs/cgi-bin directory.
 
-https://www.sqlite.org/index.html database is required to run this web application. Note this isn't a full on blown database server requirment, that runs in your background and uses your computers resources.
-
+### Quick Setup
+  * After downloading this application and installing in a directory (default is **~/dev**), which both can be done with:
+  *  ```git clone https://github.com/wbudic/LifeLog.git```
+     *  Check here for further [instuctions](./Installation.txt).
+  * Before modifying any configuration, run the module installation and testing process.
+    *  ```./install_modules.sh```
+    *  This might be necessary after even upgrades. 
+    *  Upgrades support preserving of data, and migration to any possible new data structures, automatically.
+    *  Rolling back to an previous version even if not expected, it is not affected by any new modules you might have installed, down the track.
 ## What is the purpose of having this log kept?
 
 Here are some things that come to mind:
@@ -68,7 +75,7 @@ Here are some things that come to mind:
 
 ## Life Log version v.2.+
 
-* Mulitple SQL database support ready and tested, currently ProgreSQL, LightSQL (default).
+* Mulitple SQL database support ready and tested, currently PostgreSQL, LightSQL (default).
 * Data searches, views, updated, enhanced and upgraded.
 * Migration upgraded and test.
 * Cross version releases, automatic migration of data and structures.
