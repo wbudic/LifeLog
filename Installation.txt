@@ -92,6 +92,8 @@ sudo cpan Compress::Zlib;
 sudo cpan IO::Compress::Gzip;
 sudo cpan IO::Prompter;
 sudo cpan IO::Interactive;
+#Disabled testing for now on ProgresSQL driver
+sudo cpan -T DBD::Pg;
 
 
 
@@ -123,6 +125,14 @@ Before installing newer version scripts, perform an data export.
 
 cd /home/{user}/thttpd_dev/dbLifeLog
 sqlite3 -csv data_log.db "select * from LOG;" > current_log.csv
+
+## You should run module install, after every upgrade/update just in case something is missing:
+#
+#
+./install_modules.sh
+#
+## Note, install modules doesn't require any restarts or reboots, this is perl baby.
+## However, allow some time as it also tests these, to make sure all is running fine.
 
 ##Install LifeLog Independently
 cd /home/{user}/
