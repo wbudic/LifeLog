@@ -106,7 +106,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         e.preventDefault();
         let v = $('#am').val();
         if(v.length==0 || v==0.00){
-            const regex = /^\D*\d+\.*\d*/gm;
+            const regex = /^[\D]?\d+\.*\d*/gm;
             let str = $('#el').val();
             let m; let tot = 0;
 
@@ -115,8 +115,13 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
                     regex.lastIndex++;
                 }
                 m.forEach( (match, groupIndex) => {
+                    let v = `${match}`;
+                    let s = v.startsWith('-');
+                    v = v.replace(/^\./g,'0.');
+                    v = v.replace(/^\D/g,'');
                     //console.log(`Found match, group ${groupIndex}: ${match}`);
-                    tot += parseFloat(`${match}`.replace(/^\$/g,''));
+                    if(s){ tot -= parseFloat(v);
+                    }else{ tot += parseFloat(v); }
 
                 });
             }
