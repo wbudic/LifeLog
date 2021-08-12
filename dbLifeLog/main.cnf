@@ -1,4 +1,4 @@
-!CNF2.0
+!CNF2.2
 This is the main configuration file for the LifeLog applications settings.
 https://github.com/wbudic/LifeLog
 This is an Open Source License project -> https://choosealicense.com/licenses/isc/
@@ -18,7 +18,7 @@ and override any previously set from now on, top to end of file approach.
 <<!DBI_SOURCE<DBI:Pg:host=localhost;>>>
 
 # LOG actual variable size limit, - 1024 default, 128 minimum value. 
-<<DBI_LOG_VAR_SIZE<8024>>>
+<<DBI_LOG_VAR_SIZE<8192>>>
 
 # Set the following to an database name, with external managed multiple users, that are to connect to a single database.
 # Users have to be externally set, and alias is then used for their userid to be able to login. (Add user roles to AUTH table).
@@ -51,9 +51,13 @@ BankingPlugin->banking.pl
 <<!VIEW_OVERRIDE_SYSLOGS<0>>>
 <<!VIEW_OVERRIDE_WHERE<ID_CAT>=6 AND >>>
 
-
+#
+# The following are initial setup constance's. 
+# Modifying them after the fact of a database creation is futile, a limp biscuit.
+# Use/see anon properties before, enabling changing settings from this actual config file.
+#
 <<CONFIG<4>
-00|$RELEASE_VER = 2.2`LifeLog Application Version.
+00|$RELEASE_VER = 2.3`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
 03|$TIME_ZONE   = Australia/Sydney`Time zone of your country and city.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.
