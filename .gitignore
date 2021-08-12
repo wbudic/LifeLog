@@ -9,6 +9,7 @@
 *.tar
 *.pid
 *.log
+cgisess_*
 .DS_Store
 .idea
 .vscode
