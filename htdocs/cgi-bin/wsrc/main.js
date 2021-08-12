@@ -116,17 +116,27 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
                 }
                 m.forEach( (match, groupIndex) => {
                     let v = `${match}`;
+                    let d = v.startsWith('/');
+                    let m = v.startsWith('*');
+                    if(d||m){v=v.substring(1)}
                     let s = v.startsWith('-');
                     v = v.replace(/^\./g,'0.');
                     v = v.replace(/^\D/g,'');
                     //console.log(`Found match, group ${groupIndex}: ${match}`);
-                    if(s){ tot -= parseFloat(v);
-                    }else{ tot += parseFloat(v); }
-
+                    if(d){
+                        if(s){ tot /= -parseFloat(v);
+                        }else{ tot /= parseFloat(v); }
+                    }else if(m){
+                        if(s){ tot *= -parseFloat(v);
+                        }else{ tot *= parseFloat(v); }
+                    }else{
+                        if(s){ tot -= parseFloat(v);
+                        }else{ tot += parseFloat(v); }
+                    }
                 });
             }
-            $('#am').val(tot);
-            
+            if(tot==0){tot=""}
+            $('#am').val(tot);            
         }
 
 
