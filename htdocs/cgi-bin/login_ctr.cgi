@@ -258,6 +258,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
             $curr_tables{$r[0]} = 1;
         }
     }
+
     if($curr_tables{'CONFIG'}) {
         #Set changed if has configuration data been wiped out.
         $changed = 1 if Settings::countRecordsIn($db, 'CONFIG') == 0;
@@ -272,12 +273,12 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
         $rv = $db->do(Settings::createCONFIGStmt());
         $changed = 1;
     }     
-    # Now we got a db with CONFIG, lets get settings from there.
+    # Now we got a db with CONFIG, lets get settings from THERE.
     # Default version is the scripted current one, which could have been updated.
     # We need to maybe update further, if these versions differ.
     # Source default and the one from the CONFIG table in the (present) database.    
     Settings::getConfiguration($db,{
-                backup_enabled=>$BACKUP_ENABLED,
+                backup_enabled=>$BACKUP_ENABLED,#<-actual anon property value has been overriden here via &checkAutologinSet.
                 auto_set_timezone=>$AUTO_SET_TIMEZONE,
                 TIME_ZONE_MAP=>$TIME_ZONE_MAP, 
                 db_log_var_limit=>Settings::dbVLSZ()
@@ -303,13 +304,31 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
            }
         }catch{$@.="\n$sup"; die "Failed[$@]"}
     }
-    #Is it pre or around v.2.1, where ID_RTF is instead of RTF in the LOG table?
-    if($hasLogTbl && !Settings::isProgressDB()){ 
-        $pst = Settings::selectRecords($db, "SELECT * from pragma_table_info('LOG') where name like 'ID_RTF';");
-        my @row = $pst = $pst->fetchrow_array();  
-        if(scalar (@row)>0 &&$row[0]==1){
-            $db->do("ALTER TABLE LOG RENAME COLUMN ID_RTF TO RTF;");           
-        }        
+
+    if($hasLogTbl){
+       if(Settings::isProgressDB()){ 
+           #Has the DBI_LOG_VAR_SIZE been changed? For Pg it is important. Default code value is in Settings::DBI_LVAR_SZ
+            my $v = Settings::dbVLSZ();            
+            if($curr_config{db_log_var_limit} ne $v){  #<- yes, crap, a different mapping name in the db for the anon DBI_LOG_VAR_SIZE
+              if($v>1024){#<-We actually only care that what is set in script is an number value to have to further modify anything.
+                Settings::configProperty($db,0,'db_log_var_limit',$v);
+                $sql=qq(ALTER TABLE public.log
+                                ALTER COLUMN log TYPE character varying($v) COLLATE pg_catalog."default";);
+                $db->do('DROP VIEW '.Settings->VW_LOG) if $curr_tables{Settings->VW_LOG}; #<- views have constraints to tables in Pg, we can drop.
+                Settings::selectRecords($db, $sql);#<-will make a prepared stmt do, but also with exsception handling.
+                $db->do(Settings::createViewLOGStmt()) if $curr_tables{Settings->VW_LOG};
+              }
+            }
+        }     
+        else{
+            #Is it pre or around v.2.1, where ID_RTF is instead of RTF in the LOG table?
+            $pst = Settings::selectRecords($db, "SELECT * from pragma_table_info('LOG') where name like 'ID_RTF';");
+            my @row = $pst = $pst->fetchrow_array();  
+            if(scalar (@row)>0 &&$row[0]==1){
+                $sql="ALTER TABLE LOG RENAME COLUMN ID_RTF TO RTF;";
+                Settings::selectRecords($db, $sql);#<-will make a prepared stmt do, but also with exsception handling.
+            }#Done here as there is no alter column type in sqlite and not required.
+        }
     }
     #
     # From v.1.8 Log has changed, to have LOG to NOTES relation.
@@ -390,7 +409,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
     elsif($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 2.0){
         #dev 1.9 main log view has changed in 1.8..1.9, above scope will perform anyway, its drop, to be recreated later.
         my $t ="BYTE"; $t = "SMALLINT" if Settings::isProgressDB();
-        $db->do('DROP VIEW '.Settings->VW_LOG);delete($curr_tables{Settings->VW_LOG});
+        $db->do('DROP VIEW '.Settings->VW_LOG); delete($curr_tables{Settings->VW_LOG});
         $db->do("ALTER TABLE LOG ADD COLUMN RTF $t default 0");
         delete($curr_tables{Settings->VW_LOG});
         $changed = 1;

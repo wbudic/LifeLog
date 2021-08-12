@@ -702,7 +702,7 @@ sub connectDB {
     }
 }
 
-my @F = ('', '""', 'false', 'off', 'no', 0);# Placed 0 last, as never will be checked for in toPropertyValue.
+my @F = ('', '""', 'false', 'off', 'no', 0);# Placed the 0 last, as never will be checked for in toPropertyValue.
 my @T  = (1, 'true', 'on', 'yes');
 my $reg_autonom = qr/(<<)(.+?)(<)(\n*.+\s*)(>{3,})/mp;
 
