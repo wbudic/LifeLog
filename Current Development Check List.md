@@ -6,7 +6,7 @@
 
 ### New Development
 
-* Implement backup/restore on Pg based data. Restore only partially works from older backup.
+* &#10004; Implement backup/restore on Pg based data. Restore only partially works from older backup.
 * &#10004; Bug 35. SQL migration, version update, not working for PG based databases.
 * &#10004; JS - Event, on expense sum in log numbers found at beginning of lines.
 * &#10004; Update to CNF v.2.2, branch to $RELEASE_VER = 2.3, Earth Stage initial.

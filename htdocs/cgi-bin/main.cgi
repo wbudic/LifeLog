@@ -1187,7 +1187,7 @@ try {
                       toBuf("\nINSERT INTO NOTES($lids[0], {DOC[$date]})") if ($DEBUG);
                       $st = $db->prepare("INSERT INTO NOTES(LID, DOC) VALUES (?, ?);");
                       if(Settings::isProgressDB()){
-                          $st->bind_param(1, $lids[0]);                            
+                          $st->bind_param(1, $lids[0]);           
                           $st->bind_param(2, $gzero[0],{ pg_type => DBD::Pg::PG_BYTEA });
                           $st->execute();
                       }else{
