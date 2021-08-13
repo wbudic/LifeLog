@@ -113,7 +113,6 @@ return "<b>".$d->ymd()."</b> ".$d->hms;
 
 
 sub DeletionConfirmed {
-
 try{    
     my $SQLID = 'rowid'; $SQLID = 'ID' if Settings::isProgressDB();
     my $st1 = $db->prepare("DELETE FROM LOG WHERE $SQLID = ?;");
@@ -125,14 +124,14 @@ try{
         $st1->execute($id) or die "<p>Error->"& $_ &"</p>";        
         $st2->execute($id) if $ra[0];
     }
-    Settings::renumerate($db);#<- 2021-08-11 Added just in case renumeration. Above also chack now if log was flagged an RTF before deleting note entry.
+   #2021-08-11 Added just in case next an renumeration. 
+   # Above also checks now, if a log has flagged having an RTF before deleting the note entry.
+   Settings::renumerate($db);
    print $cgi->redirect('main.cgi');  
 
 }catch{
     print $cgi->p("<font color=red><b>ERROR</b></font>  " . $@);
-    exit;
 }
-
 }
 
 sub printHeader {
