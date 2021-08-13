@@ -34,6 +34,12 @@ my $TIME_ZONE_MAP = 0;
 my ($DB_NAME,$PAGE_EXCLUDES);
 my $VW_OVR_SYSLOGS=0;
 my $VW_OVR_WHERE="";
+my $LOGOUT_RELOGIN_TXT='No, no, NO! Log me In Again.';
+my $LOGOUT_IFRAME_ENABLED = 0;
+my $LOGOUT_IFRAME = qq|<iframe width="60%" height="600px" src="https://www.youtube.com/embed/qTFojoffE78?autoplay=1"
+      frameborder="0"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+    </iframe>|;
 
 try{
     checkAutologinSet();
@@ -165,6 +171,10 @@ sub checkAutologinSet {
         if($v){$VW_OVR_SYSLOGS=$v;next}
         $v = Settings::parseAutonom('VIEW_OVERRIDE_WHERE',$line);
         if($v){$VW_OVR_WHERE=$v;next}
+        $v = Settings::parseAutonom('LOGOUT_IFRAME_ENABLED',$line);
+        if($v){$LOGOUT_IFRAME_ENABLED = $v; next;}
+        $v = Settings::parseAutonom('LOGOUT_RELOGIN_TXT',$line);
+        if($v){$LOGOUT_RELOGIN_TXT=$v; next;}
         last if (0 == index $line,'<<CONFIG<'); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
@@ -237,27 +247,12 @@ sub checkPreparePGDB {
 sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
  try{
     # We live check database for available tables now only once.
-    # If brand new database, this sill returns fine an empty array.
-    my %curr_tables = ();
+    # If brand new database, this sill returns fine an empty array.    
     my %curr_config = ();
-
-
-    if(Settings::isProgressDB()){        
-        $changed = checkPreparePGDB();
-        $db = Settings::connectDB($DB_NAME, $alias, $passw); 
-        my @tbls = $db->tables(undef, 'public');
-        foreach (@tbls){
-            my $t = uc substr($_,7);
-            $curr_tables{$t} = 1;
-        }
-    }
-    else{
-        $db = Settings::connectDB($DB_NAME, $alias, $passw); 
-        $pst = Settings::selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");        
-        while(my @r = $pst->fetchrow_array()){
-            $curr_tables{$r[0]} = 1;
-        }
-    }
+    my %curr_tables;    
+    $changed = checkPreparePGDB() if Settings::isProgressDB();
+    $db = Settings::connectDB($DB_NAME, $alias, $passw); 
+    %curr_tables = %{Settings::schema_tables($db)};
 
     if($curr_tables{'CONFIG'}) {
         #Set changed if has configuration data been wiped out.
@@ -352,20 +347,20 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
                         my $sql_date = $row[1];;
                         $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
                         if(Settings::isProgressDB()){
-                             $sql="SELECT ID, DATE FROM life_log_login_ctr_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';"}
+                           $sql="SELECT ID, DATE FROM life_log_login_ctr_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';"}
                         else{$sql="SELECT rowid, DATE FROM life_log_login_ctr_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';"}                        
                         my $pst2  = Settings::selectRecords($db, $sql);
                         my @rec   = $pst2->fetchrow_array();
                         if(@rec){
-                            $db->do("UPDATE NOTES SET LID=". $rec[0]." WHERE LID=".$row[0].";");
-                            if(Settings::isProgressDB()){
+                           $db->do("UPDATE NOTES SET LID=". $rec[0]." WHERE LID=".$row[0].";");
+                           if(Settings::isProgressDB()){
                                  $sql="SELECT LID FROM NOTES WHERE LID = ".$rec[0].";"}
-                            else{$sql="SELECT rowid FROM NOTES WHERE LID = ".$rec[0].";"}
-                            $pst2  = Settings::selectRecords($db, $sql);
-                            @rec   = $pst2->fetchrow_array();
-                            if(@rec){
-                               $notes_ids{$sql_date} = $rec[0];
-                            }
+                           else{$sql="SELECT rowid FROM NOTES WHERE LID = ".$rec[0].";"}
+                           $pst2  = Settings::selectRecords($db, $sql);
+                           @rec   = $pst2->fetchrow_array();
+                           if(@rec){
+                              $notes_ids{$sql_date} = $rec[0];
+                           }
                         }
                 }
             }
@@ -863,15 +858,12 @@ sub logout {
     print $cgi->start_html(-title => "Personal Log Login", -BGCOLOR=>"black",
                            -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
             );
-
+    $LOGOUT_IFRAME  = "" if not $LOGOUT_IFRAME_ENABLED;
     print qq(<font color="white"><center><h2>You have properly logged out of the Life Log Application!</h2>
     <br>
-    <form action="login_ctr.cgi"><input type="hidden" name="autologoff" value="1"/><input type="submit" value="No, no, NO! Log me In Again."/></form><br>
+    <form action="login_ctr.cgi"><input type="hidden" name="autologoff" value="1"/><input type="submit" value="$LOGOUT_RELOGIN_TXT"/></form><br>
     </br>
-    <iframe width="60%" height="600px" src="https://www.youtube.com/embed/qTFojoffE78?autoplay=1"
-      frameborder="0"
-        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-    </iframe>
+    $LOGOUT_IFRAME
     </center></font>
     );
 
@@ -879,9 +871,10 @@ sub logout {
 
     $session->delete();
     $session->flush();
-
+    my $bckLog =  Settings::logPath()."backup_restore.log";    
+    unlink $bckLog if(-e $bckLog);    
 
     exit;
 }
 1;
-### CGI END
+
