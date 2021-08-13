@@ -8,10 +8,13 @@ This is an Open Source License project -> https://choosealicense.com/licenses/is
 <<AUTO_LOGIN<>>>
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>>>
+<<LOGOUT_IFRAME_ENABLED<true>>>
+<<LOGOUT_RELOGIN_TXT< - Log me In Again - >>>
 
 # Default database driver prefix, is SQLite.
 Note Remove -> '!' prefix to tag name, to enable, set,
 and override any previously set from now on, top to end of file approach.
+#
 # SQLite DB driver. 
 <<DBI_SOURCE<DBI:SQLite:>>>
 # ProgresSQL DB driver. 
