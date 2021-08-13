@@ -78,6 +78,7 @@ our $DSN;
 our $DBFILE;
 our $IS_PG_DB     = 0;
 
+
 my ($cgi, $sss, $sid, $alias, $pass, $dbname, $pub);
 
 #Annons here, variables that could be overiden in  code or database, per need.
@@ -134,7 +135,7 @@ sub dbVLSZ         {$S_ = shift; if(!$S_){$S_ = $DBI_LVAR_SZ}else{$S_=128 if($S_
 sub dbFile         {$S_ = shift; $DBFILE = $S_ if $S_; $DBFILE}
 sub dbName         {$S_ = shift; $dbname = $S_ if $S_; $dbname}
 sub dsn            {$DSN}
-sub isProgressDB   {$IS_PG_DB}
+sub isProgressDB   {$IS_PG_DB} sub resetToDefaultDriver {$IS_PG_DB=0}
 sub sqlPubors      {$SQL_PUB}
 
 sub cgi     {$cgi}
@@ -364,7 +365,7 @@ sub createNOTEStmt {
       # return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC jsonb);)
       return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC bytea);) 
     }
-    return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC TEXT);)
+    return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC BLOB);)
 }
 sub createLOGCATSREFStmt {
 if($IS_PG_DB){
@@ -495,14 +496,36 @@ sub getTheme {
     }
 }
 
+sub schema_tables{
+    my ($db) = @_;
+    my %tables = ();
+    if(Settings::isProgressDB()){        
+        my @tbls = $db->tables(undef, 'public');
+        foreach (@tbls){
+            my $t = uc substr($_,7); #We check for tables in uc.
+            $tables{$t} = 1;
+        }
+    }
+    else{
+        my $pst = selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");        
+        while(my @r = $pst->fetchrow_array()){
+            $tables{$r[0]} = 1;
+        }
+    }
+    return \%tables;
+}
+
 #From v.1.8 Changed
 sub renumerate {
     my $db = shift;
     my $CI = 'rowid'; $CI = 'ID' if $IS_PG_DB;
+    my %stbls=%{schema_tables($db)};
     #Renumerate Log! Copy into temp. table.
-    my $sql;
-
-    $db->do("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG order by $CI;");    
+    my $sql = "CREATE TABLE LIFE_LOG_TEMP_TABLE AS SELECT * FROM LOG order by $CI;";
+    if($stbls{'LIFE_LOG_TEMP_TABLE'}){
+       $db->do('DROP TABLE LIFE_LOG_TEMP_TABLE;');
+    }
+    $db->do($sql);    
     # Delete any possible orphaned Notes records.
     my $st = selectRecords($db, "SELECT LID, LOG.$CI from NOTES LEFT JOIN LOG ON NOTES.LID = LOG.$CI WHERE LOG.$CI is NULL;");
     while(my @row=$st->fetchrow_array()) {
@@ -539,7 +562,7 @@ sub renumerate {
     $st->finish();
 
 
-    $db->do('DROP TABLE life_log_temp_table;');
+    $db->do('DROP TABLE LIFE_LOG_TEMP_TABLE;');
 }
 
 sub selectRecords {
