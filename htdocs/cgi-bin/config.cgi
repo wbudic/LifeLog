@@ -1153,7 +1153,7 @@ my $stdout = capture_stdout {
 
         my $cmd = `tar tvf $tar 2>/dev/null` 
          or die qq(, Error: A possible security issue, $m1\n<br> BACKUP FILE HAS BEEN INVALIDATED!
-          $tar\nYour alias is: <b>$alias:$passw</b>\n<br>
+          $tar\nYour alias is: <b>$alias</b>\n<br>
           Your DSN  is: ).Settings::dsn().qq(<br>
           Your LifeLog version is:), Settings::release()."\n";
         
