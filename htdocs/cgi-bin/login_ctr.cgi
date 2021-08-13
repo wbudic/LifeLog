@@ -14,8 +14,8 @@ use lib "system/modules";
 require Settings;
 
 my $cgi = CGI->new();
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath});
-   $session->expire(Settings::sessionExprs());
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath, SameSite=>'Lax'});
+   $session->expire(Settings::sessionExprs());   
 my $sssCreatedDB = $session->param("cdb");
 my $sid=$session->id();
 my $cookie = $cgi->cookie(CGISESSID => $sid);
