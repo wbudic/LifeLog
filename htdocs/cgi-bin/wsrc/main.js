@@ -1191,9 +1191,9 @@ function RGBToHex(rgb) {
     return "#" + r + g + b;
 }
 
-function fetchBackup() {
-    window.location = "config.cgi?bck=1";
-    setTimeout("location.reload(true);", 1000);
+function fetchBackup() {    
+    window.location = "config.cgi?bck=1";    
+    setTimeout("location.reload(true);", 5000);
 }
 function deleteBackup() {
     $('<div></div>').dialog({
