@@ -6,10 +6,15 @@
 
 ### New Development
 
+* &#10004; RTF load of the zero document if present. When RTF attaching to a new log, you can save the rtf,
+  it is called a zero document (not assigned), as the log hasn't been saved yet. This reload can be useful, as it is always stored...
 * &#10004; Implement backup/restore on Pg based data. Restore only partially works from older backup.
 * &#10004; Bug 35. SQL migration, version update, not working for PG based databases.
 * &#10004; JS - Event, on expense sum in log numbers found at beginning of lines.
 * &#10004; Update to CNF v.2.2, branch to $RELEASE_VER = 2.3, Earth Stage initial.
+  
+#### Not Urgent New Development ( In Planning
+
 * Plugins
   * Perl files enabled by being including them in main.cnf file under the <<PLUGINS<>>> list, and placed in the plugins directory.
   * This plugin perl file is then be executed, to provide auto installation and checks.

@@ -15,6 +15,7 @@ var DEF_BACKGROUND = 'white';
 
 var RTF_DOC_RESIZED = false;
 var RTF_DOC_ORIG;
+var RTF_DOC_CUR_ID;
 var TIME_STAMP;
 var LOCALE;
 var TIMEZONE; 
@@ -23,6 +24,8 @@ var DBI_LVAR_SZ;
 function onBodyLoadGeneric() {
     $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
     $("#btn_save_doc").button();
+    $("#btn_zero_doc").button(); if($("rtf_buffer").val()==0){$("#btn_zero_doc").hide()};
+    $("#btn_load_doc").button(); $("#btn_load_doc").hide();
     if(!LOCALE || LOCALE==="English"){
         LOCALE = "en-US";
     }
@@ -387,7 +390,6 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             source: AUTOWORDS
             });
     });
-
     display("Log page is ready!");    
 }
 
@@ -570,8 +572,12 @@ function edit(row) {
 
     if(isRTF){
         display("Loading RTF: "+ ed_v.val() );
+        RTF_DOC_CUR_ID = row;
         loadRTF(false, row);
-    }else{display("Editing: "+ ed_v.val(),3);}
+    }else{
+        display("Editing: "+ ed_v.val(),3);
+        RTF_DOC_CUR_ID = 0;
+    }
 
     //Select category
     var ec_lb = $("#c" + row).text();
@@ -685,11 +691,10 @@ function resizeDoc() {
 
 }
 function resetDoc(){
-    if (RTF_SET) {
-        QUILL.setText("");
-    }
+    if (RTF_SET) { QUILL.setText(""); }
     $("#submit_is_edit").val("0");
     toggleDoc(true);
+    $('#btn_load_doc').hide();
 }
 
 
@@ -1050,7 +1055,7 @@ var RTF_SUBMIT = false;
 function saveRTF(id, action) {
     // alert(JSON.stringify(QUILL.getContents()));
 
-    //Strip ammount to show plain number.
+    //Strip amount to show plain number.
        var am = $("#am").val().trim();
            am = am.replace(/[^\d\.]/g,"");
        $("#am").val(am);
@@ -1064,28 +1069,40 @@ function saveRTF(id, action) {
     }
     RTF_SUBMIT = true;
     var bg = $("#fldBG").val();
-    $.post('json.cgi', {action:'store', id:id, bg:bg, doc: JSON.stringify(QUILL.getContents())},saveRTFResult).fail(
-        function(response) {dialogModal("Server Error: "+response.status,response.responseText);});
-    if(is_submit){
-        //we must wait before submitting actual form!
+    $.post('json.cgi', {action:'store', id:id, bg:bg, doc: JSON.stringify(
+            QUILL.getContents())},saveRTFResult).fail(
+                 function(response) {dialogModal("Server Error: "+response.status,response.responseText);}
+                                                 );
+    if(is_submit){        
         $("#idx_cat").value = "SAVING DOCUMENT...";
         $("#idx_cat").show();
+        //we must wait before submitting actual form!
         setTimeout(delayedSubmit, 200);
     }
     return false;
 }
 
 function saveRTFResult(result) {    
-    console.log("Result->" + result);
-    var obj = JSON.parse(result);
-    //alert(obj.response);
+    //console.log("Result->" + result);
+    var json = JSON.parse(result);    
     $("html, body").animate({ scrollTop: 0 }, "fast");
-    display(obj.response);
-    if(obj.log_id>0){
+    
+    let msg = json.response;
+    if(json.log_id==0){
+        console.log(msg = "Saved to Buffer");  
+
+    }else{
+        console.log(msg = "Saved document by lid -> "+json.log_id);        
+    }
+    display(msg, 5);
+
+    if(json.log_id>0){
         //update under log display
-        if($("#q-rtf"+obj.log_id).is(":visible")){
-            loadRTF(true, obj.log_id);
+        if($("#q-rtf"+json.log_id).is(":visible")){
+            loadRTF(true, json.log_id);
         }
+    }else{
+        $('#btn_zero_doc').show();
     }
     RTF_SUBMIT = false;
 }
@@ -1104,13 +1121,10 @@ function loadRTF(under, id){
     //show under log entry the document
     if(under){
 
-
         if($("#q-rtf"+id).is(":visible")){
             $("#q-rtf"+id).hide();
             return false;
         }
-
-
         QUILL_PNL = new Quill('#q-container'+id, {
             scrollingContainer: '#q-scroll'+id,
             placeholder: 'Loading Document...',
@@ -1123,8 +1137,10 @@ function loadRTF(under, id){
         return false;
     }
 
-    //var json = "[{'insert': 'Loading Document...', 'attributes': { 'bold': true }}, {'insert': '\n'}]";
-    //console.log("Query json.cgi action -> load, id:" + id);
+    if(id==-1){
+       id = RTF_DOC_CUR_ID; // btn_load_rtf clicked
+    }
+
     QUILL.setText('Loading Document...\n');    
     $.post('json.cgi', {action:'load', id:id}, loadRTFResult).fail(
            function(response) {dialogModal("Server Error: "+response.status,response.responseText);}
@@ -1142,7 +1158,7 @@ function loadRTFPnlResult(content, result, prms) {
 }
 
 function loadRTFResult(content, result, prms, quill) {
-    //console.log("Result->" + content);
+    
     var json = JSON.parse(content);
     if(!quill)quill=QUILL;
 
@@ -1157,8 +1173,16 @@ function loadRTFResult(content, result, prms, quill) {
         var css = $("#q-scroll"+id).prop('style');
         if(css){css.backgroundColor = json.content.bg;}
     }
-    display(json.response, 5);
-    //alert(obj.response);
+
+    let msg = json.response;
+    if(json.log_id==0){
+        console.log(msg = "Loaded in Buffer");
+        $('#btn_zero_doc').show();                
+    }else{
+        console.log(msg = "Loaded in document by lid -> "+json.log_id);
+        $('#btn_load_doc').show();
+    }
+    display(msg, 5);    
 }
 
 

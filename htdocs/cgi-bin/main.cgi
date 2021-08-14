@@ -83,7 +83,7 @@ my $BGCOL       = Settings::bgcol();
 #Set to 1 to get debug help. Switch off with 0.
 my $DEBUG       = Settings::debug();
 #END OF SETTINGS
-
+my $rtf_buffer = 0;
 my $BUFFER;
 sub toBuf {
     $BUFFER .= shift;        
@@ -751,7 +751,7 @@ $log_output .= <<_TXT;
 <tr class="r0" id="brw_row"><td colspan="2" style="font-size:small;text-align:left;">Show All hidden &#10132;
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 
-<a href="#top">&#x219F;</a></td>
+<a id="to_bottom" href="#top" title="Go to top of page.">&#8613;</a></td>
 <td colspan="4" align="right" style="margin:5px;">
     <input type="hidden" name="opr" id="opr" value="0"/>
     <input type="submit" value="Sum" onclick="return sumSelected()"/>&nbsp;
@@ -765,7 +765,6 @@ $log_output .= <<_TXT;
     <input type="submit" value="Print" onclick="return viewSelected()"/>&nbsp;
     <input id="del_sel" type="submit" value="Delete" onclick="display('Please Wait!')"/>
     </span>
-
 </td></tr>
 </TABLE></FORM>
 _TXT
@@ -785,9 +784,11 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     my $frm = qq(<a name="top"></a>
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
 	<table class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
-	<tr class="r0"><td colspan="3"><b>* LOG ENTRY FORM *</b>
-    <a id="log_close" href="#" onclick="return hide('#div_log');">$sp1</a>
-    <a id="log_close" href="#" onclick="return toggle('#div_log .collpsd');">$sp2</a>
+	<tr class="r0">
+    <td style="text-align:left;"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#8615;</a></td>
+    <td colspan="2"><b>* LOG ENTRY FORM *</b>
+        <a id="log_close" href="#" onclick="return hide('#div_log');">$sp1</a>
+        <a id="log_close" href="#" onclick="return toggle('#div_log .collpsd');">$sp2</a>
     </td></tr>
 	<tr class="collpsd">
 	<td style="text-align:right; vertical-align:top; width:10%;">Date:</td>
@@ -797,9 +798,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 	&nbsp;<button type="button" onclick="return setNow();">Now</button>
 			&nbsp;<button type="reset"  onclick="setNow();resetDoc(); return true;">Reset</button>
 
-
                 <span id="cat_desc" name="cat_desc">Enter log...</span>
-
             
 			&nbsp;&nbsp;&nbsp;Category:&nbsp;
             
@@ -817,7 +816,8 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 			<textarea id="el" name="log" rows="3" style="float:left; width:99%;" onChange="toggleVisibility('cat_desc',true)"></textarea>
 		</td>
 	</tr>
-	<tr class="collpsd"><td style="text-align:right"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#x21A1;</a>&nbsp;Amount:</td>
+	<tr class="collpsd" style="text-align:right; vertical-align:top;">
+        <td>Amount:</td></span>
 		<td id="al">
 			<input id="am" name="am" type="text">&nbsp;
             Marks as:
@@ -826,12 +826,19 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
                 <option value="1">Income</option>
                 <option value="2">Expense</option>
             </select>&nbsp;
-            RTF Attach <input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/> 
-            Sticky <input id="STICKY" name="sticky" type="checkbox"/>
+            <span style="padding:5px; marging:10px; display:inline-block;">
+                <span>
+                    RTF Attach <input id="RTF" name="rtf" type="checkbox" onclick="return toggleDoc(true);"/></span>
+                <span>
+                    Sticky <input id="STICKY" name="sticky" type="checkbox"/>
+                </span>
+            </span>
 		</td>
 		<td align="right">
                 <span id="sss_status"></span>&nbsp;
-				<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/>
+                <span style="padding:5px; marging:10px; display:inline-block;">
+                		<input id="log_submit" type="submit" onclick="return saveRTF(-1, 'store');" value="Submit"/>
+                </span>
 		</td>
 	</tr>
 	<tr class="collpsd"><td colspan="3"></td></tr>
@@ -845,6 +852,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 	<input type="hidden" name="rs_page" value="$rs_page"/>
 	<input type="hidden" name="CGISESSID" value="$sid"/>
     <input type="hidden" id="isInViewMode" value="$isInViewMode"/>
+    <input type="hidden" id="rtf_buffer" value="$rtf_buffer"/>
 	$tags
     </form>
 	);
@@ -1079,6 +1087,7 @@ sub processSubmit {
     my $sticky = $cgi->param('sticky');
     my $stm;
     my $SQLID = 'rowid'; 
+    my @gzero;
 
     if($rtf eq 'on'){$rtf = 1}  else {$rtf = 0}
     if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}           
@@ -1200,6 +1209,8 @@ try {
                 }
                 Settings::renumerate($db) if ( $dtCur > $dt );
             }
+            if(!@gzero){$st = traceDBExe('SELECT DOC FROM NOTES WHERE LID = 0;');@gzero = $st->fetchrow_array()}            
+            $rtf_buffer = 1 if $gzero[0];
 }
  catch {
 
@@ -1444,7 +1455,9 @@ return qq(
   </div>
   <div id="editor-container" style="$height"></div>
   <div class="save_button">
-  <input type="button" id="btn_save_doc" onclick="saveRTF(0, 'store'); return false;" value="Save"/>
+    <input type="button" id="btn_zero_doc" onclick="loadRTF(false, 0); return false;" value="Load Buffered"/>
+    <input type="button" id="btn_load_doc" onclick="loadRTF(false, -1); return false;" value="Load"/>
+    <input type="button" id="btn_save_doc" onclick="saveRTF(0, 'store'); return false;" value="Save"/>
   </div>
   </td></tr></table>
 )}

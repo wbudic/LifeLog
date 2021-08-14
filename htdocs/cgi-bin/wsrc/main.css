@@ -283,18 +283,17 @@ img {
 .midnight{
     color:midnightblue;
 }
-
-
 a:link {
  color:#5b06fa;
 }
 a:visited {
- color: #065bfa;
+ color: #2d7081;
 }
 
 a:hover {
     color: #2d7081;
-    font-style: oblique;
+    font-style:normal;    
+    font-size: x-large;
 }
 
 #sss_status{
