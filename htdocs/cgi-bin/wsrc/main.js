@@ -24,8 +24,8 @@ var DBI_LVAR_SZ;
 function onBodyLoadGeneric() {
     $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
     $("#btn_save_doc").button();
-    $("#btn_zero_doc").button(); if($("#rtf_buffer").val()==0){$("#btn_zero_doc").hide()};
-    $("#btn_load_doc").button(); $("#btn_load_doc").hide();
+    $("#btn_zero_doc").button();  if($("#rtf_buffer").val()==0){$("#btn_zero_doc").hide()};
+    $("#btn_load_doc").button();  $("#btn_load_doc").hide();
     if(!LOCALE || LOCALE==="English"){
         LOCALE = "en-US";
     }
@@ -548,6 +548,7 @@ function edit(row) {
             $('#rtf_doc').hide();
             $('#tbl_doc').hide();
             $('#toolbar-container').hide();
+            $("#btn_load_doc").hide();
     }
 
 
