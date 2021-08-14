@@ -9,6 +9,7 @@
 *.tar
 *.pid
 *.log
+*.osz
 cgisess_*
 .DS_Store
 .idea
@@ -17,3 +18,4 @@ cgisess_*
 .history
 tags
 */bck/*
+bck_*
