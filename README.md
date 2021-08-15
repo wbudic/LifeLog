@@ -5,7 +5,7 @@ Preferably on a small inexpensive server connected to your local network.
 
 Written in Perl, easy to implement and modify.
 
-Latest stable version is **2.3** in **SUN** stable stage.
+Latest stable version is **2.3** in **SUN** stage.
 
 
 ## PC Requirements
