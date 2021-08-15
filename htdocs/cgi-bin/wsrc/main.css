@@ -3,11 +3,14 @@ body{
     font-size: 14px;
 }
 p {
-    
+    font-family: Bookman;
     margin-left: 70px;
     font-weight: bold;
 }
-
+pre{
+    color: #d8d8d8;
+    text-align:left;
+}
 table,
 th,
 td {
@@ -24,7 +27,7 @@ div {
 }
 
 #div_log {
-    font-weight: bold; 
+    font-weight: bold;
 }
 #div_srh {
     text-align: center;
@@ -93,11 +96,17 @@ th,
     border-right: 1px solid black;
     vertical-align: top;
 }
+.r0.hover{
+    background-color: #b7f3f3;
+}
 .r1 {
     background-color: #ccffff;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
+}
+.r1.hover{
+    background-color: #b7f3f3;
 }
 .r2 {
     background-color: #ccfff0;
@@ -121,7 +130,16 @@ th,
     padding: 2%;
     margin: 0px auto;
 }
-
+div#rz {
+    border: 1px solid black;
+    text-align: left;
+    background-color: #e6ffff;
+    vertical-align: top;
+    align-self: baseline;
+    height: auto;
+    padding: 2px;
+    margin: 0px auto;
+}
 .hdr {
     font-style: normal;
     font-weight: bold;
@@ -173,16 +191,6 @@ th,
     background-color: rgba(0, 0, 0, .5);
 }
 
-div#rz {
-    border: 1px solid black;
-    text-align: left;
-    background-color: #e6ffff;
-    vertical-align: top;
-    align-self: baseline;
-    height: auto;
-    padding: 2px;
-    margin: 0px auto;
-}
 
 #tag_FRM {
     border: 2px solid #94cde7;
@@ -212,9 +220,11 @@ img {
     margin: 0;
 }
 
+
+
 .ui-button,
 .ui-button-text .ui-button {
-    font-size: 12px !important;
+    font-size: 12px !important;    
 }
 
 .ui-menu {
@@ -292,10 +302,11 @@ a:visited {
 
 a:hover {
     color: #2d7081;
-    font-style:normal;    
-    font-size: x-large;
+    font-style:normal;
 }
-
+a:active {
+    color: #1eff00;
+}
 #sss_status{
     font-size: smaller;
     font-style: italic;

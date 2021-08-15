@@ -130,7 +130,7 @@ try{
    print $cgi->redirect('main.cgi');  
 
 }catch{
-    print $cgi->p("<font color=red><b>ERROR</b></font>  " . $@);
+    print $cgi->p("<font color=red><b>ERROR</b>$!</font>  " . $@);
 }
 }
 
@@ -138,13 +138,17 @@ sub printHeader {
 my $title = shift;
 print $cgi->header(-expires=>"+6os");
 print $cgi->start_html(-title => $title, -BGCOLOR => &Settings::bgcol,                
-            -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
-                        {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
-                        {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],                
+            -script=> [ {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
+                        {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'},
+                        {-type => 'text/javascript', -src => 'wsrc/main.js'}
+                        ],                
             -style => [{-type => 'text/css', -src => "wsrc/".&Settings::css}, {-type => 'text/css', -src => "wsrc/print.css"},
                         {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
                         {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
-                        {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}],
+                        {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
+                        { -type => 'text/css', -src => "wsrc/".&Settings::css }
+                        ],
+                        
             -onload => "onBodyLoadGeneric()");
 }
 

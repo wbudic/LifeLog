@@ -207,14 +207,17 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
     if(rgb){
         DEF_BACKGROUND = RGBToHex(rgb);
         $("#fldBG").val(DEF_BACKGROUND);
-        var amf = $( "#amf" );//Amount Field Type dropdown
-        var ec = $( "#ec" );  //Category dropdown
-
-        $( "#amf2" ).selectmenu({style: "dropdown", width:100});
-
-         amf.selectmenu({style: "dropdown", width:100,
-          change: function( event, data ) {
-            var evv =ec.val();
+        // let bg=RGBToHex('rgb(180, 169, 169)'); //<-is set in css file
+        // $('#toolbar-container').css('background-color',bg);
+        $('#toolbar-container').css('color',DEF_BACKGROUND);
+        
+    }
+    var amf = $( "#amf" );//Amount Field Type dropdown
+    var ec = $( "#ec" );  //Category dropdown
+    $( "#amf2" ).selectmenu({style: "dropdown", width:100});
+    amf.selectmenu({style: "dropdown", width:100,
+        change: function( event, data ) {
+        var evv =ec.val();
             if(ec.val()<2||evv==32||evv==35||data.item.value == 0){
                 var sel = null;
                 if(data.item.label == "Income"){ sel = 35; }
@@ -224,8 +227,8 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
                     ec.val(sel);
                 }
             }
-          }});
-    }
+        }});
+    
 
     jQuery.fn.dispPos = function () {
         this.css("position","absolute");
@@ -1116,6 +1119,12 @@ function delayedSubmit(){
     $("#frm_entry").submit();
 }
 
+function dispFullLog(id){
+    let $log = $("#h"+id).val();
+    $("#v"+id).html('<div class="log">'+$log+'</div>');
+    return false;
+}
+
 
 function loadRTF(under, id){
 
@@ -1159,7 +1168,7 @@ function loadRTFPnlResult(content, result, prms) {
 }
 
 function loadRTFResult(content, result, prms, quill) {
-    
+    console.log(content);
     var json = JSON.parse(content);
     if(!quill)quill=QUILL;
 
@@ -1170,9 +1179,16 @@ function loadRTFResult(content, result, prms, quill) {
         editorBackground(false);
     }
     else{
-        var id = json.content.lid;
+        var id = json.log_id;
+        var cls = $("#q-scroll"+id).parent().parent().attr("class");
+       // alert(css);
+        $("#q-scroll"+id).attr('class',cls);
         var css = $("#q-scroll"+id).prop('style');
-        if(css){css.backgroundColor = json.content.bg;}
+        $("#q-scroll"+id).attr('class',cls);
+        if(css){
+            css.backgroundColor = DEF_BACKGROUND; //Removing colours makes it inherit from parent these properties.
+            css.foregroundColor = "";//json.content.fg;            
+        }
     }
 
     let msg = json.response;
@@ -1192,10 +1208,14 @@ function loadRTFResult(content, result, prms, quill) {
 function editorBackground(reset){
     var css = $("#editor-container").prop('style');
     if(reset){
+        css.foregroundColor = black;
         css.backgroundColor = DEF_BACKGROUND;
         $("#fldBG").val(DEF_BACKGROUND);
     }
-    else{css.backgroundColor = $("#fldBG").val();}
+    else{
+        css.foregroundColor = black;
+        css.backgroundColor = $("#fldBG").val();
+    }
 }
 
 

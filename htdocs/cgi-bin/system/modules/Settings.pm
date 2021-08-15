@@ -108,7 +108,8 @@ sub anon {$S_=shift; $S_ = $anons{$S_} if $S_;$S_}
 sub anonsSet {my $a = shift;%anons=%{$a}}
 
 sub release        {$RELEASE_VER}
-sub logPath        {$S_ = shift;$LOG_PATH = $S_ if $S_;$LOG_PATH}
+sub logPath        {$LOG_PATH}#<-something was calling as setter, can't replicate. On reset of categories in config.cgi.
+sub logPathSet     {$S_ = shift;$LOG_PATH = $S_ if $S_;return $LOG_PATH}#<-has now setter method nothing actually calls.
 sub theme          {$THEME}                               
 sub timezone       {$TIME_ZONE}
 sub language       {$LANGUAGE}
@@ -152,7 +153,7 @@ try {
     $CGI::POST_MAX = 1024 * 1024 * 5;  # max 5GB file post size limit.
     $cgi     = $cgi = CGI->new();
     $sss     = shift; #shift will only and should, ONLY happen for test scripts.
-    $sss= new CGI::Session("driver:File", $cgi, {Directory=>$LOG_PATH}) if !$sss;
+    $sss= new CGI::Session("driver:File", $cgi, {Directory=>$LOG_PATH, SameSite=>'Lax'}) if !$sss;
     $sid     = $sss->id();    
     $alias   = $sss->param('alias');
     $pass    = $sss->param('passw');

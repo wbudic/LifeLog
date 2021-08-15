@@ -309,8 +309,6 @@ my  $frmVars = qq(
         </tr>
         </table><input type="hidden" name="sys" value="1"/></form><br>);
 
-
-
 $tbl = qq(<table id="cnf_fix" class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
               <tr class="r0"><td colspan="2"><b>* DATA FIX *</b></td></tr>
              );
@@ -488,8 +486,7 @@ sub getHeader {
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
 print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>&Settings::bgcol,
            -onload  => "onBodyLoadGeneric();",
-            -style   => [
-          { -type => 'text/css', -src => "wsrc/".&Settings::css },
+            -style   => [          
           { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
           { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
           {
@@ -501,6 +498,7 @@ print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>&Settings::bgcol,
               -type => 'text/css',
               -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
           },
+          { -type => 'text/css', -src => "wsrc/".&Settings::css },
       ],
       -script => [
           { -type => 'text/javascript', -src => 'wsrc/main.js' },
@@ -778,9 +776,8 @@ try{
     my @row;
 
         getHeader() if(&Settings::debug);
-        print "<h3>Database Records Fix Result</h3>\n<hr>" if(&Settings::debug);
-        print "<body><pre>Started transaction!\n" if(&Settings::debug);
-
+        print "<h3>Database Records Fix Result</h3>\n<hr>" if &Settings::debug;
+        print "<body><pre>Started transaction!\n" if &Settings::debug;
         $db->do('BEGIN TRANSACTION;');
         # Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
         # @TODO This should be selecting an cross SQL compatibe view.
@@ -809,12 +806,12 @@ try{
             my $st_del = $db->prepare($sql);
             $st_del->execute();
         }
-        print "Doing renumerate next...\n" if(&Settings::debug);
+        print "Doing renumerate next...\n" if &Settings::debug;
         &renumerate;
-        print "done!\n";
-        print "Doing removeOldSessions next..." if(&Settings::debug);
+        print "done!\n" if &Settings::debug;
+        print "Doing removeOldSessions next..." if &Settings::debug;
         &Settings::removeOldSessions;
-        print "done!\n " if(&Settings::debug);
+        print "done!\n " if &Settings::debug;
         &resetCategories if $rs_cats;
         &resetSystemConfiguration($db) if $rs_syst;
         &wipeSystemConfiguration if $wipe_ss;
@@ -858,7 +855,7 @@ sub renumerate {
 
     ### RENUMERATE LOG
     $db->do("CREATE TABLE life_log_temp_table AS SELECT * FROM LOG;");
-    if(Settings::isProgressDB()){
+    if(&Settings::isProgressDB){
         $db->do('DROP TABLE LOG CASCADE;');
     }
     else{
@@ -876,7 +873,7 @@ sub renumerate {
         my $old = $notes{$date};
         #my $sql_date = DateTime::Format::SQLite->parse_datetime($date);
         
-        if(Settings::isProgressDB()){
+        if(&Settings::isProgressDB){
             $sql = "SELECT ID FROM LOG WHERE RTF > 0 AND DATE = '".$date."';";
         }else{
             $sql = "SELECT rowid FROM LOG WHERE RTF > 0 AND DATE = '".$date."';";
@@ -928,7 +925,7 @@ sub wipeSystemConfiguration {
 
 sub resetSystemConfiguration {
 
-        open(my $fh, '<', &Settings::logPath.'main.cnf' ) or die "Can't open main.cnf: $!";
+        open(my $fh, '<', &Settings::logPath.'main.cnf') or die "Can't open ".&Settings::logPath."main.cnf! $!";
         my $db = shift;
         my ($id,$name, $value, $desc);
         my $inData = 0;
@@ -963,7 +960,7 @@ try{
                                                                     my @row = $dbs->fetchrow_array();
                                                                     if(scalar @row == 0){
                                                                        #The id in config file has precedence to the one in the db,
-                                                                       #from a ppossible previous version.
+                                                                       #from a possible previous version.
                                                                        $dbs = Settings::selectRecords($db, "SELECT ID FROM CONFIG WHERE ID = $id;");
                                                                        @row = $dbs->fetchrow_array();
                                                                        if(scalar @row == 0){
@@ -997,9 +994,9 @@ try{
                         }
                     }
         }
-        #die "Configuration script './main.cnf' [$fh] contains errors." if $err;
+        die "Configuration script './main.cnf' [$fh] contains errors." if $err;
         close $fh;
-       Settings::getConfiguration($db);
+        Settings::getConfiguration($db);
  } catch{
       close $fh;
       print $cgi->header;
@@ -1060,7 +1057,7 @@ sub backup {
    my @dr = split(':', Settings::dbSrc());
    my $ball = 'bck_'.$today->strftime('%Y%m%d%H%M%S_').$dr[1]."_$dbname.osz";   
 
-   my $file = Settings::logPath().'data_'.$dr[1].'_'."$dbname"."_log.db";
+   my $file = &Settings::logPath.'data_'.$dr[1].'_'."$dbname"."_log.db";
    my $dsn= "DBI:SQLite:dbname=$file";
    my $weProgress = Settings::isProgressDB();
    if($weProgress){
@@ -1096,10 +1093,10 @@ sub backup {
    }
 
     print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>$ball);
-    my $pipe = "tar czf - ".Settings::logPath().'main.cnf' ." ".$file." | openssl enc -e -des-ede3-cfb -salt -S ".
-                            Settings->CIPHER_KEY." -pass pass:$pass-$alias -out ".Settings::logPath().$ball." 2>/dev/null";
+    my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." ".$file." | openssl enc -e -des-ede3-cfb -salt -S ".
+                            Settings->CIPHER_KEY." -pass pass:$pass-$alias -out ".&Settings::logPath.$ball." 2>/dev/null";
     my $rez = `$pipe`;       
-       open (my $TAR, "<", Settings::logPath().$ball) or die "Failed creating backup -> $ball";
+       open (my $TAR, "<", &Settings::logPath.$ball) or die "Failed creating backup -> $ball";
             while(<$TAR>){print $_;}
        close $TAR;
     unlink $file if $weProgress;  
@@ -1296,7 +1293,7 @@ my $stdout = capture_stdout {
         print "Restore ended: ".Settings::today(), "\n";
 };      print $stdout;
 
-my $fh; open( $fh, ">>", Settings::logPath()."backup_restore.log");
+my $fh; open( $fh, ">>", &Settings::logPath."backup_restore.log");
         print $fh $stdout;
         close $fh;
 

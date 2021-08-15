@@ -1,3 +1,7 @@
+body{
+    font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+    font-size: 14px;
+}
 p {
     font-family: Bookman;
     margin-left: 70px;
@@ -60,17 +64,52 @@ th,
     text-align: left;
 }
 
+#cat_desc {
+    position: absolute;
+    border: 2px solid #9bb6c3;
+    padding: 5px;
+    text-align: center;
+    background: #0f0f0f;
+    color: #d8d8d8;
+    margin-top: 20px;
+    margin-left: 200px;
+    width: 280px;
+    text-decoration-style: wavy;
+
+}
+.span_cat {
+    border:1px solid #9bb6c3;
+    border-style: outset;
+    padding: 2px;
+    padding-right: 5px;
+    width: 180px;
+}
+
+#cat_lst {
+    visibility: hidden;
+}
+
 .r0 {
     background-color: #535353;
     border: 1px solid white;
     border-right: 1px solid white;
     vertical-align: top;
+    color:black;
+}
+.remember{ background-color:#553232;}
+.r0.hover{
+        background-color: #724242;
 }
 .r1 {
     background-color: #272626;
     border: 1px solid white;
     border-right: 1px solid white;
     vertical-align: top;
+    width: fit-content;
+}
+.r1.hover td div{
+        background-color: #b4a9a9;
+        color:#323232;
 }
 .r2 {
     background-color: #636969;
@@ -170,26 +209,6 @@ img {
     padding: 0 10px
 }
 
-#cat_desc {
-    position: absolute;
-    border: 2px solid #9bb6c3;
-    padding: 5px;
-    text-align: center;
-    background: #0f0f0f;
-    color: #d8d8d8;
-    margin-top: 20px;
-    margin-left: 200px;
-    width: 280px;
-    text-decoration-style: wavy;
-
-}
-.span_cat {
-    border:1px solid #9bb6c3;
-    border-style: outset;
-    padding: 2px;
-    padding-right: 5px;
-    width: 180px;
-}
 
 #menu {
     position: fixed;
@@ -214,7 +233,7 @@ img {
 
 .ui-button,
 .ui-button-text .ui-button {
-    font-size: 12px !important;
+    font-size: 12px !important;    
 }
 
 .ui-menu {
@@ -268,12 +287,16 @@ img {
 
 #toolbar-container {
     border: 1px solid white;
-    background-color: #363531;
+    background-color: rgb(180, 169, 169);
     margin-bottom: 3px;
 }
 
 .save_button {
     margin-top: 3px;
+    float: right;
+}
+
+#btnRTF {
     float: right;
 }
 
@@ -289,6 +312,7 @@ a:visited {
 }
 a:hover {
   color: #04c7f8;
+  font-style:normal;
 }
 a:active {
     color: #ff7b00;
@@ -307,5 +331,6 @@ a:active {
     color:khaki;
 }
 .hover{
-    background-color: #8d8d83;
+    background-color: #8d8d83;    
 }
+#lcat{ margin: 0; padding: 5px;}

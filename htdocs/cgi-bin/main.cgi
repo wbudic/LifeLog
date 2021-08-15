@@ -608,7 +608,7 @@ sub buildLog {
         $log =~ s/(^\*)(.*)(\*)(\\n)/<b>$2<\/b><br>/oi;
         #Decode escaped \\n
         $log =~ s/\r\n/<br>/gs;
-        $log =~ s/\\n/<br>/gs;
+        $log =~ s/\\n/<br>\n/gs;
         
         
 
@@ -632,6 +632,14 @@ sub buildLog {
             $log_orig =~ s/\"/&#34;/g;
             $log_orig =~ s/\'/&#39;/g;
             $tags .= qq(<input type="hidden" id="g$id" value="$log_orig"/>\n);
+        }elsif(not &Settings::displayAll){
+            my $h;
+            if($log =~ m/(.*\s*.*?)<br>/){$h=$1}
+            elsif($log =~ m/(\s*.*\n)/) {$h=$1}
+            if($h){
+               $log = $h.qq(<input type="hidden" id="h$id" value="$log"/><button id='btnRTF' onclick="return dispFullLog($id);" 
+                                 class="ui-button ui-corner-all ui-widget"><span>&#8691;<span></button>);
+            }
         }
 
         my ( $dty, $dtf ) = $dt->ymd;
@@ -675,12 +683,12 @@ sub buildLog {
 			<input name="chk" type="checkbox" value="$pid"/>
 		</td></tr>)};
 
-        if ( $rtf > 0 ) {
+        if ( $rtf > 0 ) {#max-width:1000px;
+        # style="max-height:480px; box-sizing: border-box; padding: 5px; background:#fffafa; overflow-x:scroll;scrollbar-width:none;"
              $log_output .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
                          <td colspan="6">
-                          <div id="q-scroll$id" 
-                                style="max-height:480px; max-width:1000px; padding: 5px; background:#fffafa; overflow-x:scroll;scrollbar-width:none;">                            
-                            <div id="q-container$id"></div>
+                          <div id="q-scroll$id" class="ql-editor ql-snow" style="max-height:480px; overflow-x:scroll;">
+                            <div id="q-container$id" class="ql-container ql-snow"></div>
                           </div>
                         </td></tr>);
         }
@@ -1525,8 +1533,7 @@ sub outputPage {
             -title   => "Personal Log",
             -BGCOLOR => $BGCOL,
             -onload  => "onBodyLoad('$toggle','".&Settings::language."','".&Settings::timezone."','$today','".&Settings::sessionExprs."','$rs_cur',".&Settings::dbVLSZ.");",
-            -style   => [
-            { -type => 'text/css', -src => "wsrc/$TH_CSS" },
+            -style   => [            
             { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
             { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
             {
@@ -1542,7 +1549,7 @@ sub outputPage {
             { -type => 'text/css', -src => 'wsrc/quill/monokai-sublime.min.css' },
             { -type => 'text/css', -src => 'wsrc/quill/quill.snow.css' },
             { -type => 'text/css', -src => 'wsrc/jquery.sweet-dropdown.css' },
-
+            { -type => 'text/css', -src => "wsrc/$TH_CSS" },
         ],
         -script => [
             { -type => 'text/javascript', -src => 'wsrc/main.js' },

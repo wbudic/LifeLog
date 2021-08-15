@@ -6,6 +6,8 @@
 
 ### New Development
 
+* Configuration needs to be updated, to use CNF 2.2, for system reset, etc.
+* Fix themes. Themes don't display and set consistently the pages throughout.
 * &#10004; RTF load of the zero document if present. When RTF attaching to a new log, you can save the rtf,
   it is called a zero document (not assigned), as the log hasn't been saved yet. This reload can be useful, as it is always stored...
 * &#10004; Implement backup/restore on Pg based data. Restore only partially works from older backup.
