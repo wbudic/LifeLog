@@ -17,6 +17,7 @@ Latest stable version is **2.3** in **SUN** stage.
 Setup is requiring some Perl knowledge to install and enable, and tweak this application. The main application sources are located in the ../htdocs/cgi-bin directory.
 
 ### Quick Setup
+
   * After downloading this application and installing in a directory (default is **~/dev**), which both can be done with:
   *  ```git clone https://github.com/wbudic/LifeLog.git```
      *  Check here for further [instuctions](./Installation.txt).
