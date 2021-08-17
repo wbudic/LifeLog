@@ -1,6 +1,7 @@
 body{
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     font-size: 14px;
+    background-image: url('images/page-bck-sun.png');
 }
 p {
     font-family: Bookman;
@@ -10,10 +11,14 @@ p {
 pre{
     color: black;
     text-align:left;
+    background-color: coral;
+    opacity: 5;
+    overflow-x:auto;
 }
 table,
 th,
 td {
+    font-family: Bookman;
     border-collapse: collapse;
     padding: 5px;
     margin: auto;
@@ -65,6 +70,7 @@ th,
     padding: 5px;
     text-align: center;
     background: #D4AF37;
+    color:black;
     margin-top: 20px;
     margin-left: 200px;
     width: 280px;
@@ -72,12 +78,15 @@ th,
 
 }
 .span_cat {
-    border:1px solid #b2f8ef;
-    border-style: outset;
+    font-family: Bookman;
+    border: 1px solid #b2f8ef;
+    border-bottom: solid #76fa42 1px;
+    border-style: inset;
     padding: 2px;
-    padding-right: 5px;
-    width: 180px;
-}
+    padding-right: 10px;
+    padding-left: 10px;
+    box-sizing: border-box;
+    width: auto;}
 #cat_lst {
     visibility: hidden;
 }
@@ -99,8 +108,10 @@ th,
 .r1.hover{
     background-color: #ffea00c5;
 }
+
+
 .r2 {
-    background-color: #FFEA00;
+    background-color: #FFe24b;
     border: 1px solid black;
     border-right: 1px solid black;
     vertical-align: top;
@@ -125,7 +136,8 @@ th,
 div#rz {
     border: 1px solid black;
     text-align: left;
-    background-color: #e6ffff;
+    background-color: #5d740e;
+    color: #000;
     vertical-align: top;
     align-self: baseline;
     height: auto;
@@ -144,7 +156,7 @@ div#rz {
 
 .edit {
     margin: 2px;
-    padding: 5px;
+    padding: 2px;
     font-size: 9pt;
     color: midnightblue
 }
@@ -183,8 +195,9 @@ div#rz {
     background-color: rgba(0, 0, 0, .5);
 }
 
+
 #tag_FRM {
-    border: 2px solid rgb(148, 205, 231);
+    border: 2px solid #e7b994;
     padding: 5px;
     text-align: right;
     vertical-align: top;
@@ -195,10 +208,6 @@ img {
     padding: 0 10px
 }
 
-
-
-
-
 #menu {
     position: fixed;
     float: left;
@@ -208,10 +217,6 @@ img {
     text-align: center;
     background: #D4AF37;
     margin-left: 90%;
-}
-
-#cat_lst {
-    visibility: hidden;
 }
 
 #frm_login {
@@ -261,7 +266,6 @@ img {
 	color: #222222;
 	font-weight: bold;
 }
-
 .ui-widget-content{
 	border: 1px solid #dddddd;
 	background: #e9ff27;
@@ -331,7 +335,6 @@ html .ui-button.ui-state-disabled:active {
 .ui-menu .ui-menu-item a.ui-state-active {
     margin: -1px;
 }
-
 .ui-icon{
     float:right;
 }
@@ -363,6 +366,7 @@ html .ui-button.ui-state-disabled:active {
 #btnRTF {
     float: right;
 }
+
 .midnight{
     color:midnightblue;
 }
@@ -381,18 +385,30 @@ a:link {
        color: #1eff00;
    }
 #sss_status{
- font-size: smaller;
- font-style: italic;
- color:ghostwhite;
+    font-size: smaller;
+    font-style: italic;
+    background-color: #eeff00;
+    color:peru;    
+    padding:5px;  
 }
 
-#sss_expired{
- font-size: large;
- font-style: normal;
- font-weight: bold;
- color:crimson;
+#sss_expired a{
+    font-size: large;
+    font-style: normal;
+    font-weight: bold;
+    background-color: #eeff00;
+    color:crimson;
+    padding:15px
 }
 
 .hover{
     background-color: #fffb00;
+}
+#lcat{ margin: 0; padding: 5px;}
+.debug_output {
+    font-size:smaller;
+    background-color:goldenrod;
+    text-align: left;
+    font-family: monospace;    
+    opacity: 8;
 }

@@ -1,13 +1,19 @@
 body{
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     font-size: 14px;
+    background-image: url('images/page-bck-earth.png');
 }
 p {
     font-family: Bookman;
     margin-left: 70px;
     font-weight: bold;
 }
-
+pre{
+    color: #070707;
+    text-align:left;
+    background-color: gainsboro;
+    opacity: 5;
+}
 table,
 th,
 td {
@@ -58,6 +64,34 @@ th,
     text-align: left;
 }
 
+#cat_desc {
+    position: absolute;
+    border: 2px solid #7a3d03;
+    padding: 5px;
+    text-align: center;
+    background: #d1663c;
+    color: #d8d8d8;
+    margin-top: 20px;    
+    margin-left: 200px;
+    width: 280px;
+    text-decoration-style: wavy;
+}
+
+.span_cat {
+    font-family: Bookman;
+    border: 1px solid #7a3d03;    
+    border-style: inset;
+    padding: 2px;
+    padding-right: 10px;
+    padding-left: 10px;
+    box-sizing: border-box;
+    width: auto;
+}
+
+#cat_lst {
+    visibility: hidden;
+}
+
 .r0 {
     background-color: #d1663c;
     border: 1px solid black;
@@ -92,7 +126,16 @@ th,
     padding: 2%;
     margin: 0px auto;
 }
-
+div#rz {
+    border: 1px solid black;
+    text-align: left;
+    background-color: #6ed16e;
+    vertical-align: top;
+    align-self: baseline;
+    height: auto;
+    padding: 2px;
+    margin: 0px auto;
+}
 .hdr {
     font-style: normal;
     font-weight: bold;
@@ -144,16 +187,6 @@ th,
     background-color: rgba(0, 0, 0, .5);
 }
 
-div#rz {
-    border: 1px solid black;
-    text-align: left;
-    background-color: #6ed16e;
-    vertical-align: top;
-    align-self: baseline;
-    height: auto;
-    padding: 2px;
-    margin: 0px auto;
-}
 
 #tag_FRM {
     border: 2px solid #07750d;
@@ -167,28 +200,6 @@ img {
     padding: 0 10px
 }
 
-
-#cat_desc {
-    position: absolute;
-    border: 2px solid #7a3d03;
-    padding: 5px;
-    text-align: center;
-    background: #c28a4a;
-
-    margin-top: 20px;
-    margin-left: 200px;
-    width: 280px;
-    text-decoration-style: wavy;
-
-}
-.span_cat {
-    border:1px solid #7a3d03;
-    border-style: outset;
-    padding: 2px;
-    padding-right: 5px;
-    width: 180px;
-}
-
 #menu {
     position: fixed;
     float: left;
@@ -200,14 +211,12 @@ img {
     margin-left: 90%;
 }
 
-#cat_lst {
-    visibility: hidden;
-}
 
 #frm_login {
     vertical-align: middle;
     margin: 0;
 }
+
 
 
 .ui-button,
@@ -247,7 +256,6 @@ img {
 .ui-menu .ui-menu-item a.ui-state-active {
     margin: -1px;
 }
-
 .ui-icon{
     float:right;
 }
@@ -262,12 +270,12 @@ img {
     max-height: 480px;
     border-top: 1px solid gray;
     border-right: 1px solid gray;
-    background-color: #40ad36;
+    background-color: #98e6e6;
 }
 
 #toolbar-container {
     border: 1px solid black;
-    background-color: #40ad36;
+    background-color: #98e6e6;
     margin-bottom: 3px;
 }
 
@@ -300,16 +308,27 @@ a:link {
   #sss_status{
     font-size: smaller;
     font-style: italic;
+    background-color: #c0a873;
     color:lawngreen;
-}
+    padding:5px; 
+  }    
 
- #sss_expired{
+
+ #sss_expired a {
     font-size: large;
     font-style: normal;
     font-weight: bold;
-    color:lightsalmon;
-    background-color: #26be54;
+    background-color: #26be54;    
+    color:crimson;
+    padding:15px
 }
 .hover{
     background-color: #335757;
+}
+#lcat{ margin: 0; padding: 5px;}
+.debug_output {
+    font-size: large;
+    background-color:#c0a873;
+    text-align: left;
+    font-family: monospace;
 }
