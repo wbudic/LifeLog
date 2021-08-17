@@ -7,7 +7,13 @@
 ### New Development
 
 * Configuration needs to be updated, to use CNF 2.2, for system reset, etc.
-* Fix themes. Themes don't display and set consistently the pages throughout.
+  * Config file "Data Fix* reset of settings updated to properly revert to factory defaults.
+* &#10004; Fix themes. Themes don't display and set consistently the pages throughout.
+  * Login page should use standard default or last set theme.
+  * All provided themes to have background image.
+  * Stats page needs, new layout.
+* &#10004; Add AUTO_LOGOFF setting. Default is no.
+  * On session expired makes the page semi usable and still visible.
 * &#10004; RTF load of the zero document if present. When RTF attaching to a new log, you can save the rtf,
   it is called a zero document (not assigned), as the log hasn't been saved yet. This reload can be useful, as it is always stored...
 * &#10004; Implement backup/restore on Pg based data. Restore only partially works from older backup.
