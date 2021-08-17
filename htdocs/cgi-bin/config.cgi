@@ -61,7 +61,7 @@ cats();
 ###############
 processSubmit();
 ###############
-Settings::getTheme();
+Settings::setupTheme();
 Settings::session()->param("theme", Settings::css());
 Settings::session()->param("bgcolor", Settings::bgcol());
 getHeader();
@@ -116,7 +116,7 @@ my $frmCats = qq(
          <td colspan="1" align="right"><b>Categories Configuration In -> $dbname</b>&nbsp;
          <input type="submit" value="Change" onclick="return checkConfigCatsChange()"/></td>
         </tr>
-        <tr class="r1">
+        <tr class="r2">
           <td colspan="3"><div style="text-align:left; float"><font color="red">WARNING!</font>
            Removing or changing categories is permanent! Each category one must have an unique ID.
              Blank a category name to remove it. LOG records will change to the
@@ -160,9 +160,9 @@ while(my @row = $dbs->fetchrow_array()) {
                  $u = "SELECTED"
                 }
         $v = qq(<select id="dumi" name="var$i">
-                         <option value="0" $l>Locale</option>
-                                 <option value="1" $u>Universal</option>
-                                </select>);
+                    <option value="0" $l>Locale</option>
+                    <option value="1" $u>Universal</option>
+                </select>);
          }
          elsif($n eq "AUTO_LOGIN"){
               my($l,$u)=("","");
@@ -241,20 +241,7 @@ while(my @row = $dbs->fetchrow_array()) {
                    <option$s2>Moon</option>
                    <option$s3>Earth</option>
                 </select>);
-        }
-        elsif($n eq "KEEP_EXCS" or $n eq 'TRACK_LOGINS' or $n eq 'DEBUG'){
-            my($l,$u)=("","");
-            if($v == 0){
-               $l = "SELECTED"
-            }
-            else{
-               $u = "SELECTED"
-            }
-            $v = qq(<select id="onoff" name="var$i">
-                   <option value="0" $l>Off</option>
-                   <option value="1" $u>On</option>
-                </select>);
-        }
+        }        
         elsif($n eq "RELEASE_VER"){
             $REL = qq(<td>$n</td>
                       <td>$v</td>
@@ -287,15 +274,32 @@ while(my @row = $dbs->fetchrow_array()) {
                     <option value="1" $u>True</option>
                     </select>);
         }
-        elsif(!defined(Settings::anon($n))){ #change into settable field to us found here unknown and not anon.
+        elsif($n eq "KEEP_EXCS" or 
+              $n eq 'TRACK_LOGINS' or 
+              $n eq 'DEBUG' or 
+              $n eq 'TRANSPARENCY' or 
+              $n eq 'AUTO_LOGOFF'){
+            my($l,$u)=("","");
+            if($v == 0){
+               $l = "SELECTED"
+            }
+            else{
+               $u = "SELECTED"
+            }
+            $v = qq(<select id="onoff" name="var$i">
+                    <option value="0" $l>Off</option>
+                    <option value="1" $u>On</option>
+                    </select>);
+        }
+        elsif($n eq 'SUBPAGEDIR' or 
+              !defined(Settings::anon($n))){ #change into settable field to us found here unknown and not anon.<td colspan="3"
             $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
         }
-
-       my $tr = qq(<tr class="r0" align="left">
-            <td>$n</td>
-            <td>$v</td>
-            <td>$d</td>
-        </tr>);
+        my $tr = qq(<tr class="r0" align="left">
+                        <td>$n</td>
+                        <td>$v</td>
+                        <td>$d</td>
+                   </tr>);
 
         if($i<300){$tbl.=$tr}else{$foot.=$tr}
 }
@@ -305,9 +309,13 @@ $tbl = qq($tbl$foot<tr class="r1" align="left">$REL</tr>); #RELEASE VERSION we m
 my  $frmVars = qq(
      <form id="frm_vars" action="config.cgi">$tbl
       <tr class="r1">
-         <td colspan="3" align=right><b>System Settings In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
-        </tr>
-        </table><input type="hidden" name="sys" value="1"/></form><br>);
+         <td colspan="3" align="right"><b>System Settings In -> $dbname</b>&nbsp;<input type="submit" value="Change"/></td>
+      </tr>
+      <tr class="r2">
+         <td colspan="3" align="right">Note - Use <a href="#dbsets">DB Fix</a> to reset this system settings to factory defaults.</td>
+      </tr>
+      </tr>
+    </table><input type="hidden" name="sys" value="1"/></form><br>);
 
 $tbl = qq(<table id="cnf_fix" class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
               <tr class="r0"><td colspan="2"><b>* DATA FIX *</b></td></tr>
@@ -316,9 +324,9 @@ $tbl = qq(<table id="cnf_fix" class="tbl" border="0" width=").&Settings::pagePrc
 my  $frmDB = qq(
      <form id="frm_DB" action="config.cgi">$tbl
         <tr class="r1" align="left"><th>Extra Action</th><th>Description</th></tr>
-        <tr class="r0" align="left"><td><input type="checkbox" name="reset_cats"/>Reset Categories</td><td>Resets Categories to factory values (will initiate logoff).</td></tr>
-        <tr class="r1" align="left"><td><input type="checkbox" name="reset_syst"/>Reset Settings</td><td>Resets system settings to default values.</td></tr>
-        <tr class="r0" align="left"><td><input type="checkbox" name="wipe_syst"/>Wipe Settings</td><td>Resets and wipes system settings for migration  (will initiate logoff).</td></tr>
+        <tr class="r0" align="left"><td><input type="checkbox" name="reset_syst"/>Reset Settings</td><td>Resets system settings to default values.</td></tr>
+        <tr class="r1" align="left"><td><input type="checkbox" name="wipe_syst"/>Wipe Settings</td><td>Wipes system settings to be forced from the config file (will initiate logoff).</td></tr>
+        <tr class="r0" align="left"><td><input type="checkbox" name="reset_cats"/>Reset Categories</td><td>Resets Categories to factory values (will initiate logoff).</td></tr>        
         <tr class="r1" align="left"><td><input type="checkbox" name="del_by_cats"/>Delete by Category <font color=red></font><br>
         $cats</td><td>Selects and displays by category logs to delete.</td></tr>
         <tr class="r0" align="left"><td><input type="checkbox" name="del_from"/>Delete from Date <br>
@@ -326,10 +334,13 @@ my  $frmDB = qq(
         <tr class="r1">
          <td colspan="2" align="right"><b>Data maintenance for -> $dbname</b>&nbsp;<input type="submit" value="Fix"/></td>
         </tr>
-        <tr class="r1" align="left">
+        <tr class="r2" align="left">
              <td colspan="2">Perform this change/check in the event of experiencing data problems. Or periodically for data check and maintenance. <br>
-                                 <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
-                                                  of your changes. Please, export/backup first.</td>
+             Use 'Reset Settings' option to revert to current stored configuration. Changes you made.<br>
+             Use the 'Wipe Settings' option if updating the application or need new defaults from main.cnf config file.<br>
+             Select both to reset and wipe, to overwrite all changes you made to config file settings.
+            <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
+                            of your changes. Please, export/backup first.</td>
         </tr>
         </table><input type="hidden" name="db_fix" value="1"/></form><br>
         );
@@ -344,6 +355,7 @@ my  $frmPASS = qq(
         <tr class="r1">
          <td colspan="2" align="right"><b>Pass change for -> $alias</b>&nbsp;<input type="submit" value="Change"/></td>
         </tr>
+        <tr class="r2"> <td colspan="2" align="right"><font color="red">WARNING!</font> Changing passwords will make past backups unusuable.</td></tr>
         </table><input type="hidden" name="pass_change" value="1"/></form><br>
         );
 $frmPASS = qq(<tr><td>Password changing has been dissabled!</td></tr>) if Settings::isProgressDB(); 
@@ -611,8 +623,8 @@ if($change > 1){
 
 
         if($cid==$caid || $cnm eq $canm){
-                        $valid = 0;
-                        last;
+           $valid = 0;
+           last;
         }
     }
 
@@ -778,6 +790,9 @@ try{
         getHeader() if(&Settings::debug);
         print "<h3>Database Records Fix Result</h3>\n<hr>" if &Settings::debug;
         print "<body><pre>Started transaction!\n" if &Settings::debug;
+        #Transaction work if driver is set properly!
+        my $p = Settings::pass(); 
+        $db = DBI->connect(Settings::dsn(), $alias, $p, {AutoCommit => 0, RaiseError => 1, PrintError => 0, show_trace=>1});
         $db->do('BEGIN TRANSACTION;');
         # Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
         # @TODO This should be selecting an cross SQL compatibe view.
@@ -806,28 +821,32 @@ try{
             my $st_del = $db->prepare($sql);
             $st_del->execute();
         }
-        print "Doing renumerate next...\n" if &Settings::debug;
-        &renumerate;
-        print "done!\n" if &Settings::debug;
+        
+        &renumerate;        
         print "Doing removeOldSessions next..." if &Settings::debug;
         &Settings::removeOldSessions;
-        print "done!\n " if &Settings::debug;
+        print "done!\n" if &Settings::debug;
+        
         &resetCategories if $rs_cats;
         &resetSystemConfiguration($db) if $rs_syst;
         &wipeSystemConfiguration if $wipe_ss;
 
         $db->do('COMMIT;')if(&Settings::debug);
-        print "Commited ALL!<br>"if(&Settings::debug);
-       # $db->disconnect();
-        $db  = Settings::connectDB();
-        $dbs = $db->do("VACUUM;")if(&Settings::debug);
-        print "Issued  VACUUM!<br>"if(&Settings::debug);
+        print "Commited ALL!<br>"if(&Settings::debug);      
+        
+        if(&Settings::debug){
+            $db  = Settings::connectDB();
+            $dbs = $db->do("VACUUM;");
+            print "Issued  VACUUM!<br>"if(&Settings::debug);
+        }
         
         if($LOGOUT){
                 &logout;
         }
-
-        exit if(&Settings::debug);
+        if(&Settings::debug){
+            print "<hr><pre>You are in debug mode further actions are halted!</pre>";
+            exit;
+        }
 
 }
 catch{
@@ -840,7 +859,8 @@ sub renumerate {
 
     # NOTE: This is most likelly all performed under an transaction.
     my $sql; 
-    # Fetch list by date identified rtf attached logs, with possibly now an old LID, to be updated to new one.    
+    # Fetch list by date identified rtf attached logs, with possibly now an old LID, to be updated to new one.   
+    print "Doing renumerate next...\n" if &Settings::debug; 
     if(Settings::isProgressDB()){
         $sql = "SELECT ID, DATE FROM LOG WHERE RTF > 0;"
     }else{
@@ -905,24 +925,28 @@ sub renumerate {
                                         NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
     }
     if ($dbs) {  foreach (@row = $dbs->fetchrow_array()) {
-                $db->do("DELETE FROM NOTES WHERELID=$row[0];") if $row[0]; # 0 is the place keeper for the shared zero record. 
+                $db->do("DELETE FROM NOTES WHERE LID=$row[0];") if $row[0]; # 0 is the place keeper for the shared zero record, don't delete. 
     }}
-
+    print "done!\n" if &Settings::debug;
 }
 
 sub resetCategories {
+    print "Doing wipeCtegories next..." if &Settings::debug;
     $db->do("DELETE FROM CAT;");
     $db->do("DROP TABLE CAT;");
     $LOGOUT = 1;
+    print "done!\n" if &Settings::debug;
 }
 
 sub wipeSystemConfiguration {
+    print "Doing wipeSystemConfiguration next..." if &Settings::debug;
     $db->do("DELETE FROM CONFIG;");
     $db->do("DROP TABLE CONFIG;");
     $LOGOUT = 1;
+    print "done!\n" if &Settings::debug;
 }
 
-
+#@TODO Needs to be redone, use CNF 2.2
 sub resetSystemConfiguration {
 
         open(my $fh, '<', &Settings::logPath.'main.cnf') or die "Can't open ".&Settings::logPath."main.cnf! $!";
@@ -931,78 +955,81 @@ sub resetSystemConfiguration {
         my $inData = 0;
         my $err = "";
         my %vars = {};
-
+        print "Doing resetSystemConfiguration next..." if &Settings::debug;
 try{
         my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
         my $update = $db->prepare('UPDATE CONFIG SET VALUE=? WHERE ID=?;');
         my $updExs = $db->prepare('UPDATE CONFIG SET NAME=?, VALUE=? WHERE ID=?;');
         $dbs->finish();
-    while (my $line = <$fh>) {
-                    chomp $line;
-                    my @tick = split("`",$line);
-                    if(scalar(@tick)==2){
-                                    my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
-                                    if(scalar(%hsh)==1){
-                                            for my $key (keys %hsh) {
+        while (my $line = <$fh>) {
+            chomp $line;
+            my @tick = split("`",$line);
+            if(scalar(@tick)==2){
+                    my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
+                    if(scalar(%hsh)==1){
+                            for my $key (keys %hsh) {
 
-                                                    my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
-                                                    if(scalar(%nash)==1){
-                                                            for my $id (keys %nash) {
-                                                                $name  = $nash{$id};
-                                                                $value = $hsh{$key};
-                                                                if($vars{$id}){
-                            $err .= "UID{$id} taken by $vars{$id}-> $line\n";
-                                                                }
-                                                                else{
-                                                                    $dbs = Settings::selectRecords($db,
-                                                                        "SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG WHERE NAME LIKE '$name';");
-                                                                    $inData = 1;
-                                                                    my @row = $dbs->fetchrow_array();
-                                                                    if(scalar @row == 0){
-                                                                       #The id in config file has precedence to the one in the db,
-                                                                       #from a possible previous version.
-                                                                       $dbs = Settings::selectRecords($db, "SELECT ID FROM CONFIG WHERE ID = $id;");
-                                                                       @row = $dbs->fetchrow_array();
-                                                                       if(scalar @row == 0){
-                                                                            $insert->execute($id,$name,$value,$tick[1]);
-                                                                       }else{
-                                                                            #rename, revalue exsisting id
-                                                                            $updExs->execute($name,$value,$id);
-                                                                        }
-                                                                    }
-                                                                    else{
-                                                                            $update->execute($value,$id);
-                                                                    }
-                                                                }
-                                                            }
+                                    my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
+                                    if(scalar(%nash)==1){
+                                            for my $id (keys %nash) {
+                                                $name  = $nash{$id};
+                                                $value = $hsh{$key};
+                                                if($vars{$id}){
+            $err .= "UID{$id} taken by $vars{$id}-> $line\n";
+                                                }
+                                                else{
+                                                    $dbs = Settings::selectRecords($db,
+                                                        "SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG WHERE NAME LIKE '$name';");
+                                                    $inData = 1;
+                                                    my @row = $dbs->fetchrow_array();
+                                                    if(scalar @row == 0){
+                                                    #The id in config file has precedence to the one in the db,
+                                                    #from a possible previous version.
+                                                    $dbs = Settings::selectRecords($db, "SELECT ID FROM CONFIG WHERE ID = $id;");
+                                                    @row = $dbs->fetchrow_array();
+                                                    if(scalar @row == 0){
+                                                            $insert->execute($id,$name,$value,$tick[1]);
                                                     }else{
-                            $err .= "Invalid, spec'ed {uid}|{setting}`{description}-> $line\n";
+                                                            #rename, revalue exsisting id
+                                                            $updExs->execute($name,$value,$id);
+                                                        }
                                                     }
-
-                                            }#rof
+                                                    else{
+                                                            $update->execute($value,$id);
+                                                    }
+                                                }
+                                            }
+                                    }else{
+            $err .= "Invalid, spec'ed {uid}|{setting}`{description}-> $line\n";
                                     }
-                                    else{
-                            $err .= "Invalid, speced entry -> $line\n";
-                                    }
 
-                    }elsif($inData && length($line)>0){
-                    if(scalar(@tick)==1){
-                             $err .= "Corrupt Entry, no description supplied -> $line\n";
-                        }
-                        else{
-                           $err .= "Corrupt Entry -> $line\n";
-                        }
+                            }#rof
                     }
+                    else{
+            $err .= "Invalid, speced entry -> $line\n";
+                    }
+
+            }
+            elsif($line eq '>>'){last}
+            elsif($inData && length($line)>0){
+                if(scalar(@tick)==1){
+                        $err .= "Corrupt Entry, no description supplied -> $line\n";
+                }
+                else{
+                    $err .= "Corrupt Entry -> $line\n";
+                }
+            }
         }
-        die "Configuration script './main.cnf' [$fh] contains errors." if $err;
+        die "Configuration script ".&Settings::logPath."main.cnf' contains errors." if $err;
         close $fh;
         Settings::getConfiguration($db);
+        print "done!\n" if &Settings::debug;
  } catch{
       close $fh;
       print $cgi->header;
-        print "<font color=red><b>SERVER ERROR! [id:$id,name:$name,value:$value]/b></font><br> ".$_."<br><pre>$err</pre>";
-    print $cgi->end_html;
-        exit;
+        print "<font color=red><b>SERVER ERROR!</b></font>[id:$id,name:$name,value:$value]->$@<br> ".$_."<br><pre>$err</pre>";
+      print $cgi->end_html;
+      exit;
  }
 }
 
@@ -1015,17 +1042,24 @@ sub logout {
 
 sub changeSystemSettings {
     my $updated;
+    my $id_theme;
+try{    
+    $dbs = Settings::selectRecords($db, "SELECT ID FROM CONFIG WHERE NAME LIKE 'THEME';");    
+    while (my @r=$dbs->fetchrow_array()){$id_theme=$r[0]}    
     $dbs = Settings::selectRecords($db, "SELECT ID, NAME FROM CONFIG;");
     while (my @r=$dbs->fetchrow_array()){
         my $var = $cgi->param('var'.$r[0]);
         if(defined $var){
             Settings::configProperty($db, $r[0], undef, $var);
             $updated = 1;
+            Settings::saveCurrentTheme($var) if $r[0] == $id_theme;
         }
     }
     Settings::getConfiguration($db) if($updated);
+}catch{
+    die "\nException\@$0::changeSystemSettings() line ",__LINE__." failed ->\n $@"; #<- It is actually better to die than throw exception traces. Easier to find problem this way.
 }
-
+}
 
 sub backupDelete {
     my $n = $cgi->param('bck_del');
@@ -1502,14 +1536,17 @@ sub cats {
 
 sub error {
     my $url = $cgi->url(-path_info => 1);
-    print qq(<h2>Sorry Encountered Errors</h2><p>Page -> $url</p><p>$ERROR</p>);
-    print qq(<h3>CGI Parameters</h3>);
-    print "<ol>\n";
+    print qq(<div class="debug_output" style="font-size:large;"><div style="text-align: left; width:100%; overflow-x:wrap;">
+                <h2 style="color:tomato;">Sorry Encountered Errors</h2><p>Page -> $url</p><p>$ERROR</p>;
+                <h3>CGI Parameters</h3>
+    );
+    print "<ol>";
     foreach ($cgi->param){
         print '<li>'.$_.'=='. $cgi->param($_).'</li>';
     }
     print "</ol>\n";
-    print "<a href=$url>Return to -> $url</a>";
+    print "<div>Return to -> <a href=$url>$url</a></div><hr></div></div>";
+    
     print $cgi->end_html;
     $db->disconnect();
     exit;

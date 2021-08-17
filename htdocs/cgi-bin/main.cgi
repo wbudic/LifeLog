@@ -36,7 +36,7 @@ my $VW_PAGE = Settings->VW_LOG;
 my $sssCDB  = $sss->param('cdb');
 my ($vmode, $imgw, $imgh );
 
-if ( !$alias ||  !$passw) {
+if ( !$alias ||  !$passw ) {
     print $cgi->redirect("alogin_ctr.cgi?CGISESSID=$sid");
     exit;
 }
@@ -84,14 +84,13 @@ my $BGCOL       = Settings::bgcol();
 my $DEBUG       = Settings::debug();
 #END OF SETTINGS
 my $rtf_buffer = 0;
-my $BUFFER;
-sub toBuf {
-    $BUFFER .= shift;        
-}
+my ($BUFFER, $D_BUFF);
 
 my $lang  = Date::Language->new(Settings::language());
 my $today = Settings->today();
- 
+# We buffer the whole page creation, for speed and control send compressed or not to client.
+sub toBuf { if($DEBUG){$D_BUFF .= shift}else{$BUFFER .= shift} }
+
 if(!$prm_vc && &Settings::keepExcludes){
     if($prm_xc_lst){
         Settings::configProperty($db, 201, '^EXCLUDES', $prm_xc_lst);
@@ -670,12 +669,12 @@ sub buildLog {
         $log_output .= qq(<tr class="r$ssid">
 		<td width="15%">$dtf<input id="y$id" type="hidden" value="$dty"/></td>
 		<td id="t$id" width="10%" class="tbl">$dth</td>
-		<td id="v$id"><div class="log">$log</div></td>
+		<td id="v$id" ><div class="log">$log</div></td>
 		<td id="a$id" width="10%" class="tbl">$am</td>
 		<td id="c$id" width="10%" class="tbl">$ct</td>
         );
         if(!$isPUBViewMode){$log_output .= qq(
-		<td width="20%">
+		<td width="10%">
         <input id="r$id" type="hidden" value="$rtf"/>
         <input id="s$id" type="hidden" value="$sticky"/>
         <input id="f$id" type="hidden" value="$af"/>
@@ -683,8 +682,7 @@ sub buildLog {
 			<input name="chk" type="checkbox" value="$pid"/>
 		</td></tr>)};
 
-        if ( $rtf > 0 ) {#max-width:1000px;
-        # style="max-height:480px; box-sizing: border-box; padding: 5px; background:#fffafa; overflow-x:scroll;scrollbar-width:none;"
+        if ( $rtf > 0 ) {        
              $log_output .= qq(<tr id="q-rtf$id" class="r$tfId" style="display:none;">
                          <td colspan="6">
                           <div id="q-scroll$id" class="ql-editor ql-snow" style="max-height:480px; overflow-x:scroll;">
@@ -789,9 +787,13 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     $sp2 = '<span  class="ui-icon ui-icon-circle-triangle-s"></span>';
     $sp3 = '<span  class="ui-icon ui-icon-arrow-4-diag"></span>';
 
+    my $std_bck = "background-image:url('".&Settings::transimage."');";
+    $std_bck = "background-color:$BGCOL;" if !&Settings::transparent;
+    my $auto_logoff = &Settings::autoLogoff;
+
     my $frm = qq(<a name="top"></a>
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
-	<table class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
+	<table class="tbl" border="0" style="$std_bck opacity: 0.9;" width=").&Settings::pagePrcWidth.qq(%">
 	<tr class="r0">
     <td style="text-align:left;"><a id="to_bottom" href="#bottom" title="Go to bottom of page.">&#8615;</a></td>
     <td colspan="2"><b>* LOG ENTRY FORM *</b>
@@ -819,7 +821,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
             </div>
 			</td>
 	</tr>
-	<tr class="collpsd"><td style="text-align:right; vertical-align:top">Log:</td>
+	<tr class="collpsd"><td style="text-align:right; vertical-align:top;">Log:</td>
 		<td id="al" colspan="2" style="text-align:top;">
 			<textarea id="el" name="log" rows="3" style="float:left; width:99%;" onChange="toggleVisibility('cat_desc',true)"></textarea>
 		</td>
@@ -859,6 +861,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 	<input type="hidden" name="rs_prev" value="$log_rc_prev"/>
 	<input type="hidden" name="rs_page" value="$rs_page"/>
 	<input type="hidden" name="CGISESSID" value="$sid"/>
+    <input type="hidden" id="auto_logoff" value="$auto_logoff"/>
     <input type="hidden" id="isInViewMode" value="$isInViewMode"/>
     <input type="hidden" id="rtf_buffer" value="$rtf_buffer"/>
 	$tags
@@ -867,7 +870,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 
     my $srh = qq(
 	<form id="frm_srch" action="main.cgi">
-	<table class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
+	<table class="tbl" border="0" style="background-color:$BGCOL" width=").&Settings::pagePrcWidth.qq(%">
 	  <tr class="r0">
         <td colspan="2"><b>View By/Search</b>
             <a id="srch_close" href="#" onclick="return hide('#div_srh');">$sp1</a>
@@ -918,7 +921,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     $srh .=
     qq(
     <tr class="collpsd">
-     <td align="right" style="width:20%">View by Category:</td>
+     <td align="right" style="width:20%;">View by Category:</td>
      <td align="left">
             <button class="bordered" data-dropdown="#dropdown-standard-v" style="margin: 0px; padding: 0; padding-right:8px;">
             <span id="lcat_v" class="ui-button">$catselected</span>
@@ -1002,7 +1005,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 
 my $sideMenu;
 my $tail = q(<div><a class="a_" href="stats.cgi">View Statistics</a>&nbsp;&nbsp;<a class="a_" href="config.cgi">Configure Log</a></div><hr>
-             <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><hr><a name="bottom"></a></div>);
+             <div><a class="a_" href="login_ctr.cgi?logout=bye" id="btnLogout">LOGOUT</a><hr><a name="bottom"></a></div>);
 if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{ 
     my $sql = Settings::dbSrc(); my $s = $sql =~ qr/:/; $s = $`; $' =~ qr/:/; 
     if(lc $` eq 'pg'){$sql = $s.'&#10132;'.'PostgreSQL'}else{$sql = $s.'&#10132;'.$`};
@@ -1035,13 +1038,12 @@ if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
 }
 
 
-    my $quill = &quill( $cgi->param('submit_is_edit') );
-    my $help = &help;
+my $quill = &quill( $cgi->param('submit_is_edit') );
+my $help = &help;
 
 ##################################
 #  Final Page Output from here!  #
 ##################################
-
 
 toBuf (qq(
 $sideMenu
@@ -1567,7 +1569,7 @@ sub outputPage {
             { -type => 'text/javascript', -src => 'wsrc/moment-timezone-with-data.js' },
             { -type => 'text/javascript', -src => 'wsrc/jquery.sweet-dropdown.js'}
 
-        ]) . 
+        ]) . ($DEBUG ?"<div class='debug_output' date='$today'>$D_BUFF</div>":"").
     $BUFFER;
             
     if(Settings->compressPage() && $cgi->http('Accept-Encoding') =~ m/gzip/){        

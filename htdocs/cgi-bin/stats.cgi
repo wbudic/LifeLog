@@ -44,19 +44,53 @@ my $CSS=<<_____CSS;
     font-family: Bookman;
     text-align: left;    
 }
-.spacer {
-        border: 10px;
-        border-left-width:0px;
 
-        margin:5 px;
-}
 .info span {
-    border: 1px solid black;
-    padding: 5px;
-    margin-top: 1px;
-    margin-right: 15px;
+    border: 1px solid black;    
+    margin-top: 5px;    
     float: left;
-    width:98%
+    width:97%
+}
+
+.table {
+    display:table;
+    border: 2px solid black;
+    margin-right: 15px;
+    width:45%;
+}
+.header {
+    display:table-header-group;
+    font-weight:bold;
+    border-bottom: 1px solid black;
+    margin-bottom: 2px;
+}
+.row {
+    display:table-row;
+}
+.rowGroup {
+    display:table-row-group;
+}
+.cell1 {
+	display: table-cell;	
+    padding: 5px;
+    border-bottom: solid 1px;	
+	border-right: solid 2px;
+    vertical-align: top;
+    width: 10%;
+}
+.cell2 {
+    display:table-cell;    
+    padding: 5px;
+    border-bottom: solid 1px;
+    vertical-align: top;
+    width:25%;
+}
+.cell3 {
+    display:table-cell;    
+    padding: 5px;
+    border-bottom: solid 1px;
+    vertical-align: top;
+    width:100%;
 }
 _____CSS
 
@@ -117,8 +151,9 @@ my $hardware_status = "<b>Host: </b>$hst<br>".join("\t", map { defined ? $_ : ''
    $hardware_status =~ s/up\s/<b>Server is up: <\/b>/g;
 
 my $log = "<span>".$hardware_status."</span>"."<pre>\n".`df -h -l -x tmpfs`."</pre>";   
-Settings::toLog($db, $log);   
-
+###
+   Settings::toLog($db, $log);   
+###
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 my $processes = `$prc | sort -u -r -`;
 my @stat = stat Settings::dbFile();
@@ -132,23 +167,51 @@ my $year =$today->year();
 
 my $IPPublic  = `curl -s https://www.ifconfig.me`;
 my $IPPrivate = `hostname -I`; $IPPrivate =~ s/\s/<br>/g;
+my $tbl = qq(
+<div class="table r0" style="text-align:centered; float:left;">
+  <div class="header">
+      <div class="cell2" style="border-right:0;">Personal Log Data Statistics</div>
+      <div class="cell2"></div>
+  </div>
+  <div class="row r1">
+    <div class="cell1">LifeLog App. Version:</div>
+    <div class="cell2">).Settings::release().qq(</div>
+  </div>
+  <div class="row r2">
+        <div class="cell1">Number of Records:</div><div class="cell2">$log_rc</div>
+  </div> 
+  <div class="row r3">
+        <div class="cell1">No. of Records This Year:</div><div class="cell2">$log_this_year_rc</div>
+  </div>
+    <div class="row r1">
+        <div class="cell1">No. of RTF Documents:</div><div class="cell2">$notes_rc</div>
+  </div>  <div class="row r0">
+        <div class="cell1"># Sum of Expenses For Year $year</div><div class="cell2">$expense</div>
+  </div>
+  <div class="row r2">
+        <div class="cell1"># Sum of Income For Year $year</div><div class="cell2">$income</div>
+  </div>
+  <div class="row r3">
+        <div class="cell1"># Gross For Year $year</div><div class="cell2">$gross</div>
+  </div>
+  <div class="row r1">
+        <div class="cell1">$dbname</div><div class="cell2">$dbSize</div>
+  </div>
+  <div class="row r2">
+        <div class="cell1">Public IP</div><div class="cell2">$IPPublic</div>
+  </div>
+  <div class="row r3">
+        <div class="cell1">Private IP</div><div class="cell2">$IPPrivate</div>
+  </div> 
+</div>
+<div class="table r0">
+    <div class="header"><div class="cell2">Server Info</div></div>
+    <div class="row r1"><div class="cell3">$hardware_status</div></div>
+</div>
+);
 
-my $tbl = qq(<table class="tbl" border="0" align="left"><tr class="r0"><td colspan="5" style="text-align:centered"><b>* Personal Log Data Statistics *</b></td></tr>
-          <tr class="r1"><td>LifeLog App. Version:</td><td>).Settings::release().qq(</td></tr>
-	      <tr class="r0"><td>Number of Records:</td><td>$log_rc</td></tr>
-          <tr class="r1"><td>No. of Records This Year:</td><td>$log_this_year_rc</td></tr>
-          <tr class="r0"><td>No. of RTF Documents:</td><td>$notes_rc</td></tr>
-          <tr class="r1"><td># Sum of Expenses For Year $year</td><td>$expense</td></tr>
-          <tr class="r0"><td># Sum of Income For Year $year</td><td>$income</td></tr>
-          <tr class="r1"><td>Gross For Year $year</td><td>$gross</td></tr>
-          <tr class="r0"><td>$dbname<td>$dbSize</td></tr>
-          <tr class="r1"><td>Public IP</td><td>$IPPublic</td></tr>
-          <tr class="r0"><td>Private IP</td><td>$IPPrivate</td></tr>
-</table>);
-
-
-print qq(<div id="menu" title="Menu" style="border: 2px solid black; padding: 5px; margin-top: 25px;">
-<div style="border: 1px solid black; margin: 5px; margin-bottom: 10px; padding:5px;"><b>Menu</b></div>
+print qq(<div id="menu" title="Menu" style="border: 2px solid black; padding: 5px; margin-top: 120px;">
+<div class="r0" style="border: 1px solid black; margin: 2px; margin-bottom: 10px; padding:5px;"><b>Menu</b></div>
 <div><a class="a_" href="main.cgi">Log</a><hr></div>
 <div><a class="a_" href="config.cgi">Config</a><hr></div>
 <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a></div>
@@ -158,25 +221,22 @@ print qq(
 <div class="main">
 
     <div class="info">
-    <span><h3>Life Log Server Statistics</h3></span>
+        <span class="r2" style="padding:5px;width:98%;"><h3>Life Log Server Statistics</h3></span>
     </div>
 
-    <div class="spacer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+    <div>&nbsp;</div>
     
     <div class="info">
-        <span><b>Log Status & Information</b></span>
-        <span><p>$tbl</p></span>
+        <span class="info r2" style="font-size:larger;padding:5px;width:98%;"><b>Status & Information</b></span>
+        <span style="font-size:larger;padding:5px;width:98%;">$tbl</span>
     </div>
-    <div class="spacer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>    
-    <div class="info">
-        <span><b>Server Info</b></span>
-        <span>$hardware_status</span>       
-    </div>
-    <div class="spacer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+
+    <div>&nbsp;</div>
+
     <div class="info">    
-        <span><b>Server Side Processes</b></span>
-        <span class="ql-container ql-snow"  style="max-height:480px; overflow-x:scroll;">
-                <pre class="r1">$processes</pre>
+        <span class="r2" style="font-size:larger;padding:5px;width:98%;"><b>Server Side Processes</b></span>
+        <span style="border: 1px solid black; padding-right: 0px;  width:98%">
+                <pre class="ql-container r2" style="max-height:480px; width:100%; overflow-x:auto; margin-top:0; margin-bottom:0"">$processes</pre>
         </span>
     </div>
 </div>);

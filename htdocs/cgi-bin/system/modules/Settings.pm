@@ -51,7 +51,7 @@ use constant VW_LOG_WITH_EXCLUDES   => 'VW_LOG_WITH_EXCLUDES';
 #
 use constant VW_LOG_OVERRIDE_WHERE  => 'VW_LOG_OVR_WHERE';
 
-#DEFAULT SETTINGS HERE!
+# DEFAULT SETTINGS HERE! These settings kick in if not found in config file. i.e. wrong config file or has been altered, things got missing.
 our $RELEASE_VER  = '2.3';
 our $TIME_ZONE    = 'Australia/Sydney';
 our $LANGUAGE     = 'English';
@@ -64,29 +64,31 @@ our $IMG_W_H      = '210x120';
 our $REC_LIMIT    = 25;
 our $AUTO_WRD_LMT = 1000;
 our $AUTO_WRD_LEN = 17; #Autocompletion word length limit. Internal.
+our $AUTO_LOGOFF  = 0;
 our $VIEW_ALL_LMT = 1000;
 our $DISP_ALL     = 1;
 our $FRAME_SIZE   = 0;
 our $RTF_SIZE     = 0;
 our $THEME        = 'Standard';
+our $TRANSPARENCY = 1;
+our $TRANSIMAGE   = 'wsrc/images/std-log-lbl-bck.png';
 our $TRACK_LOGINS = 1;
 our $KEEP_EXCS    = 0;
 our $COMPRESS_ENC = 0; #HTTP Compressed encoding.
 our $DBI_SOURCE   = "DBI:SQLite:";
 our $DBI_LVAR_SZ  = 1024;
+
+my ($cgi, $sss, $sid, $alias, $pass, $dbname, $pub);
 our $DSN;
 our $DBFILE;
 our $IS_PG_DB     = 0;
-
-
-my ($cgi, $sss, $sid, $alias, $pass, $dbname, $pub);
-
-#Annons here, variables that could be overiden in  code or database, per need.
+#Annons here, variables that could be overriden in  code or in database, per need and will.
 our %anons = ();
 our %tz_map;
 
 ### Page specific settings Here
 our $TH_CSS        = 'main.css';
+our $JS            = 'main.js';
 our $BGCOL         = '#c8fff8';
 #Set to 1 to get debug help. Switch off with 0.
 our $DEBUG         = 1;
@@ -108,10 +110,12 @@ sub anon {$S_=shift; $S_ = $anons{$S_} if $S_;$S_}
 sub anonsSet {my $a = shift;%anons=%{$a}}
 
 sub release        {$RELEASE_VER}
-sub logPath        {$LOG_PATH}#<-something was calling as setter, can't replicate. On reset of categories in config.cgi.
-sub logPathSet     {$S_ = shift;$LOG_PATH = $S_ if $S_;return $LOG_PATH}#<-has now setter method nothing actually calls.
+sub logPath        {$LOG_PATH} # <-@2021-08-15 something was calling as setter, can't replicate. On reset of categories in config.cgi.
+sub logPathSet     {$S_ = shift;$LOG_PATH = $S_ if $S_;return $LOG_PATH}#<-has now setter method nothing it is actually calling.
 sub theme          {$THEME}                               
 sub timezone       {$TIME_ZONE}
+sub transparent    {$TRANSPARENCY}
+sub transimage     {$TRANSIMAGE}
 sub language       {$LANGUAGE}
 sub sessionExprs   {$SESSN_EXPR}
 sub imgWidthHeight {$IMG_W_H}
@@ -121,6 +125,7 @@ sub universalDate  {$DATE_UNI}
 sub recordLimit    {$REC_LIMIT}
 sub autoWordLimit  {$AUTO_WRD_LMT}
 sub autoWordLength {$AUTO_WRD_LEN}
+sub autoLogoff     {$AUTO_LOGOFF}
 sub viewAllLimit   {$VIEW_ALL_LMT}
 sub displayAll     {$DISP_ALL}
 sub trackLogins    {$TRACK_LOGINS}
@@ -128,6 +133,7 @@ sub windowRTFSize  {$RTF_SIZE}
 sub keepExcludes   {$KEEP_EXCS}
 sub bgcol          {$BGCOL}
 sub css            {$TH_CSS}
+sub js             {$JS}
 sub compressPage   {$COMPRESS_ENC}
 sub debug          {$S_ = shift; $DEBUG = $S_ if $S_; $DEBUG}
 sub dbSrc          {$S_= shift; if($S_) {$DBI_SOURCE=$S_; $IS_PG_DB = 1 if(index (uc $S_, 'DBI:PG') ==0)}  
@@ -147,7 +153,7 @@ sub pass    {$pass}
 sub pub     {$pub}
 
 sub trim {my $r=shift; $r=~s/^\s+|\s+$//g;  $r}
-#The following has to be called from an CGI seesions container that provides parameters.
+# The following has to be called from an CGI seesions container that provides parameters.
 sub fetchDBSettings {
 try {
     $CGI::POST_MAX = 1024 * 1024 * 5;  # max 5GB file post size limit.
@@ -202,11 +208,11 @@ try {
     }    
     my $ret  = connectDB($dbname, $alias, $pass);
     getConfiguration($ret);    
-    getTheme();
+    setupTheme();
     $sss->expire($SESSN_EXPR);
     return $ret;
 }catch{    
-    SettingsException->throw(error=>$@, show_trace=>$DEBUG);
+    SettingsException->throw(error=>"DSN<$DSN>".$@, show_trace=>$DEBUG);
     exit;
 }
 }
@@ -387,7 +393,7 @@ return qq(
     FOREIGN KEY (CID) REFERENCES CAT(ID)
     );
 )}
-#Selects the actual database set configuration for the application, not from the config file.
+#Selects the actual database set configuration for the application, these kick in overwritting those from the config file.
 sub getConfiguration {
     my ($db, $hsh) = @_;
     my $fh;
@@ -407,11 +413,14 @@ sub getConfiguration {
                 when ("IMG_W_H")     {$IMG_W_H      = $r[2]}
                 when ("REC_LIMIT")   {$REC_LIMIT    = $r[2]}
                 when ("AUTO_WRD_LMT"){$AUTO_WRD_LMT = $r[2]}
+                when ("AUTO_LOGOFF") {$AUTO_LOGOFF  = $r[2]}
                 when ("VIEW_ALL_LMT"){$VIEW_ALL_LMT = $r[2]}
                 when ("DISP_ALL")    {$DISP_ALL     = $r[2]}
                 when ("FRAME_SIZE")  {$FRAME_SIZE   = $r[2]}
                 when ("RTF_SIZE")    {$RTF_SIZE     = $r[2]}
                 when ("THEME")       {$THEME        = $r[2]}
+                when ("TRANSPARENCY"){$TRANSPARENCY = $r[2]}
+                when ("TRANSIMAGE")  {$TRANSIMAGE   = $r[2]}
                 when ("DEBUG")       {$DEBUG        = $r[2]}
                 when ("KEEP_EXCS")   {$KEEP_EXCS    = $r[2]}
                 when ("TRACK_LOGINS"){$TRACK_LOGINS = $r[2]}
@@ -473,22 +482,22 @@ sub timeFormatSessionValue {
     my @a = $v =~ m/(\+\d+[shm])/gis;    
     if(scalar(@a)>0){$v=$a[0]}
     # Test acceptable setting, which is any number from 2, having any s,m or h. 
-    if($v =~ m/(\+[2-9]\d*[smh])|(\+[1-9]+\d+[smh])/){
+    if($v =~ m/(\+*[2-9]\d*[smh])|(\+[1-9]+\d+[smh])/){
         # Next is actually, the dry booger in the nose. Let's pick it out!
         # Someone might try to set in seconds value to be under two minutes.
         @a = $v =~ m/(\d[2-9]\d+)/gs;        
         if(scalar(@a)>0 && int($a[0])<120){return $ret}else{return $v}
     }
-    elsif($v =~ m/\+\d+/){# is passedstill without time unit? Minutetise!
-        $ret=$v."m"
+    elsif($v =~ m/\+\d+/){# is passed still without time unit? Minutetise!
+        $ret=$v
     }
     return $ret;
 }
-sub getTheme {
+sub setupTheme {
     given ($THEME){
-        when ("Sun")   { $BGCOL = '#D4AF37'; $TH_CSS = "main_sun.css"; }
-        when ("Moon")  { $BGCOL = '#000000'; $TH_CSS = "main_moon.css"; }
-        when ("Earth") { $BGCOL = '#26ac0c'; $TH_CSS = "main_earth.css";} # Used to be $BGCOL = '#26be54';
+        when ("Sun")   { $BGCOL = 'goldenrod';   $TH_CSS = "main_sun.css"; }
+        when ("Moon")  { $BGCOL = '#000000';     $TH_CSS = "main_moon.css"; }
+        when ("Earth") { $BGCOL = 'forestgreen'; $TH_CSS = "main_earth.css";} # Used to be $BGCOL = '#26be54';
         default{
             # Standard;
             $BGCOL    = '#c8fff8';
@@ -753,6 +762,21 @@ sub toPropertyValue {
        foreach(@F){return 0 if $_ eq $p;}       
     }
     return $prm;
+}
+
+sub saveCurrentTheme {
+    my $theme = shift;
+    if($theme){
+        open (my $fh, '>', $LOG_PATH.'current_theme') or die $!;
+        print $fh $theme;
+        close($fh);
+    }
+}
+sub loadLastUsedTheme {    
+    open my $fh, '<', $LOG_PATH.'current_theme' or return $THEME;
+    $THEME = <$fh>;
+    close($fh);    
+    &setupTheme;
 }
 
 1;

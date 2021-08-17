@@ -729,9 +729,6 @@ function toggleVisibility(target, ensureOff) {
 }
 
 
-
-
-
 function toggleDoc(whole) {
 
 
@@ -1303,7 +1300,14 @@ function setPageSessionTimer(expires) {
             var out = (min < 10 ? '0' : '') + min + ":" + (sec < 10 ? '0' : '') + sec;
             var tim = new moment().tz(TIMEZONE).format("hh:mm:ss a");
             var sty = "";if(min<2){sty="style='color:red'";
-            if(!WARNED){WARNED=1;$('#au_door_chime').trigger('play');display("<font color='red'>Session is about to expire!</font>",10);}}
+            if(!WARNED){WARNED=1;
+                if($('#auto_logoff').val()=='0'){
+                   $('#au_door_chime').trigger('play');
+                }else{
+                    $('#btnLogout').click();
+                }
+                display("<span id='sss_expired'>Session is about to expire!</span>",10);}
+            }
             var dsp = "<font size='1px;'>[" + tim + "]</font><span "+sty+"> Session expires in " + out + "</span>";                
             $("#sss_status").html(dsp);
             if(now.isAfter(timeout)){
@@ -1312,6 +1316,9 @@ function setPageSessionTimer(expires) {
                 $("#ed").prop( "disabled", true );
                 $("#el").prop( "disabled", true );
                 $("#am").prop( "disabled", true );
+                if($('#auto_logoff').val()=='1'){                    
+                      dialogModal("Page Session has Expired","Please login again!", true);                    
+                }
             }
 
         }, 1000);
@@ -1327,21 +1334,41 @@ function setPageSessionTimer(expires) {
      return true;
  }
 
- function dialogModal(title, message) {
-    $('<div></div>').dialog({
-        modal: true,
-        title: title,
-        width: "40%",
-        show: { effect: "clip", duration: 400 },
-        open: function() {
-          $(this).html(message);
-        },
-        buttons: {
-          Ok: function() {
-            $( this ).dialog( "close" );
-          }
-        }
-    });
+ function dialogModal(title, message, logout) {
+    
+    if(logout) {
+        $('<div></div>').dialog({
+            modal: true,
+            title: title,
+            width: "40%",
+            show: { effect: "clip", duration: 400 },
+            open: function() {
+            $(this).html(message);
+            },
+            buttons: {
+                Logout: function() {
+                    $( this ).dialog( "close" );
+                    location.reload();
+                }
+            }    
+        });
+    }else {      
+    
+            $('<div></div>').dialog({
+                modal: true,
+                title: title,
+                width: "40%",
+                show: { effect: "clip", duration: 400 },
+                open: function() {
+                $(this).html(message);
+                },
+                buttons: {
+                    Ok: function() {
+                    $( this ).dialog( "close" );
+                    }
+                }
+            });
+    }
 return false;
  }
 

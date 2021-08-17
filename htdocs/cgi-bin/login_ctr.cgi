@@ -36,24 +36,22 @@ my $VW_OVR_SYSLOGS=0;
 my $VW_OVR_WHERE="";
 my $LOGOUT_RELOGIN_TXT='No, no, NO! Log me In Again.';
 my $LOGOUT_IFRAME_ENABLED = 0;
-my $LOGOUT_IFRAME = qq|<iframe width="60%" height="600px" src="https://www.youtube.com/embed/qTFojoffE78?autoplay=1"
-      frameborder="0"
-        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+my $LOGOUT_IFRAME = qq|
+    <iframe width="60%" height="600px" src="https://www.youtube.com/embed/qTFojoffE78?autoplay=1" frameborder="0" allow="accelerometer; 
+            autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
     </iframe>|;
-
-try{
+try{    
     checkAutologinSet();
     logout() if($cgi->param('logout'));
-    if(processSubmit()==0){
-
+    if(processSubmit()==0){        
         print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
         print $cgi->start_html(
                     -title   => "Personal Log Login",
                     -BGCOLOR => &Settings::bgcol,
-                    -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
+                    -script=> [{-type  => 'text/javascript', -src => 'wsrc/main.js'},
                                 {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                                 {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
-                    -style => [{-type => 'text/css', -src => "wsrc/".&Settings::css},
+                    -style => [{-type  => 'text/css', -src => "wsrc/".&Settings::css},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}],
@@ -83,12 +81,13 @@ try{
         <tr class="r0"><td colspan="2">Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
         </table></form>);
 
-    print qq(<br><br><div id="rz">
+    print qq(<br><br><div class="rz">
             <center>
-                <h2>Welcome to Life Log</h2><div>$frm</div><br>
+                <h2>Welcome to Life Log</h2><div class="">$frm</div><br>
                 <a href="https://github.com/wbudic/LifeLog" 
                 target="_blank" style="font-size:small">LifeLog v.).Settings::release().qq(</a><br>
-            </center><div>);
+            </center>
+        </div>);
 
     Settings::printDebugHTML($DBG) if Settings::debug();
     print $cgi->end_html;
@@ -200,6 +199,7 @@ sub checkAutologinSet {
             }
             $db -> disconnect();
     }
+    Settings::loadLastUsedTheme();    
 }
 
 sub checkPreparePGDB {
@@ -718,7 +718,7 @@ sub toTokens {
 return @ret;
 }
 
-
+#@TODO Needs to be redone, use CNF 2.2, see also config.cgi
 sub populate {
 
     my $db = shift;
@@ -782,29 +782,29 @@ $err .= "Invalid, spec'ed {uid}|{variable}`{description}-> $line\n";
                                      elsif($tt==0){
 $err .= "Invalid, spec'd entry -> $line\n";
                                     }elsif($tt==1){
-                                                            my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+\s*\S*)]g;
-                                                            if ( scalar(@pair)==2 ) {
-                                                                        # In older DB versions the Category name could be different, user modified.
-                                                                        # The unique id and name interwined, changed. Hence we check on name first.
-                                                                        # Then check if the  ID is available. If not just skip, the import. Reseting can fix that latter.
-                                                                        if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE NAME LIKE '$pair[1]';")->fetchrow_array()) {
-                                                                            if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE ID = $pair[0];")->fetchrow_array()){
-                                                                                $DBG .= "cat.ins->".$pair[0].",".$pair[1].",".$tick[1]."\n";
-                                                                               $insCat->execute($pair[0],$pair[1],$tick[1]);
-                                                                            }
-                                                                        }
-                                                                        $inData = 1;
+                                            my @pair = $tick[0] =~ m[(\S+)\s*\|\s*(\S+\s*\S*)]g;
+                                            if ( scalar(@pair)==2 ) {
+                                                        # In older DB versions the Category name could be different, user modified.
+                                                        # The unique id and name interwined, changed. Hence we check on name first.
+                                                        # Then check if the  ID is available. If not just skip, the import. Reseting can fix that latter.
+                                                        if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE NAME LIKE '$pair[1]';")->fetchrow_array()) {
+                                                            if(!Settings::selectRecords($db, "SELECT ID FROM CAT WHERE ID = $pair[0];")->fetchrow_array()){
+                                                                $DBG .= "cat.ins->".$pair[0].",".$pair[1].",".$tick[1]."\n";
+                                                                $insCat->execute($pair[0],$pair[1],$tick[1]);
                                                             }
-                                                            else {
+                                                        }
+                                                        $inData = 1;
+                                            }
+                                            else {
 $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
-                                                            }
-                                    }elsif($tt==2){
+                                            }
+                    }elsif($tt==2){
                                             #TODO Do we really want this? Insert into log from config script.
                                     }
                     }elsif($inData && length($line)>0){
 
                                         if(scalar(@tick)==1){
-                                            $err .= "Corrupt Entry, no description supplied -> $line\n";
+                                            $err .= "Corrupt Entry, (where is '\`' backtick for description?) -> $line\n";
                                         }
                                         else{
                                             $err .= "Corrupt Entry -> $line\n";
@@ -812,8 +812,7 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
 
                     }
         }
-    LifeLogException->throw(error=>"Configuration script ".&Settings::logPath."/main.cnf [$fh] contains errors. DSN:".
-                                Settings::dsn()." Err:$err", show_trace=>1) if $err;
+    LifeLogException->throw(error=>"Configuration script ".&Settings::logPath."/main.cnf contains errors.\nErr:$err", show_trace=>1) if $err;
     $db->commit();
 }
 
@@ -831,40 +830,40 @@ return "SELECT name FROM sqlite_master WHERE type='view' AND name='$name';"
 sub logout {
 
     if(Settings::trackLogins()){
-    try{
-        $alias = $session->param('alias');
-        $passw = $session->param('passw');
-        if($alias){
-            my $db = Settings::connectDB($DB_NAME, $alias, $passw);
-            Settings::toLog($db, "Log has properly been logged out by $alias.");
-            $db->disconnect();
-        }
-    }catch{
-        my $err = $@;
-        my $dbg = "" ;
-        my $pwd = `pwd`;
-        $pwd =~ s/\s*$//;
-        $dbg = "--DEBUG OUTPUT--\n$DBG" if Settings::debug();
-        print $cgi->header,
-        "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now().
-        "<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n$dbg</pre>",
-        $cgi->end_html;
-        exit;
-    }
+            try{
+                $alias = $session->param('alias');
+                $passw = $session->param('passw');
+                if($alias){
+                    my $db = Settings::connectDB($DB_NAME, $alias, $passw);
+                    Settings::toLog($db, "Log has properly been logged out by $alias.");
+                    $db->disconnect();
+                }
+            }catch{
+                my $err = $@;
+                my $dbg = "" ;
+                my $pwd = `pwd`;
+                $pwd =~ s/\s*$//;
+                $dbg = "--DEBUG OUTPUT--\n$DBG" if Settings::debug();
+                print $cgi->header,
+                "<font color=red><b>SERVER ERROR</b></font> on ".DateTime->now().
+                "<pre>".$pwd."/$0 -> &".caller." -> [$err]","\n$dbg</pre>",
+                $cgi->end_html;
+                exit;
+            }
     }
 
 
     print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
     print $cgi->start_html(-title => "Personal Log Login", -BGCOLOR=>"black",
-                           -style =>{-type => 'text/css', -src => 'wsrc/main.css'},
+                           -style =>{-type => 'text/css', -src => 'wsrc/'.Settings::css()},
             );
     $LOGOUT_IFRAME  = "" if not $LOGOUT_IFRAME_ENABLED;
-    print qq(<font color="white"><center><h2>You have properly logged out of the Life Log Application!</h2>
+    print qq(<div class="rz"><h2>You have properly logged out of the Life Log Application!</h2>
     <br>
     <form action="login_ctr.cgi"><input type="hidden" name="autologoff" value="1"/><input type="submit" value="$LOGOUT_RELOGIN_TXT"/></form><br>
     </br>
     $LOGOUT_IFRAME
-    </center></font>
+    </div>
     );
 
     print $cgi->end_html;
