@@ -75,6 +75,20 @@ sudo -u postgres psql -c "SHOW data_directory;" | grep -G /
 ## Quick tar all
 sudo tar czvf ~/postgresql.db.backup.tar $(sudo -u postgres psql -c "SHOW data_directory;" | grep -G /)
 
+# Backup/Restore
+# You must setup an ~/.pgpass, and change the following cat string to your systems setup.
+
+cat "hostname:port:database:username:password" >> ~/.pgpass; chmod 600 ~/.pgpass;
+
+# Backup with:
+pg_dump --file "~/dev/LifeLog/dbLifeLog/bck-pg-$DB_NAME.sql"  $DB_NAME
+
+# Now you can run your backup utility. To include your ~/dev/ directory.
+# Or use and setup mine @see -> https://github.com/wbudic/B_L_R_via_sshfs
+# p.s. If this saved you one day, let me know. :)
+
+# Restore with:
+psql $DB_NAME < "~/dev/LifeLog/dbLifeLog/bck-pg-$DB_NAME.sql"
 
 
 
