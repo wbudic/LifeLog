@@ -336,9 +336,9 @@ my  $frmDB = qq(
         </tr>
         <tr class="r2" align="left">
              <td colspan="2">Perform this change/check in the event of experiencing data problems. Or periodically for data check and maintenance. <br>
-             Use 'Reset Settings' option to revert to current stored configuration. Changes you made.<br>
+             Use 'Reset Settings' option to revert to current stored configuration. The changes you made since installation.<br>
              Use the 'Wipe Settings' option if updating the application or need new defaults from main.cnf config file.<br>
-             Select both to reset and wipe, to overwrite all changes you made to config file settings.
+             Select both to reset and wipe, to overwrite all changes you made to config file settings.<br>
             <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
                             of your changes. Please, export/backup first.</td>
         </tr>
@@ -368,7 +368,7 @@ next if $file eq '.' or $file eq '..' or index ($file , 'bck_') == -1;
   push @backups, $file;
 }
 close $dir;
-foreach $file (sort @backups){
+foreach my $file (sort @backups){
     #my $n = substr $file, length(&Settings::logPath);
     $bck_list .=  "<input name='bck_file' type='radio' value='$file' onclick='setBackupFile(this);'>$file</input><br>";
 }
@@ -790,9 +790,9 @@ try{
         getHeader() if(&Settings::debug);
         print "<h3>Database Records Fix Result</h3>\n<hr>" if &Settings::debug;
         print "<body><pre>Started transaction!\n" if &Settings::debug;
-        #Transaction work if driver is set properly!
-        my $p = Settings::pass(); 
-        $db = DBI->connect(Settings::dsn(), $alias, $p, {AutoCommit => 0, RaiseError => 1, PrintError => 0, show_trace=>1});
+        #Transactions work if driver is set properly!
+        $db   = Settings::connectDBWithAutocommit(1);
+        #DBI->connect(Settings::dsn(), $alias, $p, {AutoCommit => 0, RaiseError => 1, PrintError => 0, show_trace=>1});
         $db->do('BEGIN TRANSACTION;');
         # Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
         # @TODO This should be selecting an cross SQL compatibe view.
@@ -824,12 +824,30 @@ try{
         
         &renumerate;        
         print "Doing removeOldSessions next..." if &Settings::debug;
-        &Settings::removeOldSessions;
+            &Settings::removeOldSessions;
         print "done!\n" if &Settings::debug;
-        
-        &resetCategories if $rs_cats;
-        &resetSystemConfiguration($db) if $rs_syst;
-        &wipeSystemConfiguration if $wipe_ss;
+        if ($rs_cats){
+            print "Doing resetSystemConfiguration next..." if &Settings::debug;
+                #Let migration algorithm handle re-creation on logon.
+                $db->do("DELETE FROM CAT;");
+                $db->do("DROP TABLE CAT;");
+                $LOGOUT = 1;
+            print "done!\n" if &Settings::debug;
+        }
+        if ($rs_syst) {
+            print "Doing resetSystemConfiguration next..." if &Settings::debug;
+                &resetSystemConfiguration($db);
+            print "Doing resetSystemConfiguration next..." if &Settings::debug;
+        }
+        if ($wipe_ss) {
+            print "Doing wipeSystemConfiguration next..." if &Settings::debug;
+            Settings::saveReserveAnons(); #So we can bring back from dead application reserve variables.
+                #Let migration algorithm handle re-creation on logon.
+                $db->do("DELETE FROM CONFIG;");
+                $db->do("DROP TABLE CONFIG;");
+                $LOGOUT = 1;
+            print "done!\n" if &Settings::debug;
+        }
 
         $db->do('COMMIT;')if(&Settings::debug);
         print "Commited ALL!<br>"if(&Settings::debug);      
@@ -930,28 +948,14 @@ sub renumerate {
     print "done!\n" if &Settings::debug;
 }
 
-sub resetCategories {
-    print "Doing wipeCtegories next..." if &Settings::debug;
-    $db->do("DELETE FROM CAT;");
-    $db->do("DROP TABLE CAT;");
-    $LOGOUT = 1;
-    print "done!\n" if &Settings::debug;
-}
 
-sub wipeSystemConfiguration {
-    print "Doing wipeSystemConfiguration next..." if &Settings::debug;
-    $db->do("DELETE FROM CONFIG;");
-    $db->do("DROP TABLE CONFIG;");
-    $LOGOUT = 1;
-    print "done!\n" if &Settings::debug;
-}
 
 #@TODO Needs to be redone, use CNF 2.2
-sub resetSystemConfiguration {
+sub resetSystemConfigurationUPDATING_BELLOW {
 
         open(my $fh, '<', &Settings::logPath.'main.cnf') or die "Can't open ".&Settings::logPath."main.cnf! $!";
         my $db = shift;
-        my ($id,$name, $value, $desc);
+        my ($id, $name, $value, $desc);
         my $inData = 0;
         my $err = "";
         my %vars = {};
@@ -968,7 +972,6 @@ try{
                     my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
                     if(scalar(%hsh)==1){
                             for my $key (keys %hsh) {
-
                                     my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
                                     if(scalar(%nash)==1){
                                             for my $id (keys %nash) {
@@ -984,18 +987,18 @@ try{
                                                     my @row = $dbs->fetchrow_array();
                                                     if(scalar @row == 0){
                                                     #The id in config file has precedence to the one in the db,
-                                                    #from a possible previous version.
+                                                    # from a possible previous version.
                                                     $dbs = Settings::selectRecords($db, "SELECT ID FROM CONFIG WHERE ID = $id;");
                                                     @row = $dbs->fetchrow_array();
                                                     if(scalar @row == 0){
                                                             $insert->execute($id,$name,$value,$tick[1]);
                                                     }else{
                                                             #rename, revalue exsisting id
-                                                            $updExs->execute($name,$value,$id);
+                                                            $updExs->execute($name, $value, $id);
                                                         }
                                                     }
                                                     else{
-                                                            $update->execute($value,$id);
+                                                            $update->execute($value, $id);
                                                     }
                                                 }
                                             }
@@ -1026,6 +1029,84 @@ try{
         print "done!\n" if &Settings::debug;
  } catch{
       close $fh;
+      print $cgi->header;
+        print "<font color=red><b>SERVER ERROR!</b></font>[id:$id,name:$name,value:$value]->$@<br> ".$_."<br><pre>$err</pre>";
+      print $cgi->end_html;
+      exit;
+ }
+}
+
+sub resetSystemConfiguration {
+        my ($id, $name, $value, $desc, $db) = shift;
+        my $cnf = new CNFParser(&Settings::logPath.'main.cnf');        
+        my $inData = 0;
+        my $err = "";
+        my %vars = {};
+        my @lines = split('\n',$cnf->anon('CONFIG'));        
+try{
+        my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
+        my $update = $db->prepare('UPDATE CONFIG SET VALUE=? WHERE ID=?;');
+        my $updExs = $db->prepare('UPDATE CONFIG SET NAME=?, VALUE=? WHERE ID=?;');        
+        foreach (my $line = @lines) {            
+            my @tick = split("`",$line);
+            if(scalar(@tick)==2){
+                    #Specification Format is: ^{id}|{property}={value}`{description}\n
+                        #There is no quoting necessary unless capturing spaces or tabs for value!
+                    my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
+                    if(scalar(%hsh)==1){
+                            for my $key (keys %hsh) {
+                                    my %nash = $key =~ m[(\d+)\s*\|\$\s*(\S+)]g; # {id}|{property} <- is the key.
+                                    if(scalar(%nash)==1){
+                                            for my $id (keys %nash) {
+                                                $name  = $nash{$id};
+                                                $value = $hsh{$key};  # <- {value}.
+                                                if($vars{$id}){
+            $err .= "UID{$id} taken by $vars{$id}-> $line\n";
+                                                }
+                                                else{
+                                                    $dbs = Settings::selectRecords($db,
+                                                        "SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG WHERE NAME LIKE '$name';");                                                    
+                                                    my @row = $dbs->fetchrow_array();
+                                                    if(scalar @row == 0){
+                                                    #The id in config file has precedence to the one in the db,
+                                                    # from a possible previous version.
+                                                    $dbs = Settings::selectRecords($db, "SELECT ID FROM CONFIG WHERE ID = $id;");
+                                                    @row = $dbs->fetchrow_array();
+                                                    if(scalar @row == 0){
+                                                            $insert->execute($id,$name,$value,$tick[1]);
+                                                    }else{
+                                                            #rename, revalue exsisting id
+                                                            $updExs->execute($name, $value, $id);
+                                                        }
+                                                    }
+                                                    else{
+                                                            $update->execute($value, $id);
+                                                    }
+                                                }
+                                            }
+                                    }else{
+            $err .= "Invalid, specced {uid}|{setting}`{description}-> $line\n";
+                                    }
+
+                            }#rof
+                    }
+                    else{
+            $err .= "Invalid, specced entry -> $line\n";
+                    }
+
+            }            
+            elsif(length($line)>0){
+                if(scalar(@tick)==1){
+                        $err .= "Corrupt entry, no description supplied -> $line\n";
+                }
+                else{
+                    $err .= "Corrupt Entry -> $line\n";
+                }
+            }
+        }
+        die "Configuration script ".&Settings::logPath."main.cnf' contains errors." if $err;        
+        Settings::getConfiguration($db);        
+ } catch{
       print $cgi->header;
         print "<font color=red><b>SERVER ERROR!</b></font>[id:$id,name:$name,value:$value]->$@<br> ".$_."<br><pre>$err</pre>";
       print $cgi->end_html;
@@ -1352,7 +1433,6 @@ catch{
 }
 
 package DBMigStats {
-
     
     sub new {
         my $class = shift;

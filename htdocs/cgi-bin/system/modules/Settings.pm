@@ -51,6 +51,9 @@ use constant VW_LOG_WITH_EXCLUDES   => 'VW_LOG_WITH_EXCLUDES';
 #
 use constant VW_LOG_OVERRIDE_WHERE  => 'VW_LOG_OVR_WHERE';
 
+use constant META => '^CONFIG_META';
+
+
 # DEFAULT SETTINGS HERE! These settings kick in if not found in config file. i.e. wrong config file or has been altered, things got missing.
 our $RELEASE_VER  = '2.3';
 our $TIME_ZONE    = 'Australia/Sydney';
@@ -104,7 +107,7 @@ our $TIME_ZONE_MAP ="";
 #The all purpose '$S_' class get/setter variable, we do better with less my new variable assignments.
 our $S_ =""; 
 #
-sub anons { keys %anons}
+sub anons {keys %anons}
 #Check call with defined(Settings::anon('my_anon'))
 sub anon {$S_=shift; $S_ = $anons{$S_} if $S_;$S_}
 sub anonsSet {my $a = shift;%anons=%{$a}}
@@ -163,7 +166,7 @@ try {
     $sid     = $sss->id();    
     $alias   = $sss->param('alias');
     $pass    = $sss->param('passw');
-    $pub     = $cgi->param('pub');$pub = $sss->param('pub') if !$pub; #maybe test script session set, sss.
+    $pub     = $cgi->param('pub');$pub = $sss->param('pub') if not $pub; #maybe test script session set in $sss.
     $dbname  = $sss->param('database'); $dbname = $alias if(!$dbname);
 
     ##From here we have data source set, currently Progress DB SQL and SQLite SQL compatible.
@@ -191,10 +194,12 @@ try {
                             last if($line =~ />$/);
                             $S_ .= $line . "\n";
                         }
-                        $anons{'PLUGINS'} = $S_;
+                        anonsSet('PLUGINS', $S_);
                         next;
-                    }     
-                   last if parseAutonom('CONFIG',$line);
+                    }elsif($line =~ /'<<'.META.'<'/p){
+                        anonsSet(META, 1)
+                    }
+                   last if parseAutonom(META, $line);
         }
         close $fh; 
         if(!$SQL_PUB&&$pub ne 'test'){$alias=undef}       
@@ -715,10 +720,14 @@ sub configProperty {
     }
 }
 
+sub connectDBWithAutocommit {
+    connectDB(undef,undef,undef,shift);
+}
 sub connectDB {
-    my ($d,$u,$p) = @_;
-    $u = $alias if(!$u);
-    $p = $alias if(!$p);
+    my ($d,$u,$p,$a) = @_;    
+    $u = $alias if !$u;
+    $p = $alias if !$p;
+    $a = 1      if !$a;
     my $db =$u;
     if(!$d){$db = 'data_'.$u.'_log.db';$d=$u}
     else{   $db = 'data_'.$d.'_log.db';$dbname = $d if !$dbname}
@@ -728,8 +737,8 @@ sub connectDB {
         }else{
             $DSN = $DBI_SOURCE .'dbname='.$DBFILE;        
         }    
-    try{
-        return DBI->connect($DSN, $u, $p, {AutoCommit => 1, RaiseError => 1, PrintError => 0, show_trace=>1});
+    try{        
+        return DBI->connect($DSN, $u, $p, {AutoCommit => $a, RaiseError => 1, PrintError => 0, show_trace=>1});
     }catch{           
        LifeLogException->throw(error=>"<p>Error->$@</p><br><pre>DSN: $DSN</pre>",  show_trace=>1);
     }
@@ -777,6 +786,66 @@ sub loadLastUsedTheme {
     $THEME = <$fh>;
     close($fh);    
     &setupTheme;
+}
+sub saveReserveAnons {
+    my $meta = $anons{META}; #since v.2.3
+    my @dr = split(':', dbSrc());
+    LifeLogException->throw(error=>"Meta anon property ^CONFIG_META not found!\n".
+                                   "You possibly have an old main.cnf file there.",  show_trace=>1) if not $meta;
+    try{        
+        my $db = connectDBWithAutocommit(0);
+        open (my $fh, '>', $LOG_PATH.'config_meta_'.(lc($dr[1])).'_'.$dbname) or die $!;
+         print $fh $meta;
+         #It is reserve meta anon type, value (200) is not mutuable, internal.
+         my $dbs = selectRecords($db, "SELECT ID, NAME, VALUE FROM CONFIG WHERE ID >= 200;"); 
+        while(my @r=$dbs->fetchrow_array()){
+            print $fh "$r[0]|$r[1] = $r[2]\n" if $r[0] =~ /^\^/;
+        }
+        close($fh);
+
+    }catch{           
+       LifeLogException->throw(error=>"<p>Error->$@</p><br><pre>DSN: $DSN</pre>",  show_trace=>1);
+    }
+}
+
+sub loadReserveAnons(){
+
+    
+    try{        
+        my @dr = split(':', dbSrc());    
+        my $db = connectDBWithAutocommit(0);
+        my %reservs = ();        
+        my $stInsert = $db->prepare('INSERT INTO CONFIG VALUES(??);');
+        my $stUpdate = $db->prepare('UPDATE CONFIG (NAME, VALUE) WHERE ID =? VALUES(?, ?);');
+        my $dbs = selectRecords($db, "SELECT ID, NAME, VALUE FROM CONFIG WHERE ID >= 200;"); 
+        $db->do('BEGIN TRANSACTION;');
+
+            while(my @r=$dbs->fetchrow_array()){
+            $reservs{$r[1]} = $r[2] if !$reservs{$r[1]}
+            }
+            open (my $fh, '<', $LOG_PATH.'config_meta_'.(lc($dr[1])).'_'.$dbname) or return 0;  
+        
+            while (my $line = <$fh>) {
+                chomp $line;
+                my @p = $line =~ m[(\S+)\s*=\s*(\S+)]g;
+                if(@p>1){
+                    my $existing_val = $reservs{$p[1]};
+                    if(!$existing_val){
+                        $stInsert->execute($p[1], $p[2]);
+
+                    }
+                    elsif($existing_val ne $p[2]){
+                        $stUpdate->execute($p[0], $p[1], $p[2]);
+                    }
+                }
+            }
+        $db->commit();
+        close($fh);
+    }catch{
+       
+       LifeLogException->throw(error=>"<p>Error->$@</p><br><pre>DSN: $DSN</pre>",  show_trace=>1);
+    }
+    return 1;    
 }
 
 1;

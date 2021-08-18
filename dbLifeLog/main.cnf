@@ -8,8 +8,8 @@ This is an Open Source License project -> https://choosealicense.com/licenses/is
 <<AUTO_LOGIN<>>>
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>>>
-<<LOGOUT_IFRAME_ENABLED<true>>>
-<<LOGOUT_RELOGIN_TXT< - Log me In Again - >>>
+<<LOGOUT_IFRAME_ENABLED<false>>>
+<<LOGOUT_RELOGIN_TXT<Log me In Again>>>
 
 # Default database driver prefix, is SQLite.
 Note Remove -> '!' prefix to tag name, to enable, set,
@@ -54,8 +54,10 @@ BankingPlugin->banking.pl
 <<!VIEW_OVERRIDE_SYSLOGS<0>>>
 <<!VIEW_OVERRIDE_WHERE<ID_CAT>=6 AND >>>
 
+#For internal use only.
+<<^CONFIG_META<200>The reserved id range for config table is from 200, upwards.>>
 #
-# The following are initial setup constance's. 
+# The following are initial setup constance's. We use them instead of hard coding a lot.
 # Modifying them after the fact of a database creation is futile, a limp biscuit.
 # Use/see anon properties before, enabling changing settings from this actual config file.
 #
@@ -67,10 +69,11 @@ BankingPlugin->banking.pl
 08|$LOG_PATH    = ../../dbLifeLog/`Path to folder containing data.
 10|$SESSN_EXPR  = +30m`Login session expiration time setting, can be seconds, minutes or hours.
 12|$DATE_UNI    = 0`Setting of how dates are displayed, universal yyyy-mm-dd or local dd-mm-yyyy.
-14|$LANGUAGE	= English`Default language locale.
+14|$LANGUAGE	 = English`Default language locale.
 18|$IMG_W_H     = 210x120`Default embedded image width.
 20|$AUTO_WRD_LMT= 1024`Autocomplete word gathering limit.
 22|$AUTO_LOGIN  = 0`Autologin option, that expires only if login out. Enter Credentials in main.cnf.
+23|$AUTO_LOGOFF = 0`Auto logoff on session expires, default is false.
 24|$FRAME_SIZE  = 0`Youtube frame size settings, 0 - Large, 1 - Medium, 2- Small.
 26|$RTF_SIZE    = 2`RTF Document height, 0 - Large, 1 - Medium, 2- Small.
 28|$THEME       = Standard`Theme to apply, Standard, Sun, Moon, Earth.
@@ -81,6 +84,7 @@ BankingPlugin->banking.pl
 38|$COMPRESS_ENC=0`Compress Encode pages, default -> 0=false, 1=true.
 40|$SUBPAGEDIR  =docs`Directory to scan for subpages like documents.
 42|$DISP_ALL    = 1`Display whole log entry, default -> 1=true, 0=false for display single line only.
+44|$TRANSPARENCY= 1`Should log panel be transparent, default is yes or on.
 >>
 <<CAT<3>
 01|Unspecified `For quick uncategorized entries.

@@ -255,11 +255,17 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
     %curr_tables = %{Settings::schema_tables($db)};
 
     if($curr_tables{'CONFIG'}) {
-        #Set changed if has configuration data been wiped out.
-        $changed = 1 if Settings::countRecordsIn($db, 'CONFIG') == 0;
+        #Set changed if the configuration data has been wiped out, i.e. by db fix routines.        
         $pst = Settings::selectRecords($db,"SELECT NAME, VALUE FROM CONFIG;");
-        while(my @r = $pst->fetchrow_array()){
-              $curr_config{$r[0]} = $r[1];
+        my @r = $pst->fetchrow_array();
+        if(@r){
+           do { $curr_config{$r[0]} = $r[1] }
+           while(@r = $pst->fetchrow_array())
+        }else{
+               if(!&Settings::loadReserveAnons){
+                   print "No meta file found, recreate of config is from scratch.\n";
+               }
+               $changed = 1;
         }
     }
     else{
@@ -545,7 +551,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
             Settings::configProperty($db, $did>0?$did:0, 'RELEASE_VER', $SCRIPT_RELEASE);
             Settings::toLog($db, "Upgraded Life Log from v.$dnm to v.$SCRIPT_RELEASE version, this is the $pv upgrade.") if $pv;
         }
-        &populate($db);
+        populate($db);
     }
     Settings::toLog($db, "Log accessed by $alias.") if(Settings::trackLogins());
     #
@@ -803,12 +809,12 @@ $err .= "Invalid, spec'ed {uid}|{category}`{description}-> $line\n";
                                     }
                     }elsif($inData && length($line)>0){
 
-                                        if(scalar(@tick)==1){
-                                            $err .= "Corrupt Entry, (where is '\`' backtick for description?) -> $line\n";
-                                        }
-                                        else{
-                                            $err .= "Corrupt Entry -> $line\n";
-                                        }
+                            if(scalar(@tick)==1){
+                                $err .= "Corrupt Entry, (where is '\`' backtick for description?) -> $line\n";
+                            }
+                            else{
+                                $err .= "Corrupt Entry -> $line\n";
+                            }
 
                     }
         }
