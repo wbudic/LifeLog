@@ -20,9 +20,10 @@ use DateTime::Format::SQLite;
 use DateTime::Duration;
 
 use DBI;
+use CGI::Carp qw(fatalsToBrowser set_message);
+use Scalar::Util qw(looks_like_number);
 use experimental 'switch';
 
-use CGI::Carp qw(fatalsToBrowser set_message);
 BEGIN {
    sub handle_errors {
       my $msg = shift;
@@ -204,9 +205,6 @@ try {
         close $fh; 
         if(!$SQL_PUB&&$pub ne 'test'){$alias=undef}       
     }
-    # if(!$alias){
-    #     $alias = "admin"; $pass  = $alias; dbSrc('dbi:Pg:host=localhost;');
-    # }
     if(!$alias){
         print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
         exit;
@@ -675,32 +673,45 @@ sub obtainProperty {
        return 0;
     }
 }
-# The config property can't be set to empty string "", set to 0 to disable is the mechanism.
+# The config property can't be set to an empty string "", set to 0 to disable is the mechanism.
 # So we have an shortcut when checking condition, zero is not set, false or empty. So to kick in then the app settings default.
-# Setting to zero, is similar having the property (anon) disabled in config file. Which in the db must be reflected to zero.
+# Setting to zero, is similar having the property (which is an anon) disabled in the config file. That in the db must be reflected to zero.
+# You have to set/update with full parameters.
+#
+# Get by id   call -> Settings::configProperty($db, $id);
+# Get by name call -> Settings::configProperty($db, $name);
+# Get by name call -> Settings::configProperty($db, 0, $name);
+# Set it up   call -> Settings::configProperty($db, 0, $name, $value);
 sub configProperty {
     my($db, $id, $name, $value) = @_;
-    $id = '0' if not $id;
-    if($db eq undef || $value eq undef){
+    if (defined($db)&&defined($id)&&!defined($value)){        
+        my $dbs = selectRecords($db, looks_like_number($id) ? "SELECT VALUE FROM CONFIG WHERE ID == $id;":
+                                                              "SELECT VALUE FROM CONFIG WHERE NAME like '$id'");
+        my @r = $dbs->fetchrow_array();
+        return $r[0];
+    }
+    else{
+        $id = '0' if !defined($id);
+    }
+    if(!defined($db)  || !defined($value)){
         SettingsException->throw(
             error => "ERROR Invalid number of arguments in call -> Settings::configProperty('$db',$id,'$name','$value')\n",  show_trace=>$DEBUG
             );
     };
-    if($name eq undef && $id){
+    if($id && !$name){
 
         my $sql = "UPDATE CONFIG SET VALUE='".$value."' WHERE ID=".$id.";";
         try{
             $db->do($sql);
         }
         catch{
-
             SettingsException->throw(
                 error => "ERROR with $sql -> Settings::configProperty('$db',$id,'$name','$value')\n",
                 show_trace=>$DEBUG
                 );
         }
     }
-    else{
+    else{# if id 0 we will find by name.
         my $dbs = selectRecords($db, "SELECT ID, NAME FROM CONFIG WHERE NAME LIKE '$name';");
         if($dbs->fetchrow_array()){
             $db->do("UPDATE CONFIG SET VALUE = '$value' WHERE NAME LIKE '$name';");
@@ -771,6 +782,16 @@ sub toPropertyValue {
        foreach(@F){return 0 if $_ eq $p;}       
     }
     return $prm;
+}
+
+use Crypt::Blowfish;
+use Crypt::CBC;
+sub newCipher {
+    my $p = shift;    
+       $p = $alias.$p.Settings->CIPHER_KEY;
+       $p =~ s/(.)/sprintf '%04x', ord $1/seg;
+       $p = substr $p.CIPHER_PADDING, 0, 58;
+       Crypt::CBC->new(-key  => $p, -cipher => 'Blowfish');
 }
 
 sub saveCurrentTheme {
