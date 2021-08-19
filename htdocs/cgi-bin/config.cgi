@@ -1249,7 +1249,7 @@ my $stdout = capture_stdout {
         }
         $tar =~ s/osz$/tar/;
         my $srcIsPg = 0;
-        my $passw   = $pass; @$passw = uc crypt $pass, hex Settings->CIPHER_KEY if &Settings::isProgressDB;
+        my $passw   = $pass; $passw = uc crypt $pass, hex Settings->CIPHER_KEY if &Settings::isProgressDB;
         open (my $pipe, "| openssl enc -d -des-ede3-cfb -salt -S ".
                 Settings->CIPHER_KEY." -pass pass:$passw-$alias -in /dev/stdin 2>/dev/null > $tar") or die "Failed: $!";
             while(<$hndl>){print $pipe $_;}; 
