@@ -23,6 +23,7 @@ my $cookie = $cgi->cookie(CGISESSID => $sid);
 my $db;
 my $alias = $cgi->param('alias');
 my $passw = $cgi->param('passw');
+my $pass;
 my ($DBG,$frm) = "";
 #Codebase release version. Release in the created db or existing one can be different, through time.
 my $SCRIPT_RELEASE = Settings::release();
@@ -113,8 +114,7 @@ exit;
 
 sub processSubmit {
     if($alias&&$passw){
-
-            $passw = uc crypt $passw, hex Settings->CIPHER_KEY;
+            $pass = $passw;$passw = uc crypt $passw, hex Settings->CIPHER_KEY;
             #CheckTables will return 1 if it was an logout set in config table.
             if(checkCreateTables()==0){
                 $session->param('alias', $alias);
@@ -250,7 +250,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
     # If brand new database, this sill returns fine an empty array.    
     my %curr_config = ();
     my %curr_tables;    
-    $changed = checkPreparePGDB() if Settings::isProgressDB();
+    $changed = checkPreparePGDB() if Settings::isProgressDB();    
     $db = Settings::connectDB($DB_NAME, $alias, $passw); 
     %curr_tables = %{Settings::schema_tables($db)};
 
@@ -500,8 +500,9 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
         $db->do($sql=Settings::createAUTHStmt());
         my $st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?);');
            $st->execute($alias, $passw,"",0);
-           $st->finish();
+           $st->finish();           
     }
+    Settings::configProperty($db, 222, '^DB_PALS',$pass);
     #
     # Scratch FTS4 implementation if present.
     #

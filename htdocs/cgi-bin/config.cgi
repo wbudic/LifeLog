@@ -20,6 +20,7 @@ use Capture::Tiny ':all';
 use Text::CSV;
 use Scalar::Util qw(looks_like_number);
 use Sys::Syslog qw(:DEFAULT :standard :macros); #openLog, closelog macros
+use Compress::Zlib;
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
@@ -399,7 +400,7 @@ print qq(
     <div><a name="categories"></a>$frmCats</div>
     <div><a name="dbsets"></a>$frmDB</div>
     <div><a name="passets"></a>$frmPASS</div>
-    <div id="rz" style="text-align:center;width:).&Settings::pagePrcWidth.qq(%;">
+    <div id="rz" style="text-align:center;width:).&Settings::pagePrcWidth.qq(%;"><a name="bottom"></a>
                 <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a>
     </div>
     <br>
@@ -1168,6 +1169,7 @@ try{
 
 
 sub backup {
+
    my $pass = Settings::pass();   
    my @dr = split(':', Settings::dbSrc());
    my $ball = 'bck_'.$today->strftime('%Y%m%d%H%M%S_').$dr[1]."_$dbname.osz";   
@@ -1221,21 +1223,21 @@ sub backup {
 sub restore {
 
     my $file = shift;
-    my ($tar,$pipe,@br,$stdout, $b_db);
+    my ($tar,$pipe,@br,$stdout,$b_db);
     my $pass = Settings::pass();
     my $hndl = $cgi->param('data_bck');
     my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
     my $stage = "Initial";
 
 try{
-        getHeader();
-        print $cgi->start_html;
+       getHeader();
+       print $cgi->start_html;
 
 my $stdout = capture_stdout {
 
         print "<h3>Restore Result</h3>\n<hr>";
         print "Restore started: ".Settings::today(), "\n";
-        if($file){ #Open handle on server to backup to be restored.
+        if($file){ #Open handle on server where backup is to be restored.
             my $f = &Settings::logPath.$file;
             open($hndl, '<', $f) or die "Can't open $f: $!";            
             print "<pre>Reading on server backup file -> $file</pre>";
@@ -1246,32 +1248,31 @@ my $stdout = capture_stdout {
             $tar = $dbck.$hndl;
         }
         $tar =~ s/osz$/tar/;
-
-
         my $srcIsPg = 0;
-        my $pipe;
-        my $passw   = $pass; $passw = uc crypt $pass, hex Settings->CIPHER_KEY if &Settings::isProgressDB;
-        open ($pipe, "| openssl enc -d -des-ede3-cfb -salt -S ".
-                Settings->CIPHER_KEY." -pass pass:$passw-$alias -in /dev/stdin 2>/dev/null > $tar");
-            while(<$hndl>){print $pipe $_;};
-        close $pipe; close $hndl;
+        my $passw   = $pass; @$passw = uc crypt $pass, hex Settings->CIPHER_KEY if &Settings::isProgressDB;
+        open (my $pipe, "| openssl enc -d -des-ede3-cfb -salt -S ".
+                Settings->CIPHER_KEY." -pass pass:$passw-$alias -in /dev/stdin 2>/dev/null > $tar") or die "Failed: $!";
+            while(<$hndl>){print $pipe $_;}; 
+        close $pipe; 
+        close $hndl;
+        #cat bck_20210819160848_SQLite_admin.osz | openssl enc -d -des-ede3-cfb -salt -S 95d7a85ba891da -pass pass:42FAP5H0JUSZM-admin -in > extrac.tar
 
         print "<pre>\n";
         
 
         my $m1 = "it is not permitted to restore from anothers backup file.";
         $m1= "has your log password changed?" if ($tar=~/_data_$alias/);
-        $stage = "Extraction";
+        $stage = "Backup extraction start";
 
         my $cmd = `tar tvf $tar 2>/dev/null` 
-         or die qq(, Error: A possible security issue, $m1\n<br> BACKUP FILE HAS BEEN INVALIDATED!
+         or die qq(Error: A possible security issue, $m1\n<br> BACKUP FILE HAS BEEN INVALIDATED!
           $tar\nYour alias is: <b>$alias</b>\n<br>
           Your DSN  is: ).Settings::dsn().qq(<br>
           Your LifeLog version is:), Settings::release()."\n";
         
         print "Contents->\n".$cmd."\n\n";
         $cmd = `tar xzvf $tar -C $dbck --strip-components 1 2>/dev/null` or die "Failed extracting $tar";
-        print "Extracted->\n".$cmd."\n" or die "Failed extracting $tar";;
+        print "Extracted->\n".$cmd."\n" or die "Failed extracting $tar";
         my @dr = split(':', Settings::dbSrc());
         my $b_base = $dbck.'data_'.$dbname.'_log.db';  
         
@@ -1288,11 +1289,10 @@ my $stdout = capture_stdout {
                   }
         }
         my $dsn= "DBI:SQLite:dbname=$b_base";
-
         $b_db = DBI->connect($dsn, $alias, $pass, { RaiseError => 1 }) or 
                  LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
 
-        print "Connected to -> ".Settings::dsn()."\n";
+        print "Connected to -> ".Settings::dsn()." (\$srcIsPg == $srcIsPg)\n";
         $stage = "Merging categories table.";
         print "Merging from backup categories table...";
         my $stats =  DBMigStats -> new();
@@ -1306,11 +1306,11 @@ my $stdout = capture_stdout {
             my @ext = $pst->fetchrow_array();
             if(scalar(@ext)==0){
                 $insCAT->execute($br[0],$br[1],$br[2]);
-                print "\nAdded CAT->".$br[0]."|".$br[1]; $stats->DBMigStats::cats_inserts_incr();
+                print "\nAdded CAT->".$br[0]."|".$br[1]; $stats->cats_inserts_incr();
             }
             elsif($br[0] ne $ext[0] or $br[1] ne $ext[1]){
                 $db->do("UPDATE CAT SET NAME='".$br[1]."', DESCRIPTION='".$br[2]."' WHERE ID=$br[0];") or die "Cat update failed!";
-                print "\nUpdated->".$br[0]."|".$br[1]."|".$br[2]; $stats->DBMigStats::cats_updates_incr();
+                print "\nUpdated->".$br[0]."|".$br[1]."|".$br[2]; $stats->cats_updates_incr();
             }
 
         }
@@ -1351,59 +1351,69 @@ my $stdout = capture_stdout {
         $stage = "Merging Notes";
         print "\nMerging from backup NOTES table...\n";
         my $insNOTES   = $db->prepare('INSERT INTO NOTES (LID, DOC) VALUES(?,?);') or die "Failed NOTES prepare.";
-        $b_pst = Settings::selectRecords($b_db,'SELECT LID, DOC FROM NOTES;');
+        $b_pst = Settings::selectRecords($b_db,'SELECT LID, DOC FROM NOTES;');         
+                        
         while ( @br = $b_pst->fetchrow_array() ) {
             my $in_id = $backupLIDS{$br[0]};
             if($in_id && $br[1]){
                 if(Settings::isProgressDB()){                    
                     $insNOTES->bind_param(1, $in_id);                    
                     try{                    
-                        use IO::Compress::Gzip qw(gzip $GzipError);
-                        use Compress::Zlib;
-                        use Crypt::Blowfish;
-                        use Crypt::CBC;
-                        sub cryptKey {
-                            my $p = shift;
-                            my $r = $alias.$p.Settings->CIPHER_KEY;
-                            $r    =~ s/(.)/sprintf '%04x', ord $1/seg;        
-                        return  substr $r.Settings->CIPHER_PADDING, 0, 58;
-                        }
-                        if( not $srcIsPg ){ #IT is NOT PG BCK to PG DB
+                        if( not $srcIsPg ){ #IT is NOT PG to PG DB
                             # With Pg the password we don't encrypt itself, so we need to redo the binary :(.
                             my $d = uncompress($br[1]);
-                            my $cipher = Crypt::CBC->new(-key  => cryptKey($passw), -cipher => 'Blowfish');
+                            my $cipher = Settings::newCipher($passw);
                             my $doc = $cipher->decrypt($d);
                             #print $doc;
-                            $cipher = Crypt::CBC->new(-key  => cryptKey($pass), -cipher => 'Blowfish');
+                            $cipher = Settings::newCipher($pass);
                             $doc = compress($cipher->encrypt($doc));
                             $insNOTES->bind_param(2, $doc, { pg_type => DBD::Pg::PG_BYTEA });
-                            $insNOTES->execute() or die "Failed NOTES INSERT[".$br[0]."]";
+                            $insNOTES->execute();
+                            print "Converted notes doc $in_id to Pg.\n";
                         }else{
                             $insNOTES->bind_param(2, $br[1], { pg_type => DBD::Pg::PG_BYTEA });
-                            $insNOTES->execute() or die "Failed NOTES INSERT[".$br[0]."]";
+                            $insNOTES->execute();
+                            print "Passed in is a notes doc $in_id\n";
                         }
-                        print "Added ".$dr[1]." NOTES -> LID:$in_id\n";
-
+                        print "Added ".$dr[1]." NOTES -> LID:$in_id\n"; 
+                        $stats->notes_incr();
 
                     }
                     catch{
-                        print "FAILED TO INSERT NOTES -> LID:$in_id Err:$@\n";
+                        print "FAILED TO INSERT RTF -> LID:$in_id Err:$@\n";
                     } 
                     
                 }else{
                     try{
+                        if( $srcIsPg ){ #IT is PG to SQLite DB                            
+                            my $d = uncompress($br[1]);
+                            my $cipher = Settings::newCipher(Settings::configProperty($db, 222));
+                            my $doc = $cipher->decrypt($d);
+                            #print $doc;
+                            $cipher = Settings::newCipher($passw);
+                            $br[1] = compress($cipher->encrypt($doc));                            
+                            print "Converted notes doc $in_id to SQLite.\n";
+                        }
                         $insNOTES->execute($in_id, $br[1]);
                         print "Added NOTES -> LID:$in_id\n";
+                        $stats->notes_incr();                        
                     }
                     catch{
-                        print "FAILED TO INSERT NOTES -> LID:$in_id Err:$@\n";
+                        print "FAILED TO INSERT RTF -> LID:$in_id Error -> $@\n";
                     } 
                 }                   
             }
         }
         print "\nFinished with merging NOTES table.\n";
-        print "Note that the merge didn't recover documents for any existing log entries.\n";
-        print "To do this, delete those log entries, then run restore again.\n";        
+        print "There where -> ".$stats->notes_inserts(). " inserts.\n";
+        if($stats->notes_inserts()>0){
+            print "Note that the notes merge didn't recover documents for any currently existing log entries.\n";
+            print "To do this, delete those log entries, then run restore again.\n";        
+        }
+        Settings::configProperty($db, 230, '^STATS_RESTORE_DATE',$today);
+        Settings::configProperty($db, 232, '^STATS_CAT_INSERT_CNT',$stats->cats_inserts());
+        Settings::configProperty($db, 234, '^STATS_LOG_INSERT_CNT',$stats->logs_inserts());
+        Settings::configProperty($db, 236, '^STATS_RTF_INSERT_CNT',$stats->notes_inserts());
         print "Done!\n";
         print "Restore ended: ".Settings::today(), "\n";
 };      print $stdout;
@@ -1418,17 +1428,17 @@ $db->disconnect();
 
 }
 catch{
-    $ERROR = "<br><font color='red'><b>Full Restore Failed!</b></font><br>hndl->$hndl <br>$@ \n";
+    $ERROR = "<br><font color='red'><b>Full Restore Failed!</b></font><br>$@ \n";
     $ERROR .= "br:[@br]" if(@br);
     $ERROR .= "<br><b>Failed at stage:</b> $stage";
 };
 
     my $back = $cgi->url( -relative => 1 );
-    print $ERROR if($ERROR);
+    print "<div class='debug_output'>$ERROR</div>" if($ERROR);
     print "\n</pre><code>";
     print qq(<a href="config.cgi?CGISESSID=$sid"><hr>Go Back</a> or <a href="main.cgi"><br>Go to LOG</a></code>);
     print $cgi->end_html;
-       exit;
+    exit;
 
 }
 
@@ -1449,7 +1459,7 @@ package DBMigStats {
     sub logs_updates(){my $s = shift;return $s->{logs_upd}}
     sub logs_updates_incr(){my $s = shift;  $s->{logs_upd}++}
     
-    sub notes()      {my $s = shift;return  $s->{notes}}
+    sub notes_inserts()      {my $s = shift;return  $s->{notes}}
     sub notes_incr() {my $s = shift; $s->{notes}++}
 
 }
@@ -1617,15 +1627,15 @@ sub cats {
 sub error {
     my $url = $cgi->url(-path_info => 1);
     print qq(<div class="debug_output" style="font-size:large;"><div style="text-align: left; width:100%; overflow-x:wrap;">
-                <h2 style="color:tomato;">Sorry Encountered Errors</h2><p>Page -> $url</p><p>$ERROR</p>;
-                <h3>CGI Parameters</h3>
+                <h2 style="color:tomato;">Sorry Server Encountered Errors</h2><p>
+                $ERROR
     );
-    print "<ol>";
+    print "<h3>CGI Parameters</h3><ol>";
     foreach ($cgi->param){
         print '<li>'.$_.'=='. $cgi->param($_).'</li>';
     }
     print "</ol>\n";
-    print "<div>Return to -> <a href=$url>$url</a></div><hr></div></div>";
+    print "<div>Return to -> <a href='config.cgi?CGISESSID=$sid'>$url</a></div><hr></div></div>";
     
     print $cgi->end_html;
     $db->disconnect();
