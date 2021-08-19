@@ -744,9 +744,9 @@ if ( $log_rc == 0 ) {
     }
     else {
         if ($isInViewMode) { 
-              if($prm_rtf){$log_output .= '<tr id="brw_row"><td colspan="5"><b>No RTF records found matching criteria.</b></td></tr>'}
-              else        {$log_output .= '<tr id="brw_row"><td colspan="5"><b>You have reached the end of the data view!</b></td></tr>'}
-        }else{ $log_output .= '<tr id="brw_row"><td colspan="5"><b>Database is New or Empty!</b></td></tr>'}
+              if($prm_rtf){$log_output .= '<tr id="brw_row"><td colspan="6" class="r1"><b>No RTF records found matching criteria.</b></td></tr>'}
+              else        {$log_output .= '<tr id="brw_row"><td colspan="6" class="r1"><b>You have reached the end of the data view!</b></td></tr>'}
+        }else{ $log_output .= '<tr id="brw_row"><td colspan="6" class="r1"><b>Database is New or Empty!</b></td></tr>'}
     }
 }
 if($isPUBViewMode){
@@ -1276,7 +1276,7 @@ my $dbg = qq(--DEBUG OUTPUT--\n
                 }
                 else {
                     my $v = "<font style='font-size:small'>You Are In &#10132; $vmode</font>";
-                    $log_output .= qq(<tr class="r$tfId" id="brw_row"><td colspan="2" style="text-align:left;">$v</td><td colspan="1"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
+                    $log_output .= qq(<tr class="r$tfId" id="brw_row"><td colspan="2" style="text-align:left;">$v</td><td colspan="3"><i>Top</i>&nbsp;&nbsp;&nbsp;&nbsp;);
                 }
 
 

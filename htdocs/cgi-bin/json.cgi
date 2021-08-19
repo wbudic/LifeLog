@@ -25,8 +25,6 @@ use Regexp::Common qw /URI/;
 use JSON;
 use IO::Compress::Gzip qw(gzip $GzipError);
 use Compress::Zlib;
-use Crypt::Blowfish;
-use Crypt::CBC;
 
 use lib "system/modules";
 require Settings;
@@ -102,9 +100,8 @@ sub processSubmit {
      my ($st, @arr);
 
     try {
-        if($action eq 'store'){
-
-           my $cipher = Crypt::CBC->new(-key  => cryptKey(), -cipher => 'Blowfish');
+        my $cipher = Settings::newCipher($passw);
+        if($action eq 'store'){           
             $doc = qq({
                         "lid": "$lid",
                         "bg":  "$bg",
@@ -137,11 +134,7 @@ sub processSubmit {
                 @arr = Settings::selectRecords($db,"SELECT DOC FROM NOTES WHERE LID = '0';")->fetchrow_array();
            }            
            $doc = $arr[0];
-          
-            my $d = uncompress($doc);
-            my $cipher = Crypt::CBC->new(-key  => cryptKey(), -cipher => 'Blowfish');
-            $doc = $cipher->decrypt($d);
-          
+           $doc = $cipher->decrypt(uncompress($doc));          
             # print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
             # print($doc);
             # exit;
