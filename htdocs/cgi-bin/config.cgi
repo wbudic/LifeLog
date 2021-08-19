@@ -1279,6 +1279,7 @@ my $stdout = capture_stdout {
         # We check if db file has been extracted first?
         unless(-e $b_base){                  
                   if (&Settings::isProgressDB){
+                       $srcIsPg = 0;
                       $b_base = $dbck.'data_'.$dr[1].'_'.$dbname.'_log.db'
                   }else{ # maybe the source is a Pg db backup?
                       $b_base = $dbck.'data_Pg_'.$dbname.'_log.db';
@@ -1287,6 +1288,8 @@ my $stdout = capture_stdout {
                   unless(-e $b_base){
                       die "Failed to locate database in archive -> $b_base";
                   }
+        }{
+            $srcIsPg = 1 if &Settings::isProgressDB;
         }
         my $dsn= "DBI:SQLite:dbname=$b_base";
         $b_db = DBI->connect($dsn, $alias, $pass, { RaiseError => 1 }) or 
@@ -1360,7 +1363,8 @@ my $stdout = capture_stdout {
                     $insNOTES->bind_param(1, $in_id);                    
                     try{                    
                         if( not $srcIsPg ){ #IT is NOT PG to PG DB
-                            # With Pg the password we don't encrypt itself, so we need to redo the binary :(.
+                            # We with Pg currently the password do not encrypted and the binary is different, we need to convert.
+                            # Reason it is not encrypted? Only because externally it will be pain to access the db with such user and password.
                             my $d = uncompress($br[1]);
                             my $cipher = Settings::newCipher($passw);
                             my $doc = $cipher->decrypt($d);
@@ -1369,11 +1373,11 @@ my $stdout = capture_stdout {
                             $doc = compress($cipher->encrypt($doc));
                             $insNOTES->bind_param(2, $doc, { pg_type => DBD::Pg::PG_BYTEA });
                             $insNOTES->execute();
-                            print "Converted notes doc $in_id to Pg.\n";
+                            print "Converted to Pg a notes doc $in_id to Pg.\n";
                         }else{
                             $insNOTES->bind_param(2, $br[1], { pg_type => DBD::Pg::PG_BYTEA });
                             $insNOTES->execute();
-                            print "Passed in is a notes doc $in_id\n";
+                            print "Recovered in a Pg based notes doc id[$in_id]\n";
                         }
                         print "Added ".$dr[1]." NOTES -> LID:$in_id\n"; 
                         $stats->notes_incr();
@@ -1424,7 +1428,7 @@ my $fh; open( $fh, ">>", &Settings::logPath."backup_restore.log");
 
 $b_db->disconnect();
 $db->disconnect();
-`rm -rf $dbck/`;
+#`rm -rf $dbck/`;
 
 }
 catch{
