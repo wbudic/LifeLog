@@ -6,8 +6,12 @@
 
 ### New Development
 
+* Interaction - When editing an existing log entry, it needs confirmation, if it isn't a copy (now button wasn't pressed), before overwriting.
+  * Like, Warning! - Existing entry has been changed, are you sure do you want to overwrite it?
 * Configuration needs to be updated, to use CNF 2.2, for system reset, etc.
   * Config file "Data Fix* reset of settings updated to properly revert to factory defaults.
+* Backup/Restore made various db engine aware and compatible. As the data is the same.
+  * The data is the same, Structure, binary data and password handling is different, engine dependant.
 * &#10004; Fix themes. Themes don't display and set consistently the pages throughout.
   * Login page should use standard default or last set theme.
   * All provided themes to have background image.
