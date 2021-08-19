@@ -8,7 +8,7 @@ This is an Open Source License project -> https://choosealicense.com/licenses/is
 <<AUTO_LOGIN<>>>
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>>>
-<<LOGOUT_IFRAME_ENABLED<false>>>
+<<LOGOUT_IFRAME_ENABLED<true>>>
 <<LOGOUT_RELOGIN_TXT<Log me In Again>>>
 
 # Default database driver prefix, is SQLite.
@@ -62,7 +62,7 @@ BankingPlugin->banking.pl
 # Use/see anon properties before, enabling changing settings from this actual config file.
 #
 <<CONFIG<4>
-00|$RELEASE_VER = 2.3`LifeLog Application Version.
+00|$RELEASE_VER = 2.4`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
 03|$TIME_ZONE   = Australia/Sydney`Time zone of your country and city.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.

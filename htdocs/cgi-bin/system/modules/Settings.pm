@@ -56,7 +56,7 @@ use constant META => '^CONFIG_META';
 
 
 # DEFAULT SETTINGS HERE! These settings kick in if not found in config file. i.e. wrong config file or has been altered, things got missing.
-our $RELEASE_VER  = '2.3';
+our $RELEASE_VER  = '2.4';
 our $TIME_ZONE    = 'Australia/Sydney';
 our $LANGUAGE     = 'English';
 our $PRC_WIDTH    = '60';
