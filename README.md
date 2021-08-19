@@ -5,27 +5,27 @@ Preferably on a small inexpensive server connected to your local network.
 
 Written in Perl, easy to implement and modify.
 
-Latest stable version is **2.3** in **SUN** stage.
-
+Latest stable version is **2.4** in **SUN** stage.
 
 ## PC Requirements
 
 * Any Operating System
 * Processor 1.2+ GHZ or better, 2+ cores.
-* Only 2 GB+ physical. 
- 
+* Only 2 GB+ physical.
+
 Setup is requiring some Perl knowledge to install and enable, and tweak this application. The main application sources are located in the ../htdocs/cgi-bin directory.
 
 ### Quick Setup
 
-  * After downloading this application and installing in a directory (default is **~/dev**), which both can be done with:
-  *  ```git clone https://github.com/wbudic/LifeLog.git```
-     *  Check here for further [instuctions](./Installation.txt).
+* After downloading this application and installing in a directory (default is **~/dev**), which both can be done with:
+  * ```git clone https://github.com/wbudic/LifeLog.git```
+    * Check here for further [instuctions](./Installation.txt).
   * Before modifying any configuration, run the module installation and testing process.
-    *  ```./install_modules.sh```
-    *  This might be necessary after even upgrades. 
-    *  Upgrades support preserving of data, and migration to any possible new data structures, automatically.
-    *  Rolling back to an previous version even if not expected, it is not affected by any new modules you might have installed, down the track.
+    * ```./install_modules.sh```
+    * This might be necessary after even upgrades.
+    * Upgrades support preserving of data, and migration to any possible new data structures, automatically.
+    * Rolling back to an previous version even if not expected, it is not affected by any new modules you might have installed, down the track.
+
 ## What is the purpose of having this log kept?
 
 Here are some things that come to mind:
@@ -38,7 +38,7 @@ Here are some things that come to mind:
   * Historical view of data as such is not cluttered by none relevant log entries. Which is a common problem in spreadsheets.
   * Export/DateDiff/Print selected log entries.
   * Need to compare current purchase, with any last times of the same. Be it in days or cost, total of the expense? Now you can.
-* Optionally assign accounting values to log entries, is it an asset, income or expense? 
+* Optionally assign accounting values to log entries, is it an asset, income or expense?
   * These are per page calculated.
   * View through the static page your logged current income and expense, for the current year.
     * Your Expense there is of interest. No?
@@ -58,7 +58,7 @@ Here are some things that come to mind:
       * The configuration system here is rare. As it takes into account three states of preservation of concerns.
         1. System and application provided default. (Application release defaults, gets overridden on app code update.)
         2. Application own default. (Application in code provided defaults, has someone deleted/damaged the text config file?)
-        3. User set configuration. (Application, user set, added, amended in database configuration, must be preserved on software or release update.) 
+        3. User set configuration. (Application, user set, added, amended in database configuration, must be preserved on software or release update.)
 * Interaction and configuration is user friendly, provided in the interface, no need to access a server located main.inf file, for most parts.
 * Data migration on software updates are automatically provided.
   * Data structures and footprint is tiny.
@@ -83,9 +83,9 @@ Here are some things that come to mind:
 * Tested and provided also now installation instruction for HTTPS based webserver lighty.
 * Tested and working now on ubuntu, debian and mint distros.
   
-## Life Log version v.1.8 
+## Life Log version v.1.8
 
-* Automated install module script **`./install_modules.sh `**
+* Automated install module script **`./install_modules.sh`**
 * Has Secure Backup/Restore. Providing accurate full data restore and merging with existing for live databases.
 * Now with a distinct data page and view mode.
 * New category selection, storing approuch.
@@ -109,8 +109,4 @@ Here are some things that come to mind:
 
 ![Sample](VS-on-METABOX-42.png)
 
-
-
 ![Sample](VS-on-METABOX-34.png)
-
-
