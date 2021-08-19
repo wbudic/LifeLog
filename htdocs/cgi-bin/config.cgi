@@ -1167,7 +1167,11 @@ try{
 };
 }
 
-
+# Notice -> Fetch on the page calls this subroutine, and if it fails to produce one,
+# the most likely problem is that the Notes table has a wrong binary type.
+# since v.2.4 this method has been tested and will not fail any db engine structure.
+# As the backup produced is in the original deployed source, which is sqlite not the other db engine.
+# Here the insert stament is FROM (data...) into -> SQLite.NOTES((LID INT PRIMARY KEY NOT NULL, DOC BLOB)
 sub backup {
 
    my $pass = Settings::pass();   
@@ -1194,15 +1198,17 @@ sub backup {
                 $in->execute($c[0],$c[1],$c[2]);
                 }
 
-                $in = $dbB->prepare('INSERT INTO LOG (ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY) VALUES (?,?,?,?,?,?,?);');
-                $st = Settings::selectRecords($db,'SELECT ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY FROM LOG order by DATE;');       
+                $in = $dbB->prepare('INSERT INTO LOG     (ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY) VALUES (?,?,?,?,?,?,?);');
+                $st = Settings::selectRecords($db,'SELECT ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY  FROM LOG order by DATE;');       
                 while(my @c = $st->fetchrow_array()){          
                     $in->execute($c[0],$c[1],$c[2],$c[3],$c[4],$c[5],$c[6]);
                 }
                 $in = $dbB->prepare('INSERT INTO NOTES VALUES (?,?)');
                 $st = Settings::selectRecords($db,'SELECT LID, DOC FROM NOTES;');       
-                while(my @c = $st->fetchrow_array()){          
-                    $in->execute($c[0],$c[1]);
+                while(my @c = $st->fetchrow_array()){
+                    $in->bind_param(1, $c[0]);
+                    $in->bind_param(2, $c[1]);#, { pg_type => DBD::Pg::PG_BYTEA });
+                    $in->execute();
                 }
                 $dbB->disconnect();                
    }else{
@@ -1428,7 +1434,7 @@ my $fh; open( $fh, ">>", &Settings::logPath."backup_restore.log");
 
 $b_db->disconnect();
 $db->disconnect();
-#`rm -rf $dbck/`;
+`rm -rf $dbck/`;
 
 }
 catch{
