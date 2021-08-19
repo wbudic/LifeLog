@@ -343,4 +343,5 @@ a:active {
     text-align: left;
     font-family: monospace;    
     opacity: 8;
+    padding: 5px;
 }

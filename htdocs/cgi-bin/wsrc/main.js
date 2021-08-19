@@ -1072,7 +1072,9 @@ function saveRTF(id, action) {
     var bg = $("#fldBG").val();
     $.post('json.cgi', {action:'store', id:id, bg:bg, doc: JSON.stringify(
             QUILL.getContents())},saveRTFResult).fail(
-                 function(response) {dialogModal("Server Error: "+response.status,response.responseText);}
+                 function(response) {
+                     dialogModal("Server Error: "+response.status,response.responseText);
+                }
                                                  );
     if(is_submit){        
         $("#idx_cat").value = "SAVING DOCUMENT...";
@@ -1189,6 +1191,9 @@ function loadRTFResult(content, result, prms, quill) {
     }
 
     let msg = json.response;
+    if(json.error){
+        dialogModal("Server Error", json.error);
+    }
     if(json.log_id==0){
         console.log(msg = "Loaded in Buffer");
         $('#btn_zero_doc').show();                
