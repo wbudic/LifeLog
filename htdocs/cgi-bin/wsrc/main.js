@@ -20,6 +20,7 @@ var TIME_STAMP;
 var LOCALE;
 var TIMEZONE; 
 var DBI_LVAR_SZ;
+var EDIT_LOG_TXT = "";
 
 function onBodyLoadGeneric() {
     $("input[type=submit], input[type=reset], .ui-widget-content, button, .a_").button();
@@ -447,6 +448,7 @@ function validate(dt, log) {
     if(msg){
         return dialogModal( "Sorry Form Validation Failed", msg);
     }
+    return true;
 }
 
 function validTime(val) {
@@ -492,7 +494,8 @@ function setNow() {
 
     date.value =  year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + seconds;
     $("#submit_is_edit").val("0");
-    toggleDoc(true);
+    toggleDoc(true);    
+    EDIT_LOG_TXT = "";
     return false;
 }
 
@@ -547,6 +550,7 @@ function edit(row) {
     var sticky  = $("#s" + row); //RTF doc
     var isRTF = (rtf.val()>0?true:false);
     var isSticky = (sticky.val()>0?true:false);
+    var txt;
     if(!isRTF){
             $('#rtf_doc').hide();
             $('#tbl_doc').hide();
@@ -554,23 +558,22 @@ function edit(row) {
             $("#btn_load_doc").hide();
     }
 
-
-    $("html, body").animate({ scrollTop: 0 }, "slow");
+    $("html, body").animate({ scrollTop: 0 }, "slow", function(){$("#el").focus()});
     if (tag.length) {
-        $("#el").val(decodeToHTMLText(tag.val()));
+        txt = decodeToHTMLText(tag.val());
 
     } else {
-        var txt = log.html();
+        txt = log.html();
         txt = txt.replace(/<br>/g,"\n");
         txt = txt.replace(/^<div class=\"log\">/,"");
         txt = txt.replace(/<\/div>$/,"");
-        $("#el").val(decodeToText(txt));
+        txt = decodeToText(txt);
     }
-
+    $("#el").val(txt); EDIT_LOG_TXT = txt;
     $("#ed").val(ed_v.val() + " " + et_v.html()); //Time field
     var val = ea_v.text();
     val = val.replace(/\,/g,"");
-    $("#am").val(val); //Amount field, fix 04-08-2019 HTML input doesn't accept formated string.
+    $("#am").val(val); //Amount field, fix 04-08-2019 HTML input doesn't accept formatted string.
     $("#RTF").prop('checked', isRTF);
     $("#STICKY").prop('checked', isSticky);
 
@@ -1051,6 +1054,18 @@ function sumSelected() {
     return false;
 }
 
+
+
+
+/* <button id="loading-modal-demo" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+
+$('#loading-modal-demo').click(function () {
+        showLoading();
+        setTimeout(function () {
+            hideLoading();
+        }, 2500);
+    }); */
+
 var RTF_SUBMIT = false;
 
 function saveRTF(id, action) {
@@ -1063,10 +1078,47 @@ function saveRTF(id, action) {
 
     var is_submit = (id==-1);
     if (id < 1) {
-        id = $("#submit_is_edit").val();
+        id = $("#submit_is_edit").val();        
     }
+
+
+    
+    if(is_submit && (EDIT_LOG_TXT && $('#el').val() !== EDIT_LOG_TXT)){ 
+
+        if(formValidation()){ //If it is false, failed. That needs to altered by the user first.
+
+            $('<div></div>').dialog({
+                modal: true,
+                title: "You are Editing an Previous Log Entry",
+                width: "40%",
+                show: { effect: "clip", duration: 500 },
+                hide: { effect: "fold", duration: 1500},
+                open: function() {
+                    var sel = $("#bck input[type=radio]:checked").val();
+                    $(this).html('<div>Are you sure you want to submit your edit?</div><div>To make a copy of the current whole entry. '+
+                    'Click on the No button, and then on Now button on the form.</div>');
+                },
+                buttons: [
+                    {  text: "Yes",                    
+                        icons: { primary: "ui-icon-circle-check" },
+                        click: function() {
+                        $( this ).dialog( "close" );
+                        $("#frm_entry").submit();
+                        }
+                    },
+        
+                    { text: "No",
+                        click: function() {$( this ).dialog( "close" ); return false;}
+                    }
+                ]
+            });
+
+        }
+            return false;
+    }
+    else
     if(is_submit && !$("#RTF").prop('checked')){
-        return true;//we submit normal log entry
+             return true;//we submit normal log entry
     }
     RTF_SUBMIT = true;
     var bg = $("#fldBG").val();
@@ -1145,6 +1197,9 @@ function loadRTF(under, id){
           $("#q-rtf"+id).show();
           display("Load id -> " + id + " issued!", 1);
         return false;
+    }else{
+        $("#rtf_doc").show();
+        $("#el").focus();
     }
 
     if(id==-1){
@@ -1264,7 +1319,7 @@ function deleteBackup() {
                 }
               },
 
-            { text: "Cancel",
+            { text: "No",
                 click: function() { $( this ).dialog( "close" );
                 return false;
                 }

@@ -400,7 +400,7 @@ return qq(
 sub getConfiguration {
     my ($db, $hsh) = @_;
     my $fh;
-    my $ftzmap = $ENV{'PWD'}.'tz.map'; 
+    my $ftzmap = 'tz.map'; 
     try {
         my $st = $db->prepare("SELECT ID, NAME, VALUE FROM CONFIG;");
            $st->execute();
@@ -762,6 +762,7 @@ my $reg_autonom = qr/(<<)(.+?)(<)(\n*.+\s*)(>{3,})/mp;
 sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
     my $tag  = shift;
     my $line = shift;
+    return if $line =~ /^\s*[\/#]/; #standard start of single line of comment, skip.
     if($line =~ /$reg_autonom/g){
         my ($t,$val) = ($2,$4);       
         $val =~ s/""$//g; #empty is like not set
