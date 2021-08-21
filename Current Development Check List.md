@@ -4,15 +4,15 @@
 
 ## Life Log Application Development
 
-### New Development
+### New Development v.2.3+
 
-* Interaction - When editing an existing log entry, it needs confirmation, if it isn't a copy (now button wasn't pressed), before overwriting.
-  * Like, Warning! - Existing entry has been changed, are you sure do you want to overwrite it?
-* Configuration needs to be updated, to use CNF 2.2, for system reset, etc.
+* &#10004; Interaction - When editing an existing log entry, it needs confirmation, if it isn't a copy (now button wasn't pressed), before overwriting.
+  * i.e, Warning! - Existing entry has been changed, are you sure do you want to overwrite it?
+* &#10004; Configuration needs to be updated, to use CNF 2.2, for system reset, etc.
   * Config file "Data Fix* reset of settings updated to properly revert to factory defaults.
   * We need to also display stats for log file of the web server.
     * Maybe provide an rotational purge on config page access. i.e. if line count is over 1000, purge to tail -n 1000.
-      * This sure an config file setting. i.e. <<WEB_SERVER_LOG_TAIL_LIMIT><1000>>>
+      * - This sure an config file setting. i.e. <<WEB_SERVER_LOG_TAIL_LIMIT><1000>>>
 * &#10004; Backup/Restore made various db engine aware and compatible. As the data is the same.
   * The data is the same, Structure, binary data and password handling is different, engine dependant.
 * &#10004; Fix themes. Themes don't display and set consistently the pages throughout.
@@ -28,7 +28,7 @@
 * &#10004; JS - Event, on expense sum in log numbers found at beginning of lines.
 * &#10004; Update to CNF v.2.2, branch to $RELEASE_VER = 2.3, Earth Stage initial.
   
-#### Not Urgent New Development ( In Planning
+#### Not Urgent New Development ( In Planning/Suggestions )
 
 * Plugins
   * Perl files enabled by being including them in main.cnf file under the <<PLUGINS<>>> list, and placed in the plugins directory.
@@ -188,14 +188,15 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
 ### v.1.6 and less
 
-* $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
+* &#10004; $CUR_MTH_SVIEW - Start view page is for current month, and the sticky set.
 * &#10004; Some System settings to be stored in session. As these are  known even before logon.
   * i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
 * &#10004; Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
 
 ## Urgent FIXES and Known Issuses
 
-* CVS Export and Import has not been implemented for RTF type log entries.
+* &#10004; CVS Export and Import has not been implemented for RTF type log entries.
+  * CVS feature has been made obsolete, it shouldn't be used.
 * &#10004; Expired sessions, swallow submits into void.
 * &#10004; Dynamic toggle of page sections, interaction fixed, bettered.
 

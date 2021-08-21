@@ -7,13 +7,27 @@ Written in Perl, easy to implement and modify.
 
 Latest stable version is **2.4** in **SUN** stage.
 
+## What is new in this release?
+
+* Can be now installed further to an PostgresSQL Database System.
+ * Backups/Restore fully integrated, between SQLite and PostgresSQL.
+* Bettered user Interaction.
+  * i.e. amount if blank will apply the mini calculator if it detects numbers in log. At the begging of lines.
+* Updated Configuration (to CNFParser v.2.2) and Statistics pages.
+ * Added several options and tweaks.
+ * Minor Data structure and migration adopted.
+* Themes have been upgraded.
+* RTF note taking revisited and tested.
+
+
 ## PC Requirements
 
 * Any Operating System
 * Processor 1.2+ GHZ or better, 2+ cores.
 * Only 2 GB+ physical.
 
-Setup is requiring some Perl knowledge to install and enable, and tweak this application. The main application sources are located in the ../htdocs/cgi-bin directory.
+Setup is requiring some Perl/Admin knowledge to install and enable, and tweak this application. The main application sources are located in the ../htdocs/cgi-bin directory.
+Instructions are provided.
 
 ### Quick Setup
 

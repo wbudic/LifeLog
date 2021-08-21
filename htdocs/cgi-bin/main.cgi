@@ -1522,7 +1522,8 @@ return qq(
 					Explicitly tag an URL in the log entry.
 					Required if using in log IMG or FRM tags.
 					Otherwise link appears as plain text.
-				</p>
+				</p><br>
+        <p>&#60;iframe .....&#60;/iframe>  - Experimental html embedding, useful for youtube shared videos.</p>
 	<hr>    
     <h3>Log Page Particulars</h3><p> &#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly. </p>
 </div>
