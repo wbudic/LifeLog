@@ -673,6 +673,12 @@ sub obtainProperty {
        return 0;
     }
 }
+our $cnf_id_range;
+our %cnf_ids_taken = ();
+sub configPropertyRange {
+   $cnf_id_range = shift;
+   die "CONFIG_META value->$cnf_id_range" if $cnf_id_range !~ /\d+/;
+}
 # The config property can't be set to an empty string "", set to 0 to disable is the mechanism.
 # So we have an shortcut when checking condition, zero is not set, false or empty. So to kick in then the app settings default.
 # Setting to zero, is similar having the property (which is an anon) disabled in the config file. That in the db must be reflected to zero.
@@ -683,8 +689,8 @@ sub obtainProperty {
 # Get by name call -> Settings::configProperty($db, 0, $name);
 # Set it up   call -> Settings::configProperty($db, 0, $name, $value);
 sub configProperty {
-    my($db, $id, $name, $value) = @_;
-    if (defined($db)&&defined($id)&&!defined($value)){        
+    my($db, $id, $name, $value) = @_;  my $sql;
+    if (defined($db)&&defined($id)&&!defined($value)){  #trickeryy here to obtain existing.      
         my $dbs = selectRecords($db, looks_like_number($id) ? "SELECT VALUE FROM CONFIG WHERE ID == $id;":
                                                               "SELECT VALUE FROM CONFIG WHERE NAME like '$id'");
         my @r = $dbs->fetchrow_array();
@@ -698,9 +704,8 @@ sub configProperty {
             error => "ERROR Invalid number of arguments in call -> Settings::configProperty('$db',$id,'$name','$value')\n",  show_trace=>$DEBUG
             );
     };
-    if($id && !$name){
-
-        my $sql = "UPDATE CONFIG SET VALUE='".$value."' WHERE ID=".$id.";";
+    if($id && !$name){#ew update by id with value arument, whis is passed as an valid argument.
+        $sql = "UPDATE CONFIG SET VALUE='".$value."' WHERE ID=".$id.";";
         try{
             $db->do($sql);
         }
@@ -716,10 +721,17 @@ sub configProperty {
         if($dbs->fetchrow_array()){
             $db->do("UPDATE CONFIG SET VALUE = '$value' WHERE NAME LIKE '$name';");
         }
-        else{
-            my $sql = "INSERT INTO CONFIG (ID, NAME, VALUE) VALUES ($id, '$name', '$value');";
-            try{
+        else{# For new config properties we must check, not to overide by accident dynamically system settings in the db.
+            if($cnf_id_range){ # META check! Do not overide config annon placed. i.e. same id used for different properties to create them.
+            if($id<$cnf_id_range){SettingsException->throw(
+                  error => "ERROR Invalid id value provided, it is not in reserve meta range-> Settings::configProperty('$db',$id,'$name','$value')\n",
+                  show_trace=>$DEBUG)}
+            if($_=$cnf_ids_taken{$id}){ die "ERROR Config property id: $id is already taken by: $name\n",}            
+        }
+            $sql = "INSERT INTO CONFIG (ID, NAME, VALUE) VALUES ($id, '$name', '$value');";
+            try{                
                 $db->do($sql);
+                $cnf_ids_taken{$id} = $name;
             }
             catch{
                 SettingsException->throw(
@@ -755,10 +767,30 @@ sub connectDB {
     }
 }
 
-my @F = ('', '""', 'false', 'off', 'no', 0);# Placed the 0 last, as never will be checked for in toPropertyValue.
-my @T  = (1, 'true', 'on', 'yes');
-my $reg_autonom = qr/(<<)(.+?)(<)(\n*.+\s*)(>{3,})/mp;
-
+my  @F = ('', '""', 'false', 'off', 'no', 0);# Placed the 0 last, as never will be checked for in toPropertyValue.
+my  @T  = (1, 'true', 'on', 'yes');
+# my  $reg_autonom = qr/(<<)(.+?)(<)(.*[>]+)*(\n*.+\s*)(>{2,})/mp;
+# sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
+#     my $tag  = shift;
+#     my $line = shift;
+#     return if $line =~ /^\s*[\/#]/; #standard start of single line of comment, skip.    
+#     if($line =~ /$reg_autonom/g){
+#         #my ($t,$val,$desc) = ($2,$4,$5);
+#          my ($t,$val) = ($2,$4);   
+#         # if ($ins =~ />$/){
+#         #     chop $ins; $val=$ins
+#         # }else{$val=$ins}
+#         #die "TESTING {\n$t=$ins \n[$val]\n\n}" if $t =~ /^\^\D*/;
+#         $val =~ s/""$//g; #empty is like not set
+#         $val =~ s/^"|"$//g;        
+#         if($t eq $tag&&$val){           
+#            return toPropertyValue( $val );
+#         }        
+#     }
+#     return;
+# }
+#my $reg_autonom = qr/(<<)(.+?)(<)(\n*.+\s*)(>{3,})/mp;
+my $reg_autonom = qr/(<<)(.+?)(<(.*)>*|<)(\n*.+\s*)(>{2,3})/mp;
 sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
     my $tag  = shift;
     my $line = shift;
@@ -766,7 +798,7 @@ sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag
     if($line =~ /$reg_autonom/g){
         my ($t,$val) = ($2,$4);       
         $val =~ s/""$//g; #empty is like not set
-        $val =~ s/^"|"$//g;
+        $val =~ s/^"|"$//g;chop $val if $val =~ s/>$//g;
         if($t eq $tag&&$val){           
            return toPropertyValue( $val );
         }        
@@ -829,10 +861,7 @@ sub saveReserveAnons {
        LifeLogException->throw(error=>"<p>Error->$@</p><br><pre>DSN: $DSN</pre>",  show_trace=>1);
     }
 }
-
-sub loadReserveAnons(){
-
-    
+sub loadReserveAnons(){    
     try{        
         my @dr = split(':', dbSrc());    
         my $db = connectDBWithAutocommit(0);
@@ -841,33 +870,76 @@ sub loadReserveAnons(){
         my $stUpdate = $db->prepare('UPDATE CONFIG (NAME, VALUE) WHERE ID =? VALUES(?, ?);');
         my $dbs = selectRecords($db, "SELECT ID, NAME, VALUE FROM CONFIG WHERE ID >= 200;"); 
         $db->do('BEGIN TRANSACTION;');
-
-            while(my @r=$dbs->fetchrow_array()){
-            $reservs{$r[1]} = $r[2] if !$reservs{$r[1]}
-            }
-            open (my $fh, '<', $LOG_PATH.'config_meta_'.(lc($dr[1])).'_'.$dbname) or return 0;  
-        
-            while (my $line = <$fh>) {
-                chomp $line;
-                my @p = $line =~ m[(\S+)\s*=\s*(\S+)]g;
-                if(@p>1){
-                    my $existing_val = $reservs{$p[1]};
-                    if(!$existing_val){
-                        $stInsert->execute($p[1], $p[2]);
-
+                    while(my @r=$dbs->fetchrow_array()){
+                    $reservs{$r[1]} = $r[2] if !$reservs{$r[1]}
                     }
-                    elsif($existing_val ne $p[2]){
-                        $stUpdate->execute($p[0], $p[1], $p[2]);
+                    open (my $fh, '<', $LOG_PATH.'config_meta_'.(lc($dr[1])).'_'.$dbname) or return 0;               
+                    while (my $line = <$fh>) {
+                        chomp $line;
+                        my @p = $line =~ m[(\S+)\s*=\s*(\S+)]g;
+                        if(@p>1){
+                            my $existing_val = $reservs{$p[1]};
+                            if(!$existing_val){
+                                $stInsert->execute($p[1], $p[2]);
+                            }
+                            elsif($existing_val ne $p[2]){
+                                $stUpdate->execute($p[0], $p[1], $p[2]);
+                            }
+                        }
                     }
-                }
-            }
         $db->commit();
         close($fh);
-    }catch{
-       
+    }catch{       
        LifeLogException->throw(error=>"<p>Error->$@</p><br><pre>DSN: $DSN</pre>",  show_trace=>1);
     }
     return 1;    
+}
+
+sub dump(){
+    # Following will not help, as in perl package variables are codes 
+    # and the web container needs sudo permissions for memory access.
+    # my $class = shift;    
+    # my $self = bless {}, $class;
+    # use DBG;
+    # dmp $self;
+    #
+    # We need to do manually:
+    qq/
+release        {$RELEASE_VER}
+logPath        {$LOG_PATH} 
+logPathSet     {$LOG_PATH}
+theme          {$THEME}                               
+timezone       {$TIME_ZONE}
+transparent    {$TRANSPARENCY}
+transimage     {$TRANSIMAGE}
+language       {$LANGUAGE}
+sessionExprs   {$SESSN_EXPR}
+imgWidthHeight {$IMG_W_H}
+pagePrcWidth   {$PRC_WIDTH}
+frameSize      {$FRAME_SIZE}
+universalDate  {$DATE_UNI}
+recordLimit    {$REC_LIMIT}
+autoWordLimit  {$AUTO_WRD_LMT}
+autoWordLength {$AUTO_WRD_LEN}
+autoLogoff     {$AUTO_LOGOFF}
+viewAllLimit   {$VIEW_ALL_LMT}
+displayAll     {$DISP_ALL}
+trackLogins    {$TRACK_LOGINS}
+windowRTFSize  {$RTF_SIZE}
+keepExcludes   {$KEEP_EXCS}
+bgcol          {$BGCOL}
+css            {$TH_CSS}
+js             {$JS}
+compressPage   {$COMPRESS_ENC}
+debug          {$DEBUG}
+dbSrc          {$DBI_SOURCE}  
+dbVLSZ         {$DBI_LVAR_SZ}
+dbFile         {$DBFILE}
+dbName         {$dbname}
+dsn            {$DSN}
+isProgressDB   {$IS_PG_DB} 
+sqlPubors      {$SQL_PUB}        
+        /;
 }
 
 1;

@@ -14,8 +14,7 @@ use lib "system/modules";
 require Settings;
 
 my $cgi = CGI->new();
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath, SameSite=>'Lax'});
-   $session->expire(Settings::sessionExprs());   
+my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath, SameSite=>'Lax'});      
 my $sssCreatedDB = $session->param("cdb");
 my $sid=$session->id();
 my $cookie = $cgi->cookie(CGISESSID => $sid);
@@ -91,6 +90,7 @@ try{
         </div>);
 
     Settings::printDebugHTML($DBG) if Settings::debug();
+    #print $cgi->pre(Settings->dump());
     print $cgi->end_html;
 
     }
@@ -101,7 +101,7 @@ try{
 }
  catch {
             my $err = $@;
-            my $dbg = "" ;
+            my $dbg = "";
             my $pwd = `pwd`;
             $pwd =~ s/\s*$//;
             $dbg = "--DEBUG OUTPUT--\n$DBG" if Settings::debug();
@@ -121,7 +121,8 @@ sub processSubmit {
                 $session->param('passw', $passw);
                 $session->param('db_source', Settings::dbSrc());
                 $session->param('db_file',   Settings::dbFile());
-                $session->param('database',  Settings::dbName());                
+                $session->param('database',  Settings::dbName());     
+                $session->expire(Settings::sessionExprs());         
                 $session->flush();
                 ### To MAIN PAGE
                 print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
@@ -135,11 +136,11 @@ sub processSubmit {
     Settings::removeOldSessions();  #and prompt for login returning 0
     return 0;
 }
-
+#Here we directly check for efficiancythe main cnf file head. Not using CNFParser!
 sub checkAutologinSet {
     my (@cre, $v);
     # We don't need to slurp whole file as next are expected settings in begining of the config file.
-    open(my $fh, '<', Settings::logPath().'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");
+    open(my $fh, '<', &Settings::logPath.'main.cnf' ) or LifeLogException->throw("Can't open main.cnf: $!");
     while (my $line = <$fh>) {
         chomp $line;
         $v = Settings::parseAutonom('AUTO_LOGIN',$line);
@@ -173,7 +174,9 @@ sub checkAutologinSet {
         $v = Settings::parseAutonom('LOGOUT_IFRAME_ENABLED',$line);
         if($v){$LOGOUT_IFRAME_ENABLED = $v; next;}
         $v = Settings::parseAutonom('LOGOUT_RELOGIN_TXT',$line);
-        if($v){$LOGOUT_RELOGIN_TXT=$v; next;}
+        if($v){$LOGOUT_RELOGIN_TXT=$v; next}
+        $v = Settings::parseAutonom('^CONFIG_META', $line);# from v.2.4 - Reserve of id range of config properties for the application.
+        if($v){Settings::configPropertyRange($v); next}
         last if (0 == index $line,'<<CONFIG<'); #By specs the config tag, is not an autonom, if found we stop reading. So better be last one spec. in file.
     }
     close $fh;
