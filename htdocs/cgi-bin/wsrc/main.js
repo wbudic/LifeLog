@@ -16,6 +16,7 @@ var DEF_BACKGROUND = 'white';
 var RTF_DOC_RESIZED = false;
 var RTF_DOC_ORIG;
 var RTF_DOC_CUR_ID;
+var TXT_LOG_ROWS = 3;
 var TIME_STAMP;
 var LOCALE;
 var TIMEZONE; 
@@ -513,11 +514,12 @@ function decodeToHTMLText(txt) {
     txt = txt.replace("/&#60;/g", "<");
     txt = txt.replace("/&#62;/g", ">");
     txt = txt.replace("/&#9;/g", "\t");
-    txt = txt.replace(/&#10;/g, "\n");
-    txt = txt.replace(/\\n/g, "\n");
+    txt = txt.replace(/br\s*[\/]?>/gi, "\n");
+    txt = txt.replace(/\\n/g, "\n");    
+    txt = txt.replace(/&#10;/g, "\n");    
     txt = txt.replace(/&#34;/g, "\"");
     txt = txt.replace(/&#39;/g, "'");
-    txt = txt.replace(/br\s*[\/]?>/gi, "\n");
+    
 
     return txt;
 }
@@ -684,6 +686,21 @@ function viewAll() {
     return false;
 }
 
+function resizeLogText() {
+
+    $("#div_log .collpsd").show(); 
+    $('#div_log').show();
+     
+    if(TXT_LOG_ROWS == 3){
+        TXT_LOG_ROWS = 10;        
+    }
+    else{
+        TXT_LOG_ROWS = 3;
+    }
+    $("#el").prop("rows",TXT_LOG_ROWS)
+    
+}
+
 function resizeDoc() {
     var css = $("#editor-container").prop('style');
     if(RTF_DOC_RESIZED){
@@ -695,7 +712,6 @@ function resizeDoc() {
         RTF_DOC_ORIG = css.height;
         css.height = '480px';
     }
-
 }
 function resetDoc(){
     if (RTF_SET) { QUILL.setText(""); }

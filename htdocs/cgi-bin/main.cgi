@@ -607,9 +607,7 @@ sub buildLog {
         $log =~ s/(^\*)(.*)(\*)(\\n)/<b>$2<\/b><br>/oi;
         #Decode escaped \\n
         $log =~ s/\r\n/<br>/gs;
-        $log =~ s/\\n/<br>\n/gs;
-        
-        
+        $log =~ s/\\n/<br>/gs;
 
         if ( $CID_EVENT == $row[1] ) {
             $log = "<font color='#eb4848' style='font-weight:bold'>$log</font>";
@@ -623,10 +621,11 @@ sub buildLog {
 
         #Tagged preserve originally stored entry in hidden numbered field.
         if ($tagged) {
+            $log_orig =~ s/<br>\n/<br>/g;
             $log_orig =~ s/</&#60;/g;
             $log_orig =~ s/>/&#62;/g;
-            $log_orig =~ s/\n/&#10;/g;
             $log_orig =~ s/\\n/&#10;/g;
+            $log_orig =~ s/\n/&#10;/g;            
             $log_orig =~ s/\t/&#9;/g;
             $log_orig =~ s/\"/&#34;/g;
             $log_orig =~ s/\'/&#39;/g;
@@ -749,47 +748,48 @@ if ( $log_rc == 0 ) {
         }else{ $log_output .= '<tr id="brw_row"><td colspan="6" class="r1"><b>Database is New or Empty!</b></td></tr>'}
     }
 }
-if($isPUBViewMode){
 
+
+my ( $sp1, $sp2, $sp3 );
+$sp1 = '<span  class="ui-icon ui-icon-heart"></span>';
+$sp2 = '<span  class="ui-icon ui-icon-circle-triangle-s"></span>';
+$sp3 = '<span  class="ui-icon ui-icon-arrow-4-diag"></span>';
+
+my $std_bck = "background-image:url('".&Settings::transimage."');";
+$std_bck = "background-color:$BGCOL;" if !&Settings::transparent;
+my $auto_logoff = &Settings::autoLogoff;
+
+if($isPUBViewMode){
 }
 else{
 $log_output .= <<_TXT;
 <tr class="r0" id="brw_row"><td colspan="2" style="font-size:small;text-align:left;">Show All hidden &#10132;
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
-
-<a id="to_bottom" href="#top" title="Go to top of page.">&#8613;</a></td>
+<a id="to_bottom" href="#top" title="Go to top of page.">&#8613;</a>
+</td>
 <td colspan="4" align="right" style="margin:5px;">
     <input type="hidden" name="opr" id="opr" value="0"/>
     <input type="submit" value="Sum" onclick="return sumSelected()"/>&nbsp;
-
     <span style="border-left: 1px solid black;padding:5px;margin:15px;">
     <button onclick="return selectAllLogs()">Select All</button>    
     <input type="reset" value="Unselect All"/>
-
     <input type="submit" value="Date Diff" onclick="return dateDiffSelected()"/>&nbsp;
     <input type="submit" value="Export" onclick="return exportSelected()"/>&nbsp;        
     <input type="submit" value="Print" onclick="return viewSelected()"/>&nbsp;
     <input id="del_sel" type="submit" value="Delete" onclick="display('Please Wait!')"/>
     </span>
 </td></tr>
-</TABLE></FORM>
-_TXT
-
-$log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
+</TABLE>
+</FORM>
+<form id="frm_srch" action="main.cgi"><TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
     <tr class="r0"><td><b>Keywords:</b></td><td colspan="4" align="left">
     <input id="rs_keys2" name="keywords" type="text" size="60"/>
     <input type="submit" value="Search"/></td></tr>
     </TABLE>
 </form>);
+_TXT
 };
-    my ( $sp1, $sp2, $sp3 );
-    $sp1 = '<span  class="ui-icon ui-icon-heart"></span>';
-    $sp2 = '<span  class="ui-icon ui-icon-circle-triangle-s"></span>';
-    $sp3 = '<span  class="ui-icon ui-icon-arrow-4-diag"></span>';
 
-    my $std_bck = "background-image:url('".&Settings::transimage."');";
-    $std_bck = "background-color:$BGCOL;" if !&Settings::transparent;
-    my $auto_logoff = &Settings::autoLogoff;
 
     my $frm = qq(<a name="top"></a>
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
@@ -799,6 +799,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
     <td colspan="2"><b>* LOG ENTRY FORM *</b>
         <a id="log_close" href="#" onclick="return hide('#div_log');">$sp1</a>
         <a id="log_close" href="#" onclick="return toggle('#div_log .collpsd');">$sp2</a>
+        <a id="log_close" href="#" onclick="return resizeLogText();">$sp3</a>
     </td></tr>
 	<tr class="collpsd">
 	<td style="text-align:right; vertical-align:top; width:10%;">Date:</td>
@@ -813,7 +814,7 @@ $log_output .= qq(<form id="frm_srch" action="main.cgi"><TABLE class="tbl" borde
 			&nbsp;&nbsp;&nbsp;Category:&nbsp;
             
                 <button data-dropdown="#dropdown-standard" style="margin: 0px; padding: 0;">
-                <span id="lcat" class="ui-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>                
+                <span id="lcat" class="ui-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
                &nbsp; &#171; &nbsp;</button>
 
             <div class="dropdown-menu dropdown-anchor-top-right dropdown-has-anchor" id="dropdown-standard">
