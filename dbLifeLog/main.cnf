@@ -3,8 +3,8 @@ This is the main configuration file for the LifeLog applications settings.
 https://github.com/wbudic/LifeLog
 This is an Open Source License project -> https://choosealicense.com/licenses/isc/
 
-# Credential format:<<AUTO_LOGIN <{alias}/{password}>>> , to enable AUTO_LOGIN option bellow,
- the config in app, has to also be enabled.
+# Credential format:<<AUTO_LOGIN<{alias}/{password}>>> ,
+ to enable AUTO_LOGIN option bellow, the config in app, has to also be enabled.
 <<AUTO_LOGIN<>>>
 # BACKUP_ENABLED -> Enable (1), disable (0) backups to be restored from config page.
 <<BACKUP_ENABLED<1>>>
@@ -16,7 +16,7 @@ Note Remove -> '!' prefix to tag name, to enable, set,
 and override any previously set from now on, top to end of file approach.
 #
 # SQLite DB driver. 
-<<DBI_SOURCE<DBI:SQLite:>>>
+<<DBI_SQL_SOURCE<DBI:SQLite:>>>
 # ProgresSQL DB driver. 
 <<!DBI_SOURCE<DBI:Pg:host=localhost;>>>
 
@@ -41,6 +41,17 @@ Australia/Marsfield=Australia/Sydney
 Australia/Bondi=Australia/Sydney
 America/Austin=America/Chicago
 America/Texas=America/Chicago
+>>
+<<CURRENCY_SYMBOLS<DATA>
+$`&#36;`&dollar;`&#x24;`Dollar Sign~
+€`&#8364;`&euro;`&#x20AC;`Euro Sign~
+£`&#163;`&pound;`&#xA3;`Pound Sign~
+¤`&#164;`&curren;`&#xA4;`Currency Sign~
+₽`&#8381;`&#x20BD;`Ruble Sign~
+¥`&#165;`&yen;`&#xA5;`Yen Sign~
+₨`&#8360;`&#x20A8;`Rupee Sign~
+৳`&#2547;`&#x9F3;`Bengali Rupee Sign~
+฿`&#3647;`&#xE3F;`Thai Currency Symbol Baht~
 >>
 
 <<PLUGINS<
@@ -85,6 +96,7 @@ BankingPlugin->banking.pl
 40|$SUBPAGEDIR  =docs`Directory to scan for subpages like documents.
 42|$DISP_ALL    = 1`Display whole log entry, default -> 1=true, 0=false for display single line only.
 44|$TRANSPARENCY= 1`Should log panel be transparent, default is yes or on.
+50|$CURR_SYMBOL = $`Currency symbol.
 >>
 <<CAT<3>
 01|Unspecified `For quick uncategorized entries.

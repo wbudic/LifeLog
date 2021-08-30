@@ -1,0 +1,37 @@
+#ExecStart=/usr/sbin/lighttpd -D -f /home/will/dev/LifeLog/lighttpd.conf
+server.document-root = "/home/will/dev/LifeLog/" 
+
+server.port = 8080
+
+server.username = "will" 
+server.groupname = "will" 
+
+server.modules = (
+#"mod_access",
+"mod_accesslog",
+#"mod_auth",
+"mod_expire",
+"mod_compress",
+"mod_redirect",
+"mod_setenv",
+"mod_rewrite",
+"mod_alias",
+"mod_cgi"
+#"mod_openssl"
+)
+mimetype.assign = (
+  ".html" => "text/html", 
+  ".txt" => "text/plain",
+  ".jpg" => "image/jpeg",
+  ".png" => "image/png" 
+)
+
+static-file.exclude-extensions = ( ".ico" )
+index-file.names = ( "index.html" )
+server.dir-listing = "enable"
+
+$HTTP["host"] == "192.168.1.44" {
+#  server.document-root = "/var/www/servers/www2.example.org/pages/" 
+server.document-root = "/home/will/dev/LifeLog/htdocs" 
+}
+

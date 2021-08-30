@@ -246,9 +246,12 @@ try{
 }
 }
 
-sub log2html{
+use Text::Wrap; $Text::Wrap::columns=80; $Text::Wrap::separator="\n"; 
+
+sub log2html {
     my $log = shift;
     my ($re_a_tag, $sub)  = qr/<a\s+.*?>.*<\/a>/si;
+    $log = wrap('','',$log);
     $log =~ s/''/'/g;
     $log =~ s/\r\n/<br>/gs;
     $log =~ s/\\n/<br>/gs;
@@ -320,10 +323,7 @@ sub log2html{
             $ch_i =~ s/($RE{URI}{HTTP})/<a href="$1" target=_blank>$1<\/a>/gsi;
         }
         $log = join( '', @chnks );
-    }
-
-    #$log =~ s/\<\</&#60;&#60/gs;
-    #$log =~ s/\>\>/&#62&#62;/gs;
+    }      
 
 return $log;
 }
@@ -333,11 +333,11 @@ sub PrintView {
 
 try{    
     my $SQLID = 'rowid'; $SQLID = 'ID' if( Settings::isProgressDB() );
-    my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT = CAT.ID) as CAT, DATE, LOG from VW_LOG WHERE";       
+    my $stmS = "SELECT ID, PID, (select NAME from CAT WHERE ID_CAT = CAT.ID) as CAT, DATE, LOG, AMOUNT from VW_LOG WHERE";       
     my $stmE = " ORDER BY DATE DESC, ID DESC;";  
 
     #Get ids and build confirm table and check
-    my $stm = $stmS ." ";
+    my $stm = " ";
     foreach my $id ($cgi->param('chk')){
         if($opr == 2){
             $stm = $stm . "$SQLID = " . $id . " OR ";
@@ -346,30 +346,50 @@ try{
             $stm = $stm . "PID = " . $id . " OR ";
         }
     }
-    $stm =~ s/ OR $//; $stm .= $stmE;
-    my $st = Settings::selectRecords($db, $stm);                 
-         
+    $stm =~ s/ OR $//; 
+    my $sql = $stmS.$stm.$stmE;
     print $cgi->header(-expires=>"+6os");
     print $cgi->start_html(-title => "LifeLog Excerpt ".Settings::dbFile()." - ".$today->strftime('%d/%m/%Y %H:%M'),
             -style =>  {-type => 'text/css', -src => "wsrc/print.css"}
     );
-    print $cgi->pre("###PrintView()->[stm:$stm]") if($DEBUG);
+    print $cgi->pre("###PrintView()->[sql:$sql]") if($DEBUG);
 
+    my $st = Settings::selectRecords($db, "SELECT sum(AMOUNT) FROM VW_LOG WHERE $stm;");
+    my $hasAmmounts = 0; while(my @r = $st->fetchrow_array()) {if($r[0]>0){$hasAmmounts = 1}}             
     
-    my $tbl = '<table class="tbl_print" border="0" width="'.$PRC_WIDTH.'%">
-        <tr class="hdr"><th>Date</th><th>Time</th> <th>Log</th><th>Category</th></tr>';
 
+    my ($tot,$assets,$th_amt) = (0,0,''); $th_amt = '<th style="text-align:center;">'.Settings::currenySymbol().'</th>' if $hasAmmounts;
+    my $tbl = qq(<table class="tbl_print" border="0" width="'.$PRC_WIDTH.'%">
+        <tr class="hdr"><th>Date</th><th>Time</th><th>Log</th>
+       </th>$th_amt<th>Category</th></tr>);
+                    $st = Settings::selectRecords($db, $sql);
     while(my @row = $st->fetchrow_array()) {
         my $ct = $row[2];
         my $dt = DateTime::Format::SQLite->parse_datetime( $row[3] );
         my $log = log2html($row[4]);
+        my $amt = $row[5];
+        if($hasAmmounts){
+            if($ct eq 'Expense'){
+                $tot = $tot - $amt; $amt = "-$amt";
+            }elsif($ct eq 'Income'){
+                $tot += $amt;
+            }else{
+                $assets += $amt;
+            }
+            $amt="<td style='text-align:right;'>".cam($amt).'</td>';
+        }else{$amt=""}
 
-        $tbl = $tbl . '<tr><td class="ctr">'. $dt->ymd . "</td>" .
-            '<td class="ctr">' . $dt->hms . "</td>" .
-            '<td>'."$log</td>\n".
-            '<td class="cat">' . $ct. '</td></tr>';
+        $tbl .= '<tr><td class="ctr">'. $dt->ymd . "</td>" .
+            '<td class="ctr">' . $dt->hms . "</td>" . qq(<td>$log</td>$amt<td class="cat">$ct</td></tr>);
     }
-    $tbl .= '</table>';
+    $tot =  Settings::currenySymbol().cam($tot);
+    if ($assets){$assets =  'Assets: '.Settings::currenySymbol().cam($assets)}else{$assets=""}
+    if($hasAmmounts || $assets){
+       $tbl .= qq(<tr><td colspan="6"></td></tr><tr>
+                      <td></td><td></td><td style='text-align:right;'>$assets&nbsp;<b>Total:</b></td><td>$tot</td>
+                      <td></td></tr>);
+       $tbl .= '</table>';
+    }
     
     print "<center><div>\n$tbl\n</div></center>";
 
@@ -379,6 +399,12 @@ try{
 }catch{
     print "<font color=red><b>SERVER ERROR</b>-> Method NotConfirmed() Page Build Failed!.</font>:<pre>".$@."</pre>";
 }
+}
+sub cam {
+    my $am = sprintf( "%.2f", shift @_ );
+    # Add one comma each time through the do-nothing loop
+    1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
+    return $am;
 }
 
 1;

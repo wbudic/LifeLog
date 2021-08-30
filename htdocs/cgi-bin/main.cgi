@@ -253,7 +253,7 @@ for my $key ( keys %hshDesc ) {
         $data_cats .= qq(<meta id="cats[$key]" name="$n" content="$kv">\n);
     }
 }
-my $eh;
+my $eh;my $currsymb = &Settings::currenySymbol;
 if($isPUBViewMode){$eh = ""}else{$eh='<th>Edit</th>'}
 my $log_output =
 qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
@@ -261,7 +261,8 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
 <tr class="hdr">
 	<th>Date</th>
 	<th>Time</th>
-	<th>Log</th><th>#</th>
+	<th>Log</th>
+    <th>$currsymb</th>
 	<th>Category</th>
     $eh
 </tr>);
@@ -712,7 +713,7 @@ $log_output .= qq(
 <tr class="r$tfId" id="summary_row">
     <td></td>
     <td></td>
-    <td id="summary" colspan="4" style="text-align:right"># <i>Totals</i>: Assets [ $ass ] Inc [ $tin ] Exp [ <font color="red">$exp</font> ] <b>&#8594; Gross [<i>$tot</i> ] </b></td>
+    <td id="summary" colspan="4" style="text-align:right">$currsymb <i>Totals</i>: Assets [ $ass ] Inc [$currsymb $tin ] Exp [ <font color="red">$currsymb $exp</font> ] <b>&#8594; Gross [$currsymb <i>$tot</i> ] </b></td>
 </tr>);
 
 ###
