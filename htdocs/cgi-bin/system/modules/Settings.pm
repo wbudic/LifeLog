@@ -81,6 +81,7 @@ our $KEEP_EXCS    = 0;
 our $COMPRESS_ENC = 0; #HTTP Compressed encoding.
 our $DBI_SOURCE   = "DBI:SQLite:";
 our $DBI_LVAR_SZ  = 1024;
+our $CURR_SYMBOL  = '$';
 
 my ($cgi, $sss, $sid, $alias, $pass, $dbname, $pub);
 our $DSN;
@@ -135,6 +136,7 @@ sub displayAll     {$DISP_ALL}
 sub trackLogins    {$TRACK_LOGINS}
 sub windowRTFSize  {$RTF_SIZE}
 sub keepExcludes   {$KEEP_EXCS}
+sub currenySymbol  {$CURR_SYMBOL}
 sub bgcol          {$BGCOL}
 sub css            {$TH_CSS}
 sub js             {$JS}
@@ -428,6 +430,7 @@ sub getConfiguration {
                 when ("KEEP_EXCS")   {$KEEP_EXCS    = $r[2]}
                 when ("TRACK_LOGINS"){$TRACK_LOGINS = $r[2]}
                 when ("COMPRESS_ENC"){$COMPRESS_ENC = $r[2]}
+                when ("CURR_SYMBOL") {$CURR_SYMBOL  = $r[2]}
                 default              {$anons{$r[1]} = $r[2]}
                 }
         }

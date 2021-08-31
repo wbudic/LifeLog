@@ -6,13 +6,15 @@
 
 ### New Development v.2.3+
 
+* &#10004; Printout page to include Amount column if category of items has valued asset, expense or income set. Providing also totals. Of Assets, and total on income and expense.
+  * Introduce Currency setting, to replace amount '#'. Even though it could be number of, somthing not currency related.
 * &#10004; Interaction - When editing an existing log entry, it needs confirmation, if it isn't a copy (now button wasn't pressed), before overwriting.
   * i.e, Warning! - Existing entry has been changed, are you sure do you want to overwrite it?
 * &#10004; Configuration needs to be updated, to use CNF 2.2, for system reset, etc.
   * Config file "Data Fix* reset of settings updated to properly revert to factory defaults.
   * We need to also display stats for log file of the web server.
     * Maybe provide an rotational purge on config page access. i.e. if line count is over 1000, purge to tail -n 1000.
-      * - This sure an config file setting. i.e. <<WEB_SERVER_LOG_TAIL_LIMIT><1000>>>
+      * This sure an config file setting. i.e. <<WEB_SERVER_LOG_TAIL_LIMIT><1000>>>
 * &#10004; Backup/Restore made various db engine aware and compatible. As the data is the same.
   * The data is the same, Structure, binary data and password handling is different, engine dependant.
 * &#10004; Fix themes. Themes don't display and set consistently the pages throughout.

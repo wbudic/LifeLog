@@ -708,7 +708,7 @@ elsif($chdbfix){
         </td></tr>
         </form></TABLE>);
 
-        &Settings::getTheme;
+        &Settings::setupTheme;
         &getHeader;
 
         print "<div>$output</div>";
