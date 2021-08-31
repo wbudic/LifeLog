@@ -5,10 +5,10 @@
 #
 # Usefull to cron, to auto backup the databases just in case.
 #
-# Programed by: Will Budic
+# Programed by: Will Budic (Вячаслав Будитьий)
 # Open Source License -> https://choosealicense.com/licenses/isc/
-#Example crontab -e entry for every three hours.
-#crontab -> * */3 * * * /home/will/dev/backupDBLifeLog.sh > /dev/null 2>&1
+# Example crontab -e entry for every four hours.
+# in crontab have -> 0 */4 * * * /home/will/dev/backupDBLifeLog.sh > /dev/null 2>&1
 
 export DISPLAY=":0"
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
