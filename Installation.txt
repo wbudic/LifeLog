@@ -59,14 +59,48 @@ NOTICE -> Above Perl installation and modules can take time as they build (get c
           using your computers configuration and hardware for optimal performance.
           The Perl::LanguageServer, can fail in tests, as it is development specific, this can be ignored.
 
-# Install OpenSSL (Optional)
+# Install OpenSSL (Optional, used by backup routines)
 https://www.openssl.org/
 
-sudo apt install openssl
+Avoid: sudo apt install openssl
+Install preferably by building. Older versions have not all options.
+i.e.:
+curl -c https://www.openssl.org/source/openssl-1.1.1l.tar.gz  | tar -xz
+
+cd openssl-1.1.1l;
+export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
+./configure linux-x86_64 --prefix=/usr/local --openssldir=/usr/local
+make
+make test
+sudo make install
+cd ..
+rm -rf openssl-1.1.1l
 
 
 # LifeLog Required Perl modules.
 
+# Since 2.4 To get to work with latest installed perl version, (not the roots/system wide one).
+perl -v
+#output should be: v5.34.0 or grater.
+perl -MCPAN -e 'install DBI'
+perl -MCPAN -e 'install CGI'
+perl -MCPAN -e 'install CGI::Session'
+perl -MCPAN -e 'install DBD::Pg'
+perl -MCPAN -e 'install Syntax::Keyword::Try'
+perl -MCPAN -e 'install DateTime::Format::SQLite'
+perl -MCPAN -e 'install Capture::Tiny'
+perl -MCPAN -e 'install Text::CSV';
+perl -MCPAN -e 'install Regexp::Common'
+perl -MCPAN -e 'install Gzip::Faster'
+perl -MCPAN -e 'install CGI:Session'
+perl -MCPAN -e 'install Crypt::CBC'
+perl -MCPAN -e 'install Crypt::Blowfish'
+
+
+
+
+# Following is OLD or when wanting to use the system wide perl installation.
+# In most cases the following will work fine if having sudo access, and no intension to upgrade perl.
 ###
 # since 1.8 switched to:
 # before was -> sudo cpanm Try::Tiny;
@@ -92,7 +126,6 @@ sudo cpan Compress::Zlib;
 sudo cpan IO::Compress::Gzip;
 sudo cpan IO::Prompter;
 sudo cpan IO::Interactive;
-#Disabled testing for now on PostgreSQL driver
 sudo cpan -T DBD::Pg;
 
 
