@@ -195,7 +195,7 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
   * i.e. $SESSN_EXPR, $RELEASE_VER, $TIME_ZONE, $LOG_PATH
 * &#10004; Various system setups, not dealing well with $ENV{'home'} in multi perl environment, releases.
 
-## Urgent FIXES and Known Issuses
+## Urgent FIXES and Known Issues
 
 * &#10004; CVS Export and Import has not been implemented for RTF type log entries.
   * CVS feature has been made obsolete, it shouldn't be used.
@@ -231,7 +231,7 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
 ### v. 2.3+ Encountered/Fixed
 
-* Bug 36, DBFix not fully working on PG based install and restore not working from backups made with older versions of OpenSSL.
+* &#10004; Bug 36, DBFix not fully working on PG based install and restore not working from backups made with older versions of OpenSSL.
   * Also, restore not working on uploaded backups, from local computer.
   
 ### v. 2.2 Encountered/Fixed

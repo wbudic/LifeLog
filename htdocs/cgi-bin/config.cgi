@@ -21,6 +21,8 @@ use Text::CSV;
 use Scalar::Util qw(looks_like_number);
 use Sys::Syslog qw(:DEFAULT :standard :macros); #openLog, closelog macros
 use Compress::Zlib;
+use bignum qw/hex/;
+
 
 #DEFAULT SETTINGS HERE!
 use lib "system/modules";
@@ -42,6 +44,7 @@ my $lang    = Date::Language->new(Settings::language());
 my $today   = Settings::today();   
 my $tz      = $cgi->param('tz');
 my $csvp    = $cgi->param('csv');
+my $CID     = 'rowid'; $CID = 'ID' if Settings::isProgressDB();
 
 exportToCSV() if ($csvp);
 
@@ -384,7 +387,8 @@ else{
 }
 
 my $inpRestore = qq(<b>Local File:</b>&nbsp;&nbsp;
-<input type="file" name="data_bck" />&nbsp;&nbsp;<input type="Submit" value="Restore"/>);
+<input type="file" name="bck_file" />&nbsp;&nbsp;<input type="Submit" value="Restore"/>);
+
 my $inpCVS = qq(<input type="button" onclick="return exportToCSV('log',0);" value="Export"/>&nbsp;
 <input type="button" onclick="return exportToCSV('log',1);" value="View"/>);
 if((Settings::anon("backup_enabled") == 0)){
@@ -404,19 +408,22 @@ print qq(
                 <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a>
     </div>
     <br>
-    <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:).&Settings::bgcol.qq(">
-            <form id="bck" action="config.cgi" method="post">
+    <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:).&Settings::bgcol.qq(">            
             <table border="0" width="100%">
+
+                <form id="bck" action="config.cgi" method="post">
                 <tr><td><a name="backup"></a><H3>Backup File Format</H3></td></tr>
                 <tr><td><input id="btnFetch" type="button" onclick="alert('Backing up next, this can take up some time. Please give it few minutes and return or refresh the config page!');return fetchBackup();" value="Fetch"/><hr></td></tr>
 
                 <tr><td><div id="div_backups">$bck_list</div><hr></td></tr>
-
-                <form id="bck_file" action="config.cgi" method="post" enctype="multipart/form-data">
-                <tr><td>
-                $inpRestore
-                <hr></td></tr>
                 </form>
+
+                <tr><td>
+                        <form id="bck_file" action="config.cgi" method="post" enctype="multipart/form-data">
+                        $inpRestore
+                        </form>
+                <hr></td></tr>
+                
                 <form action="config.cgi" method="post" enctype="multipart/form-data">
                 <tr>
                 <td><H3>CSV File Format</H3>Notice: (<font color=red>This is an obsolete feature, use is not recommended!</font>)</td></tr>
@@ -582,12 +589,12 @@ elsif ($change == 1){
 
          if( ($cid!=1 && $cid!=32 && $cid!=35) && $pnm eq  ""){
 
-           $s = "SELECT rowid, ID_CAT FROM LOG WHERE ID_CAT =".$cid.";";
+           $s = "SELECT $CID, ID_CAT FROM LOG WHERE ID_CAT =".$cid.";";
            $d = $db->prepare($s);
            $d->execute();
 
             while(my @r = $d->fetchrow_array()) {
-                     $s = "UPDATE LOG SET ID_CAT=1 WHERE rowid=".$r[0].";";
+                     $s = "UPDATE LOG SET ID_CAT=1 WHERE $CID=".$r[0].";";
                      $d = $db->prepare($s);
                      $d->execute();
              }
@@ -670,7 +677,7 @@ elsif($chdbfix){
         }
 
 
-       $dbs = Settings::selectRecords($db, "SELECT rowid, ID_CAT, DATE, LOG FROM LOG WHERE $sel ORDER BY DATE;" );
+       $dbs = Settings::selectRecords($db, "SELECT $CID, ID_CAT, DATE, LOG FROM LOG WHERE $sel ORDER BY DATE;" );
        while(my @row = $dbs->fetchrow_array()) {
         my $id = $row[0];# rowid
             my $ct  = $hshCats{$row[1]}; #ID_CAT
@@ -796,12 +803,9 @@ try{
         #DBI->connect(Settings::dsn(), $alias, $p, {AutoCommit => 0, RaiseError => 1, PrintError => 0, show_trace=>1});
         $db->do('BEGIN TRANSACTION;');
         # Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
-        # @TODO This should be selecting an cross SQL compatibe view.
-        if(Settings::isProgressDB()){
-            $dbs = Settings::selectRecords($db, 'SELECT ID, DATE FROM LOG ORDER BY DATE;');
-        }else{
-            $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG ORDER BY DATE;');
-        }
+        # @TODO Following should be selecting an cross SQL compatibe view.        
+        $dbs = Settings::selectRecords($db, "SELECT $CID, DATE FROM LOG ORDER BY DATE;");
+        
         while(@row = $dbs->fetchrow_array()) {
             my $existing = $dates{$row[0]};
             if($existing && $existing eq $row[1]){
@@ -812,12 +816,8 @@ try{
             }
         }
 
-        foreach my $del (@dlts){
-             if(Settings::isProgressDB()){
-                 $sql = "DELETE FROM LOG WHERE rowid=$del;";
-             }else{
-                 $sql = "DELETE FROM LOG WHERE ID=$del;";
-             }
+        foreach my $del (@dlts){             
+            $sql = "DELETE FROM LOG WHERE $CID=$del;";             
             print "$sql\n<br>";
             my $st_del = $db->prepare($sql);
             $st_del->execute();
@@ -880,11 +880,9 @@ sub renumerate {
     my $sql; 
     # Fetch list by date identified rtf attached logs, with possibly now an old LID, to be updated to new one.   
     print "Doing renumerate next...\n" if &Settings::debug; 
-    if(Settings::isProgressDB()){
-        $sql = "SELECT ID, DATE FROM LOG WHERE RTF > 0;"
-    }else{
-        $sql = "SELECT rowid, DATE FROM LOG WHERE RTF > 0;"
-    }
+    
+    $sql = "SELECT $CID, DATE FROM LOG WHERE RTF > 0;";  
+    
     my @row = Settings::selectRecords($db, $sql)->fetchrow_array();
     my %notes  = ();
     if (scalar @row > 0){
@@ -909,14 +907,8 @@ sub renumerate {
     # Update  notes with new log id, if it changed.
 
     foreach my $date (keys %notes){
-        my $old = $notes{$date};
-        #my $sql_date = DateTime::Format::SQLite->parse_datetime($date);
-        
-        if(&Settings::isProgressDB){
-            $sql = "SELECT ID FROM LOG WHERE RTF > 0 AND DATE = '".$date."';";
-        }else{
-            $sql = "SELECT rowid FROM LOG WHERE RTF > 0 AND DATE = '".$date."';";
-        }
+        my $old = $notes{$date};        
+        $sql = "SELECT $CID FROM LOG WHERE RTF > 0 AND DATE = '$date';";        
         print "Selecting ->  $sql\n";
         $dbs = Settings::selectRecords($db, $sql);        
         @row = $dbs->fetchrow_array();
@@ -936,13 +928,10 @@ sub renumerate {
     }
 
     # Delete Orphaned Notes entries if any?
-    if(Settings::isProgressDB()){
-        $dbs = Settings::selectRecords($db, "SELECT LID, LOG.ID from NOTES LEFT JOIN LOG ON
-                                        NOTES.LID = LOG.ID WHERE LOG.ID is NULL;");
-    }else{
-        $dbs = Settings::selectRecords($db, "SELECT LID, LOG.rowid from NOTES LEFT JOIN LOG ON
-                                        NOTES.LID = LOG.rowid WHERE LOG.rowid is NULL;");
-    }
+
+    $dbs = Settings::selectRecords($db, "SELECT LID, LOG.$CID from NOTES LEFT JOIN LOG ON
+                                                NOTES.LID = LOG.$CID WHERE LOG.rowid is NULL;");
+
     if ($dbs) {  foreach (@row = $dbs->fetchrow_array()) {
                 $db->do("DELETE FROM NOTES WHERE LID=$row[0];") if $row[0]; # 0 is the place keeper for the shared zero record, don't delete. 
     }}
@@ -1181,7 +1170,10 @@ sub backup {
    my $file = &Settings::logPath.'data_'.$dr[1].'_'."$dbname"."_log.db";
    my $dsn= "DBI:SQLite:dbname=$file";
    my $weProgress = Settings::isProgressDB();
+   my $stamp = $today."\t"; $stamp =~ s/T/ /g;
+   open( my $fhLog, ">>", &Settings::logPath."backup.log") if &Settings::debug;
    if($weProgress){
+           print $fhLog $stamp, "Started Pg database backup.\n" if &Settings::debug;
            try{$pass = uc crypt $pass, hex Settings->CIPHER_KEY;
                unlink $file if -e $file; # we will recreate it next.
            }catch{};
@@ -1191,6 +1183,7 @@ sub backup {
             $dbB->do(&Settings::createCATStmt);
             $dbB->do(&Settings::createLOGStmt);
             $dbB->do(&Settings::createNOTEStmt);
+            print $fhLog $stamp, "Created file database $file from -> ", Settings::dbSrc() ,"\n" if &Settings::debug;
 
             my $in = $dbB->prepare('INSERT INTO CAT VALUES (?,?,?)');
             my $st = Settings::selectRecords($db,'SELECT * FROM CAT;');       
@@ -1203,25 +1196,47 @@ sub backup {
                 while(my @c = $st->fetchrow_array()){          
                     $in->execute($c[0],$c[1],$c[2],$c[3],$c[4],$c[5],$c[6]);
                 }
-                $in = $dbB->prepare('INSERT INTO NOTES VALUES (?,?)');
+                $in = $dbB->prepare('INSERT INTO NOTES (LID, DOC) VALUES(?,?);');
                 $st = Settings::selectRecords($db,'SELECT LID, DOC FROM NOTES;');       
                 while(my @c = $st->fetchrow_array()){
-                    $in->bind_param(1, $c[0]);
-                    $in->bind_param(2, $c[1]);#, { pg_type => DBD::Pg::PG_BYTEA });
-                    $in->execute();
+                    try{
+                        # $in->bind_param(1, $c[0]);
+                        # $in->bind_param(2, $c[1]);#, { pg_type => DBD::Pg::PG_BYTEA });
+                        # $in->execute();
+
+
+                        #     my $d = uncompress($c[1]);
+                        #     my $cipher = Settings::newCipher(Settings::pass());
+                        #     my $doc = $cipher->decrypt($d);
+                            
+                        #     $cipher = Settings::newCipher($pass);
+                        #     $doc = compress($cipher->encrypt($doc));
+                        # $inNotes->bind_param(1, $c[0]);
+                        # $inNotes->bind_param(2, $doc);
+                        $in->execute($c[0], $c[1]);
+                    }catch{
+                         print $fhLog $stamp, "Error NOTES.LID[$c[0]]-> $@" if &Settings::debug;
+                    }
                 }
                 $dbB->disconnect();                
    }else{
+       print $fhLog $stamp, "Started database backup.\n" if &Settings::debug;
        $file = Settings::dbFile();
    }
+    
+    my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." ".$file." | openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -salt -S ".
+                            Settings->CIPHER_KEY." -pass pass:$pass-$alias -out ".&Settings::logPath.$ball." 2>/dev/null";
+    if (&Settings::debug){
+        print $fhLog $stamp, $pipe, "\n";
+        close $fhLog;
+    }
 
     print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>$ball);
-    my $pipe = "tar czf - ".&Settings::logPath.'main.cnf' ." ".$file." | openssl enc -e -des-ede3-cfb -salt -S ".
-                            Settings->CIPHER_KEY." -pass pass:$pass-$alias -out ".&Settings::logPath.$ball." 2>/dev/null";
     my $rez = `$pipe`;       
        open (my $TAR, "<", &Settings::logPath.$ball) or die "Failed creating backup -> $ball";
             while(<$TAR>){print $_;}
-       close $TAR;
+       close $TAR;      
+
     unlink $file if $weProgress;  
     exit;
 }
@@ -1234,46 +1249,49 @@ sub restore {
     my $hndl = $cgi->param('data_bck');
     my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
     my $stage = "Initial";
+    my $stamp = $today."\t"; $stamp =~ s/T/ /g;
+    my $fhLog; open( $fhLog, ">>", &Settings::logPath."backup_restore.log");
+    print $fhLog $stamp, "Started restore procedure.\n";
 
 try{
        getHeader();
        print $cgi->start_html;
 
-my $stdout = capture_stdout {
-
-        print "<h3>Restore Result</h3>\n<hr>";
+my $stdout = capture_stdout {        
         print "Restore started: ".Settings::today(), "\n";
         if($file){ #Open handle on server where backup is to be restored.
             my $f = &Settings::logPath.$file;
             open($hndl, '<', $f) or die "Can't open $f: $!";            
-            print "<pre>Reading on server backup file -> $file</pre>";
+            print $fhLog $stamp, "Uploading backup file -> $file\n";
             $tar = $dbck.$file;
         }        
         else{
-            print "<pre>Reading-> $hndl</pre>";
+            print $fhLog $stamp, "Reading on server backup file -> $hndl\n";
             $tar = $dbck.$hndl;
         }
         $tar =~ s/osz$/tar/;
         my $srcIsPg = 0;
         my $passw   = $pass; $passw = uc crypt $pass, hex Settings->CIPHER_KEY if &Settings::isProgressDB;
-        open (my $pipe, "| openssl enc -d -des-ede3-cfb -salt -S ".
-                Settings->CIPHER_KEY." -pass pass:$passw-$alias -in /dev/stdin 2>/dev/null > $tar") or die "Failed: $!";
-            while(<$hndl>){print $pipe $_;}; 
+        open (my $pipe, "|-", "openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -d -salt -S ".
+                Settings->CIPHER_KEY." -pass pass:$passw-$alias -in /dev/stdin -out $tar 2>/dev/null") or die "Pipe Failed for $tar: $!";                 
+            while(<$hndl>){print $pipe $_; die "bad decoding" if $?;}; 
         close $pipe; 
         close $hndl;
-        #cat bck_20210819160848_SQLite_admin.osz | openssl enc -d -des-ede3-cfb -salt -S 95d7a85ba891da -pass pass:42FAP5H0JUSZM-admin -in > extrac.tar
+#cat bck_20210819160848_SQLite_admin.osz | openssl enc -d -des-ede3-cfb -salt -S 95d7a85ba891da -pass pass:42FAP5H0JUSZM-admin -in /dev/stdin > extract.tar
+#openssl des-ede3-cfb -d -salt -S 95d7a85ba891da -pass pass:42FAP5H0JUSZM-admin -pbkdf2 -in bck_20210830133220_NUc_SQLite_admin.osz -out extract.tar
 
         print "<pre>\n";
         
 
         my $m1 = "it is not permitted to restore from anothers backup file.";
         $m1= "has your log password changed?" if ($tar=~/_data_$alias/);
-        $stage = "Backup extraction start";
+        $stage = "Backup extraction start";        
 
         my $cmd = `tar tvf $tar 2>/dev/null` 
-         or die qq(Error: A possible security issue, $m1\n<br> BACKUP FILE HAS BEEN INVALIDATED!
-          $tar\nYour alias is: <b>$alias</b>\n<br>
-          Your DSN  is: ).Settings::dsn().qq(<br>
+         or die qq(Error: A possible security issue, $m1\n<br> BACKUP FILE HAS BEEN INVALIDATED!\n
+          Archive:$tar\n
+          Your alias is: <b>$alias</b>\n<br>
+          Your DSN is: ).Settings::dsn().qq(<br>
           Your LifeLog version is:), Settings::release()."\n";
         
         print "Contents->\n".$cmd."\n\n";
@@ -1284,19 +1302,19 @@ my $stdout = capture_stdout {
         
         # We check if db file has been extracted first?
         unless(-e $b_base){                  
-                  if (&Settings::isProgressDB){
-                       $srcIsPg = 0;
+                  if (&Settings::isProgressDB){                      
                       $b_base = $dbck.'data_'.$dr[1].'_'.$dbname.'_log.db'
                   }else{ # maybe the source is a Pg db backup?
                       $b_base = $dbck.'data_Pg_'.$dbname.'_log.db';
-                      $srcIsPg = 1;
                   }
-                  unless(-e $b_base){
+                  if (-e $b_base){
+                      $srcIsPg = 1
+                  }
+                  else{
                       die "Failed to locate database in archive -> $b_base";
                   }
-        }{
-            $srcIsPg = 1 if &Settings::isProgressDB;
         }
+
         my $dsn= "DBI:SQLite:dbname=$b_base";
         $b_db = DBI->connect($dsn, $alias, $pass, { RaiseError => 1 }) or 
                  LifeLogException->throw(error=>"Invalid database! $dsn->$hndl [$@]", show_trace=>&Settings::debug);
@@ -1330,8 +1348,7 @@ my $stdout = capture_stdout {
         $stage = "Merging backup LOG";
         print "\n\nMerging from backup LOG table...\n";
 
-        my %backupLIDS =();
-        my $CI = 'rowid'; $CI = 'ID' if Settings::isProgressDB();
+        my %backupLIDS =();        
         my $insLOG   = $db->prepare('INSERT INTO LOG (ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY) VALUES(?,?,?,?,?,?,?);')or die "Failed LOG prepare.";
 
         $b_pst = Settings::selectRecords($b_db,"SELECT rowid, ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY FROM LOG;");
@@ -1344,7 +1361,7 @@ my $stdout = capture_stdout {
                             $insLOG->execute($br[1],$br[2],$br[3],$br[4],$br[5],$br[6],$br[7]);
                             print "Added->".$br[0]."|".$br[2]."|".$br[3]."\n"; $stats->logs_inserts_incr();
                             if($br[4]){                    
-                                $pst = Settings::selectRecords($db, "SELECT max($CI) FROM LOG");
+                                $pst = Settings::selectRecords($db, "SELECT max($CID) FROM LOG");
                                 my @r = $pst->fetchrow_array();
                                 $backupLIDS{$br[0]} = $r[0];
                             }
@@ -1426,16 +1443,14 @@ my $stdout = capture_stdout {
         Settings::configProperty($db, 236, '^STATS_RTF_INSERT_CNT',$stats->notes_inserts());
         print "Done!\n";
         print "Restore ended: ".Settings::today(), "\n";
-};      print $stdout;
-
-my $fh; open( $fh, ">>", &Settings::logPath."backup_restore.log");
-        print $fh $stdout;
-        close $fh;
-
+};
+print $fhLog $stamp, "\n","-"x20,"Debug Output Start","-"x20, "\n", $stdout, "-"x20,"Debug Output End","-"x20, "\n";
+print $stdout; 
 $b_db->disconnect();
 $db->disconnect();
+###############
 `rm -rf $dbck/`;
-
+###############
 }
 catch{
     $ERROR = "<br><font color='red'><b>Full Restore Failed!</b></font><br>$@ \n";
@@ -1447,6 +1462,7 @@ catch{
     print "<div class='debug_output'>$ERROR</div>" if($ERROR);
     print "\n</pre><code>";
     print qq(<a href="config.cgi?CGISESSID=$sid"><hr>Go Back</a> or <a href="main.cgi"><br>Go to LOG</a></code>);
+    close $fhLog;
     print $cgi->end_html;
     exit;
 
