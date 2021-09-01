@@ -63,9 +63,11 @@ try{
        $hst = `hostname` . "($ht[0])" if (@ht);
 
     $frm = qq(
-        <form id="frm_login" action="login_ctr.cgi" method="post"><table border="0" width=").Settings::pagePrcWidth().qq(%">
+        <form id="frm_login" action="login_ctr.cgi" method="post">
+        <table border="0" width="50%"  
+        style="box-sizing: border-box; margin-bottom: 5px; box-shadow: 5px 5px 5px #9baec8;">
         <tr class="r0">
-            <td colspan="3"><center>LOGIN</center></td>
+            <td colspan="3"><h3>Welcome to Life Log</h3></td>
             </tr>
         <tr class="r1" style="border-left:1px solid black; border-right:1px solid black;">
             <td align="right">Alias:</td><td><input type="text" name="alias" value="$alias"/></td><td></td>
@@ -81,13 +83,20 @@ try{
         <tr class="r0"><td colspan="2">Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
         </table></form>);
 
-    print qq(<br><br><div class="rz">
-            <center>
-                <h2>Welcome to Life Log</h2><div class="">$frm</div><br>
-                <a href="https://github.com/wbudic/LifeLog" 
-                target="_blank" style="font-size:small">LifeLog v.).Settings::release().qq(</a><br>
-            </center>
-        </div>);
+    print qq(<br><br>            
+            <div class="rz" style="vertical-align:middle;text-align:center; width: 60% !important;">
+                $frm
+                <br>
+                <a href="https://github.com/wbudic/LifeLog" target="_blank" style="font-size:small">                    
+                <div style="display: inline-block; vertical-align: middle; text-align: center; width:50%">
+                <div style="display:table-cell; height:20px; vertical-align: middle;">
+                    <img src="wsrc/images/pingy.svg" height="30px"> LifeLog v.).Settings::release().qq(</a>
+                </div>
+                </div>
+                    
+                <br>
+            </div>
+          );
 
     Settings::printDebugHTML($DBG) if Settings::debug();
     #print $cgi->pre(Settings->dump());
