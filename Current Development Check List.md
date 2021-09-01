@@ -7,7 +7,7 @@
 ### New Development v.2.3+
 
 * &#10004; Printout page to include Amount column if category of items has valued asset, expense or income set. Providing also totals. Of Assets, and total on income and expense.
-  * Introduce Currency setting, to replace amount '#'. Even though it could be number of, somthing not currency related.
+  * Introduce Currency setting, to replace amount '#'. Even though it could be number of, something not currency related.
 * &#10004; Interaction - When editing an existing log entry, it needs confirmation, if it isn't a copy (now button wasn't pressed), before overwriting.
   * i.e, Warning! - Existing entry has been changed, are you sure do you want to overwrite it?
 * &#10004; Configuration needs to be updated, to use CNF 2.2, for system reset, etc.
@@ -229,6 +229,11 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
 ## Bugs
 
+### v. 2.3+ Encountered/Fixed
+
+* Bug 36, DBFix not fully working on PG based install and restore not working from backups made with older versions of OpenSSL.
+  * Also, restore not working on uploaded backups, from local computer.
+  
 ### v. 2.2 Encountered/Fixed
 
 * &#10004; Bug 35, Migration and version updating SQL is wrong for PG database, it doesn't have rowid's.
