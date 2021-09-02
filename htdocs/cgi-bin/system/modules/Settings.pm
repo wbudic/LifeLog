@@ -694,7 +694,7 @@ sub configPropertyRange {
 sub configProperty {
     my($db, $id, $name, $value) = @_;  my $sql;
     if (defined($db)&&defined($id)&&!defined($value)){  #trickeryy here to obtain existing.      
-        my $dbs = selectRecords($db, looks_like_number($id) ? "SELECT VALUE FROM CONFIG WHERE ID == $id;":
+        my $dbs = selectRecords($db, looks_like_number($id) ? "SELECT VALUE FROM CONFIG WHERE ID = $id;":
                                                               "SELECT VALUE FROM CONFIG WHERE NAME like '$id'");
         my @r = $dbs->fetchrow_array();
         return $r[0];
@@ -725,12 +725,12 @@ sub configProperty {
             $db->do("UPDATE CONFIG SET VALUE = '$value' WHERE NAME LIKE '$name';");
         }
         else{# For new config properties we must check, not to overide by accident dynamically system settings in the db.
-            if($cnf_id_range){ # META check! Do not overide config annon placed. i.e. same id used for different properties to create them.
+            if($cnf_id_range && $name ne 'RELEASE_VER'){ # META check! Do not overide config annon placed. i.e. same id used for different properties to create them.
             if($id<$cnf_id_range){SettingsException->throw(
                   error => "ERROR Invalid id value provided, it is not in reserve meta range-> Settings::configProperty('$db',$id,'$name','$value')\n",
                   show_trace=>$DEBUG)}
             if($_=$cnf_ids_taken{$id}){ die "ERROR Config property id: $id is already taken by: $name\n",}            
-        }
+            }
             $sql = "INSERT INTO CONFIG (ID, NAME, VALUE) VALUES ($id, '$name', '$value');";
             try{                
                 $db->do($sql);
