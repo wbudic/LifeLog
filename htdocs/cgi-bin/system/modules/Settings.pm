@@ -27,8 +27,9 @@ use experimental 'switch';
 BEGIN {
    sub handle_errors {
       my $msg = shift;
-      print "<h1>LifeLog Server Error</h1>";
-      print "<pre>@[$ENV{PWD}].Error: $msg</pre>";
+      print "<html><body><h2>LifeLog Server Error</h2>";
+      print "<pre>@[$ENV{PWD}].Error: $msg</pre></body></html>";
+ 
   }
   set_message(\&handle_errors);
 }

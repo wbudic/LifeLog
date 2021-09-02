@@ -763,7 +763,7 @@ my $auto_logoff = &Settings::autoLogoff;
 if($isPUBViewMode){
 }
 else{
-$log_output .= <<_TXT;
+$log_output .= <<HTML;
 <tr class="r0" id="brw_row"><td colspan="2" style="font-size:small;text-align:left;">Show All hidden &#10132;
 <a id="menu_close" href="#" onclick="return showAll();"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 <a id="to_bottom" href="#top" title="Go to top of page.">&#8613;</a>
@@ -777,7 +777,7 @@ $log_output .= <<_TXT;
     <input type="submit" value="Date Diff" onclick="return dateDiffSelected()"/>&nbsp;
     <input type="submit" value="Export" onclick="return exportSelected()"/>&nbsp;        
     <input type="submit" value="Print" onclick="return viewSelected()"/>&nbsp;
-    <input id="del_sel" type="submit" value="Delete" onclick="display('Please Wait!')"/>
+    <input id="del_sel"  type="submit" value="Delete" onclick="display('Please Wait!')"/>
     </span>
 </td></tr>
 </TABLE>
@@ -787,8 +787,8 @@ $log_output .= <<_TXT;
     <input id="rs_keys2" name="keywords" type="text" size="60"/>
     <input type="submit" value="Search"/></td></tr>
     </TABLE>
-</form>);
-_TXT
+</form>
+HTML
 };
 
 

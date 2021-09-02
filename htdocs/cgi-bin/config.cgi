@@ -31,6 +31,7 @@ require Settings;
 $CGI::POST_MAX = 1024 * 15000;
 ##
 
+
 my ($RDS,$TR_STATUS,$LOGOUT,$ERROR) = ("","",0,"");
 my $sys     = `uname -n`;
 my $db      = Settings::fetchDBSettings();
@@ -46,15 +47,16 @@ my $tz      = $cgi->param('tz');
 my $csvp    = $cgi->param('csv');
 my $CID     = 'rowid'; $CID = 'ID' if Settings::isProgressDB();
 
-exportToCSV() if ($csvp);
 
-if($cgi->param('bck'))            {&backup}
-elsif($_=$cgi->param('bck_del'))  {backupDelete($_)}
-elsif($cgi->param('data_bck'))    {&restore;}
-elsif($_=$cgi->param('bck_file')) {restore($_)}
-elsif($cgi->param('data_cat'))    {&importCatCSV}
-elsif($cgi->param('data_log'))    {&importLogCSV}
 
+    exportToCSV() if ($csvp);
+    if($cgi->param('bck'))            {&backup} #?bck=1 (js set)
+    elsif($_=$cgi->param('bck_del'))  {backupDelete($_)} #?bck_del=... (js set)
+    elsif($cgi->param('bck_upload'))  {&restore} #upload backup (form set)
+    elsif($_=$cgi->param('bck_file')) {restore($_)}
+    elsif($cgi->param('data_cat'))    {&importCatCSV}
+    elsif($cgi->param('data_log'))    {&importLogCSV}
+ 
 
 
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
@@ -387,7 +389,7 @@ else{
 }
 
 my $inpRestore = qq(<b>Local File:</b>&nbsp;&nbsp;
-<input type="file" name="bck_file" />&nbsp;&nbsp;<input type="Submit" value="Restore"/>);
+<input name="bck_upload" id="bck_upload" type="file"/>&nbsp;&nbsp;<input type="Submit" value="Restore"/>);
 
 my $inpCVS = qq(<input type="button" onclick="return exportToCSV('log',0);" value="Export"/>&nbsp;
 <input type="button" onclick="return exportToCSV('log',1);" value="View"/>);
@@ -417,11 +419,13 @@ print qq(
 
                 <tr><td><div id="div_backups"><form id="frm_bck" action="config.cgi" method="post">$bck_list</form></div><hr></td></tr>                
 
-                <tr><td><form id="frm_restore" action="config.cgi" method="post" enctype="multipart/form-data">
+                <tr><td>Notice - Uploads might fail on large backups, corrupt file, and/or due to browser settings.<br>
+                        <form id="frmUpload" action="config.cgi" method="post" enctype="multipart/form-data">
                         $inpRestore
-                        </form>
-                <hr></td></tr>
-                
+                        <input type="hidden" name="upload" value="1"/>
+                        </form><hr>
+                </td></tr>
+ 
                 <form action="config.cgi" method="post" enctype="multipart/form-data">
                 <tr>
                 <td><H3>CSV File Format</H3>Notice: (<font color=red>This is an obsolete feature, use is not recommended!</font>)</td></tr>
@@ -1244,7 +1248,7 @@ sub restore {
     my $file = shift;
     my ($tar,$pipe,@br,$stdout,$b_db);
     my $pass = Settings::pass();
-    my $hndl = $cgi->param('data_bck');
+    my $hndl = $cgi->param('bck_upload');
     my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
     my $stage = "Initial";
     my $stamp = $today."\t"; $stamp =~ s/T/ /g;
@@ -1260,11 +1264,11 @@ my $stdout = capture_stdout {
         if($file){ #Open handle on server where backup is to be restored.
             my $f = &Settings::logPath.$file;
             open($hndl, '<', $f) or die "Can't open $f: $!";            
-            print $fhLog $stamp, "Uploading backup file -> $file\n";
+            print $fhLog $stamp, "Reading on server backup file -> $file\n";
             $tar = $dbck.$file;
         }        
         else{
-            print $fhLog $stamp, "Reading on server backup file -> $hndl\n";
+            print $fhLog $stamp, "Uploading to server backup file -> $hndl\n";
             $tar = $dbck.$hndl;
         }
         $tar =~ s/osz$/tar/;
@@ -1454,6 +1458,9 @@ catch{
     $ERROR = "<br><font color='red'><b>Full Restore Failed!</b></font><br>$@ \n";
     $ERROR .= "br:[@br]" if(@br);
     $ERROR .= "<br><b>Failed at stage:</b> $stage";
+    openlog(Settings::dsn(), 'cons,pid', "user");
+        syslog('err', '%s', $ERROR);
+    closelog();
 };
 
     my $back = $cgi->url( -relative => 1 );
@@ -1666,35 +1673,3 @@ sub error {
     exit;
 }
 
-
-    my %dates  = ();
-    #Hash is unreliable for returning sequential order of keys so array must do.
-    my @dlts = ();    
-    my $cntr_del =0;
-    my $existing;
-    my @row;
-
-        getHeader();
-        print "<body><pre>Started transaction!\n";
-
-        $db->do('BEGIN TRANSACTION;');
-        # Check for duplicates, which are possible during imports or migration as internal rowid is not primary in log.
-        # @TODO This should be done through an view?
-        if(Settings::isProgressDB()){
-            $dbs = Settings::selectRecords($db, 'SELECT ID, DATE FROM LOG ORDER BY DATE;');
-        }else{
-            $dbs = Settings::selectRecords($db, 'SELECT rowid, DATE FROM LOG ORDER BY DATE;');
-        }
-        while(@row = $dbs->fetchrow_array()) {
-            my $existing = $dates{$row[0]};
-            if($existing && $existing eq $row[1]){
-                $dlts[$cntr_del++] = $row[0];
-            }
-            else{
-                $dates{$row[0]} = $row[1];
-            }
-        }
-
-
-
-1;
