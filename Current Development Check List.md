@@ -231,6 +231,7 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
 ### v. 2.3+ Encountered/Fixed
 
+* &#10004; Bug 36.1, Introduced bug, old backup delete not working.
 * &#10004; Bug 36, DBFix not fully working on PG based install and restore not working from backups made with older versions of OpenSSL.
   * Also, restore not working on uploaded backups, from local computer.
   

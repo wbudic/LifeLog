@@ -1322,7 +1322,7 @@ function deleteBackup() {
         show: { effect: "clip", duration: 1000 },
         hide: { effect: "explode", duration: 1000},
         open: function() {
-            var sel = $("#bck input[type=radio]:checked").val();
+            var sel = $("#frm_bck input[type=radio]:checked").val();
           $(this).html("Are you sure you want to delete file:<br><b>"+sel+"</b>");
         },
         buttons: [
@@ -1330,7 +1330,7 @@ function deleteBackup() {
                 icon: "ui-icon-trash",
                 click: function() {
                   $( this ).dialog( "close" );
-                    var sel = $( "#bck input[type=radio]:checked").val();
+                    var sel = $( "#frm_bck input[type=radio]:checked").val();
                     window.location = "config.cgi?bck_del="+sel+"#backup";
                 }
               },

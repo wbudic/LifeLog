@@ -48,12 +48,12 @@ my $CID     = 'rowid'; $CID = 'ID' if Settings::isProgressDB();
 
 exportToCSV() if ($csvp);
 
-if($cgi->param('bck'))        {&backup}
-elsif($cgi->param('bck_del')) {&backupDelete}
-elsif($cgi->param('data_bck')){&restore;}
-elsif($cgi->param('bck_file')){restore($cgi->param('bck_file'))}
-elsif($cgi->param('data_cat')){&importCatCSV}
-elsif($cgi->param('data_log')){&importLogCSV}
+if($cgi->param('bck'))            {&backup}
+elsif($_=$cgi->param('bck_del'))  {backupDelete($_)}
+elsif($cgi->param('data_bck'))    {&restore;}
+elsif($_=$cgi->param('bck_file')) {restore($_)}
+elsif($cgi->param('data_cat'))    {&importCatCSV}
+elsif($cgi->param('data_log'))    {&importLogCSV}
 
 
 
@@ -411,15 +411,13 @@ print qq(
     <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:).&Settings::bgcol.qq(">            
             <table border="0" width="100%">
 
-                <form id="bck" action="config.cgi" method="post">
+                
                 <tr><td><a name="backup"></a><H3>Backup File Format</H3></td></tr>
                 <tr><td><input id="btnFetch" type="button" onclick="alert('Backing up next, this can take up some time. Please give it few minutes and return or refresh the config page!');return fetchBackup();" value="Fetch"/><hr></td></tr>
 
-                <tr><td><div id="div_backups">$bck_list</div><hr></td></tr>
-                </form>
+                <tr><td><div id="div_backups"><form id="frm_bck" action="config.cgi" method="post">$bck_list</form></div><hr></td></tr>                
 
-                <tr><td>
-                        <form id="bck_file" action="config.cgi" method="post" enctype="multipart/form-data">
+                <tr><td><form id="frm_restore" action="config.cgi" method="post" enctype="multipart/form-data">
                         $inpRestore
                         </form>
                 <hr></td></tr>
@@ -1133,7 +1131,7 @@ try{
 }
 
 sub backupDelete {
-    my $n = $cgi->param('bck_del');
+    my $n = shift;
     my $f = &Settings::logPath.$n;
 try{
     if (-e $f) {
