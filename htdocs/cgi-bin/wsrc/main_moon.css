@@ -2,6 +2,7 @@ body{
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     font-size: 14px;
     background-image: url('images/page-bck-moon.png');
+
 }
 p {
     font-family: Bookman;
@@ -137,6 +138,12 @@ th,
     height: auto;
     margin: 0px auto;
     padding:10px;
+}
+.login {
+    
+    vertical-align: middle; text-align:center; width: 60% !important;    
+    background-repeat: no-repeat;
+    background:#64614e7a;
 }
 div#rz {
     border: 1px solid white;

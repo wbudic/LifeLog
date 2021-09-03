@@ -2,6 +2,8 @@ body{
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     font-size: 14px;
     background-image: url('images/page-bck-std.png');
+    margin: 0; 
+    padding:0;  
 }
 p {
     font-family: Bookman;
@@ -135,6 +137,13 @@ th,
     height: auto;
     padding: 2%;
     margin: 0px auto;
+}
+.login {
+    
+    vertical-align: middle; text-align:center; width: 60% !important;    
+    background-repeat: no-repeat;
+    background:#b2f8ef url('images/std--login-bck.png');
+    opacity: 1;
 }
 div#rz {
     border: 1px solid black;
@@ -301,14 +310,14 @@ img {
     color:midnightblue;
 }
 a:link {
- color:#5b06fa;
+ color:#dafeff;
 }
 a:visited {
- color: #2d7081;
+ color: #472f80;
 }
 
 a:hover {
-    color: #2d7081;
+    color: #ff4d21;
     font-style:normal;
 }
 a:active {

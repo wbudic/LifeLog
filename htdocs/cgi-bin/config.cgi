@@ -68,7 +68,7 @@ cats();
 processSubmit();
 ###############
 Settings::setupTheme();
-Settings::session()->param("theme", Settings::css());
+Settings::session()->param("theme", Settings::theme('css'));
 Settings::session()->param("bgcolor", Settings::bgcol());
 getHeader();
 
@@ -83,11 +83,11 @@ print qq(<div id="menu" title="To close this menu click on its heart, and wait."
 <a class="a_" href="main.cgi">Log</a><hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
 <font size="2"><b>Jump to Sections</b><br>
-<a href="#categories">Categories</a><br>
-<a href="#vars">System</a><br>
-<a href="#dbsets">DB Fix</a><br>
-<a href="#passets">Pass</a><br>
-<a href="#backup">Backup</a>
+[<a href="#categories"><b>Categories</b></a>]<br>
+[<a href="#vars"><b>System</b></a>]<br>
+[<a href="#dbsets"><b>DB Fix</b></a>]<br>
+[<a href="#passets"><b>Pass</b></a>]<br>
+[<a href="#backup"><b>Backup</b></a>]
 </font>
 <hr>
 <br>
@@ -156,6 +156,7 @@ while(my @row = $dbs->fetchrow_array()) {
                    $v = $tz;
               }
               $v = '<input name="var'.$i.'" type="text" value="'.$v.'" size="12">';
+              $d = '[<b><a href="time_zones.cgi" target=_blank>'.$d.'</a></b>]';
          }
          elsif($n eq "DATE_UNI"){
               my($l,$u)=("","");
@@ -410,7 +411,7 @@ print qq(
                 <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a>
     </div>
     <br>
-    <div id="rz" style="text-align:left; width:640px; padding:10px; background-color:).&Settings::bgcol.qq(">            
+    <div id="rz" style="text-align:left; width:640px; padding:10px;">            
             <table border="0" width="100%">
 
                 
@@ -506,21 +507,21 @@ exit;
 
 sub getHeader {
 print $cgi->header(-expires=>"+6s", -charset=>"UTF-8");
-print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>&Settings::bgcol,
+print $cgi->start_html(-title => "Personal Log", -BGCOLOR=>Settings::theme('colBG'),
            -onload  => "onBodyLoadGeneric();",
-            -style   => [          
+           -style   => [          
           { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
           { -type => 'text/css', -src => 'wsrc/jquery-ui.theme.css' },
           {
-              -type => 'text/css',
-              -src  => 'wsrc/jquery-ui-timepicker-addon.css'
+            -type => 'text/css',
+            -src  => 'wsrc/jquery-ui-timepicker-addon.css'
           },
           { -type => 'text/css', -src => 'wsrc/tip-skyblue/tip-skyblue.css' },
           {
-              -type => 'text/css',
-              -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
+            -type => 'text/css',
+            -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
           },
-          { -type => 'text/css', -src => "wsrc/".&Settings::css },
+          { -type => 'text/css', -src => Settings::theme('css') },
       ],
       -script => [
           { -type => 'text/javascript', -src => 'wsrc/main.js' },

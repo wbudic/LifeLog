@@ -2,6 +2,9 @@ body{
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     font-size: 14px;
     background-image: url('images/page-bck-earth.png');
+    background-repeat: no-repeat;    
+    margin: 0; 
+    padding:0;  
 }
 p {
     font-family: Bookman;
@@ -125,6 +128,10 @@ th,
     height: auto;
     padding: 2%;
     margin: 0px auto;
+}
+.login {    
+    vertical-align: middle; text-align:center; width: 60% !important;
+    background-image:repeating-radial-gradient(cyan, green, brown)    
 }
 div#rz {
     border: 1px solid black;

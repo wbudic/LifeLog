@@ -77,9 +77,6 @@ my $stmE        = ' LIMIT '.&Settings::viewAllLimit.';';
 my $stmD        = "";
 my $sm_reset_all;
 my $rec_limit   = Settings::recordLimit();
-### Page specific settings Here
-my $TH_CSS      = Settings::css();
-my $BGCOL       = Settings::bgcol();
 #Set to 1 to get debug help. Switch off with 0.
 my $DEBUG       = Settings::debug();
 #END OF SETTINGS
@@ -118,8 +115,8 @@ if ( $rs_keys || $stmD || $prm_vc > 0 || $prm_xc > 0 || $prm_aa > 0) { $toggle =
 
 ##Handle Session Keeps
 $sss->expire(Settings::sessionExprs());
-$sss->param('theme', $TH_CSS);
-$sss->param('bgcolor', $BGCOL);
+$sss->param('theme', Settings::theme('css'));
+$sss->param('bgcolor', Settings::theme('colBG'));
 #sss->param('sss_main', $today);
 #
 #Reset Clicked
@@ -757,7 +754,7 @@ $sp2 = '<span  class="ui-icon ui-icon-circle-triangle-s"></span>';
 $sp3 = '<span  class="ui-icon ui-icon-arrow-4-diag"></span>';
 
 my $std_bck = "background-image:url('".&Settings::transimage."');";
-$std_bck = "background-color:$BGCOL;" if !&Settings::transparent;
+$std_bck = "background-color:".Settings::theme('colBG').";" if !&Settings::transparent;
 my $auto_logoff = &Settings::autoLogoff;
 
 if($isPUBViewMode){
@@ -872,7 +869,7 @@ HTML
 
     my $srh = qq(
 	<form id="frm_srch" action="main.cgi">
-	<table class="tbl" border="0" style="background-color:$BGCOL" width=").&Settings::pagePrcWidth.qq(%">
+	<table class="tbl" border="0" style="background-color:).Settings::theme('colBG').qq(" width=").&Settings::pagePrcWidth.qq(%">
 	  <tr class="r0">
         <td colspan="2"><b>View By/Search</b>
             <a id="srch_close" href="#" onclick="return hide('#div_srh');">$sp1</a>
@@ -1322,7 +1319,7 @@ sub authenticate {
         print $cgi->header( -expires => "+0s", -charset => "UTF-8" );
         print $cgi->start_html(
             -title => "Personal Log Login",
-            -BGCOLOR => $BGCOL,
+            -BGCOLOR => Settings::theme('colBG'),
             -script =>
                 { -type => 'text/javascript', -src => 'wsrc/main.js' },
             -style => { -type => 'text/css', -src => 'wsrc/main.css' },
@@ -1536,7 +1533,7 @@ sub outputPage {
     #Bug 26 -Fixed here by prefixing to collected html body buffer.    
     $BUFFER = $cgi->start_html(
             -title   => "Personal Log",
-            -BGCOLOR => $BGCOL,
+            -BGCOLOR => Settings::theme('colBG'),
             -onload  => "onBodyLoad('$toggle','".&Settings::language."','".&Settings::timezone."','$today','".&Settings::sessionExprs."','$rs_cur',".&Settings::dbVLSZ.");",
             -style   => [            
             { -type => 'text/css', -src => 'wsrc/jquery-ui.css' },
@@ -1554,7 +1551,7 @@ sub outputPage {
             { -type => 'text/css', -src => 'wsrc/quill/monokai-sublime.min.css' },
             { -type => 'text/css', -src => 'wsrc/quill/quill.snow.css' },
             { -type => 'text/css', -src => 'wsrc/jquery.sweet-dropdown.css' },
-            { -type => 'text/css', -src => "wsrc/$TH_CSS" },
+            { -type => 'text/css', -src =>  Settings::theme('css') },
         ],
         -script => [
             { -type => 'text/javascript', -src => 'wsrc/main.js' },

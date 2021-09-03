@@ -42,7 +42,8 @@ $ENV{'HOME'} = "~/";
 my $CSS=<<_____CSS;
 .main div {
     font-family: Bookman;
-    text-align: left;    
+    text-align: left;
+    margin:5px;
 }
 
 .info span {
@@ -95,14 +96,14 @@ my $CSS=<<_____CSS;
 _____CSS
 
 print $cgi->header(-expires=>"+6os", -charset=>"UTF-8");
-print $cgi->start_html(-title => "Log Data Stats", -BGCOLOR=>Settings::bgcol(),
+print $cgi->start_html(-title => "Log Data Stats",
                        -script=> [{-type => 'text/javascript', -src => 'wsrc/main.js'},
                                   {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                                   {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
                        -style => [{-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
                                   {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
                                   {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
-                                  {-type => 'text/css', -src => "wsrc/".Settings::css()},
+                                  {-type => 'text/css', -src => Settings::theme('css')},
                                   {-script=>$CSS}
                                  ],
                         -head => style({-type => 'text/css'}, $CSS),

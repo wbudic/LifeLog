@@ -12,6 +12,16 @@ use CGI::Session '-ip_match';
 use DBI;
 use lib "system/modules";
 require Settings;
+use CGI::Carp qw(fatalsToBrowser set_message);
+BEGIN {
+   sub handle_errors {
+      my $msg = shift;
+      print "<html><body><h2>LifeLog Server Error</h2>";
+      print "<pre>@[$ENV{PWD}].Error: $msg</pre></body></html>";
+ 
+  }
+  set_message(\&handle_errors);
+}
 
 my $cgi = CGI->new();
 my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath, SameSite=>'Lax'});      
@@ -19,11 +29,11 @@ my $sssCreatedDB = $session->param("cdb");
 my $sid=$session->id();
 my $cookie = $cgi->cookie(CGISESSID => $sid);
 
-my $db;
+my ($db,$DB_NAME,$PAGE_EXCLUDES, $DBG, $frm)="";
 my $alias = $cgi->param('alias');
 my $passw = $cgi->param('passw');
 my $pass;
-my ($DBG,$frm) = "";
+
 #Codebase release version. Release in the created db or existing one can be different, through time.
 my $SCRIPT_RELEASE = Settings::release();
 
@@ -31,7 +41,6 @@ my $SCRIPT_RELEASE = Settings::release();
 my $BACKUP_ENABLED = 0;
 my $AUTO_SET_TIMEZONE = 0;
 my $TIME_ZONE_MAP = 0;
-my ($DB_NAME,$PAGE_EXCLUDES);
 my $VW_OVR_SYSLOGS=0;
 my $VW_OVR_WHERE="";
 my $LOGOUT_RELOGIN_TXT='No, no, NO! Log me In Again.';
@@ -43,15 +52,16 @@ my $LOGOUT_IFRAME = qq|
 try{    
     checkAutologinSet();
     logout() if($cgi->param('logout'));
-    if(processSubmit()==0){        
+    if(processSubmit()==0){   
+        my ($css,$colBG,$colSHDW) = (Settings::theme('css'),Settings::theme('colBG'),Settings::theme('colSHDW'));
         print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
         print $cgi->start_html(
                     -title   => "Personal Log Login",
-                    -BGCOLOR => &Settings::bgcol,
+                   # -BGCOLOR => $colBG,
                     -script=> [{-type  => 'text/javascript', -src => 'wsrc/main.js'},
                                 {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                                 {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
-                    -style => [{-type  => 'text/css', -src => "wsrc/".&Settings::css},
+                    -style => [ {-type  => 'text/css', -src => $css},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}],
@@ -62,33 +72,37 @@ try{
     my $hst = "";
        $hst = `hostname` . "($ht[0])" if (@ht);
 
-    $frm = qq(
+    $frm = <<HTML;
         <form id="frm_login" action="login_ctr.cgi" method="post">
         <table border="0" width="50%"  
-        style="box-sizing: border-box; margin-bottom: 5px; box-shadow: 5px 5px 5px #9baec8;">
+        style="opacity: 1; box-sizing: border-box; margin-bottom: 5px; box-shadow: 5px 5px 5px $colSHDW;">
         <tr class="r0">
             <td colspan="3"><h3>Welcome to Life Log</h3></td>
             </tr>
-        <tr class="r1" style="border-left:1px solid black; border-right:1px solid black;">
+        <tr class="r1">
             <td align="right">Alias:</td><td><input type="text" name="alias" value="$alias"/></td><td></td>
             </tr>
-        <tr class="r1" style="border-left:1px solid black; border-right:1px solid black;">
+        <tr class="r1">
             <td align="right">Password:</td><td><input type="password" name="passw" value="$passw"/></td><td></td>
             </tr>
             <tr class="r1">
-            <td colspan="3" style="border-left:1px solid black; border-right:1px solid black;"><font color="red">NOTICE!</font> &nbsp;
-            Alias will create a new database if it doesn't exist. Note down your password.
+            <td colspan="3" class="log">
+            <span class="log"><font color="red">NOTICE!</font> &nbsp;
+            The Alias entry is used for the database name here,
+            a new database will be created for you if it doesn't exist.
+            Make sure you note down your password.</span>
             <input type="hidden" name="CGISESSID" value="$sid"/>
             <input type="hidden" name="login" value="1"/></td></tr>
         <tr class="r0"><td colspan="2">Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
-        </table></form>);
+        </table></form>
+HTML
 
     print qq(<br><br>            
-            <div class="rz" style="vertical-align:middle;text-align:center; width: 60% !important;">
+            <div class="rz login">
                 $frm
                 <br>
                 <a href="https://github.com/wbudic/LifeLog" target="_blank" style="font-size:small">                    
-                <div style="display: inline-block; vertical-align: middle; text-align: center; width:50%">
+                <div style="display: inline-block; vertical-align: middle; text-align: center; width:50%; opacity: 0.8;">
                 <div style="display:table-cell; height:20px; vertical-align: middle;">
                     <img src="wsrc/images/pingy.svg" height="30px"> LifeLog v.).Settings::release().qq(</a>
                 </div>
@@ -873,8 +887,8 @@ sub logout {
 
 
     print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
-    print $cgi->start_html(-title => "Personal Log Login", -BGCOLOR=>"black",
-                           -style =>{-type => 'text/css', -src => 'wsrc/'.Settings::css()},
+    print $cgi->start_html(-title => "Personal Log Login",
+                           -style =>{-type => 'text/css', -src => Settings::theme('css')},
             );
     $LOGOUT_IFRAME  = "" if not $LOGOUT_IFRAME_ENABLED;
     print qq(<div class="rz"><h2>You have properly logged out of the Life Log Application!</h2>

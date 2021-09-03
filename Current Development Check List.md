@@ -6,6 +6,9 @@
 
 ### New Development v.2.3+
 
+* &#10004; Setting should provide page color defaults in form of an hash.
+  * These should/can change based on selected theme. That possibly in future can be changed via config.
+  * colBG,colFG, colSHDW, etc...
 * &#10004; Printout page to include Amount column if category of items has valued asset, expense or income set. Providing also totals. Of Assets, and total on income and expense.
   * Introduce Currency setting, to replace amount '#'. Even though it could be number of, something not currency related.
 * &#10004; Interaction - When editing an existing log entry, it needs confirmation, if it isn't a copy (now button wasn't pressed), before overwriting.

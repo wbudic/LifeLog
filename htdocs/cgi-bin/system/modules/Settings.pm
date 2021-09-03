@@ -20,10 +20,9 @@ use DateTime::Format::SQLite;
 use DateTime::Duration;
 
 use DBI;
-use CGI::Carp qw(fatalsToBrowser set_message);
 use Scalar::Util qw(looks_like_number);
 use experimental 'switch';
-
+use CGI::Carp qw(fatalsToBrowser set_message);
 BEGIN {
    sub handle_errors {
       my $msg = shift;
@@ -118,7 +117,6 @@ sub anonsSet {my $a = shift;%anons=%{$a}}
 sub release        {$RELEASE_VER}
 sub logPath        {$LOG_PATH} # <-@2021-08-15 something was calling as setter, can't replicate. On reset of categories in config.cgi.
 sub logPathSet     {$S_ = shift;$LOG_PATH = $S_ if $S_;return $LOG_PATH}#<-has now setter method nothing it is actually calling.
-sub theme          {$THEME}                               
 sub timezone       {$TIME_ZONE}
 sub transparent    {$TRANSPARENCY}
 sub transimage     {$TRANSIMAGE}
@@ -500,15 +498,18 @@ sub timeFormatSessionValue {
     }
     return $ret;
 }
+
+# @new since  v.2.4 (20210903), it is staggaring how many options we have to setup colors and style, CSS, HTML, CNF
+# CNF should be only used. So the code and css files doesn't have to change. For now CNF isn't used, but the following:
+my %theme = (css=>'wsrc/main.css',colBG=>'#c8fff8',colSHDW=>'#9baec8;');
+sub theme{$S_=shift; return $theme{$S_}}
 sub setupTheme {
     given ($THEME){
-        when ("Sun")   { $BGCOL = 'goldenrod';   $TH_CSS = "main_sun.css"; }
-        when ("Moon")  { $BGCOL = '#000000';     $TH_CSS = "main_moon.css"; }
-        when ("Earth") { $BGCOL = 'forestgreen'; $TH_CSS = "main_earth.css";} # Used to be $BGCOL = '#26be54';
+        when ("Sun")   { %theme = (css=>'wsrc/main_sun.css',   colBG=>'#FFD700', colSHDW=>'#FFD700') }
+        when ("Moon")  { %theme = (css=>'wsrc/main_moon.css',  colBG=>'#000000', colSHDW=>'#DCDCDC') }
+        when ("Earth") { %theme = (css=>'wsrc/main_earth.css', colBG=>'#228B22', colSHDW=>'#8FBC8F') }
         default{
-            # Standard;
-            $BGCOL    = '#c8fff8';
-            $TH_CSS   = 'main.css';
+        %theme = (css=>'wsrc/main.css',colBG=>'#c8fff8',colSHDW=>'#9baec8');            # Standard;
         }
     }
 }
@@ -612,8 +613,7 @@ sub getTableColumnNames {
 }
 
 sub printDebugHTML {
-    my $msg = shift;
-    print qq(<!-- $msg -->);
+    my $msg = shift; print qq(<!-- $msg -->) if $msg;
 }
 
 sub toLog {
@@ -912,7 +912,6 @@ sub dump(){
 release        {$RELEASE_VER}
 logPath        {$LOG_PATH} 
 logPathSet     {$LOG_PATH}
-theme          {$THEME}                               
 timezone       {$TIME_ZONE}
 transparent    {$TRANSPARENCY}
 transimage     {$TRANSIMAGE}

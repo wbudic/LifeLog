@@ -805,14 +805,15 @@ function toggle(id, mtoggle) {
             $(id).show();
         }
         else{
-            $(id).toggle();
+            var distance = $(id).offset().top;
+            if($(this).scrollTop() <= distance){
+                $(id).toggle();
+            }        
         }
-
     }
     else{
         $(id).toggle();
     }
-
     $("html, body").animate({ scrollTop: 0 }, "fast");
     return false;
 }

@@ -136,17 +136,17 @@ try{
 
 sub printHeader {
 my $title = shift;
+&Settings::setupTheme;
 print $cgi->header(-expires=>"+6os");
-print $cgi->start_html(-title => $title, -BGCOLOR => &Settings::bgcol,                
+print $cgi->start_html(-title => $title, -BGCOLOR => Settings::theme('colBG'),
             -script=> [ {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                         {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'},
                         {-type => 'text/javascript', -src => 'wsrc/main.js'}
                         ],                
-            -style => [{-type => 'text/css', -src => "wsrc/".&Settings::css}, {-type => 'text/css', -src => "wsrc/print.css"},
+            -style => [ {-type => 'text/css', -src => Settings::theme('css')},                        
                         {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
                         {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
-                        {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
-                        { -type => 'text/css', -src => "wsrc/".&Settings::css }
+                        {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}                        
                         ],
                         
             -onload => "onBodyLoadGeneric()");
@@ -224,7 +224,7 @@ try{
         </td></tr>
         </table><input type="hidden" name="confirmed" value="1"></form>';
 
-        print "<center><div style='background-color:".&Settings::bgcol."'>\n$tbl\n</div></center>";
+        print qq(<div style="marging:5px;padding:10px;">$tbl</div>);
 
         print $cgi->end_html();
     } 
