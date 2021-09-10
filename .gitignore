@@ -18,6 +18,7 @@ cgisess_*
 .vscode
 .vstags
 .history
+.history/*
 tags
 */bck/*
 bck_*

@@ -925,7 +925,7 @@ HTML
             <button class="bordered" data-dropdown="#dropdown-standard-v" style="margin: 0px; padding: 0; padding-right:8px;">
             <span id="lcat_v" class="ui-button">$catselected</span>
             &#171;</button>
-            <div id="dropdown-standard-v" class="dropdown-menu dropdown-anchor-left-center dropdown-has-anchor">
+            <div id="dropdown-standard-v" class="dropdown-menu dropdown-anchor-top-center   dropdown-has-anchor">
                         <table class="tbl">$td_cat</table>
             </div>
 

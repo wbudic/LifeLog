@@ -113,7 +113,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         if(v.length==0 || v==0.00){
             const regex = /^[\D]?\d+\.*\d*/gm;
             let str = $('#el').val();
-            let m; let tot = 0;
+            let m; var tot = 0;
 
             while ((m = regex.exec(str)) !== null) {                
                 if (m.index === regex.lastIndex) {
@@ -141,7 +141,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
                 });
             }
             if(tot==0){tot=""}
-            $('#am').val(tot);            
+            $('#am').val(tot.toFixed(2));            
         }
 
 
@@ -289,8 +289,8 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         lbl = lbl.replace(/\s*$/g, "");
         lbl = lbl + "&nbsp;".repeat(16-lbl.length);
         $("#lcat_v").html(lbl);
-        $("#vc").val(ci);
-        $("#cat_desc").show();
+        $("#vc").val(ci);        
+        $("#cat_desc").show();        
     }).mouseenter(function(e){
         var pr = $(event.target).parent(); pr = pr.attr('id');
         if(pr){
@@ -398,11 +398,17 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
     display("Log page is ready!");    
 }
 
-function encodeText(el){
+function encodeText(){
     var el = $("#frm_entry [name=log]");
     var txt = el.val();
     txt = txt.replace(/\r\n/g, "\\n");
     txt = txt.replace(/\n/g, "\\n");
+    el.val(txt);
+}
+function decodeText(){
+    var el = $("#frm_entry [name=log]");
+    var txt = el.val();
+        txt = txt.replace(/\\n/g, "\n");
     el.val(txt);
 }
 
@@ -1052,22 +1058,31 @@ function exportToCSV(dat, view){
 
 function sumSelected() {
     var chks = document.getElementsByName("chk");
-    var sum = 0;
+    var sum = 0; var amount=0; var html="";
     for (var i = 0, n = chks.length; i < n; i++) {
         if (chks[i].checked) {
-            var id = chks[i].value;
-            var am = $("#a"+id).text();
-            var ty = $("#c"+id).text();
+            let id = chks[i].value;
+            let am = $("#a"+id).text();
+            let ct = $("#c"+id).text();
+            let at = $("#f"+id).val();           
+
             am = am.replace(/\,/g,"");//rem formatting
-            if(ty=='Expense'){
+            if(ct=='Expense' || at=='2'){
                 sum = sum - Number(am);
-            }
-            else{
+                html += "-"+am+"<br>";
+            }else
+            if(ct=='Income' || at=='1'){ //marked as income or category is income type for amount.
                 sum = sum + Number(am);
+                html += "+"+am+"<br>";
+            }else{
+                amount += Number(am);
+                html += "<i>"+am+"</i><br>";
             }
         }
     }
-    $("#summary").html(sum.toFixed(2));
+    if(amount!=0){amount = "Amount sum: <i>"+amount+"</i> <b>Accounting sum: "}else{amount="<b>Accounting sum: "}
+    html += amount + sum.toFixed(2)+"</b>";
+    $("#summary").html(html);
     return false;
 }
 
@@ -1116,16 +1131,21 @@ function saveRTF(id, action) {
                     'Click on the No button, and then on Now button on the form.</div>');
                 },
                 buttons: [
-                    {  text: "Yes",                    
-                        icons: { primary: "ui-icon-circle-check" },
+
+                    { text: "Yes",                    
+                      icons: { primary: "ui-icon-circle-check" },
                         click: function() {
-                        $( this ).dialog( "close" );
-                        $("#frm_entry").submit();
+                            $( this ).dialog( "close" );
+                            $("#frm_entry").submit();
                         }
                     },
         
                     { text: "No",
-                        click: function() {$( this ).dialog( "close" ); return false;}
+                        click: function() {
+                            decodeText();
+                            $( this ).dialog( "close" );                        
+                            return false;
+                        }
                     }
                 ]
             });

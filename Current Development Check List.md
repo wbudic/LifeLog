@@ -6,6 +6,8 @@
 
 ### New Development v.2.3+
 
+* &#10004; Sums and dynamic calculations, interactions further to be refined.
+  * Canceling submit, leaves the translated '**\n**' for transfer not reverted.
 * &#10004; Setting should provide page color defaults in form of an hash.
   * These should/can change based on selected theme. That possibly in future can be changed via config.
   * colBG,colFG, colSHDW, etc...
