@@ -6,6 +6,9 @@
 
 ### New Development v.2.3+
 
+* Search panel revisited.
+  * [ ] Search and previous view setup made fully session persisted.
+  * [ ] Provide button reset search.  
 * &#10004; Sums and dynamic calculations, interactions further to be refined.
   * Canceling submit, leaves the translated '**\n**' for transfer not reverted.
 * &#10004; Setting should provide page color defaults in form of an hash.

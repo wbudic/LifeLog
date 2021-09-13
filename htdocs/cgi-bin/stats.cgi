@@ -28,7 +28,6 @@ my $sid     = Settings::sid();
 my $dbname  = Settings::dbFile();
 my $alias   = Settings::alias();
 
-
 if(!$alias||!$dbname){
         print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
         exit;
@@ -133,10 +132,10 @@ $income     = big_money(sprintf("%.2f",$income));
 #So I use the inter processing module here for inxi. -- @wbudic
 my $buff = "";
 my @cmd = ("/usr/bin/inxi", "-b", "-c0");
-my $uptime = `uptime -p`;
-my @ht = split(m/\s/,`hostname -I`);
+my $uptime = qx(uptime -p);
+my @ht = split(m/\s/, qx(hostname -I));
 my $hst = "";
-   $hst = `hostname` . "($ht[0])" if (@ht);
+   $hst = qx(hostname) . "($ht[0])" if (@ht);
 
 
 #Gather into $buff
@@ -156,7 +155,7 @@ my $log = "<span>".$hardware_status."</span>"."<pre>\n".`df -h -l -x tmpfs`."</p
    Settings::toLog($db, $log);   
 ###
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
-my $processes = `$prc | sort -u -r -`;
+my $processes = qx($prc | sort -u -r -);
 my @stat = stat Settings::dbFile();
 my $dbSize =  "Not Avail";
    $dbSize = (uc format_bytes($stat[7], bs => 1000)) if !Settings::isProgressDB();
@@ -166,8 +165,8 @@ $processes =~ s/\s*0.00.*//gd;
 $processes =~ s/^\s+/  /gm;
 my $year =$today->year();
 
-my $IPPublic  = `curl -s https://www.ifconfig.me`;
-my $IPPrivate = `hostname -I`; $IPPrivate =~ s/\s/<br>/g;
+my $IPPublic  = qx(curl -s https://www.ifconfig.me);
+my $IPPrivate = qx(hostname -I); $IPPrivate =~ s/\s/<br>/g;
 my $tbl = qq(
 <div class="table r0" style="text-align:centered; float:left;">
   <div class="header">
@@ -273,13 +272,6 @@ sub big_money {
   # Put the dollar sign in the right place
   $number =~ s/^(-?)/$1\$/;
 return $number;
-}
-
-sub camm {
-  my $amm = sprintf("%.2f", shift @_);
- # Add one comma each time through the do-nothing loop
- 1 while $amm =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
-return $amm;
 }
 
 1.

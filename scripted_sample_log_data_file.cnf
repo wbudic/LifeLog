@@ -1,0 +1,23 @@
+!CNF2.2
+/**
+ A simple sample log file data entries file. In CNF format.
+**/
+
+<<CAT<>
+01|Unspecified `For quick uncategorized entries.
+09|Event       `Event that occurred, meeting, historically important.
+28|Personal    `Personal log of historical importance, diary type.
+32|Expense     `Significant yearly expense.
+35|Income      `Significant yearly income.
+>>
+
+################################################
+# CNF list type items are postfixed with '$$'
+# List is obtained like: $cnf->list('LOG')
+#
+<<LOG$$<2014-11-13 13:48:05`cat=9>
+TED - What your doctor won’t disclose http://youtu.be/oxYU5GNngnk
+>>
+
+<<LOG$$<2016-07-08 00:00:00`cat=32`amount=24.0`aflag=2>Gas Bottle Purchase>>
+<<LOG$$<2018-08-24 22:27:10`cat=1><Search 1927 - If I Could (1988)>>
