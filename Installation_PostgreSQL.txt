@@ -139,5 +139,11 @@ pip install pgadmin4
 
 (Sorry, I use, but don't program in python, to document here any further)
 
+My Criticism:
+From admin perspective, anything not systemd configurable, tend leave files allover the place.
+This makes things harder to manage. Local user installed or developer system, are different thing on linux.
+PostgreSQL as database system is server, and pgAdmin only a client. Don't mix in installation, two different placings.
+This is neither secure, neither healthy to trouble shoot.
+
 
 
