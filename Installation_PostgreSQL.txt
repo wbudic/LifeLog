@@ -90,6 +90,54 @@ pg_dump --file "~/dev/LifeLog/dbLifeLog/bck-pg-$DB_NAME.sql"  $DB_NAME
 # Restore with:
 psql $DB_NAME < "~/dev/LifeLog/dbLifeLog/bck-pg-$DB_NAME.sql"
 
+###############################
+    Important pgAdmin4 Notes
+###############################
+
+What pgAdmin4 and their documentation and installation doesn't describe, 
+that the default web server is python based. The web based package will install the apache web server.
+You most likely don't want that. And the pgAdmin-desktop, you possibly don't need that.
+(Can use any browser instead) :)
+
+I recommend to only install pgAdmin via python pip utility ONLY.
+
+
+pip install flask
+
+To run locally (you):
+
+$ sudo mkdir /var/lib/pgadmin
+$ sudo mkdir /var/log/pgadmin
+$ sudo chown $USER /var/lib/pgadmin
+$ sudo chown $USER /var/log/pgadmin
+$ python3 -m venv pgadmin4
+$ source pgadmin4/bin/activate
+(pgadmin4) $ pip install pgadmin4
+...
+(pgadmin4) $ pgadmin4
+NOTE: Configuring authentication for SERVER mode.
+
+Enter the email address and password to use for the initial pgAdmin user account:
+
+Email address: user@domain.com
+Password: 
+Retype password:
+Starting pgAdmin 4. Please navigate to http://127.0.0.1:5050 in your browser.
+ * Serving Flask app "pgadmin" (lazy loading)
+ * Environment: production
+   WARNING: Do not use the development server in a production environment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+
+
+Before upgrades first:
+
+(Notice - the previous user and password might not work anymore after:)
+pip uninstall pgadmin4
+pip install pgadmin4
+
+
+(Sorry, I use, but don't program in python, to document here any further)
 
 
 
