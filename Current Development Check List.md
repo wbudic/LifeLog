@@ -6,34 +6,46 @@
 
 ### New Development v.2.3+
 
-* Search panel revisited.
+* [ ] Process actions.
+  * Configured in main.cnf, to import perl action to execute, in parallel of returning pages.
+  * Action programable are on login, logout, row. 
+    * Where the row action processed is pushed back to browser on each main.cgi page call, logout action is pushed back to login_ctr.cgi page.  
+    ```
+      # Separate process actions to execute in parallel.
+      <<ACTION$$<login>actions/reminders.pl>>
+      <<ACTION$$<row>actions/log.pl>>
+      <<ACTION$$<logout>actions/log.pl>>
+     ```
+
+* [ ] Search panel revisited.
   * [ ] Search and previous view setup made fully session persisted.
-  * [ ] Provide button reset search.  
-* &#10004; Sums and dynamic calculations, interactions further to be refined.
+  * [ ] Provide button reset search.
+  * [x] Some longer keywords, even repeating from log to log, don't  show in autocomplete.
+* [x] Sums and dynamic calculations, interactions further to be refined.
   * Canceling submit, leaves the translated '**\n**' for transfer not reverted.
-* &#10004; Setting should provide page color defaults in form of an hash.
+* [x] Setting should provide page color defaults in form of an hash.
   * These should/can change based on selected theme. That possibly in future can be changed via config.
   * colBG,colFG, colSHDW, etc...
-* &#10004; Printout page to include Amount column if category of items has valued asset, expense or income set. Providing also totals. Of Assets, and total on income and expense.
+* [x] Printout page to include Amount column if category of items has valued asset, expense or income set. Providing also totals. Of Assets, and total on income and expense.
   * Introduce Currency setting, to replace amount '#'. Even though it could be number of, something not currency related.
-* &#10004; Interaction - When editing an existing log entry, it needs confirmation, if it isn't a copy (now button wasn't pressed), before overwriting.
+* [x] Interaction - When editing an existing log entry, it needs confirmation, if it isn't a copy (now button wasn't pressed), before overwriting.
   * i.e, Warning! - Existing entry has been changed, are you sure do you want to overwrite it?
-* &#10004; Configuration needs to be updated, to use CNF 2.2, for system reset, etc.
+* [x] Configuration needs to be updated, to use CNF 2.2, for system reset, etc.
   * Config file "Data Fix* reset of settings updated to properly revert to factory defaults.
   * We need to also display stats for log file of the web server.
     * Maybe provide an rotational purge on config page access. i.e. if line count is over 1000, purge to tail -n 1000.
       * This sure an config file setting. i.e. <<WEB_SERVER_LOG_TAIL_LIMIT><1000>>>
-* &#10004; Backup/Restore made various db engine aware and compatible. As the data is the same.
+* [x] Backup/Restore made various db engine aware and compatible. As the data is the same.
   * The data is the same, Structure, binary data and password handling is different, engine dependant.
-* &#10004; Fix themes. Themes don't display and set consistently the pages throughout.
+* [x] Fix themes. Themes don't display and set consistently the pages throughout.
   * Login page should use standard default or last set theme.
   * All provided themes to have background image.
   * Stats page needs, new layout.
-* &#10004; Add AUTO_LOGOFF setting. Default is no.
+* [x] Add AUTO_LOGOFF setting. Default is no.
   * On session expired makes the page semi usable and still visible.
-* &#10004; RTF load of the zero document if present. When RTF attaching to a new log, you can save the rtf,
+* [x] RTF load of the zero document if present. When RTF attaching to a new log, you can save the rtf,
   it is called a zero document (not assigned), as the log hasn't been saved yet. This reload can be useful, as it is always stored...
-* &#10004; Implement backup/restore on Pg based data. Restore only partially works from older backup.
+* [x] Implement backup/restore on Pg based data. Restore only partially works from older backup.
 * &#10004; Bug 35. SQL migration, version update, not working for PG based databases.
 * &#10004; JS - Event, on expense sum in log numbers found at beginning of lines.
 * &#10004; Update to CNF v.2.2, branch to $RELEASE_VER = 2.3, Earth Stage initial.
