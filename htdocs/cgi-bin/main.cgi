@@ -1353,7 +1353,7 @@ sub authenticate {
 
 sub fetchAutocomplete {
 
-    my $st = traceDBExe('select LOG from LOG ' . $stmE. '-- > '. &Settings::autoWordLimit.'  < -- fetchAutocomplete');
+    my $st = traceDBExe('select LOG from '. $VW_PAGE  . $stmE. '-- > '. &Settings::autoWordLimit.'  < -- fetchAutocomplete');
     my $awl = Settings::autoWordLength();
     my %hsh = (); 
     my $lst = "\"\"";
