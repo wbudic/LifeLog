@@ -381,9 +381,9 @@ html .ui-button.ui-state-disabled:active {
 .midnight{
     color:midnightblue;
 }
-a:link {
-    color:#5b06fa;
-   }
+a:link {    
+    color: #f4f80f
+}
    a:visited {
     color: #0c0c0c;
    }
