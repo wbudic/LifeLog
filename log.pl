@@ -241,7 +241,7 @@ if (@c && $c[0] eq $alias) {
                     my $stamp = Settings::getCurrentSQLTimeStamp();                
                     my $pst = $db->prepare($INSERT);                
                     $pst->execute("$stamp", $log);
-                    say "Log issued to -> $DSN: for LifeLog.$VW_NAME";
+                    say "Log issued to -> $DSN: for LifeLog.$TABLE $stamp=>'$log'";
                 }
                
             # }catch{                
