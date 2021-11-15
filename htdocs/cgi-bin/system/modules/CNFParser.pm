@@ -263,7 +263,7 @@ try{
             }              
 
             if($t eq 'CONST'){#Single constant with mulit-line value;
-               $v =~ s/^\s//;
+               $v =~ s/^\s// if $v;
                $consts{$e} = $v if not $consts{$e}; # Not allowed to overwrite constant.
             }elsif($t eq 'DATA'){
                $st ="";
@@ -278,7 +278,7 @@ try{
                             $v =  $d;            #capture spected value.
                             $d =~ s/\$$|\s*$//g; #trim any space and system or constant '$' end marker.
                             if($v=~m/\$$/){
-                                $v = $consts{$d}
+                                $v = $consts{$d}; $v="" if not $v;
                             }
                             else{
                                 $v = $d;
