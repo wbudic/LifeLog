@@ -9,6 +9,15 @@
 # from the master (upgrade) repository.
 ## git pull
 
+if type -p perl < /dev/null > /dev/null 2>&1  ; then
+
+pver=$(perl -e "print $]")
+[[ $pver<5.030000 ]] && echo -e "Warning your perl version is $pver might be outdated!\n Recomended perl version is 5.34+."
+else
+echo -e "Perl language not detected please install latest version, ideally (as sudo) from source.\n"
+exit
+fi
+
 LifeLogInstall=install_lifelog_req_modules_2.0.sh
 sudo cat Installation.txt | grep 'sudo apt install' | awk '{print $0, "-y"}' > $LifeLogInstall
 sudo cat Installation.txt | grep 'sudo cpan' >> $LifeLogInstall 

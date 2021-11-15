@@ -129,12 +129,17 @@ Starting pgAdmin 4. Please navigate to http://127.0.0.1:5050 in your browser.
    Use a production WSGI server instead.
  * Debug mode: off
 
+# Have you forgotten master password to enter pgadmin4? Recreate by:
+$ rm -rf /var/lib/pgadmin/*.db
+$ pgadmin4
 
 Before upgrades first:
 
 (Notice - the previous user and password might not work anymore after:)
 pip uninstall pgadmin4
 pip install pgadmin4
+
+
 
 
 (Sorry, I use, but don't program in python, to document here any further)

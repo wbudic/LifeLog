@@ -2,11 +2,12 @@
 
  - Web Server (any will do that supports CGI perl execution)
  - SQLite
- - Perl Modules
+ - Perl Modules (Run the provided ./install_modules.sh)
  - git (git clone https://github.com/wbudic/LifeLog)
 
  -- Note - Perl and some modules might take time to install
            as they are fetched and tested for your computer.
+
 
 
 ### Obtain from  GIT repository latest stable release with:
@@ -26,6 +27,18 @@ sudo apt install cpanminus
 sudo cpan DBD::SQLite;
 # or download latest from: https://www.sqlite.org/download.html
 # Optional but recommended install a ProgresSQL database server and driver see: Installation_ProgresSQL.txt
+
+## To install from source Perl Language Interpreter, system wide not local. Example:
+# Important is to set to configure to /usr/local/, not ./Configure -des -Dprefix=$HOME/localperl
+#
+$ cd ~/dev
+$ wget https://www.cpan.org/src/5.0/perl-5.34.0.tar.gz
+$ sudo tar -xzf perl-5.34.0.tar.gz
+$ cd perl-5.34.0
+$ sudo ./Configure -des -Dprefix=/usr/local/
+$ sudo make
+$ sudo make test
+$ sudo make install
 
 ## Development Environment Perl Install
 
@@ -81,7 +94,9 @@ rm -rf openssl-1.1.1l
 
 # Since 2.4 To get to work with latest installed perl version, (not the roots/system wide one).
 perl -v
-#output should be: v5.34.0 or grater.
+#v5.30.0 or grater is preferred.
+
+# Following is a way to install modules if not having sudo access.
 perl -MCPAN -e 'install DBI'
 perl -MCPAN -e 'install CGI'
 perl -MCPAN -e 'install CGI::Session'
@@ -99,8 +114,12 @@ perl -MCPAN -e 'install Crypt::Blowfish'
 
 
 
-# Following is OLD or when wanting to use the system wide perl installation.
+# Following is instruction is for system wide perl installation.
 # In most cases the following will work fine if having sudo access, and no intension to upgrade perl.
+# On some systems, is you have the PERL5LIB  env. variable set, installed modules might not be found.
+# Without setting this env. var. explicitly, normal location of these should be the /usr/local/share/perl/5.3* directory, available to all users.
+# Without sudo running "cpan" you might have to set this PERL5LIB={path} in .bashrc to include your users home directory.
+#
 ###
 # since 1.8 switched to:
 # before was -> sudo cpanm Try::Tiny;
