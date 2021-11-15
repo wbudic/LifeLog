@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 #
 # Server side command line logging utility.
 # Use to log entries to an database, without having to access via browser.
@@ -21,7 +21,6 @@ $CGI::Carp::WRAP = 0;
 
 use Exception::Class ('LifeLogException');
 use DBI;
-use IO::Interactive qw(is_interactive interactive busy);
 use IO::Prompter [ -stdio, -style=>'bold' ];
 
 my $cnf = CNFParser->new('dbLifeLog/main.cnf');
@@ -34,19 +33,25 @@ my ($VW_NAME,$COL_NAME,$COL_TYPE, $SELECT, $INSERT);
 my $help = qq(
 $TITLE\n
 Syntax: $0 {-option} {value}...{-dump}={file.log} | {-dump} {dump.log}\n
-Options:
--alias      - (Optional) alias for login into database.
+Arguments:
 -database   - Database name (usually same as the alias).
--system     - Use login free, system database, via <<AUTO_LOGIN</> which in main.inf must be set.
+-system     - Automatically login from anon property <<AUTO_LOGIN</> which has to be set in the main.inf.
             - Options -database and -alias are ignored if this flag is set.
+-db_src     - (Optional) Driver source, defaults to <<DBI_SOURCE<DBI:SQLite:> set in main.cnf.            
 -sys_table  - Create/Use sys table, for the logs. Format: -sys_table=table_name:col_name:sql_type.
             - i.e. -sys_table=BITCOIN:VALUE:NUMBER  or -sys_table=MESSAGES:MSG:TEXT
             - The -system option, all previous mentioned, don't need to be set as this overrides and implies when this option is set.
-	-db_src - (Optional) Driver source, defaults to <<DBI_SOURCE<DBI:SQLite:> set in main.cnf.
+    -insert - (Optional) Similar to -log, value for the sys_table.
 	-list       - List by category entries we are not logging. Next argument can be a single or list of catecory id's.
 		    - i.e. -list '1:6:9' or just -list to list all categories up to 10.
-	-cat_id     - (Optional) New log entry category id. Will be prompted for if not provided.
-	-log        - (Optional) Log message or text to be logged is next argument. Default is SDTIN piped in.
+-alias      - alias for login into database.            
+-cat_id     - (Optional) New log entry category id. Will be prompted for if not provided.
+-log        - (Optional) Log message or text to be logged is next argument.
+-uvar       - (Optional) Reads in an user variable for the insert value.
+
+This program requires an interactive shell, for unspeciefied but required arguments will be terminal asked, i.e password. 
+Piping to this program is not anymore being supported.
+
 	Limitations:
 	    Currently date based entries are not possible to be added, and it is not recomended to use this utility for batch processing. 
 	    To access any LifeLog based database, password has to be entered in the terminal. Can be bypassed with -system option flag.
@@ -56,9 +61,11 @@ Options:
     Examples:
     $0 -db_src "DBI:Pg:host=localhost;" -database lifelog -sys_table=BITCOIN:VALUE:INTEGER
 
-    echo 789 | ./log.pl -inbuilt
+    The following -nbuilt can be used by modifying this perl file (not recommended):
+    ./log.pl -inbuilt
 
-    uvar -r LAST_MONITOR_READING | ./log.pl -system -sys_table REMOTE_MONITOR:LOG:VARCHAR(1024)
+    The following will put into LOF field an current user variable, the table REMOTE_MONITOR will be created if it doesn't exists.
+    ./log.pl -system -sys_table REMOTE_MONITOR:LOG:VARCHAR(1024) -uvar LAST_MONITOR_READING
 
     The following selects an externaly created view AVG_BITCOIN and greps the data as output only:
     $0 -database lifelog -list 01:2:3
@@ -68,10 +75,12 @@ Options:
 
 );
 
-	my ($database, $alias, $passw, $db_source, $set, $table, $cat_id,$list,$log, $dump, $out) = 0;
+
+	my ($database, $alias, $passw, $db_source, $set, $insert, $table, $cat_id,$list, $dump, $out) = 0;
 	my ($IS_PG_DB, $DSN, $DBFILE);
 	my $LOG_PATH = "dbLifeLog/";
-
+    my $log;
+  
 	foreach my $arg(@ARGV){
 	    #print "{{{$arg}}}"; 
 	    if($arg =~ /^\-/){
@@ -95,6 +104,8 @@ Options:
                 elsif($arg=~/(^\-*sys_table)/){$set = 9; foreach(split /=/, $arg){$table = $_;}
                     if($table && $table =~ /(^\-*sys_table)/){$table = undef}
                 }
+                elsif($arg=~/(^\-*insert)/){$set = 10;}
+                elsif($arg=~/(^\-uvar)/)   {$set = 11;}
                 elsif($arg=~/(^\-*inbuilt)/){
                     # Use Inbuild here and configurate here in perl script. Why not?
                     # Tip - Setup main.inf and login with bellow creadentials, to create the lifelog database.
@@ -111,32 +122,32 @@ Options:
                     next;
                 }
                 next if ! $set;
-                if   ($set == 1){undef $set; $database = $arg}
-                elsif($set == 2){undef $set; $alias = $arg}
-                elsif($set == 3){undef $set; $db_source = $arg}
-                elsif($set == 4){undef $set; $cat_id = $arg}
-                elsif($set == 5){undef $set; $log = $arg}
-                elsif($set == 6){undef $set; $list="";
+                if   ($set == 1 ){$database = $arg}
+                elsif($set == 2 ){$alias = $arg}
+                elsif($set == 3 ){$db_source = $arg}
+                elsif($set == 4 ){$cat_id = $arg}
+                elsif($set == 5 ){$log = $arg}
+                elsif($set == 6 ){$list="";
                     foreach(split /:/, $arg){$list .= "ID_CAT=$_ OR ";}
                     if($list =~ m/ OR $/){$list =~ s/ OR $//;}else{$list.="ID_CAT=".$arg}
                 }
-                elsif($set == 7){undef $set; $dump = $arg}
-                elsif($set == 9){undef $set; $table = $arg if (!$table)}
+                elsif($set == 7 ){$dump = $arg}
+                elsif($set == 9 ){$table = $arg if (!$table)}
+                elsif($set == 10){$insert = $arg}
+                elsif($set == 11){$insert = `~/uvar.sh -r $arg`}
+                undef $set;
         }else{
             print "<<<<<$arg>>>>\n"
         }
 	}#rof
+    say "WARNING! Argument type $set, has not been provided!" if($set);
 
-	if (!$log && !is_interactive) { 
-	   #die "Input from terminal (pipe) not allowed!\n" 
-	   busy {
-	       $log = readline STDIN;	       
-	       open STDIN, "<", "/dev/tty" or die "IO Error @_";       
-	   } 
-	}
+if($insert){
+   $log = $insert;
+}    
 
 if($set && $set > 7 && !$db_source){
-    my $prp = $cnf->anons('AUTO_LOGIN', undef);
+    my $prp = $cnf->anon('AUTO_LOGIN', undef);
     my @a = split('/', $prp);
     if(@a==2){
         $alias=$database=$a[0]; $passw=$a[1];
@@ -153,10 +164,6 @@ if($list){
     $cat_id = $list;
 }
 
-if(!$database && !$alias){
-    say "Error: Database -database or -alias option not set! See help with: $0 -?";  exit 0;
-}
-if(!$alias){$alias=$database}
 if(!$db_source){
     $db_source = $cnf->constant('DBI_SOURCE');
     $db_source = "DBI:SQLite:" if !$db_source;
@@ -164,12 +171,11 @@ if(!$db_source){
 
 $IS_PG_DB = 1 if(index (uc $db_source, 'DBI:PG') ==0);
 
-
-
-if(!$passw){$passw = prompt "\n$TITLE\nPlease enter password for database -> $database: ", -echo => '*'};
+if(!$database){$database = prompt "\n$TITLE\nPlease enter database name: "}
+if(!$alias){$alias = prompt "\n$TITLE\nPlease enter alias name: "}
+if(!$passw){$passw = prompt "\n$TITLE\nPlease enter password for database -> $database: ", -echo => '*'}
 $passw = uc crypt $passw, hex Settings->CIPHER_KEY if $passw && !$IS_PG_DB;
-
- 	say "WARNING! Argument type $set, has not been provided!" if($set);
+	
   
 my $db = connectDB($database,$alias,$passw);
 my $st = traceDBExe("SELECT alias FROM AUTH WHERE alias='$alias' and passw='$passw';");
@@ -177,7 +183,7 @@ my @c = $st->fetchrow_array();
 if (@c && $c[0] eq $alias) {
     if($table){checkCreateTable()}
     elsif(!$cat_id){
-            $cat_id = $cnf->anons('CAT', undef);
+            $cat_id = $cnf->anon('CAT', undef);
             $cat_id =~ s/^.*>\n//;
             say "Sample Categories:\n$cat_id";
             $cat_id = prompt "Enter Category id (default is '01' for Unspecified): ";
@@ -241,7 +247,7 @@ if (@c && $c[0] eq $alias) {
                     my $stamp = Settings::getCurrentSQLTimeStamp();                
                     my $pst = $db->prepare($INSERT);                
                     $pst->execute("$stamp", $log);
-                    say "Log issued to -> $DSN: for LifeLog.$TABLE $stamp=>'$log'";
+                    say "Insert issued to -> $DSN: for $table $stamp=>'$log'";
                 }
                
             # }catch{                
@@ -316,11 +322,11 @@ sub traceDBExe {
 
 
 sub checkCreateTable {
-   my($TABLE,$col,$typ) =  split(':',$table);
    print "$TITLE\nUsing spec -> $table\n";
-   if($TABLE && $col && $typ){
-      $TABLE = uc $TABLE;
-      $VW_NAME = "VW_$TABLE";
+   my($table,$col,$typ) =  split(':',$table); # our global $table is different to the one we use with SQL.   
+   if($table && $col && $typ){
+      $table = uc $table;
+      $VW_NAME = "VW_$table";
       $COL_NAME = uc $col;
       $COL_TYPE = uc $typ;
       if($IS_PG_DB){
@@ -331,32 +337,32 @@ sub checkCreateTable {
                 my $t = uc substr($_,7);
                 $tables{$t} = 1;
             }
-            if(!$tables{$TABLE}){
-                traceDBExe("CREATE TABLE $TABLE (DATE TIMESTAMP NOT NULL, $COL_NAME $COL_TYPE NOT NULL);");
+            if(!$tables{$table}){
+                traceDBExe("CREATE TABLE $table (DATE TIMESTAMP NOT NULL, $COL_NAME $COL_TYPE NOT NULL);");
                 traceDBExe(qq(CREATE VIEW $VW_NAME AS
           SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
-          FROM $TABLE as a ORDER BY Date(DATE) DESC;
+          FROM $table as a ORDER BY Date(DATE) DESC;
 ));
             }
 
       }else{
-                my $pst = traceDBExe("SELECT count(name) FROM sqlite_master WHERE type='table' and name like '$TABLE';");
+                my $pst = traceDBExe("SELECT count(name) FROM sqlite_master WHERE type='table' and name like '$table';");
                 my @res = $pst->fetchrow_array();
                 if($res[0]==0){
-                    traceDBExe("CREATE TABLE $TABLE (DATE DATETIME NOT NULL, $COL_NAME $COL_TYPE NOT NULL);");
+                    traceDBExe("CREATE TABLE $table (DATE DATETIME NOT NULL, $COL_NAME $COL_TYPE NOT NULL);");
                 }
                 $pst = traceDBExe("SELECT count(name) FROM sqlite_master WHERE type='view' and name like '$VW_NAME';");
                 @res = $pst->fetchrow_array();
                 if($res[0]==0){
                     traceDBExe(
-qq(CREATE VIEW $VW_NAME AS
-          SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
-          FROM $TABLE as a ORDER BY Date(DATE) DESC, Time(DATE) DESC;
-));
+                                qq(CREATE VIEW $VW_NAME AS
+                                        SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
+                                        FROM $table as a ORDER BY Date(DATE) DESC, Time(DATE) DESC;
+                    ));
                 }
        }      
       $SELECT = "SELECT DATE, $COL_NAME FROM $VW_NAME LIMIT $LIMIT_REC;";
-      $INSERT = "INSERT INTO $TABLE(DATE, $COL_NAME) VALUES(?,?)";
+      $INSERT = "INSERT INTO $table(DATE, $COL_NAME) VALUES(?,?)";
   }
 }
 
