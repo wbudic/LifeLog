@@ -10,23 +10,30 @@ This is an Open Source License project -> https://choosealicense.com/licenses/is
 <<BACKUP_ENABLED<1>>>
 <<LOGOUT_IFRAME_ENABLED<true>>>
 <<LOGOUT_RELOGIN_TXT<Log me In Again>>>
+<<FORCE_DEBUG_ON<1>>>
 
-# Default database driver prefix, is SQLite.
-Note Remove -> '!' prefix to tag name, to enable, set,
-and override any previously set from now on, top to end of file approach.
+#########################################################################
+  Note Remove -> '!' prefix to a tag name, to enable, set,
+  and override any previously set from now on, 
+  it is from top to end file approach, in this type of configuration.
 #
+
+# Default database driver is SQLite, anyhow. 
 # SQLite DB driver. 
-<<DBI_SQL_SOURCE<DBI:SQLite:>>>
-# ProgresSQL DB driver. 
+<<!DBI_SQL_SOURCE<DBI:SQLite:>>>
+
+# ProgresSQL DB driver. Remove '!' to enable.
 <<!DBI_SOURCE<DBI:Pg:host=localhost;>>>
 
-# LOG actual variable size limit, - 1024 default, 128 minimum value. 
+
+# LOG actual variable size limit, - 8192 default, 128 minimum value. 
 <<DBI_LOG_VAR_SIZE<8192>>>
 
 # Set the following to an database name, with external managed multiple users, that are to connect to a single database.
 # Users have to be externally set, and alias is then used for their userid to be able to login. (Add user roles to AUTH table).
 # By default this setting is disabled with 0, making alias name, its own log database, per user.
-<<DBI_MULTI_USER_DB<>>>
+#
+<<!DBI_MULTI_USER_DB<lifelog>>>
 
 # Timezoning, if set to 1, country locale setting for timezone in config page is ignored.
 <<AUTO_SET_TIMEZONE<0>>>
