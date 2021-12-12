@@ -6,11 +6,15 @@
 
 ### New Development v.2.3+
 
+* [ ] Module installation script should check, on main.cnf and on perl soundness and compatibility.
+  * Should check and display autonomes that contain expected defaults changed or disabled in configuration. i.e AUTO_LOGIN or DBI_MULTI_USER_DB
+  * A trouble_shoot_configuration.pl should  be available to perform this, and be independently available from the main directory.
 * [ ] Process actions.
   * Configured in main.cnf, to import perl action to execute, in parallel of returning pages.
   * Action programable are on login, logout, row. 
-    * Where the row action processed is pushed back to browser on each main.cgi page call, logout action is pushed back to login_ctr.cgi page.  
-    ```
+    * Where the row action processed is pushed back to browser on each main.cgi page call, logout action is pushed back to login_ctr.cgi page. 
+
+    ```html
       # Separate process actions to execute in parallel.
       <<ACTION$$<login>actions/reminders.pl>>
       <<ACTION$$<row>actions/log.pl>>
