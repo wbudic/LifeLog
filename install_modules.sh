@@ -18,7 +18,7 @@ echo -e "Perl language not detected please install latest version, ideally (as s
 exit
 fi
 
-LifeLogInstall=install_lifelog_req_modules_2.0.sh
+LifeLogInstall=install_lifelog_req_modules_2.4.sh
 sudo cat Installation.txt | grep 'sudo apt install' | awk '{print $0, "-y"}' > $LifeLogInstall
 sudo cat Installation.txt | grep 'sudo cpan' >> $LifeLogInstall 
 sudo chmod +x $LifeLogInstall

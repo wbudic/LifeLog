@@ -46,6 +46,15 @@ $ sudo make install
 Requirements: G++ and gcc compilers, and Gcc-4.8 GNU Compiler
 
 # Install Perl, properly, don't use the distro provided perl interpreter (might be outdated or has missing modules).
+
+This best is explained? If running under sudo and cgi based scripts, you will be using the system wide or provided installation of perl.
+If logged in shell as normal user issue, 'perl -v', you might be getting a different user updated version of it.
+To troubleshoot, you can compare, issue, '/usr/bin/perl -v', best is if both return same, version.
+Solution already provided for this is to use /usr/bin/local/perl executable which should be the latest if installing the latest perl.
+Notice - Most web server configuration files, require cgi settings to point to right perl executable.
+If still experiencing problems, running provided ./install_modules.sh was probably not issued, and could solve requirements.
+
+
 ##
 sudo apt install perlbrew
 ##
@@ -123,6 +132,7 @@ perl -MCPAN -e 'install Crypt::Blowfish'
 ###
 # since 1.8 switched to:
 # before was -> sudo cpanm Try::Tiny;
+sudo cpan Exception::Class
 sudo cpan Log::Log4per
 sudo cpan Syntax::Keyword::Try
 
@@ -132,7 +142,6 @@ sudo cpan DateTime::Format::SQLite;
 sudo cpan Text::CSV;
 sudo cpan Number::Bytes::Human;
 sudo cpan Gzip::Faster;
-sudo cpan CGI::Session;
 sudo cpan Number/Bytes/Human.pm;
 sudo cpan Regexp::Common;
 sudo cpan JSON;
@@ -146,6 +155,8 @@ sudo cpan IO::Compress::Gzip;
 sudo cpan IO::Prompter;
 sudo cpan IO::Interactive;
 sudo cpan -T DBD::Pg;
+sudo cpan CGI CGI::Session;
+
 
 
 
