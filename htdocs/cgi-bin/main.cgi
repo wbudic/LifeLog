@@ -798,7 +798,7 @@ HTML
 };
 
 
-    my $frm = qq(<a name="top"></a>
+    my $frm = qq(
 <form id="frm_entry" action="main.cgi" onSubmit="return formValidation();">
 	<table class="tbl" border="0" style="$std_bck opacity: 0.9;" width=").&Settings::pagePrcWidth.qq(%">
 	<tr class="r0">
@@ -1055,6 +1055,7 @@ my $help = &help;
 
 toBuf (qq(
 $sideMenu
+<a id="top" name="top"></a>
 <div id="div_log">$frm</div>
 $quill
 <div id="div_srh">$srh</div>
