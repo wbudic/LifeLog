@@ -39,7 +39,9 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
     TIMEZONE    = tz;    
     TIME_STAMP  = new Date(today);
     DBI_LVAR_SZ = parseInt(log_limit);
+    
     onBodyLoadGeneric();
+    
 
     if (toggle) {
         this.toggle("#div_srh", false);
@@ -182,7 +184,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         })
     });
 
-    $("#log_submit").click(encodeText);
+//     $("#log_submit").click(encodeText);
 
     $('#ec').show();
 
@@ -383,7 +385,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             $(e.target.parentNode).closest("tr").removeClass("hover");
         }
     });
-   
+    
 
     if($("#isInViewMode").val()>0){
         this.toggle('#div_srh', true); 
@@ -395,7 +397,9 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             source: AUTOWORDS
             });
     });
-    display("Log page is ready!");    
+
+    display("Log page is ready!", 5);
+    
 }
 
 function encodeText(){
@@ -455,6 +459,8 @@ function validate(dt, log) {
     if(msg){
         return dialogModal( "Sorry Form Validation Failed", msg);
     }
+    $('#frm_entry').hide();    
+    encodeText();
     return true;
 }
 
@@ -1115,7 +1121,7 @@ function saveRTF(id, action) {
 
 
     
-    if(is_submit && (EDIT_LOG_TXT && $('#el').val() !== EDIT_LOG_TXT)){ 
+    if(is_submit && (EDIT_LOG_TXT && $('#el').val() !== EDIT_LOG_TXT)){
 
         if(formValidation()){ //If it is false, failed. That needs to altered by the user first.
 
@@ -1134,7 +1140,7 @@ function saveRTF(id, action) {
 
                     { text: "Yes",                    
                       icons: { primary: "ui-icon-circle-check" },
-                        click: function() {
+                        click: function() {                            
                             $( this ).dialog( "close" );
                             $("#frm_entry").submit();
                         }
@@ -1151,11 +1157,11 @@ function saveRTF(id, action) {
             });
 
         }
-            return false;
+        return false;
     }
     else
-    if(is_submit && !$("#RTF").prop('checked')){
-             return true;//we submit normal log entry
+    if(is_submit && !$("#RTF").prop('checked')){           
+       return true;//we submit normal log entry
     }
     RTF_SUBMIT = true;
     var bg = $("#fldBG").val();
