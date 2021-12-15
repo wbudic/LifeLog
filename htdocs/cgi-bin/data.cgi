@@ -3,9 +3,9 @@
 # Programed in vim by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-use v5.10;
 use warnings;
 use strict;
+use experimental qw( switch );
 use Exception::Class ('LifeLogException');
 
 use Syntax::Keyword::Try;

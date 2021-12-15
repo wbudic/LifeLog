@@ -1,10 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 #
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
 use strict;
 use warnings;
+use experimental qw( switch );
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use CGI;
@@ -13,6 +14,7 @@ use DBI;
 use lib "system/modules";
 require Settings;
 use CGI::Carp qw(fatalsToBrowser set_message);
+use bignum qw/hex/;
 BEGIN {
    sub handle_errors {
       my $msg = shift;
@@ -24,12 +26,12 @@ BEGIN {
 }
 
 my $cgi = CGI->new();
-my $session = new CGI::Session("driver:File",$cgi, {Directory=>&Settings::logPath, SameSite=>'Lax'});      
+my $session = CGI::Session->new("driver:File",$cgi, {Directory=>&Settings::logPath, SameSite=>'Lax'});      
 my $sssCreatedDB = $session->param("cdb");
 my $sid=$session->id();
 my $cookie = $cgi->cookie(CGISESSID => $sid);
 
-my ($db,$DB_NAME,$PAGE_EXCLUDES, $DBG, $frm)="";
+my ($db,$DB_NAME,$PAGE_EXCLUDES, $DBG, $frm)=("","");
 my $alias = $cgi->param('alias');
 my $passw = $cgi->param('passw');
 my $pass;
@@ -123,22 +125,22 @@ HTML
     }
 }
  catch {
-            my $err = $@;
+            my $err = $@; my $now=DateTime->now(); $now=~s/T/@/;
             my $dbg = "";
             my $pwd = `pwd`;
             $pwd =~ s/\s*$//;
-            $dbg = "--DEBUG OUTPUT--\n$DBG" if Settings::debug();
+            $dbg = "--DEBUG OUTPUT--\n$DBG" if Settings::debug(); 
             print $cgi->header,
-            "<hr><font color=red><b>SERVER ERROR</b></font> on ".DateTime->now().
+            "<hr><font color=red><b>SERVER ERROR</b></font> on $now".
             "<pre>".$pwd."/$0 -> [\n$err]","\n$dbg</pre>",
             $cgi->end_html;
  }
 exit;
 
 sub processSubmit {
-    if($alias&&$passw){
-            $pass = $passw;$passw = uc crypt $passw, hex Settings->CIPHER_KEY;
-            #CheckTables will return 1 if it was an logout set in config table.
+    if($alias&&$passw){            
+            $pass = $passw; $passw = uc crypt $passw, hex Settings->CIPHER_KEY;
+            #CheckTables will return 1 if it was an logout set in the config table. To bypass redirection.
             if(checkCreateTables()==0){
                 $session->param('alias', $alias);
                 $session->param('passw', $passw);
@@ -151,6 +153,8 @@ sub processSubmit {
                 print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
                 ###
                 return 1; #activated redirect to main, main will check credentials.
+            }else{
+                die "<b>Check Create tables failed!<b>"
             }
     }
     else{
@@ -270,15 +274,15 @@ sub checkPreparePGDB {
     return 0;
 }
 
-sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
+sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
  try{
     # We live check database for available tables now only once.
     # If brand new database, this sill returns fine an empty array.    
     my %curr_config = ();
     my %curr_tables;    
     $changed = checkPreparePGDB() if Settings::isProgressDB();    
-    $db = Settings::connectDB($DB_NAME, $alias, $passw); 
-    %curr_tables = %{Settings::schema_tables($db)};
+    $db = Settings::connectDB($DB_NAME, $alias, $passw);    
+    %curr_tables = %{Settings::schema_tables($db)};    
 
     if($curr_tables{'CONFIG'}) {
         #Set changed if the configuration data has been wiped out, i.e. by db fix routines.        
@@ -585,12 +589,13 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = 0;
      $db->disconnect();
     #
     #Still going through checking tables and data, all above as we might have an version update in code.
-    #Then we check if we are login in intereactively back. Interective, logout should bring us to the login screen.
-    #Bypassing auto login. So to start maybe working on another database, and a new session.
-    return $cgi->param('autologoff') == 1;
+    #Then we check if we are loged in intereactively back. Interective, logout should bring us to the login screen.
+    # Bypassing auto login. So to start maybe working on another database, and a new session.    
+    return 1 if $cgi->param('autologoff') == 1;
  }catch{
-     LifeLogException -> throw(error=>"DSN:".Settings::dsn()." Error:".$@."\nLAST_SQL:".$sql,show_trace=>1);
+     LifeLogException -> throw(error=>"DSN:".Settings::dsn()." Error:".$@."\nLAST_SQL:".$sql,show_trace=>1);     
  }
+ return 0;
 }
 
 sub createPageViewExcludeSQL {
@@ -908,5 +913,5 @@ sub logout {
 
     exit;
 }
-1;
+
 

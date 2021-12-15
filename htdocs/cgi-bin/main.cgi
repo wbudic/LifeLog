@@ -1,11 +1,11 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 #
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-use v5.10;
 use warnings;
 use strict;
+use experimental qw( switch );
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use DBI;
@@ -33,13 +33,14 @@ my $alias   = Settings::alias();
 my $passw   = Settings::pass();
 my $VW_PAGE = Settings->VW_LOG; 
 
-my $sssCDB  = $sss->param('cdb');
+my $sssCDB  = session('cdb');
 my ($vmode, $imgw, $imgh );
 
-if ( !$alias ||  !$passw ) {
-    print $cgi->redirect("alogin_ctr.cgi?CGISESSID=$sid");
-    exit;
+if ( !$alias ||  !$passw ) {     
+     print $cgi->redirect("alogin_ctr.cgi?CGISESSID=$sid");
+     exit;
 }
+
 ### Authenticate session to alias passw
     &authenticate;
 #
@@ -47,18 +48,24 @@ my $log_rc      = 0;
 my $log_rc_prev = 0;
 my $log_cur_id  = 0;
 my $log_top     = 0;
-my $rs_keys     = $cgi->param('keywords');
-my $prm_aa      = $cgi->param("aa");
-my $prm_vc      = $cgi->param("vc");
-my $prm_vc_lst  = $cgi->param("vclst");
-my $prm_xc      = $cgi->param("xc");
-my $prm_xc_lst  = $cgi->param("xclst");
-my $prm_rtf     = $cgi->param("vrtf");
-my $rs_dat_from = $cgi->param('v_from');
-my $rs_dat_to   = $cgi->param('v_to');
-my $rs_prev     = $cgi->param('rs_prev');
-my $rs_cur      = $cgi->param('rs_cur');
-my $rs_page     = $cgi->param('rs_page');
+my $rs_keys     = param('keywords');
+my $prm_aa      = param("aa");
+my $prm_vc      = param("vc");
+my $prm_vc_lst  = param("vclst");
+my $prm_xc      = param("xc");
+my $prm_xc_lst  = param("xclst");
+my $prm_rtf     = param("vrtf");
+my $rs_dat_from = param('v_from');
+my $rs_dat_to   = param('v_to');
+my $rs_prev     = param('rs_prev');
+my $rs_cur      = param('rs_cur');
+my $rs_page     = param('rs_page');
+sub param{
+    $_ = $cgi->param(shift);   return 0 if !$_;
+}
+sub session{
+    $_ = $sss->param(shift);   return 0 if !$_;
+}
 
 if(Settings::anon('^VW_OVR_WHERE')){
    if(!$cgi->param('srch_reset')&&!$prm_vc&&!$prm_vc_lst&&!$prm_aa&&!$prm_rtf&&!$prm_xc&&!$prm_xc_lst&&!$rs_dat_from&&!$rs_dat_to&&!$rs_keys){
@@ -75,13 +82,13 @@ my $sqlView     = 'SELECT ID, ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY, PID
 my $stmS        = $sqlView." WHERE";
 my $stmE        = ' LIMIT '.&Settings::viewAllLimit.';';
 my $stmD        = "";
-my $sm_reset_all;
+my $sm_reset_all= "";
 my $rec_limit   = Settings::recordLimit();
 #Set to 1 to get debug help. Switch off with 0.
-my $DEBUG       = Settings::debug();
+my $DEBUG       = 1;#Settings::debug();
 #END OF SETTINGS
 my $rtf_buffer = 0;
-my ($BUFFER, $D_BUFF);
+my ($BUFFER, $D_BUFF)=("","");
 
 my $lang  = Date::Language->new(Settings::language());
 my $today = Settings->today();
@@ -120,7 +127,7 @@ $sss->param('bgcolor', Settings::theme('colBG'));
 #sss->param('sss_main', $today);
 #
 #Reset Clicked
-if($cgi->param('srch_reset') == 1){
+if(param('srch_reset') == 1){
    $sss->clear('sss_vc');$sss->clear('sss_xc');$sss->clear('sss_ord_cat');
 }
 
@@ -152,8 +159,8 @@ if($prm_vc &&$prm_vc ne ""){
    }
 
 }else{
-       $prm_vc = $sss->param('sss_vc');
-       $prm_vc_lst = $sss->param('sss_vc_lst');
+       $prm_vc = session('sss_vc');
+       $prm_vc_lst = session('sss_vc_lst');
 }
 
 if($prm_xc &&$prm_xc ne ""){
@@ -182,11 +189,11 @@ if($prm_xc &&$prm_xc ne ""){
     }
 
 }else{
-       $prm_xc = $sss->param('sss_xc');
-       $prm_xc_lst = $sss->param('sss_xc_lst');       
+       $prm_xc = session('sss_xc');
+       $prm_xc_lst = session('sss_xc_lst');       
 }
 #Either Session or requested.
-if($cgi->param('sss_ord_cat') eq 'on'){
+if(param('sss_ord_cat') eq 'on'){
       $stmE = ' ORDER BY ID_CAT '.$stmE;
       $sss->param('sss_ord_cat', 1);
 }else{$sss->param('sss_ord_cat', 0)}
@@ -218,7 +225,7 @@ $st = $db->prepare($sqlCAT);
 $st->execute() or LifeLogException->throw($DBI::errstri);
 
 my %hshCats;
-my %hshDesc = {};
+my %hshDesc = ();
 my $c_sel   = 1;
 my $data_cats = "";
 my $td_cat = "<tr><td><ul>";
@@ -232,8 +239,8 @@ while ( my @row = $st->fetchrow_array() ) {
         $td_cat .= "</ul></td><td><ul>";
         $td_itm_cnt = 0;
     }
-    $td_cat .= "<li id='$row[0]'><a href='#'>$row[1]</a></li>";
-    $td_itm_cnt++;
+    $td_cat .= "<li id='".$row[0]."'><a href='#'>".$row[1]."</a></li>";
+    $td_itm_cnt++
 }
 if($td_itm_cnt<5){#fill spacing.
     for (my $i=0;$i<5-$td_itm_cnt;$i++){
@@ -244,7 +251,7 @@ $td_cat .= "</ul></td></tr>";
 
 
 for my $key ( keys %hshDesc ) {
-    my $kv = $hshDesc{$key};
+    my $kv = $hshDesc{$key}; next if !$kv;
     if ( $kv ne ".." && index($key,'HASH(0x')!=0) {
         my $n = $hshCats{$key};
         $data_cats .= qq(<meta id="cats[$key]" name="$n" content="$kv">\n);
@@ -430,7 +437,7 @@ sub buildLog {
         my $dt  = DateTime::Format::SQLite->parse_datetime( $row[$i++] ); #LOG.DATE
         my $log = $row[$i++]; #LOG.LOG
         my $rtf = $row[$i++]; #ID_RTF since v.1.8 but just RTF from v.2.1
-        my $am  = $row[$i++]; #LOG.AMOUNT
+        my $am  = $row[$i++]; $am =0 if !$am; #LOG.AMOUNT
         my $af  = $row[$i++]; #AFLAG -> Asset as 0, Income as 1, Expense as 2
         my $sticky = $row[$i++]; #Sticky to top
         my $pid = $row[$i++]; #PID actual log ID in View.
@@ -877,26 +884,26 @@ HTML
         </td>
       </tr>
     );
-    my ($sss_checked, $sss_orderby);
+    my ($sss_checked, $sss_orderby) = ("","");
     my ($vc_lst,$xc_lst) = ("","");
     my $tdivvc = '<td id="divvc_lbl" align="right" style="display:none">Includes:</td><td align="left" id="divvc"></td>';
     my $tdivxc = '<td id="divxc_lbl" align="right" style="display:none">Excludes:</td><td align="left" id="divxc"></td>';
     my $catselected  = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
     my $xcatselected = '<i>&nbsp;&nbsp;&nbsp;<font size=1>-- Select --</font>&nbsp;&nbsp;&nbsp;</i>';
     if ($isInViewMode) {  $sss_checked = 'checked'}
-    if ($sss->param('sss_ord_cat')){  $sss_orderby = 'checked'}
+    if (session('sss_ord_cat')){  $sss_orderby = 'checked'}
 
     if($prm_vc){
-        $catselected = $hshCats{$prm_vc};
+        $catselected = $hshCats{$prm_vc}; $catselected ="" if !$catselected;
          my $n = 16 - length($catselected);
         $catselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
     }
 
     if(@xc_lst){#Do list of excludes, past from browser in form of category id's.
         my $xcls ="";
-        foreach(@xc_lst){ $xcls .= $hshCats{$_}.',';$xc_lst.=$_.','}
+        foreach(@xc_lst){ $xcls .= $hshCats{$_}.',' if $hshCats{$_}; $xc_lst.=$_.','}
         $xcls =~ s/\,$//g; $xcls =~ s/\,\,/\,/g; $xc_lst=~ s/^0\,$//g;
-        $xcatselected = $hshCats{$prm_xc};
+        $xcatselected = $hshCats{$prm_xc};  $xcatselected ="" if !$xcatselected;
         my $n = 16 - length($xcatselected);
         $xcatselected =~ s/^(.*)/'&nbsp;' x $n . $1/e;
         $tdivxc = '<td id="divxc_lbl" align="right">Excludes:</td><td align="left" id="divxc">'.$xcls.'</td>';
@@ -910,7 +917,7 @@ HTML
     #select options of $prm_aa in dropdown.
     my $aopts = "";
     my ($s,$i) = ("",0);
-    my $aa = $cgi->param('aa');
+    my $aa = param('aa');
     if(!$prm_aa){$aa = 0}else{$aa--};
     foreach ('Asset','Income','Expense') {
         if($aa == $i){$s='selected'}else{$s=""}
@@ -1037,7 +1044,7 @@ if($isPUBViewMode){$sideMenu=$frm=$srh=$tail=""}else{
 }
 
 
-my $quill = &quill( $cgi->param('submit_is_edit') );
+my $quill = &quill( param('submit_is_edit') );
 my $help = &help;
 
 ##################################
@@ -1082,18 +1089,18 @@ sub castToBool {
 
 sub processSubmit {
 
-    my $date = $cgi->param('date');
-    my $log  = $cgi->param('log');
-    my $cat  = $cgi->param('ec');
+    my $date = param('date');
+    my $log  = param('log');
+    my $cat  = param('ec');
     my $cnt ="";
-    my $am = $cgi->param('am');
-    my $af = $cgi->param('amf');
+    my $am = param('am');
+    my $af = param('amf');
 
-    my $edit_mode = $cgi->param('submit_is_edit');
-    my $view_mode = $cgi->param('submit_is_view');
-    my $view_all  = $cgi->param('rs_all');
-    my $rtf    = $cgi->param('rtf');
-    my $sticky = $cgi->param('sticky');
+    my $edit_mode = param('submit_is_edit');
+    my $view_mode = param('submit_is_view');
+    my $view_all  = param('rs_all');
+    my $rtf    = param('rtf');
+    my $sticky = param('sticky');
     my $stm;
     my $SQLID = 'rowid'; 
     my @gzero;
@@ -1331,7 +1338,7 @@ sub authenticate {
         }
         else{
                 print $cgi->center(
-                    $cgi->div('<h2>Sorry Access Denied!</h2><font color=red><b>You supplied wrong credentials.</b></font>'),
+                    $cgi->div('<h2>Sorry Access Denied!</h2><font color=red><b>The credentials you supplied have failed!</b></font>'),
                     $cgi->div('<h3>[<a href="login_ctr.cgi">Login</a>]</h3>')
                 );
         }
@@ -1388,8 +1395,8 @@ sub fetchAutocomplete {
     undef %hsh;
 }
 
-sub cam {
-    my $am = sprintf( "%.2f", shift @_ );
+sub cam { my $am = sprintf( "%.2f", shift);
+    $am = sprintf( "%.2f", shift @_ ) if @_;
     # Add one comma each time through the do-nothing loop
     1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
     return $am;

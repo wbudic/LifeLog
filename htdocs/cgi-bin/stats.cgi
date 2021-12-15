@@ -2,10 +2,9 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-use v5.10;
 use strict;
 use warnings;
-#no warnings 'uninitialized';
+no warnings 'uninitialized';
 
 use CGI;
 use CGI::Session '-ip_match';
@@ -18,7 +17,8 @@ use IPC::Run qw( run );
 use Syntax::Keyword::Try;
 
 use lib "system/modules";
-use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
+my $PWD =  $ENV{'PWD'}; $PWD="" if !$PWD;
+use lib $PWD.'/htdocs/cgi-bin/system/modules';
 require Settings;
 
 my $db      = Settings::fetchDBSettings();
