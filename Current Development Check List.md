@@ -8,6 +8,7 @@
 
 * [x] Fix uninitialized $scalars and warnings. My style of programming uses this as a perl feature, as unutilized is also null or empty. Linter disagrees with that. Empty or null  isn't also 0 for it. Null, empty and zero should be the same thing in scalar context and logic.
 * [ ] Implement template based CGI processing (slower but better separation of concerns).
+  * This separation of concern currently not really necessary as at the main.cgi is the whole file, that also incorporates buffering and complex database rendering. Thereby a slight performance penalty would be having to read and process also an template. Buffering is also directly compressed to client. Giving fast pages that some webservers might not have inbuilt or provide (rare). We will see. Templates are good, as the page layout is easier to change and rearrange.
 * [ ] Module installation script should check, on main.cnf and on perl soundness and compatibility.
   * Should check and display autonomes that contain expected defaults changed or disabled in configuration. i.e AUTO_LOGIN or DBI_MULTI_USER_DB
   * A trouble_shoot_configuration.pl should  be available to perform this, and be independently available from the main directory.
