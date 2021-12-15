@@ -62,7 +62,7 @@ my $CID     = 'rowid'; $CID = 'ID' if Settings::isProgressDB();
 my $stmtCat = 'SELECT * FROM CAT ORDER BY ID;';
 my $status  = $RDS = "Ready for change!";
 my $cats; 
-my %hshCats = {};
+my %hshCats = ();
 cats();
 ###############
 processSubmit();
@@ -148,7 +148,7 @@ while(my @row = $dbs->fetchrow_array()) {
          my $n = $row[1]; next if($n =~ m/^\^/); #skip private tagged settings
          my $i = $row[0];
          my $v = $row[2];
-         my $d = $row[3];
+         my $d = $row[3]; $d= "" if !$d;
 
          if($n eq "TIME_ZONE"){
               $n = '<a href="time_zones.cgi" target=_blank>'.$n.'</a>';
@@ -185,7 +185,7 @@ while(my @row = $dbs->fetchrow_array()) {
                 </select>);
          }
          elsif($n eq "FRAME_SIZE"){
-              my($l,$m,$s, $t)=("","");
+              my($l,$m,$s, $t)=("","","","");
                 if($v == 0){
                      $l = "SELECTED"
                 }
@@ -206,7 +206,7 @@ while(my @row = $dbs->fetchrow_array()) {
                 </select>);
         }
         elsif($n eq "RTF_SIZE"){
-                my($l,$m,$s, $t)=("","");
+                my($l,$m,$s, $t)=("","","","");
                 if($v == 0){
                      $l = "SELECTED"
                 }
