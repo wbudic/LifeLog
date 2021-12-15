@@ -3,9 +3,12 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
+use v5.15;
+#use diagnostics;
 use warnings;
 use strict;
 use experimental qw( switch );
+no warnings 'experimental';
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use DBI;
@@ -61,10 +64,10 @@ my $rs_prev     = param('rs_prev');
 my $rs_cur      = param('rs_cur');
 my $rs_page     = param('rs_page');
 sub param{
-    $_ = $cgi->param(shift);   return 0 if !$_;
+    my $v = $cgi->param(shift);   return 0 if !$v;$v
 }
 sub session{
-    $_ = $sss->param(shift);   return 0 if !$_;
+    my $v = $sss->param(shift);   return 0 if !$v;$v
 }
 
 if(Settings::anon('^VW_OVR_WHERE')){
@@ -92,7 +95,7 @@ my ($BUFFER, $D_BUFF)=("","");
 
 my $lang  = Date::Language->new(Settings::language());
 my $today = Settings->today();
-# We buffer the whole page creation, for speed and control send compressed or not to client.
+# We buffer the whole page creation, for speed and control, or to send compressed or not to client.
 sub toBuf { if($DEBUG){$D_BUFF .= shift}else{$BUFFER .= shift} }
 
 if(!$prm_vc && &Settings::keepExcludes){
@@ -375,7 +378,7 @@ qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
     my $re_a_tag  = qr/<a\s+.*?>.*<\/a>/si; my $regex = 'REGEXP'; $regex = ') ~' if Settings::isProgressDB();
     my $isInViewMode = rindex ($sqlVWL, 'PID<=') > 0 || rindex ($sqlVWL, 'ID_CAT=') > 0 || $prm_aa || rindex ($sqlVWL, $regex)>0 || $prm_rtf;
 
-    toBuf $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|vrtf=$prm_rtf|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;
+    toBuf $cgi->pre("###[Session PARAMS->isV:$isInViewMode|vc=$prm_vc|xc=$prm_xc|aa: $prm_aa|xc_lst=$prm_xc_lst|\@xc_lst=@xc_lst|vrtf=$prm_rtf|keepExcludes=".&Settings::keepExcludes."] -> ".$sqlVWL) if $DEBUG;    
 
     if ( $log_start > 0 ) {
 
@@ -526,9 +529,8 @@ sub buildLog {
 
         #Replace with a full link an HTTP URI
         if ( $log =~ /<iframe / ) {
-            my $a = q(<iframe width="560" height="315");
-            my $b;
-            given (&Settings::frameSize) {
+            my $a = q(<iframe width="560" height="315"); my $b;
+            given (Settings::frameSize()) {
                 when("0") { $b = q(width="390" height="215") }
                 when("1") { $b = q(width="280" height="180") }
                 when("2") { $b = q(width="160" height="120") }
@@ -1104,6 +1106,8 @@ sub processSubmit {
     my $stm;
     my $SQLID = 'rowid'; 
     my @gzero;
+
+    toBuf $cgi->pre("###[loggin entry->cat:$cat log:$log") if $DEBUG;
 
     if($rtf eq 'on'){$rtf = 1}  else {$rtf = 0}
     if($sticky eq 'on'){$sticky = 1} else {$sticky = 0}           
