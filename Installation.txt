@@ -254,6 +254,11 @@ sudo update-rc.d startDevWebServer.sh defaults
 
 #Developer Notes
 
+* For vscode. Before installing perl, and perl::LanguageServer extension.
+  *$ sudo cpan -r Perl::LanguageServer
+  * This will recompile and test the language server with the system default installation of perl you have.
+  * With out the -r option, you might have experimental features compatibilities issues.
+
 ##Automate GIT Push
 
 vim your ./LifeLog/.git/conf file to include:

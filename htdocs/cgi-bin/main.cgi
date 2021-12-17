@@ -3,12 +3,11 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-use v5.15;
+use v5.30;
 #use diagnostics;
 use warnings;
 use strict;
-use experimental qw( switch );
-no warnings 'experimental';
+#no warnings 'experimental';
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use DBI;
@@ -530,14 +529,14 @@ sub buildLog {
         #Replace with a full link an HTTP URI
         if ( $log =~ /<iframe / ) {
             my $a = q(<iframe width="560" height="315"); my $b;
-            given (Settings::frameSize()) {
-                when("0") { $b = q(width="390" height="215") }
-                when("1") { $b = q(width="280" height="180") }
-                when("2") { $b = q(width="160" height="120") }
-                default {
-                    $b = &Settings::frameSize;
-                }
-            }
+			given (Settings::frameSize()) {
+				when("0") { $b = q(width="390" height="215") }
+				when("1") { $b = q(width="280" height="180") }
+				when("2") { $b = q(width="160" height="120") }
+				default {
+					$b = &Settings::frameSize;
+				}
+			}
             $b = qq(<div><iframe align="center" $b);
             $log =~ s/$a/$b/o;
             $a = q(</iframe>);
