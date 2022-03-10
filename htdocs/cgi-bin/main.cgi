@@ -3,18 +3,14 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-use v5.30;
-#use diagnostics;
+use v5.34; #use diagnostics;
 use warnings;
-use strict;
-#no warnings 'experimental';
+use strict; no warnings "experimental::smartmatch"; 
 use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use DBI;
-use DBD::Pg;
-use DBD::Pg qw(:pg_types);
-use Date::Language;
-use Date::Parse;
+use DBD::Pg; use DBD::Pg qw(:pg_types);
+use Date::Language; use Date::Parse; 
 use Time::localtime;
 
 use Regexp::Common qw /URI/;
@@ -87,7 +83,7 @@ my $stmD        = "";
 my $sm_reset_all= "";
 my $rec_limit   = Settings::recordLimit();
 #Set to 1 to get debug help. Switch off with 0.
-my $DEBUG       = 1;#Settings::debug();
+my $DEBUG       = Settings::debug();
 #END OF SETTINGS
 my $rtf_buffer = 0;
 my ($BUFFER, $D_BUFF)=("","");
