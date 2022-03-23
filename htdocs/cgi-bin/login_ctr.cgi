@@ -51,6 +51,8 @@ my $LOGOUT_IFRAME = qq|
     <iframe width="60%" height="600px" src="https://www.youtube.com/embed/qTFojoffE78?autoplay=1" frameborder="0" allow="accelerometer; 
             autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
     </iframe>|;
+my %reserved = ('AND'=>1, 'OR'=>1, 'NOT'=>1, 'DATE'=>1,'OLDER_THAN'=>1, 'FROM'=>1,'TO'=>1,'>'=>1,'<'=>1,'>='=>1,'<='=>1,'=='=>1,'!='=>1);
+my %columns  = ('CAT'=>1,'STICKY'=>1, 'RTF'=>1, 'LOG'=>1);    
 try{    
     checkAutologinSet();
     logout() if($cgi->param('logout'));
@@ -593,7 +595,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
     # Bypassing auto login. So to start maybe working on another database, and a new session.    
     return 1 if $cgi->param('autologoff') == 1;
  }catch{
-     LifeLogException -> throw(error=>"DSN:".Settings::dsn()." Error:".$@."\nLAST_SQL:".$sql,show_trace=>1);     
+     LifeLogException -> throw(error=>"DSN:".Settings::dsn()." Error:".$@."\nLAST_SQL:".$sql."\npwd:".`pwd`,show_trace=>1);     
  }
  return 0;
 }
@@ -650,8 +652,7 @@ sub createPageViewWhereOverrideSQL {
     
 }
 
-my %reserved = ('AND'=>1, 'OR'=>1, 'NOT'=>1, 'DATE'=>1,'OLDER_THAN'=>1, 'FROM'=>1,'TO'=>1,'>'=>1,'<'=>1,'>='=>1,'<='=>1,'=='=>1,'!='=>1);
-my %columns  = ('CAT'=>1,'STICKY'=>1, 'RTF'=>1, 'LOG'=>1);
+
 sub toTokens {
     my $base = shift;
     my @ret = ();

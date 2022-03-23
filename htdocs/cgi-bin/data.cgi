@@ -1,11 +1,14 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 #
 # Programed in vim by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
+use v5.34; #use diagnostics;
 use warnings;
 use strict;
-use experimental qw( switch );
+no warnings "experimental::smartmatch";
+##no critic qw(Subroutines::RequireFinalReturn)
+##no critic qw(Variables::RequireLocalizedPunctuationVars)
 use Exception::Class ('LifeLogException');
 
 use Syntax::Keyword::Try;
@@ -121,7 +124,7 @@ try{
     foreach my $id ($cgi->param('chk')){
         my $st = Settings::selectRecords($db, 'select RTF from LOG where '.$SQLID.'='.$id);
         my @ra = $st->fetchrow_array();
-        $st1->execute($id) or die "<p>Error->"& $_ &"</p>";        
+        $st1->execute($id) or die "<p>Error->$_</p>";        
         $st2->execute($id) if $ra[0];
     }
    #2021-08-11 Added just in case next an renumeration. 
@@ -209,14 +212,12 @@ try{
             }
             $r_cnt++;
         }
-        my $plural = "";
-        if($r_cnt>1){
-            $plural = "s";
-        }
-
+  
         $tbl .= '<tr class="r0"><td colspan="4"><a name="bottom"></a><a href="#top">&#x219F;</a>
         <center>
-        <h3>Please Confirm You Want<br>The Above Record'.$plural.' Deleted?</h3><br><button onclick="window.history.back()">No Go Back</button></center>
+            <h3>Please Confirm You Want<br>The Above Record'.($r_cnt>1?'s':'').' Deleted?</h3><br>
+           <button onclick="return backToMain()">No Go Back</button>
+        </center>
         </td></tr>
         <tr class="r0"><td colspan="4"><center>
         <input type="submit" value="I AM CONFIRMING!">
@@ -401,7 +402,7 @@ try{
 }
 }
 sub cam {
-    my $am = sprintf( "%.2f", shift @_ );
+    my $am = sprintf( "%.2f", shift);
     # Add one comma each time through the do-nothing loop
     1 while $am =~ s/^(-?\d+)(\d\d\d)/$1,$2/;
     return $am;
