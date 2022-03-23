@@ -433,6 +433,13 @@ function formDelValidation() {
 return true;
 }
 
+function backToMain() {// func. required as chrome submits whole form on if buttons are not falsed.
+    $("[name='confirmed']").val(0);    
+    //window.location.href='main.cgi';
+    history.back();
+    return false;
+}
+
 function validate(dt, log) {
     var tm, msg;
     if (!Date.parse(dt)) {
