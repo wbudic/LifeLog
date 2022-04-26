@@ -28,17 +28,29 @@ sudo cpan DBD::SQLite;
 # or download latest from: https://www.sqlite.org/download.html
 # Optional but recommended install a ProgresSQL database server and driver see: Installation_ProgresSQL.txt
 
-## To install from source Perl Language Interpreter, system wide not local. Example:
-# Important is to set to configure to /usr/local/, not ./Configure -des -Dprefix=$HOME/localperl
+## 
+# To compile install from source latest Perl Language Interpreter, to local home.
+# Note I do not recomended now to compile build install 
+# for the whole system, if it comes with perl. Systems can come and go. 
+# Your $HOME directory is important.
 #
-$ cd ~/dev
+# Example:
+$ mkdir ~/dev; cd ~/dev
 $ wget https://www.cpan.org/src/5.0/perl-5.34.0.tar.gz
 $ sudo tar -xzf perl-5.34.0.tar.gz
 $ cd perl-5.34.0
-$ sudo ./Configure -des -Dprefix=/usr/local/
+$ ./Configure -Dusethreads -des -Dprefix=~$HOME/localperl
 $ sudo make
 $ sudo make test
 $ sudo make install
+# Once it is installed in $HOME/localperl you can run:
+$ rm -rf ~/dev/perl-5.34.0
+# Modify vim ~/.bashrc to have:
+PATH="/home/will/localperl/bin${PATH:+:${PATH}}"; export PATH;
+# We use sudo to cpan install stuff for the whole system.
+# This is currently located at:
+export PERL5LIB=/usr/local/share/perl/5.30.0/
+
 
 ## Development Environment Perl Install
 
