@@ -3,7 +3,7 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-use v5.34; #use diagnostics;
+use v5.30; #use diagnostics;
 use warnings;
 use strict;
 no warnings "experimental::smartmatch";
@@ -255,25 +255,36 @@ my %hshDesc = ();
 my $c_sel   = 1;
 my $data_cats = "";
 my $td_cat = "<tr><td><ul>";
-my $td_itm_cnt =0;
-while ( my @row = $st->fetchrow_array() ) {
+my $td_itm_cnt;
+# We need to preserve key order of categories by user, no sorting or randomness allowed.
+my @keys;
+while (my @row = $st->fetchrow_array()) {
 	my $n = $row[1];
 	$n =~ s/\s*$//g;
+	push @keys, $row[0];
 	$hshCats{$row[0]} = $n;
 	$hshDesc{$row[0]} = $row[2];
-	if($td_itm_cnt>4){
-		$td_cat .= "</ul></td><td><ul>";
-		$td_itm_cnt = 0;
-	}
-	$td_cat .= "<li id='".$row[0]."'><a href='#'>".$row[1]."</a></li>";
 	$td_itm_cnt++;
 }
-if($td_itm_cnt<5){#fill spacing.
-	for (my $i=0;$i<5-$td_itm_cnt;$i++){
+my $present_rows_cnt =  $td_itm_cnt > 20 ? 2+(($td_itm_cnt)/10)*2 : 4;
+$td_itm_cnt = 0;
+foreach my $key(@keys){
+	if($td_itm_cnt>$present_rows_cnt){
+		$td_cat .= "</ul></td><td><ul>";
+		$td_itm_cnt = 0;		
+	}
+	$td_cat .= "<li id='".$key."'><a href='#'>".$hshCats{$key}."</a></li>";
+	$td_itm_cnt++;
+}
+$present_rows_cnt++ if $td_itm_cnt<$present_rows_cnt+1;
+if($td_itm_cnt<$present_rows_cnt){#fill spacing.
+	for (my $i=0;$i<$present_rows_cnt-$td_itm_cnt;$i++){
 		$td_cat .= "<li><a href='#'></a>&nbsp;</li>";
 	}
 }
 $td_cat .= "</ul></td></tr>";
+
+
 
 
 for my $key ( keys %hshDesc ) {
@@ -1054,8 +1065,9 @@ else{
 	$sideMenu = qq(
         <div id="menu" title="To close this menu click on its heart, and wait.">
         <div class="hdr" style="marging=0;padding:0px;">
-        <a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
-        <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
+		<a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
+        &nbsp;        
+		<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>
         <a id="menu_close" href="#" onclick="return hideLog();"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
         </div>
         <hr>
@@ -1078,7 +1090,6 @@ else{
         </div>
         );
 }
-
 
 my $quill = &quill( param('submit_is_edit') );
 my $help = &help;

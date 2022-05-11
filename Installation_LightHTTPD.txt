@@ -14,7 +14,7 @@ sudo apt-get install libpcre3-dev -y
 sudo apt-get install libbz2-dev -y
 sudo apt install libssl-dev -y
 
-./configure --prefix=/usr/local/lighttpd --with-openssl --with-sqlite
+./configure --prefix=/usr/local/lighttpd --with-openssl --with-sqlite --with-pgsql
 make
 sudo make install
 

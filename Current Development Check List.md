@@ -6,6 +6,9 @@
 
 ### New Development v.2.3+
 
+* [ ] Backup options revisited/retested.
+* [ ] Categories display and intereaction to be bettered.
+* [ ] Bug 37 Keywords only search not wotking on detecting very old items.
 * [x] Fix uninitialized $scalars and warnings. My style of programming uses this as a perl feature, as unutilized is also null or empty. Linter disagrees with that. Empty or null  isn't also 0 for it. Null, empty, undef, and zero should be the same thing in scalar context and logic.
 * [ ] Stats and config page should check github for latest version, as background pull.
 * [ ] Implement template based CGI processing (slower but better separation of concerns).
@@ -259,6 +262,7 @@ between 2018-08-22 04:13:55 **Moon Stable** production release and this
 
 ### v. 2.3+ Encountered/Fixed
 
+* Bug 37 Keywords only search not wotking on detecting very old items.
 * &#10004; Bug 36.1, Introduced bug, old backup delete not working.
 * &#10004; Bug 36, DBFix not fully working on PG based install and restore not working from backups made with older versions of OpenSSL.
   * Also, restore not working on uploaded backups, from local computer.

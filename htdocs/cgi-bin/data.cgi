@@ -20,7 +20,7 @@ use lib "system/modules";
 require Settings;
 
 my $db        = Settings::fetchDBSettings();
-my $cgi       = Settings::cgi();
+my $cgi       = Settings::cgi(); 
 my $dbname    = Settings::dbName();
 my $human     = DateTime::Format::Human::Duration->new();
 my $PRC_WIDTH = Settings::pagePrcWidth();
@@ -31,6 +31,7 @@ my $imgw      = 210;
 my $imgh      = 120;
 my $opr = $cgi->param("opr");
 my $confirmed = $cgi->param('confirmed');
+
 if ($opr == 1){
         DisplayDateDiffs();
 }
@@ -168,7 +169,8 @@ try{
 
     #Get ids and build confirm table and check
     my $stm = $stmS ." ";
-    foreach my $id ($cgi->param('chk')){
+    my @chks= $cgi->param('chk');
+    foreach my $id (@chks){
         if($opr == 2){
             $stm = $stm . "$SQLID = " . $id . " OR ";
         }
@@ -182,7 +184,7 @@ try{
                  
     if($opr == 0){        
         printHeader('Confirm Deletion');
-        print $cgi->pre("###NotConfirmed()->[stm:$stm]") if($DEBUG);
+        print $cgi->pre("###NotConfirmed()->[stm:$stm]\n]opr:$opr]") if($DEBUG);
 
         my $r_cnt = 0;
         my $rs = "r1";
@@ -338,8 +340,8 @@ try{
     my $stmE = " ORDER BY DATE DESC, ID DESC;";  
 
     #Get ids and build confirm table and check
-    my $stm = " ";
-    foreach my $id ($cgi->param('chk')){
+    my $stm = " "; my @chks= $cgi->param('chk');
+    foreach my $id (@chks){
         if($opr == 2){
             $stm = $stm . "$SQLID = " . $id . " OR ";
         }

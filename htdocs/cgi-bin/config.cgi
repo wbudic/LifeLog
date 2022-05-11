@@ -110,7 +110,7 @@ while(my @row = $dbs->fetchrow_array()) {
  }
 
 my $frmCats = qq(
-     <form id="frm_config" action="config.cgi">).$tbl.qq(
+     <form id="frm_config" action="config.cgi#categories">).$tbl.qq(
       <tr class="r1">
          <td><input type="text" name="caid" value="" size="3"/></td>
          <td><input type="text" name="canm" value="" size="12"/></td>
@@ -1247,7 +1247,7 @@ sub backup {
 sub restore {
 
     my $file = shift;
-    my ($tar,$pipe,@br,$stdout,$b_db);
+    my ($tar,$pipe, @br,$stdout,$b_db);
     my $pass = Settings::pass();
     my $hndl = $cgi->param('bck_upload');
     my $dbck = &Settings::logPath."bck/"; `mkdir $dbck` if (!-d $dbck);
@@ -1257,29 +1257,36 @@ sub restore {
     print $fhLog $stamp, "Started restore procedure.\n";
 
 try{
-       getHeader();
-       print $cgi->start_html;
+    getHeader();
+    print $cgi->start_html;
 
-my $stdout = capture_stdout {        
-        print "Restore started: ".Settings::today(), "\n";
-        if($file){ #Open handle on server where backup is to be restored.
-            my $f = &Settings::logPath.$file;
-            open($hndl, '<', $f) or die "Can't open $f: $!";            
-            print $fhLog $stamp, "Reading on server backup file -> $file\n";
-            $tar = $dbck.$file;
-        }        
-        else{
-            print $fhLog $stamp, "Uploading to server backup file -> $hndl\n";
-            $tar = $dbck.$hndl;
-        }
+    
+    if($file){ #Open handle on server where backup is to be restored.
+        my $f = &Settings::logPath.$file;
+        open($hndl, '<', $f) or die "Can't open $f: $!";            
+        print $fhLog $stamp, "Reading on server backup file -> $file\n";
+        $tar = $dbck.$file;
+    }        
+    else{
+        print $fhLog $stamp, "Uploading to server backup file -> $hndl\n";
+        $tar = $dbck.$hndl;
+    }
+
+    print $cgi->pre("Restore started: ".Settings::today(), "\n", "Reading $tar ..."); 
+
+    my $stdout = capture_stdout {        
         $tar =~ s/osz$/tar/;
         my $srcIsPg = 0;
         my $passw   = $pass; $passw = uc crypt $pass, hex Settings->CIPHER_KEY if &Settings::isProgressDB;
-        open (my $pipe, "|-", "openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -d -salt -S ".
-                Settings->CIPHER_KEY." -pass pass:$passw-$alias -in /dev/stdin -out $tar 2>/dev/null") or die "Pipe Failed for $tar: $!";                 
+        open ($pipe, "|-", "openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -d -salt -S ".
+                Settings->CIPHER_KEY." -pass pass:$passw-$alias -in /dev/stdin -out $tar") 
+                or die "Pipe Failed for $tar: $!";
+         
             while(<$hndl>){print $pipe $_; die "bad decoding" if $?;}; 
         close $pipe; 
         close $hndl;
+        
+        
 #cat bck_20210819160848_SQLite_admin.osz | openssl enc -d -des-ede3-cfb -salt -S 95d7a85ba891da -pass pass:42FAP5H0JUSZM-admin -in /dev/stdin > extract.tar
 #openssl des-ede3-cfb -d -salt -S 95d7a85ba891da -pass pass:42FAP5H0JUSZM-admin -pbkdf2 -in bck_20210830133220_NUc_SQLite_admin.osz -out extract.tar
 
@@ -1459,6 +1466,7 @@ catch{
     $ERROR = "<br><font color='red'><b>Full Restore Failed!</b></font><br>$@ \n";
     $ERROR .= "br:[@br]" if(@br);
     $ERROR .= "<br><b>Failed at stage:</b> $stage";
+    print $fhLog $stamp, "Error: $@ at:@br.\n";
     openlog(Settings::dsn(), 'cons,pid', "user");
         syslog('err', '%s', $ERROR);
     closelog();
