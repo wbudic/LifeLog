@@ -29,7 +29,7 @@ sudo ./$LifeLogInstall
 #Used for stats, required utility
 sudo apt install inxi -y
 
-echo;echo "Done with Life Log modules installation!"
+echo -e "\nDone with Life Log modules installation!"
 
 
 

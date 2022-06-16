@@ -52,6 +52,21 @@ PATH="/home/will/localperl/bin${PATH:+:${PATH}}"; export PATH;
 export PERL5LIB=/usr/local/share/perl/5.30.0/
 
 
+./Configure -des \
+        -Duse64bitall \
+        -Dcccdlflags='-fPIC' \
+        -Dcccdlflags='-fPIC' \
+        -Dccdlflags='-rdynamic' \
+        -Dlocincpth=' ' \
+        -Duselargefiles \
+        -Dusethreads \
+        -Duseshrplib \
+        -Dd_semctl_semun \
+        -Dusenm \
+        -Dprefix=~$HOME/localperl
+
+
+
 ## Development Environment Perl Install
 
 # Developer? Install VSCode, not from flatpack. Use Microsoft site -> https://code.visualstudio.com/
