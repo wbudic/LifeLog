@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/

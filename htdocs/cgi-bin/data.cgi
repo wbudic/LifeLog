@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # Programed in vim by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/

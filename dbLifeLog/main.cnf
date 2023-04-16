@@ -115,7 +115,7 @@ BankingPlugin->banking.pl
 35|Income      `Significant yearly income.
 40|Work        `Work related entry, worth monitoring.
 45|Food        `Quick reference to recipes, observations.
-50|Music       `Music reference of interest. Youtube embbed.
+50|Music       `Music reference of interest. Youtube embedded.
 52|Sport/Club  `Sport or Social related entry.
 55|Cars        `Car(s) related entry.
 60|Online      `Online purchases (ebay, or received/ordered from online source).

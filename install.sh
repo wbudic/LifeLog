@@ -1,3 +1,10 @@
+
+sudo apt install libpq-dev
+sudo mkdir /usr/include/postgresql
+apt install zlib1g-dev
+
+
+
 #
 # From LifeLog v.3.5 installation is to local user directory if you have latest perl recompiled under your users home.
 # And want to develop and test it from latest relases runing user localy, which is recomended. When all works and you are happy
@@ -32,3 +39,4 @@ perl -MCPAN -e 'install Regexp::Common'
 perl -MCPAN -e 'install Perl::LanguageServer'
 perl -MCPAN -e 'install Log::Log4perl'
 perl -MCPAN -e 'install Number::Bytes::Human'
+perl -MCPAN -e 'install File::ReadBackwards'
