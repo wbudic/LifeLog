@@ -741,7 +741,7 @@ sub configProperty {
 }
 
 sub connectDBWithAutocommit {
-    connectDB(undef,undef,undef,shift);
+    connectDB(undef,undef,undef,1);
 }
 sub connectDB {
     my ($d,$u,$p,$a) = @_;    
