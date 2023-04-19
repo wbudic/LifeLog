@@ -42,6 +42,11 @@ sudo vim /etc/postgresql/12/main/postgresql.conf to modify--> listen_addresses =
 sudo vim pg_hba.conf ->
 host    all             all              0.0.0.0/0                       md5
 host    all             all              ::/0                            md5
+
+# New PG version: If want remote client access add in server /etc/postgresql/14/main/pg_hba.conf:
+host    all             all             {client-server-access-ip}/24      scram-sha-256
+
+
 sudo service postgresql restart
 
 ## Install required libpq-dev to compile test perl driver, later. 
@@ -56,6 +61,8 @@ sudo -u postgres psql -c "ALTER USER  postgres PASSWORD 'postgres';"
 sudo -u postgres psql -c "CREATE ROLE lifelog WITH LOGIN SUPERUSER CREATEDB CREATEROLE INHERIT NOREPLICATION CONNECTION LIMIT -1 PASSWORD 'xxxxxxx'";
 sudo -u postgres psql -c "CREATE DATABASE lifelog;"
 sudo -u postgres psql -c "grant all privileges on database lifelog to lifelog;"
+
+
 
 ## Start stop Postgres SQL
 sudo service postgresql start
