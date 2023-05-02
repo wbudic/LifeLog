@@ -3,7 +3,7 @@
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-use v5.10;
+use v5.30;
 use strict;
 use warnings;
 
@@ -380,7 +380,7 @@ my $frmDB = qq(
             <font color="red">WARNING!</font> Checking any of the above extra actions will cause loss
                             of your changes. Please, export/backup first.</td>
         </tr>
-        </table><input type="hidden" name="db_fix" value="1"/></form><br>
+        </table><input type="hidden" name="pub" value="test"><input type="hidden" name="db_fix" value="1"/></form><br>
         );
 $tbl = qq(<table id="cnf_fix" class="tbl" border="1" width=")
   . &Settings::pagePrcWidth . qq(%">
@@ -922,7 +922,11 @@ sub processDBFix {
             print "done!\n" if &Settings::debug;
         }
 
-        if ($wipe_ss) {
+        if     ($rs_syst) {
+            print "Doing resetSystemConfiguration next..." if &Settings::debug;            
+            &resetSystemConfiguration();
+            print "Doing resetSystemConfiguration next..." if &Settings::debug;
+        }elsif ($wipe_ss) {
             print "Doing wipeSystemConfiguration next..." if &Settings::debug;
             Settings::saveReserveAnons()
               ;   #So we can bring back from dead application reserve variables.
@@ -937,11 +941,6 @@ sub processDBFix {
         print "Commited ALL!<br>" if (&Settings::debug);
 
 
-        if ($rs_syst) {
-            print "Doing resetSystemConfiguration next..." if &Settings::debug;            
-            &resetSystemConfiguration();
-            print "Doing resetSystemConfiguration next..." if &Settings::debug;
-        }
 
         if (&Settings::debug) {
             $db  = Settings::connectDB();
@@ -963,7 +962,7 @@ sub processDBFix {
         $db->do('ROLLBACK;');
         LifeLogException->throw(
             error =>
-qq(@&processDBFix error -> $_ with statement->[$sql] for $date update counter:$cntr_upd \nERROR->$@),
+qq(@&processDBFix error -> $_ with statement->[$sql] for $date update counter:$cntr_upd \nERROR->$@).Settings::dumpVars(),
             show_trace => 1
         );
     }
@@ -1047,112 +1046,7 @@ sub renumerate {
     print "done!\n" if &Settings::debug;
 }
 
-#@TODO Needs to be redone, use CNF 2.2
-sub resetSystemConfigurationUPDATING_BELLOW {
 
-    open( my $fh, '<', &Settings::logPath . 'main.cnf' )
-      or die "Can't open " . &Settings::logPath . "main.cnf! $!";
-    my $db = shift;
-    my ( $id, $name, $value, $desc );
-    my $inData = 0;
-    my $err    = "";
-    my %vars   = {};
-    print "Doing resetSystemConfiguration next..." if &Settings::debug;
-    try {
-        my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
-        my $update = $db->prepare('UPDATE CONFIG SET VALUE=? WHERE ID=?;');
-        my $updExs =
-          $db->prepare('UPDATE CONFIG SET NAME=?, VALUE=? WHERE ID=?;');
-        $dbs->finish();
-        while ( my $line = <$fh> ) {
-            chomp $line;
-            my @tick = split( "`", $line );
-            if ( scalar(@tick) == 2 ) {
-                my %hsh = $tick[0] =~ m[(\S+)\s*=\s*(\S+)]g;
-                if ( scalar(%hsh) == 1 ) {
-                    for my $key ( keys %hsh ) {
-                        my %nash = $key =~ m[(\S+)\s*\|\$\s*(\S+)]g;
-                        if ( scalar(%nash) == 1 ) {
-                            for my $id ( keys %nash ) {
-                                $name  = $nash{$id};
-                                $value = $hsh{$key};
-                                if ( $vars{$id} ) {
-                                    $err .=
-                                      "UID{$id} taken by $vars{$id}-> $line\n";
-                                }
-                                else {
-                                    $dbs = Settings::selectRecords( $db,
-"SELECT ID, NAME, VALUE, DESCRIPTION FROM CONFIG WHERE NAME LIKE '$name';"
-                                    );
-                                    $inData = 1;
-                                    my @row = $dbs->fetchrow_array();
-                                    if ( scalar @row == 0 ) {
-
-                     #The id in config file has precedence to the one in the db,
-                     # from a possible previous version.
-                                        $dbs = Settings::selectRecords( $db,
-"SELECT ID FROM CONFIG WHERE ID = $id;"
-                                        );
-                                        @row = $dbs->fetchrow_array();
-                                        if ( scalar @row == 0 ) {
-                                            $insert->execute(
-                                                $id,    $name,
-                                                $value, $tick[1]
-                                            );
-                                        }
-                                        else {
-                                            #rename, revalue exsisting id
-                                            $updExs->execute( $name, $value,
-                                                $id );
-                                        }
-                                    }
-                                    else {
-                                        $update->execute( $value, $id );
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            $err .=
-"Invalid, spec'ed {uid}|{setting}`{description}-> $line\n";
-                        }
-
-                    }    #rof
-                }
-                else {
-                    $err .= "Invalid, speced entry -> $line\n";
-                }
-
-            }
-            elsif ( $line eq '>>' ) { last }
-            elsif ( $inData && length($line) > 0 ) {
-                if ( scalar(@tick) == 1 ) {
-                    $err .= "Corrupt Entry, no description supplied -> $line\n";
-                }
-                else {
-                    $err .= "Corrupt Entry -> $line\n";
-                }
-            }
-        }
-        die "Configuration script "
-          . &Settings::logPath
-          . "main.cnf' contains errors."
-          if $err;
-        close $fh;
-        Settings::getConfiguration($db);
-        print "done!\n" if &Settings::debug;
-    }
-    catch {
-        close $fh;
-        print $cgi->header;
-        print
-"<font color=red><b>SERVER ERROR!</b></font>[id:$id,name:$name,value:$value]->$@<br> "
-          . $_
-          . "<br><pre>$err</pre>";
-        print $cgi->end_html;
-        exit;
-    }
-}
 
 sub resetSystemConfiguration {
     
@@ -1166,10 +1060,10 @@ sub resetSystemConfiguration {
     try {
         my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
         my $update = $db->prepare('UPDATE CONFIG SET VALUE=? WHERE ID=?;');
-        my $updExs =
-          $db->prepare('UPDATE CONFIG SET NAME=?, VALUE=? WHERE ID=?;');
+        my $updExs = $db->prepare('UPDATE CONFIG SET NAME=?, VALUE=? WHERE ID=?;');
         foreach my $line ( @lines ) {
             my @tick = split( "`", $line );
+            next if $line eq '4';
             if ( scalar(@tick) == 2 ) {
 
        #Specification Format is: ^{id}|{property}={value}`{description}\n
@@ -1962,8 +1856,7 @@ sub cats {
 sub error {
     my $url = $cgi->url( -path_info => 1 );
     print
-qq(<div class="debug_output" style="font-size:large;"><div style="text-align: left; width:100%; overflow-x:wrap;">
-                <h2 style="color:tomato;">Sorry Server Encountered Errors</h2><p>
+qq(<div class="debug_output" style="font-size:large;"><div style="text-align: left; width:100%; overflow-x:wrap;">                
                 $ERROR
     );
     print "<h3>CGI Parameters</h3><ol>";
