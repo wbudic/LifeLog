@@ -5,10 +5,11 @@ Preferably on a small inexpensive server connected to your local network.
 
 Written in Perl, easy to implement and modify.
 
-Latest stable version is **2.4** in **SUN** stage.
+Latest stable version is **2.5** in **SUN** stage.
 
 ## What is new in this release?
 
+* Has demo and test site [test site](https://lifelog.hopto.org) for entering EARTH ready stage.
 * Can be now installed further to an PostgresSQL Database System.
  * Backups/Restore fully integrated, between SQLite and PostgresSQL.
 * Bettered user Interaction.
