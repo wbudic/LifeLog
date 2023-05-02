@@ -40,7 +40,7 @@ This is an Open Source License project -> https://choosealicense.com/licenses/is
 
 # Public, enabled list of categories. Remove -> '!' prefix before tag name, to enable. Be careful what category you add/enable here.
 # Public records view feature only, it doesn't allow new log entries to be added and have pin point searching of all existing.
-<<!PUBLIC_CATS<03,06,09>#File,System log and Event.
+<<!PUBLIC_CATS<03,06,09>>>#File,System log and Event.
 # Following is similar to AUTO_LOGIN setting above, and must be set.
 <<!PUBLIC_LOGIN</>>>
 <<TIME_ZONE_MAP<
@@ -74,6 +74,7 @@ BankingPlugin->banking.pl
 
 #For internal use only.
 <<^CONFIG_META<200>The reserved id range for config table is from 200, upwards.>>
+
 #
 # The following are initial setup constance's. We use them instead of hard coding a lot.
 # Modifying them after the fact of a database creation is futile, a limp biscuit.
@@ -103,7 +104,7 @@ BankingPlugin->banking.pl
 40|$SUBPAGEDIR  =docs`Directory to scan for subpages like documents.
 42|$DISP_ALL    = 1`Display whole log entry, default -> 1=true, 0=false for display single line only.
 44|$TRANSPARENCY= 1`Should log panel be transparent, default is yes or on.
-50|$CURR_SYMBOL = $`Currency symbol.
+50|$CURR_SYMBOL = &#36;`Currency symbol.
 >>
 <<CAT<3>
 01|Unspecified `For quick uncategorized entries.
