@@ -6,14 +6,13 @@
 #
 package Settings;
 use v5.30; #use diagnostics;
-use CGI::Carp qw(fatalsToBrowser set_message);
 use Exception::Class ('SettingsException','LifeLogException','SettingsLimitSizeException');
 use Syntax::Keyword::Try;
 use warnings; no warnings 'experimental';
 use strict;
 use CGI;
 use CGI::Session '-ip_match';
-use CGI::Carp qw ( fatalsToBrowser );
+use CGI::Carp qw(fatalsToBrowser set_message);
 use DateTime;
 use DateTime::Format::SQLite;
 use DateTime::Duration;
@@ -77,7 +76,7 @@ our $KEEP_EXCS    = 0;
 our $COMPRESS_ENC = 0; #HTTP Compressed encoding.
 our $DBI_SOURCE   = "DBI:SQLite:";
 our $DBI_LVAR_SZ  = 1024;
-our $CURR_SYMBOL  = '$';
+our $CURR_SYMBOL  = '&#36;';#'$';
 
 my ($cgi, $sss, $sid, $alias, $pass, $dbname, $pub);
 our $DSN;
@@ -91,9 +90,11 @@ our %tz_map;
 our $TH_CSS        = 'main.css';
 our $JS            = 'main.js';
 our $BGCOL         = '#c8fff8';
+
+
 #Set to 1 to get debug help. Switch off with 0.
 our $DEBUG         = 1;
-#END OF SETTINGS
+
 
 ### Private Settings sofar (id -> name : def.value):
 #200 -> '^REL_RENUM' : this.$RELEASE_VER (Used in login_ctr.cgi)
@@ -192,18 +193,22 @@ try {
                             last if($line =~ />$/);
                             $S_ .= $line . "\n";
                         }
-                        anonsSet('PLUGINS', $S_);
+                        $anons{'PLUGINS'} = $S_;
                         next;
-                    }elsif($line =~ /'<<'.META.'<'/p){
-                        anonsSet(META, 1)
+                    }else{
+                        $v = $v = parseAutonom(META,$line); #($line =~ /<<^CONFIG_META<'/p){                        
+                        if($v){
+                            $anons{META} = $v;
+                            last #we can stop reading the config here, rest of it is irrelevant.
+                        }
                     }
-                   last if parseAutonom(META, $line);
+                   
         }
         close $fh; 
         if(!$SQL_PUB&&$pub ne 'test'){$alias=undef}       
     }
     if(!$alias){
-        print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
+        print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");        
         exit;
     }    
     my $ret  = connectDB($dbname, $alias, $pass);
@@ -216,6 +221,37 @@ try {
     exit;
 }
 }
+
+my  @F = ('', '""', 'false', 'off', 'no', 0);# Placed the 0 last, as never will be checked for in toPropertyValue.
+my  @T  = (1, 'true', 'on', 'yes');
+my $reg_autonom = qr/(<<)(.+?)(<(.*)>*|<)(\n*.+\s*)(>{2,3})/mp;
+
+sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
+    my $tag  = shift;
+    my $line = shift;
+    return if $line =~ /^\s*[\/#]/; #standard start of single line of comment, skip.
+    if($line =~ /$reg_autonom/g){
+        my ($t,$val) = ($2,$4);
+        $val =~ s/""$//g; #empty is like not set
+        $val =~ s/^"|"$//g;chop $val if $val =~ s/>$//g;
+        if($t eq $tag && $val){           
+           return toPropertyValue( $val );
+        }        
+    }
+
+    return;
+}
+
+sub toPropertyValue {
+    my $prm = shift;
+    if($prm){
+       my $p = lc $prm; 
+       foreach(@T){return 1 if $_ eq $p}
+       foreach(@F){return 0 if $_ eq $p}       
+    }
+    return $prm;
+}
+
 
 sub today {
     my $ret = setTimezone();
@@ -501,8 +537,8 @@ sub setupTheme {
         when ("Sun")   { %theme = (css=>'wsrc/main_sun.css',   colBG=>'#FFD700', colSHDW=>'#FFD700') }
         when ("Moon")  { %theme = (css=>'wsrc/main_moon.css',  colBG=>'#000000', colSHDW=>'#DCDCDC') }
         when ("Earth") { %theme = (css=>'wsrc/main_earth.css', colBG=>'#228B22', colSHDW=>'#8FBC8F') }
-        default{
-        %theme = (css=>'wsrc/main.css',colBG=>'#c8fff8',colSHDW=>'#9baec8');            # Standard;
+        default { # Standard;
+                         %theme = (css=>'wsrc/main.css',colBG=>'#c8fff8',colSHDW=>'#9baec8');           
         }
     }
 }
@@ -749,7 +785,7 @@ sub connectDB {
     $p = $alias if !$p;
     $a = 1      if !$a;
     my $db =$u;
-    if(!$d){$db = 'data_'.$u.'_log.db';$d=$u}
+    if(!$d){$db = 'data_'.$u.'_log.db';$dbname = $d=$u}
     else{   $db = 'data_'.$d.'_log.db';$dbname = $d if !$dbname}
     $DBFILE = $LOG_PATH.$db;
         if ($IS_PG_DB)  {
@@ -764,55 +800,7 @@ sub connectDB {
     }
 }
 
-my  @F = ('', '""', 'false', 'off', 'no', 0);# Placed the 0 last, as never will be checked for in toPropertyValue.
-my  @T  = (1, 'true', 'on', 'yes');
-# my  $reg_autonom = qr/(<<)(.+?)(<)(.*[>]+)*(\n*.+\s*)(>{2,})/mp;
-# sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
-#     my $tag  = shift;
-#     my $line = shift;
-#     return if $line =~ /^\s*[\/#]/; #standard start of single line of comment, skip.    
-#     if($line =~ /$reg_autonom/g){
-#         #my ($t,$val,$desc) = ($2,$4,$5);
-#          my ($t,$val) = ($2,$4);   
-#         # if ($ins =~ />$/){
-#         #     chop $ins; $val=$ins
-#         # }else{$val=$ins}
-#         #die "TESTING {\n$t=$ins \n[$val]\n\n}" if $t =~ /^\^\D*/;
-#         $val =~ s/""$//g; #empty is like not set
-#         $val =~ s/^"|"$//g;        
-#         if($t eq $tag&&$val){           
-#            return toPropertyValue( $val );
-#         }        
-#     }
-#     return;
-# }
-#my $reg_autonom = qr/(<<)(.+?)(<)(\n*.+\s*)(>{3,})/mp;
-my $reg_autonom = qr/(<<)(.+?)(<(.*)>*|<)(\n*.+\s*)(>{2,3})/mp;
-sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag not found or wrong for passed line.
-    my $tag  = shift;
-    my $line = shift;
-    return if $line =~ /^\s*[\/#]/; #standard start of single line of comment, skip.
-    if($line =~ /$reg_autonom/g){
-        my ($t,$val) = ($2,$4);       
-        $val =~ s/""$//g; #empty is like not set
-        $val =~ s/^"|"$//g;chop $val if $val =~ s/>$//g;
-        if($t eq $tag&&$val){           
-           return toPropertyValue( $val );
-        }        
-    }
 
-    return;
-}
-
-sub toPropertyValue {
-    my $prm = shift;
-    if($prm){
-       my $p = lc $prm; 
-       foreach(@T){return 1 if $_ eq $p;}
-       foreach(@F){return 0 if $_ eq $p;}       
-    }
-    return $prm;
-}
 
 use Crypt::Blowfish;
 use Crypt::CBC;
@@ -841,7 +829,7 @@ sub loadLastUsedTheme {
 sub saveReserveAnons {
     my $meta = $anons{META}; #since v.2.3
     my @dr = split(':', dbSrc());
-    LifeLogException->throw(error=>"Meta anon property ^CONFIG_META not found!\n".
+    LifeLogException->throw(error=>"Meta anon property ".META." not found!\n".
                                    "You possibly have an old main.cnf file there.",  show_trace=>1) if not $meta;
     try{        
         my $db = connectDBWithAutocommit(0);
@@ -901,6 +889,7 @@ sub dumpVars {
     # dmp $self;
     #
     # We need to do it manually:
+    my $meta = $anons{META};
     return qq/
 release        {$RELEASE_VER}
 logPath        {$LOG_PATH} 
@@ -909,6 +898,7 @@ timezone       {$TIME_ZONE}
 transparent    {$TRANSPARENCY}
 transimage     {$TRANSIMAGE}
 language       {$LANGUAGE}
+currency       {$CURR_SYMBOL}
 sessionExprs   {$SESSN_EXPR}
 imgWidthHeight {$IMG_W_H}
 pagePrcWidth   {$PRC_WIDTH}
@@ -934,8 +924,9 @@ dbFile         {$DBFILE}
 dbName         {$dbname}
 dsn            {$DSN}
 isProgressDB   {$IS_PG_DB} 
-sqlPubors      {$SQL_PUB}        
-        /;
+sqlPubors      {$SQL_PUB}      
+meta           {$meta}  
+/
 }
 
 1;
