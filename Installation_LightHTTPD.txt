@@ -6,12 +6,12 @@ sudo apt install lighttpd
 cd ~/dev/lighttpd-1.4.54
 tar xvzf lighttpd-1.4.54.tar.gz
 sudo apt autoremove -y
-sudo apt-get install intltool -y
-sudo apt-get install pcre-config -y
-sudo apt-get install build-essential -y
-sudo apt-get install libssl-dev -y
-sudo apt-get install libpcre3-dev -y
-sudo apt-get install libbz2-dev -y
+sudo apt install intltool -y
+sudo apt install pcre-config -y
+sudo apt install build-essential -y
+sudo apt install libssl-dev -y
+sudo apt install libpcre3-dev -y
+sudo apt install libbz2-dev -y
 sudo apt install libssl-dev -y
 
 ./configure --prefix=/usr/local/lighttpd --with-openssl --with-sqlite --with-pgsql
@@ -28,7 +28,14 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
   -keyout elite.key -out elite.crt -subj "/CN=elite.net" \
   -addext "subjectAltName=DNS:elite.net,DNS:www.elite.net,IP:192.168.1.45"
 
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+  -keyout elite.key -out xip.crt -subj "/CN=104-225-141-231.cloud-xip.com" \
+  -addext "subjectAltName=DNS:104-225-141-231.cloud-xip.com,IP:104.225.141.231"
+
+
 cat elite.key elite.crt > elite.net.pem
+
+cat xip.key xip.crt > xip.com.pem
 
 ## Setup virtual Host with SSL
 

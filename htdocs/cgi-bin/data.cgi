@@ -3,60 +3,56 @@
 # Programed in vim by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
 #
-use v5.34; #use diagnostics;
+use v5.30; #use diagnostics;
 use warnings;
 use strict;
 no warnings "experimental::smartmatch";
-##no critic qw(Subroutines::RequireFinalReturn)
-##no critic qw(Variables::RequireLocalizedPunctuationVars)
-use Exception::Class ('LifeLogException');
 
+use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use DateTime::Format::Human::Duration;
 use Regexp::Common qw /URI/;
 use Text::CSV;
+ 
 
 use lib "system/modules";
 require Settings;
 
-my $db        = Settings::fetchDBSettings();
-my $cgi       = Settings::cgi(); 
-my $dbname    = Settings::dbName();
 my $human     = DateTime::Format::Human::Duration->new();
+my $db        = Settings::fetchDBSettings();
 my $PRC_WIDTH = Settings::pagePrcWidth();
 my $DEBUG     = Settings::debug();
 my $today     = Settings::today();
 my $tbl_rc    = 0;
 my $imgw      = 210;
 my $imgh      = 120;
-my $opr = $cgi->param("opr");
+my $cgi       = Settings::cgi(); 
+my $opr       = $cgi->param("opr"); $opr=0 if !$opr;
 my $confirmed = $cgi->param('confirmed');
 
 if ($opr == 1){
-        DisplayDateDiffs();
+    DisplayDateDiffs();
+    exit;
 }
 if ($opr == 3){
-        PrintView();
+    PrintView();
 }
 elsif ($confirmed){
-        DeletionConfirmed();
+    DeletionConfirmed();
 }else{
-    print $cgi->redirect('main.cgi') if not $cgi->param('chk');
-    NotConfirmed();
+    print $cgi->redirect('main.cgi') if not $cgi->param('chk');    
+    ConfirmForDeletionPage();    
 }
 $db->disconnect();
 
 sub DisplayDateDiffs {
-   
-    printHeader("Date Difference Report");
+       
     my $tbl = '<table class="tbl" width="'.$PRC_WIDTH.'%">
         <tr class="r0"><td colspan="2"><b>* DATE DIFFERENCES *</b></td></tr>';
 
     my $stm = 'SELECT DATE, LOG FROM VW_LOG WHERE ';
-    my  @ids = $cgi->param('chk');
-
-     @ids = reverse @ids;
-
+    my @ids = $cgi->param('chk');
+       @ids = reverse @ids;
     foreach (@ids){
         $stm .= "PID = " . $_ ."";
         if(  \$_ != \$ids[-1]  ) {
@@ -72,7 +68,7 @@ sub DisplayDateDiffs {
          my $rlog = $row[1];
          $rlog =~ m/\n/;
          $dt  = DateTime::Format::SQLite->parse_julianday( $rdat );
-         $dt->set_time_zone(&Settings::timezone);
+         $dt -> set_time_zone(&Settings::timezone);
          $dif = dateDiff($dt_prev, $dt);
          $tbl .= '<tr class="r1"><td>'. $dt->ymd . '</td>
                     </td><td style="text-align:left;">'.$rlog."</td></tr>".
@@ -90,10 +86,11 @@ sub DisplayDateDiffs {
         $tbl .= '<tr class="r0"><td colspan="2">'.$dif. '</td> </tr>';
     }
     $tbl .= '</table>';
+    printHeader("Date Difference Report");
+    print '<a name="top"></a><center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</a></div></center>';
+    print $cgi->end_html();
 
-print '<a name="top"></a><center><div>'.$tbl.'</div><br><div><a href="main.cgi">Back to Main Log</a></div></center>';
 }
-
 
 sub dateDiff {
     my($d1,$d2,$ff,$sw)=@_;
@@ -115,33 +112,11 @@ sub boldDate {
 return "<b>".$d->ymd()."</b> ".$d->hms;
 }
 
-
-sub DeletionConfirmed {
-try{    
-    my $SQLID = 'rowid'; $SQLID = 'ID' if Settings::isProgressDB();
-    my $st1 = $db->prepare("DELETE FROM LOG WHERE $SQLID = ?;");
-    my $st2 = $db->prepare("DELETE FROM NOTES WHERE LID = ?;");
-    #print $cgi->header(-expires=>"+6os");
-    foreach my $id ($cgi->param('chk')){
-        my $st = Settings::selectRecords($db, 'select RTF from LOG where '.$SQLID.'='.$id);
-        my @ra = $st->fetchrow_array();
-        $st1->execute($id) or die "<p>Error->$_</p>";        
-        $st2->execute($id) if $ra[0];
-    }
-   #2021-08-11 Added just in case next an renumeration. 
-   # Above also checks now, if a log has flagged having an RTF before deleting the note entry.
-   Settings::renumerate($db);
-   print $cgi->redirect('main.cgi');  
-
-}catch{
-    print $cgi->p("<font color=red><b>ERROR</b>$!</font>  " . $@);
-}
-}
-
 sub printHeader {
+
 my $title = shift;
-&Settings::setupTheme;
 print $cgi->header(-expires=>"+6os");
+&Settings::setupTheme;
 print $cgi->start_html(-title => $title, -BGCOLOR => Settings::theme('colBG'),
             -script=> [ {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                         {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'},
@@ -151,12 +126,12 @@ print $cgi->start_html(-title => $title, -BGCOLOR => Settings::theme('colBG'),
                         {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
                         {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
                         {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}                        
-                        ],
-                        
-            -onload => "onBodyLoadGeneric()");
+                        ],                        
+            -onload => "onBodyLoadGeneric()"
+            )
 }
 
-sub NotConfirmed {
+sub ConfirmForDeletionPage {
 
 try{    
     my $SQLID = 'rowid'; $SQLID = 'ID' if( Settings::isProgressDB() );
@@ -183,8 +158,8 @@ try{
 
                  
     if($opr == 0){        
-        printHeader('Confirm Deletion');
-        print $cgi->pre("###NotConfirmed()->[stm:$stm]\n]opr:$opr]") if($DEBUG);
+        printHeader('Confirm Deletion'); 
+        print $cgi->pre("###ConfirmForDeletionPage()->[stm:$stm]\n]opr:$opr]") if($DEBUG);
 
         my $r_cnt = 0;
         my $rs = "r1";
@@ -234,7 +209,7 @@ try{
     elsif($opr == 2){        
         my $csv = Text::CSV-> new ( { binary => 1, escape_char => "\\", strict => 1, eol => $/ } );           
         my @columns = ("ID", "CAT", "DATE", "LOG", "AMOUNT");        
-        print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>"$dbname"."_sel.csv");        
+        print $cgi->header(-charset=>"UTF-8", -type=>"application/octet-stream", -attachment=>Settings::dbName()."_sel.csv");        
         print $csv->print(*STDOUT, \@columns);
         while (my $row=$st->fetchrow_arrayref()){
             #    $row[3] =~ s/\\\\n/\n/gs;
@@ -242,12 +217,46 @@ try{
                 print $out if(length $out>1);
         }
         exit;
+    }else{        
+        LifeLogException->throw(error => "Invalid Operation \$opr => $opr", show_trace=>1)
     }
     $st->finish();   
-}catch{
-    print "<font color=red><b>SERVER ERROR</b>-> Method NotConfirmed() Page Build Failed!.</font>:<pre>".$@."</pre>";
+}catch($e){
+    errorPage($e,'ConfirmForDeletionPage')
 }
 }
+
+
+sub DeletionConfirmed {
+    try{    
+        my $SQLID = 'rowid'; $SQLID = 'ID' if Settings::isProgressDB();
+        my $st1 = $db->prepare("DELETE FROM LOG WHERE $SQLID = ?;");
+        my $st2 = $db->prepare("DELETE FROM NOTES WHERE LID = ?;");
+        #print $cgi->header(-expires=>"+6os");
+        foreach my $id ($cgi->param('chk')){
+            my $st = Settings::selectRecords($db, 'select RTF from LOG where '.$SQLID.'='.$id);
+            my @ra = $st->fetchrow_array();
+            $st1->execute($id) or die "<p>Error->$_</p>";        
+            $st2->execute($id) if $ra[0];
+        }
+    #2021-08-11 Added just in case next an renumeration. 
+    # Above also checks now, if a log has flagged having an RTF before deleting the note entry.
+    Settings::renumerate($db);
+    print $cgi->redirect('main.cgi');  
+
+    }catch($e){
+        errorPage ($e, 'DeletionConfirmed');
+    }
+}
+
+sub errorPage{
+my $err = shift;
+my $sub = shift;
+printHeader("ERROR");
+print "<font color=red><h2>".ref($err)." Encountered!</h2><br></font><p>Building  $sub Failed! </p><pre><b>Error:</b> ".$err."</pre>";
+print $cgi->end_html()
+}
+
 
 use Text::Wrap; $Text::Wrap::columns=80; $Text::Wrap::separator="\n"; 
 
@@ -395,13 +404,11 @@ try{
     }
     
     print "<center><div>\n$tbl\n</div></center>";
-
-    print $cgi->end_html();
-
     
-}catch{
-    print "<font color=red><b>SERVER ERROR</b>-> Method NotConfirmed() Page Build Failed!.</font>:<pre>".$@."</pre>";
+}catch($e){
+    errorPage($e,'ConfirmForDeletionPage')    
 }
+print $cgi->end_html();
 }
 sub cam {
     my $am = sprintf( "%.2f", shift);
