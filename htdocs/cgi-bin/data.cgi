@@ -250,8 +250,7 @@ sub DeletionConfirmed {
 }
 
 sub errorPage{
-my $err = shift;
-my $sub = shift;
+my  ($err, $sub) = @_;
 printHeader("ERROR");
 print "<font color=red><h2>".ref($err)." Encountered!</h2><br></font><p>Building  $sub Failed! </p><pre><b>Error:</b> ".$err."</pre>";
 print $cgi->end_html()
