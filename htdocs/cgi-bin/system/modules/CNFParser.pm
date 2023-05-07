@@ -15,18 +15,19 @@ use Hash::Util qw(lock_hash unlock_hash);
 use Time::HiRes qw(time);
 use DateTime;
 
+
 # Do not remove the following no critic, no security or object issues possible. 
 # We can use perls default behaviour on return.
 ##no critic qw(Subroutines::RequireFinalReturn,ControlStructures::ProhibitMutatingListFunctions);
 
-use constant VERSION => '2.7';
+use constant VERSION => '2.8';
 
-
+our $CONSTREQ = 0;
 our @files;
 our %lists;
 our %properties;
 our %instructors;
-our $CONSTREQ = 0;
+
 ###
 # Package fields are always global in perl!
 ###
@@ -87,6 +88,7 @@ sub import {
     return 1;    
 }
 
+
 ###
 # Post parsing instructed special item objects.
 ##
@@ -94,12 +96,14 @@ package InstructedDataItem {
     
     our $dataItemCounter = int(0);
 
-    sub new { my ($class, $ele, $ins, $val) = @_;
+    sub new { my ($class, $ele, $ins, $val) = @_;        
+        my $priority = ($val =~ s/_HAS_PROCESSING_PRIORITY_//si)?1:0;
         bless {
                 ele => $ele,
                 aid => $dataItemCounter++,
                 ins => $ins,
-                val => $val
+                val => $val,
+                priority => $priority
         }, $class    
     }
     sub toString {
@@ -134,6 +138,11 @@ package PropertyValueStyle {
         }
         bless $self, $class
     }
+    sub setPlugin{
+        my ($self, $obj) =  @_;
+        $self->{plugin} = $obj;
+    }
+    
     sub result {
         my ($self, $value) =  @_;
         $self->{value} = $value;
@@ -512,7 +521,7 @@ sub parse {  my ($self, $cnf, $content, $del_keys) = @_;
                     foreach  my $p(@props){ 
                         if($p && $p eq 'MACRO'){$macro=1}
                         elsif( $p && length($p)>0 ){                            
-                            my @pair = ($p=~/\s*(\w*)\s*[=:]\s*(.*)/s);#split(/\s*=\s*/, $p);
+                            my @pair = ($p=~/\s*([-+_\w]*)\s*[=:]\s*(.*)/s);#split(/\s*=\s*/, $p);
                             next if (@pair != 2 || $pair[0] =~ m/^[#\\\/]+/m);#skip, it is a comment or not '=' delimited line.                            
                             my $name  = $pair[0]; 
                             my $value = $pair[1]; $value =~ s/^\s*["']|['"]$//g;#strip quotes
@@ -737,40 +746,47 @@ sub parse {  my ($self, $cnf, $content, $del_keys) = @_;
                 $ditms[@ditms] = $struct;
             }
         }
+        my @del;
         for my $idx(0..$#ditms) {
             my $struct = $ditms[$idx];
-            my $type =  ref($struct); 
-            if($type eq 'CNFNode' && $struct->{'script'}=~/_HAS_PROCESSING_PRIORITY_/si){ 
+            my $type =  ref($struct);             
+            if($type eq 'CNFNode' && ($struct->{'script'} =~ s/_HAS_PROCESSING_PRIORITY_//si)){ # This will within trim out the flag if found.
                $struct->validate($struct->{'script'}) if $self->{ENABLE_WARNINGS};
                $anons->{$struct->{'_'}} = $struct->process($self, $struct->{'script'});
-               splice @ditms, $idx,1;
+               #splice @ditms, $idx,1; <- causing havoc when key order is scrambled. Weirdest thing in perl!
+               push @del, $idx; 
             }
         }
+        while(@del){
+            splice @ditms,pop @del, 1
+        }
+
         for my $idx(0..$#ditms) {
             my $struct = $ditms[$idx];
             my $type =  ref($struct); 
             if($type eq 'CNFNode'){   
                $struct->validate($struct->{'script'}) if $self->{ENABLE_WARNINGS};            
                $anons->{$struct->{'_'}} = $struct->process($self, $struct->{'script'});
-               splice @ditms, $idx,1;
+               push @del, $idx; 
+            }elsif($type eq 'InstructedDataItem' && $struct->{'priority'}){ 
+                my $t = $struct->{ins};
+                if($t eq 'PLUGIN'){ 
+                   instructPlugin($self,$struct,$anons);
+                }
+                push @del, $idx; 
             }
         }
-        @ditms =  sort {$a->{aid} <=> $b->{aid}} @ditms;
+        while(@del){
+            splice @ditms,pop @del, 1
+        }
+
+        @ditms =  sort {$a->{aid} <=> $b->{aid}} @ditms if $#ditms > 1;
         foreach my $struct(@ditms){
             my $type =  ref($struct); 
             if($type eq 'InstructedDataItem'){
                 my $t = $struct->{ins};
-                if($t eq 'PLUGIN'){  #for now we keep the plugin instance.
-                   try{             
-                            $properties{$struct->{'ele'}} = doPlugin($self, $struct, $anons);
-                            $self->log("Plugin instructed ->". $struct->{'ele'});
-                   }catch{ 
-                            if($self->{STRICT}){
-                               CNFParserException->throw(error=>@_,trace=>1);
-                            }else{
-                               $self->trace("Error @ Plugin -> ". $struct->toString() ." Error-> $@")                                 
-                            }
-                   }
+                if($t eq 'PLUGIN'){  
+                   instructPlugin($self,$struct,$anons);
                 }
             }
         }
@@ -803,6 +819,20 @@ sub parse {  my ($self, $cnf, $content, $del_keys) = @_;
     lock_hash(%$self);#Make repository finally immutable.
 }
 #
+
+sub instructPlugin {
+     my ($self, $struct, $anons) = @_;
+    try{             
+        $properties{$struct->{'ele'}} = doPlugin($self, $struct, $anons);
+        $self->log("Plugin instructed ->". $struct->{'ele'});
+    }catch($e){ 
+            if($self->{STRICT}){
+                CNFParserException->throw(error=>$e, show_trace=>1);
+            }else{
+                $self->trace("Error @ Plugin -> ". $struct->toString() ." Error-> $@")                                 
+            }
+    }
+}
 
 our $SQL;
 sub  SQL {
@@ -870,7 +900,7 @@ sub registerInstructor {
 # Setup and pass to pluging CNF functionality.
 # @TODO Current Under development.
 ###
-sub doPlugin{
+sub doPlugin {
     my ($self, $struct, $anons) = @_;
     my ($elem, $script) = ($struct->{'ele'}, $struct->{'val'});
     my $plugin = PropertyValueStyle->new($elem, $script);
@@ -887,8 +917,9 @@ sub doPlugin{
         }else{
            $obj = $pck->new();
         }        
-        my $res = $obj->$sub($self,$prp);
-        if($res){            
+        my $res = $obj->$sub($self, $prp);
+        if($res){  
+            $plugin->setPlugin($obj);
             return $plugin;
         }else{
             die "Sorry, the PLUGIN feature has not been Implemented Yet!"
@@ -896,7 +927,7 @@ sub doPlugin{
     }
     else{
         die qq(Invalid plugin encountered '$elem' in "). $self->{'CNF_CONTENT'} .qq(
-        Plugin must have attributes -> 'library', 'property' and 'subroutine')
+        Plugin must have attributes -> 'package', 'property' and 'subroutine')
     }
 }
 
