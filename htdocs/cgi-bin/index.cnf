@@ -1,0 +1,226 @@
+!CNF2.8
+
+<<@<%HTTP_HEADER>
+-charset =   UTF8
+-expires =   +5s
+>>
+
+<<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
+
+[JS[
+    [@@[wsrc/main.js]@@]
+    [@@[wsrc/jquery.js]@@]
+    [@@[wsrc/jquery-ui.js]@@]
+]JS]
+[CSS[
+    [@@[wsrc/main.css]@@]
+    [@@[wsrc/jquery-ui.css]@@]
+    [@@[wsrc/jquery-ui.theme.css]@@]
+    [@@[wsrc/jquery-ui.theme.css]@@]
+]CSS]
+
+<STYLE<
+[#[
+
+    #container{
+        border: 2px solid black;
+        width: 78%;        
+        margin: 0 auto;
+        padding: 0px;        
+    }
+
+    #header {
+        border: 1px solid gray;
+        background: rgba(128,128,128,0.2);        
+        margin:5px;
+    }    
+
+    #content {
+        border: 1px solid gray;
+        text-align: left;
+        vertical-align: middle;
+        margin:5px;
+        background: rgba(128,128,128,0.2);
+    }
+    #content ul {        
+        padding-left: 20px;  
+    }
+
+    #content a:hover {
+        color: #ff4d21;
+        font-weight: bolder;         
+        background: rgba(255,255,255,0.2);
+    }
+
+    #footer {
+        border: 1px solid gray;
+        background: rgba(128,128,128,0.2);        
+        margin:5px;
+    }
+
+    .span_status {
+        position: absolute;
+        top: 80px; left:420px;
+        border: 2px solid #94cde7;
+        padding: 5px;
+        text-align: center;
+        background: #ccffff;        
+        text-decoration-style: wavy;
+    }
+    .md_doc {
+        background: white;
+        border: 1px solid gray;
+        padding: 10px; margin: 5px;
+        text-align: left;
+    }
+
+    #doc_display p{
+        margin: 0 auto;
+        padding: 5px;        
+        vertical-align: left;
+        text-align: left;
+    }
+
+    .bra {
+        color: maroon;
+        padding: 2px;
+        font-weight: bold;
+    }
+    .key {
+        color: green;        
+    }
+    div .html {
+        border:1px solid lightgray;
+        background: rgba(255,255,255,0.2);
+        padding-left:5px;
+        text-align: left;
+    }
+    div .code {
+        border:1px solid lightgray;
+        background: rgba(255,255,255,0.2);
+        padding-left:5px;
+        font-family:monospace;
+        text-align: left;
+    }
+    ul {
+        margin: 0px;
+        padding: 10px;  
+        padding-top:0px;
+    }
+    #content li {
+        padding: 0px;          
+        margin-left:30px;
+    }
+    .pre {
+        border:1px solid black;
+        background: rgba(255,255,255,0.2);
+        padding:15px;
+        text-align: left;
+    }
+
+
+]#]
+>STYLE>
+
+<SCRIPT<
+[#[
+function onIndexBodyLoad(){
+    console.log("Initiated page.");
+    $("#status").html("Index page is ready!").show();
+    $("#status").fadeOut(2000);
+    $("#content a").click(
+        function(e){
+            e.preventDefault();
+            $("#status").html("Loading: " + e.target.href).show().fadeOut(1000);
+            $.post('index.cgi', {action:'load', doc:e.target.getAttribute('href')}, loadDocResult).fail(
+                    function(response) {$('#doc_display').html("Service Error: "+response.status,response.responseText)}
+            );
+        }
+    );
+    onBodyLoadGeneric();    
+}
+
+function loadDocResult(content){
+    $('#doc_display').html(content);
+}
+]#]
+>SCRIPT>
+>>
+
+###
+# We in plugin mainly access this PAGE property, <*<HEADER>*> is linked in for clarity, 
+# and/or if want to change from keeping the original \<\<HEADER<TREE>...\>\> above.
+#
+<<PAGE<TREE>
+
+ <*<HEADER>*>
+
+ Title: Index Page
+ OnLoad : onIndexBodyLoad()
+
+ <div<
+    id:container
+        <div<
+            id:header            
+            <*<PAGE_HEAD>*>
+            <a<
+                name:"top"
+            >a>
+        >div>
+        <div<
+             id:content_pane
+            <span<
+              id:status
+              class:span_status
+              <#<Page getting ready...>#>
+            >span>
+            <div<
+                id:content
+                <*<PAGE_CONTENT>*>
+            >div>            
+            <div<
+            id:doc_display 
+            class:md_doc
+                <*<INFO_MD>*>
+            >div> 
+        >div> 
+        <div<
+            id:footer
+            <*<PAGE_FOOT>*>
+            <span<&#8971;&#8593;>span>
+                        <a<
+                            id:code 
+                            href:#top 
+                            title:Go to top of page.
+                            <#<To Top Of Page>#>
+                        >a>
+            <span<&#8968;>span>            
+        >div>
+ >div>
+            <!<Page brought to you by HTMLIndexProcessorPlugin, from the PerlCNF project.>!>
+>>
+
+<<CNF_TO_HTML<PLUGIN>
+    package     : HTMLIndexProcessorPlugin
+    subroutine  : convert
+    property    : PAGE
+>>
+
+<<INFO_MD<  
+### INFO
+This Documentation listing for the [LifeLog](https://github.com/wbudic/LifeLog) Application.
+
+[Open Source License](https://choosealicense.com/licenses/isc/)
+>>>
+
+<<INFO_MD_TO_HTML<PLUGIN> _HAS_PROCESSING_PRIORITY_
+    package     : MarkdownPlugin
+    subroutine  : convert
+    property    : INFO_MD
+>>
+
+
+
+
+
+
