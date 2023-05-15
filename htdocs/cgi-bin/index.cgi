@@ -37,6 +37,27 @@ require CNFNode;
 our $GLOB_HTML_SERVE = "{}/*.cgi {}/*.htm {}/*.html {}/*.md {}/*.txt";
 our $script_path = $0;
 $script_path =~ s/\w+.cgi$//;
+
+my $v = q/
+<<$APP_DESCRIPTION<CONST>
+This application presents just
+a nice multi-line template.
+>>/;
+# $v =~ m/\s*(<<[@%]<) ([\$@%]?\w+)(>)* | (>>)
+#        /gx and my @captured = @{^CAPTURE};
+
+
+$v =~ m/(<{2,3})                          
+            ([\$@%]?\w+)
+                 (<?)  ([\w\s]+)   (>?)
+        |(<<[@%]<)  ([\$@%]?\w+) (>?)
+        |(>>)
+       /gx and my @captured = @{^CAPTURE};
+
+
+
+
+
 exit main();
 
 sub main {    

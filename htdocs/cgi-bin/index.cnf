@@ -73,6 +73,13 @@
         padding: 10px; margin: 5px;
         text-align: left;
     }
+    .div_img{        
+        height:450px;
+    }
+    .md_img{
+        width:80%;
+        height:80%;
+    }
 
     #doc_display p{
         margin: 0 auto;
@@ -87,7 +94,8 @@
         font-weight: bold;
     }
     .key {
-        color: green;        
+        color: green;
+        font-weight: bolder;       
     }
     div .html {
         border:1px solid lightgray;
@@ -118,7 +126,6 @@
         text-align: left;
     }
 
-
 ]#]
 >STYLE>
 
@@ -137,6 +144,8 @@ function onIndexBodyLoad(){
             );
         }
     );
+
+
     onBodyLoadGeneric();    
 }
 
@@ -158,14 +167,26 @@ function loadDocResult(content){
  Title: Index Page
  OnLoad : onIndexBodyLoad()
 
+<div< 
+    id:menu
+ <#<
+    <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
+            &nbsp;Page&nbsp;
+    <a id="to_top" href="#top" title="Go to top of page.">
+    <span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a><hr>
+    <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a><hr> 
+    <a class="ui-button ui-corner-all ui-widget" href="main.cgi">Life Log</a>
+>#>    
+ >div>
+
  <div<
     id:container
         <div<
             id:header            
-            <*<PAGE_HEAD>*>
-            <a<
-                name:"top"
-            >a>
+        <*<PAGE_HEAD>*>
+                                                    <a<
+                                                        name: top
+                                                    >a>
         >div>
         <div<
              id:content_pane
@@ -194,10 +215,13 @@ function loadDocResult(content){
                             title:Go to top of page.
                             <#<To Top Of Page>#>
                         >a>
-            <span<&#8968;>span>            
+    <span<&#8968;>span>
+                                                        <a<
+                                                            name: bottom
+                                                        >a> 
         >div>
  >div>
-            <!<Page brought to you by HTMLIndexProcessorPlugin, from the PerlCNF project.>!>
+    <!<Page brought to you by HTMLIndexProcessorPlugin, from the PerlCNF project.>!>
 >>
 
 <<CNF_TO_HTML<PLUGIN>
@@ -206,12 +230,19 @@ function loadDocResult(content){
     property    : PAGE
 >>
 
-<<INFO_MD<  
+<<INFO_MD<ESCAPED>
+
+\<\<$APP_DESCRIPTION\<CONST\>
+This application presents just
+a nice multi-line template.
+\>\>
+
 ### INFO
 This Documentation listing for the [LifeLog](https://github.com/wbudic/LifeLog) Application.
 
 [Open Source License](https://choosealicense.com/licenses/isc/)
->>>
+
+>>
 
 <<INFO_MD_TO_HTML<PLUGIN> _HAS_PROCESSING_PRIORITY_
     package     : MarkdownPlugin

@@ -100,8 +100,7 @@ try{
         <tr class="r0"><td colspan="2">Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
         </table></form>
 HTML
-
-    print qq(<br><br>            
+    print qq(<br><br><div id ="menu" >Menu<hr> <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a></div>
             <div class="rz login">
                 $frm
                 <br>
