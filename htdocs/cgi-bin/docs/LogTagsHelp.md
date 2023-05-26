@@ -1,6 +1,6 @@
 # LifeLog Post Tags
 
-```html
+```
 <<B<{Text To Bold}>>
 <<I<{Text To Italic}>>
 <<TITLE<{Title Text}>>
@@ -13,7 +13,7 @@
 * _frm.png Image is resized to -> width="210" height="120"
 
 Examples:
-```html
+```
 
   ../cgi-bin/images/
 			my_cat_simon_frm.png

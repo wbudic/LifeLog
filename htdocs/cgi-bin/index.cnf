@@ -1,8 +1,8 @@
 !CNF2.8
 
 <<@<%HTTP_HEADER>
--charset =   UTF8
--expires =   +5s
+-charset =   "UTF8"
+-expires =   "+5s"
 >>
 
 <<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
@@ -45,6 +45,10 @@
     #content ul {        
         padding-left: 20px;  
     }
+    #content li {
+        padding: 0px;          
+        margin-left:30px;
+    }
 
     #content a:hover {
         color: #ff4d21;
@@ -58,21 +62,39 @@
         margin:5px;
     }
 
-    .span_status {
-        position: absolute;
-        top: 80px; left:420px;
-        border: 2px solid #94cde7;
-        padding: 5px;
-        text-align: center;
-        background: #ccffff;        
-        text-decoration-style: wavy;
-    }
+
     .md_doc {
         background: white;
         border: 1px solid gray;
         padding: 10px; margin: 5px;
         text-align: left;
     }
+    
+    .md_doc ul{        
+        font-size: large;
+    }
+
+    .md_doc p{
+        margin: 0 auto;
+        padding: 5px;        
+        vertical-align: left;
+        text-align: left;      
+        font-weight: normal;
+
+    }
+
+    .md_doc blockquote  {
+        margin-top: 0;
+        margin-bottom: 16px;   
+        background:#b2f8ef;     
+        border-left: 3px solid #94cde7;
+        border-top:  2px solid #94cde7;
+        border-right:  2px solid #94cde7;
+    }
+    .md_doc blockquote  > :last-child{
+        border-bottom:  2px solid #94cde7;
+    }
+
     .div_img{        
         height:450px;
     }
@@ -81,49 +103,116 @@
         height:80%;
     }
 
-    #doc_display p{
-        margin: 0 auto;
-        padding: 5px;        
-        vertical-align: left;
-        text-align: left;
-    }
 
     .bra {
         color: maroon;
-        padding: 2px;
-        font-weight: bold;
+        padding: 2px;        
     }
-    .key {
-        color: green;
-        font-weight: bolder;       
+    .var {
+        color: blue;        
     }
-    div .html {
-        border:1px solid lightgray;
-        background: rgba(255,255,255,0.2);
-        padding-left:5px;
-        text-align: left;
+    .opr {
+        color: blue;        
     }
-    div .code {
-        border:1px solid lightgray;
-        background: rgba(255,255,255,0.2);
-        padding-left:5px;
-        font-family:monospace;
-        text-align: left;
+    .val {
+        color: gray;        
     }
-    ul {
-        margin: 0px;
-        padding: 10px;  
-        padding-top:0px;
+    .str {
+        color: red;        
+        font-weight: bold;   
     }
-    #content li {
-        padding: 0px;          
-        margin-left:30px;
+    .inst {
+        color: green;        
+        font-weight: bold;   
     }
+
+
+
     .pre {
         border:1px solid black;
         background: rgba(255,255,255,0.2);
         padding:15px;
+        text-align: left;        
+    }
+    .sh{
+        background: black;        
+        color: lightgreen;
+        padding:15px;
+    }
+
+    div .html {
+        border:1px solid lightgray;
+        background: rgba(255,255,255,0.2);
+        padding:10px;
+        font-family:monospace;
         text-align: left;
+    }
+
+    div .CNF {
+        border:1px solid lightgray;
+        background: rgba(255,255,255,0.2);
+        padding:10px; 
+        font-family:monospace;
+        text-align: left;
+        padding-bottom: 10px;
+    }
+
+    .CNF h1{
+        text-align: left;
+        padding-left: 15px;
+        margin-top: -20px;
+        height: 20px;
+        line-height: 20px;
+        font-size: 15px;
+    }
+
+    .CNF h1 span{
+        background-color: white;
+        border:1px solid lightgray;
+        color:lightgray;
+        font-size:small;
+        padding: 3px;
+        padding-left: 5px;
+        padding-right: 5px;        
+    }
+
+
+    div .perl {
+        border:1px solid lightgray;
+        background: rgba(255,255,255,0.2);
+        padding-left:5px;
+        font-family:monospace;
+        text-align: left;  
+        padding-bottom: 10px;      
+    }
+
+    .perl h1{
+        text-align: left;
+        padding-left: 15px;
+        margin-top: -10px;
+        height: 20px;
+        line-height: 20px;
+        font-size: 15px;
+    }
+
+    .perl h1 span{
+        background-color: white;
+        border:1px solid lightgray;
+        color:lightgray;
+        font-size:small;
+        padding: 3px;
+        padding-left: 5px;
+        padding-right: 5px;        
+    }
+
+    .span_status {
+        position: absolute;
+        top: 80px; left:420px;
+        border: 2px solid #94cde7;
+        padding: 5px;
+        text-align: center;
+        background: #ccffff;        
+        text-decoration-style: wavy;
     }
 
 ]#]
@@ -144,13 +233,11 @@ function onIndexBodyLoad(){
             );
         }
     );
-
-
     onBodyLoadGeneric();    
 }
-
 function loadDocResult(content){
     $('#doc_display').html(content);
+    $(document).scrollTop($("#doc_display").offset().top);
 }
 ]#]
 >SCRIPT>
@@ -232,15 +319,12 @@ function loadDocResult(content){
 
 <<INFO_MD<ESCAPED>
 
-\<\<$APP_DESCRIPTION\<CONST\>
-This application presents just
-a nice multi-line template.
-\>\>
 
 ### INFO
-This Documentation listing for the [LifeLog](https://github.com/wbudic/LifeLog) Application.
+\> This Page is the Documentation listing coming with the [LifeLog](https://github.com/wbudic/LifeLog) Application.
+\>
+\>\>[Open Source License](https://choosealicense.com/licenses/isc/)
 
-[Open Source License](https://choosealicense.com/licenses/isc/)
 
 >>
 
@@ -252,6 +336,13 @@ This Documentation listing for the [LifeLog](https://github.com/wbudic/LifeLog) 
 
 
 
-
-
-
+```CNF
+\<\<\<CONST
+$APP_NAME       = "Test Application"
+$APP_VERSION    = v.1.0
+\>\>\>
+\<\<$APP_DESCRIPTION<CONST>
+This application presents just
+a nice multi-line template.
+\>\>
+```

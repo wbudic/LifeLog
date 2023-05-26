@@ -4,4 +4,7 @@
 * It is meant to be limitless, fully searchable and viewed as mostly desired. 
 * Can be used and expanded, as it is also fully configurable.
 
-![](images/VS-on-METABOX-42.png)
+![Example Page](images/VS-on-METABOX-42.png)
+
+
+

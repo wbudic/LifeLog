@@ -1,14 +1,15 @@
+
 # PerlCNF
 
 Perl based Configuration Network File Format Parser and Specifications.
 CNF file format supports used format extraction from any text file.
 Useful for templates and providing initial properties and values for an application settings.
-Has own textual data format. Therefore can also be useful for database data batch processing.
+Has own textual data format. Therefore, can also be useful for database data batch processing.
 
-This version doesn't parse the actual __DATA__ section of an perl file yet. Contact me if this is needed, and for any other possible, useful requests.
+This version doesn't parse the actual __DATA__ section of a perl file yet. Contact me if this is needed, and for any other possible, useful requests.
 It is at current v.2.6, and specification implemented.
 
-### [You can find the specification here](./Specifications_For_CNF_ReadMe.md).
+[You can find the specification here.](https://github.com/wbudic/PerlCNF/blob/master/Specifications_For_CNF_ReadMe.md)
 
 ---
 
@@ -50,7 +51,8 @@ require CNFParser;
  #Load config with enabled evaluation on the fly, of perl code embedded in config file.
  my $cnf2 = new CNFParser('sample.cnf',{DO_enabled=>1, duplicates_overwrite=0});
 
- ```
+```
+
 ## Sample CNF File
 
 ```CNF
@@ -68,10 +70,11 @@ Australia, USA, "Great Britain", 'Ireland', "Germany", Austria
 Spain,     Serbia
 Russia
 Thailand, Greece
->>>
+>>
 
-Note this text here, is like an comment, not affecting and simply ignored.
-<p>Other tags like this paragraph better put into a CNF property to be captured.</p>
+Note this text here, is like a comment, not affecting and simply ignored.
+
+<p>Other tags like this paragraph, is better to put into a CNF property to be captured.</p>
 
 ```
 
@@ -91,10 +94,10 @@ print "App Name: ".$cnf->constant('$APP_NAME')."]";
 * Tests are located in the projects **./test directory.
 * Example how to run them:
 
-    ```sh
-        perl ./tests/testAll.pl
-    ```
+```sh
+    perl ./tests/testAll.pl
+```
 
-* Check also the latest Perl CNF [example.cnf](./tests/example.cnf) scripted also as an tutorial.
+* Check also the latest Perl CNF [example.cnf](https://github.com/wbudic/PerlCNF/blob/master/tests/example.cnf) scripted also as a tutorial.
   * Yes! That is an actual valid configuration file.
   * To only just run it or check use ``` perl ./tests/testExample.pl  ```

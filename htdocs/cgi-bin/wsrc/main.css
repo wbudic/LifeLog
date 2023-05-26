@@ -1,6 +1,5 @@
 body{
-    font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
-    font-size: 14px;
+    font-family: Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     background-image: url('images/page-bck-std.png');
     margin: 0; 
     padding:0;  
@@ -8,7 +7,7 @@ body{
 p {
     font-family: Bookman;
     margin-left: 70px;
-    font-weight: bold;
+    font-weight: normal;    
 }
 pre{
     color: #070707;
@@ -19,17 +18,14 @@ pre{
 }
 table,
 th,
-td {
-    font-family: Bookman;
+td {    
     border-collapse: collapse;
     padding: 5px;
     margin: auto;
 }
 
-div {
-    font-family: Bookman;
-    text-align: center;
-    vertical-align: middle;
+div {    
+    text-align: center;    
 }
 
 #div_log {
@@ -93,7 +89,7 @@ th,
 }
 
 #cat_lst {
-    visibility: hidden;
+    visibility: hidden; 
 }
 
 .r0 {
@@ -304,6 +300,7 @@ img {
 
 #btnRTF {
     float: right;
+    
 }
 
 .midnight{
@@ -315,7 +312,6 @@ a:link {
 a:visited {
  color: #472f80;
 }
-
 a:hover {
     color: #ff4d21;
     font-style:normal;

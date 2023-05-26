@@ -1084,6 +1084,7 @@ else{
         <a class="a_" href="config.cgi" onclick="display('Please Wait!');">Config</a><hr>
         <a class="a_" id="lnk_show_all" onclick="return showAll();">Show All <span  class="ui-icon ui-icon-heart"></span></a><hr>
         $sm_reset_all
+		<a class="a_" href="index.cgi">Index</a><hr>
         <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a><br><hr>
         <span style="font-size: x-small; font-weight: bold;">$vmode</span><br>
         <span style="font-size: x-small; font-weight: bold;">).$sql.q(</span><br>

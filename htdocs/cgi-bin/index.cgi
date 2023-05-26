@@ -34,37 +34,18 @@ use lib "system/modules";
 require CNFParser;
 require CNFNode;
 
-our $GLOB_HTML_SERVE = "{}/*.cgi {}/*.htm {}/*.html {}/*.md {}/*.txt";
+our $GLOB_HTML_SERVE = "'{}/*.cgi' '{}/*.htm' '{}/*.html' '{}/*.md' '{}/*.txt'";
 our $script_path = $0;
 $script_path =~ s/\w+.cgi$//;
-
-my $v = q/
-<<$APP_DESCRIPTION<CONST>
-This application presents just
-a nice multi-line template.
->>/;
-# $v =~ m/\s*(<<[@%]<) ([\$@%]?\w+)(>)* | (>>)
-#        /gx and my @captured = @{^CAPTURE};
-
-
-$v =~ m/(<{2,3})                          
-            ([\$@%]?\w+)
-                 (<?)  ([\w\s]+)   (>?)
-        |(<<[@%]<)  ([\$@%]?\w+) (>?)
-        |(>>)
-       /gx and my @captured = @{^CAPTURE};
-
-
-
 
 
 exit main();
 
 sub main {    
     my $html = obtainDirListingHTML('docs');
-    my $cnf = CNFParser->new(
+    my $cnf  = CNFParser -> new(
                             $script_path."index.cnf",{
-                             DO_enabled => 1, 
+                             DO_ENABLED => 1, HAS_EXTENSIONS=>1,
                              ANONS_ARE_PUBLIC => 1,
                                                    PAGE_HEAD    => "<h2>Index Page of Docs</h2>", 
                                                    PAGE_CONTENT => $html, 
@@ -80,17 +61,15 @@ sub main {
 sub obtainDirListingHTML {
     my ($dir, $ret) = (shift,"");    
     $ret .="<b>$dir &#8594;</b><ul>\n";
-    $ret .= listFiles($dir,$script_path);
-    my $handle;
-    opendir ($handle, $script_path.$dir) or die "Couldn't open directory, $!";
+    $ret .= listFiles($dir,$script_path,"");    
+    opendir (my $handle, $script_path.$dir) or die "Couldn't open directory, $!";
     while (my $node = readdir $handle) {
         my $file_full_path = "$script_path$dir/$node";
         if($node !~ /^\./ && -d $file_full_path){
            $ret .= obtainDirListingHTML($dir.'/'.$node);
         }
     }
-    closedir $handle;
-    
+    closedir $handle;    
     $ret .= "</ul>";
     return $ret;
 }
@@ -100,12 +79,13 @@ sub listFiles ($){
     my $spec = $GLOB_HTML_SERVE; $spec =~ s/{}/$path/gp;
     my @files = glob ($spec);        
     foreach my $file(@files){
+            ($file =~ m/(\w+\.\w*)$/g);
+            my $name = $1;
             if($file =~ /\.md$/){
-                my @title = getDocTitle($file);            
-                $ret .= qq(\t\t\t<li><a href="$dir/$title[0]">$title[1]</a></li>\n);
-            }else{
-                ($file =~ m/(\w+\.\w*)$/g);
-                $ret .= qq(\t\t\t<li><a href="$dir/$1">$1</a></li>\n);
+                my @title = getDocTitle($file);                
+                $ret .= qq(\t\t\t<li><a href="$dir/$title[0]">$title[1] - $name</a></li>\n);
+            }else{                
+                $ret .= qq(\t\t\t<li><a href="$dir/$name">$name</a></li>\n);
             }
     }    
     return $ret;

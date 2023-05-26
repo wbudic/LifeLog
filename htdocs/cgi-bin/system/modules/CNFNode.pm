@@ -270,7 +270,7 @@ sub process {
                                 $valing = 0;
                             }else{         
                                 my $a = $isArray;
-                                my $property = CNFNode -> new({'_'=>$sub, '@' => \$self});                                   
+                                my $property = CNFNode->new({'_'=>$sub, '@' => \$self});                                   
                                 $property->process($parser, $body);
                                 $isArray = $a;
                                 if($tag eq '@@'){
@@ -377,6 +377,7 @@ sub process {
             }
         }        
     }
+
     $self->{'@@'} = \@array if @array;
     $self->{'#'} = \$val if $val;
     return \$self;

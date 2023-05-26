@@ -160,15 +160,6 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         showTimeout: 100
     });
 
-    $(window).scroll(function() {
-        if (!MNU_SCROLLING) {
-            $('#floating_menu').fadeOut(2000, function() {
-                $('#floating_menu').show();
-                MNU_SCROLLING = false;
-            });
-            MNU_SCROLLING = true;
-        }
-    });
     $("#menu_close").poshytip({
         className: 'tip-yellowsimple',
         showOn: 'focus',
@@ -184,13 +175,11 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         })
     });
 
-//     $("#log_submit").click(encodeText);
 
     $('#ec').show();
 
     $("#RTF").prop("checked", false);
-    // $('#tbl_doc').toggle();
-    // $('#toolbar-container').toggle();
+    
     if ($('#editor-container').length) {        
         QUILL = new Quill('#editor-container', {
             placeholder: 'Enter your Document here...',
