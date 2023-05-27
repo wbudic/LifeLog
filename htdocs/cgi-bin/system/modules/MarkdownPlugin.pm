@@ -57,34 +57,44 @@ try{
         MarkdownPluginException->throw(error=>$e ,show_trace=>1);
 }}
 
-
+sub setCodeTag($tag, $class){
+    if($tag){
+        $tag = $1;
+        if($tag eq 'html' or $tag eq 'CNF' or $tag eq 'code' or $tag eq 'perl'){
+            $class = $tag;
+            $tag = 'div';
+        }else{
+            $tag = 'pre' if($tag eq 'sh' or $tag eq 'bash');
+        }
+        if($tag eq 'perl'){
+            $class='perl'; 
+            $tag  ='div';                                   
+        }
+    }else{
+        $tag = $class = 'pre';
+    }
+    return [$class, $tag]
+}
 
 sub parse ($self, $script){
 try{
     my ($buffer, $para, $ol, $lnc); 
     my @list; my $ltype=0;  my $nix=0;my $nplen=0;
-    my @titels;my $code = 0; my $tag;  my $pml_val = 0;  my $bqoute;my $bqoute_nested;
-    $script =~ s/^\s*|\s*$//;    
+    my @titels;my $code = 0; my $tag;  my $pml_val = 0;  my ($bqte, $bqte_nested,$bqte_tag);
+    $script =~ s/^\s*|\s*$//;
     foreach my $ln(split(/\n/,$script)){        
         $ln =~ s/\t/$TAB/gs;  
         $lnc++;
-        if($ln =~ /^```(\w*)/){
-            my $class = $1;         
-            if($1){
-               $tag = $1;
-               if($tag eq 'html' or $tag eq 'CNF' or $tag eq 'code' or $tag eq 'perl'){
-                  $class = $tag;
-                  $tag = 'div';
-               }else{
-                  $tag = 'pre' if($tag eq 'sh' or $tag eq 'bash');
-               }
-               if($tag eq 'perl'){
-                  $class='perl'; 
-                  $tag  ='div';                                   
-               }
-            }elsif(!$tag){
-               $tag = $class = 'pre';
-            }
+        if($ln =~ /^```(\w*)\s(.*)```$/g){
+            $tag = $1;
+            $ln  = $2;
+            my @code_tag = setCodeTag($tag, "");            
+            $buffer .= qq(<$code_tag[1] class='$code_tag[0]'>$ln</$code_tag[1]>\n);
+            next
+        }elsif($ln =~ /^```(\w*)/){
+            my @code_tag = setCodeTag($tag, $1);
+            my $class = $code_tag[0];         
+            $tag = $code_tag[1];
             if($code){
                if($para){ 
                   $buffer .= "$para\n"
@@ -109,10 +119,10 @@ try{
             $titels[@titels] = {$lnc,$title};
             $buffer .= qq(<$h>$title</$h><a name=").scalar(@titels)."\"></a>\n"
         }
-        elsif(!$code &&  ($ln =~ /^(\s+)(\d+)\.\s(.*)/ || $ln =~ /^(\s*)([-+*])\s(.*)/)){
+        elsif(!$code &&  ($ln =~ /^(\s*)(\d+)\.\s(.*)/ || $ln =~ /^(\s*)([-+*])\s(.*)/)){
             my @arr;
             my $spc = length($1);
-            my $val = ${style($3)};
+            my $val = $3 ? ${style($3)} : "";
             $ltype  = $2 =~ /[-+*]/ ? 1:0;            
             if($spc>$nplen){            
                $nplen = $spc;               
@@ -131,23 +141,37 @@ try{
             }            
         }elsif(!$code && $ln =~ /(^|\\G)[ ]{0,3}(>+) ?/){
             my $nested = length($2);
-            $ln =~ s/^\s*\>+//;
-            if(!$bqoute_nested){
-                $bqoute_nested = $nested;
-                $bqoute .="<blockquote><p>\n"
-            }elsif($bqoute_nested<$nested){
-                $bqoute .="</p><blockquote><p>";
-                $bqoute_nested = $nested;
-            }elsif($bqoute_nested>$nested){
-                $bqoute .="</p></blockquote><p>";
-                $bqoute_nested--;
+             $ln =~ s/^\s*\>+//;
+            ($ln =~ /^(\s+)   (\d+) \.\s (.*)/x || $ln =~ /^(\s*) ([-+*]) \s(.*)/x);
+            if($2 && $2 =~ /[-+*]/){
+                $bqte_tag = "ul";
+            }elsif($2){
+                $bqte_tag = "ol";
+            }else{
+                $bqte_tag = "p";
+            }
+
+            if(!$bqte_nested){
+                $bqte_nested = $nested;
+                $bqte .="<blockquote><$bqte_tag>\n"
+            }elsif($bqte_nested<$nested){
+                $bqte .="</$bqte_tag><blockquote><$bqte_tag>";
+                $bqte_nested = $nested;
+            }elsif($bqte_nested>$nested){
+                $bqte .="</$bqte_tag></blockquote><$bqte_tag>";
+                $bqte_nested--;
             }
             if($ln !~ /(.+)/gm){
-               $bqoute .= "\n</p><p>\n"
+               $bqte .= "\n</$bqte_tag><p>\n"               
             }else{
-               $bqoute .= ${style($ln)}."</br>";
-            }
-            
+                if($bqte_tag eq 'p'){
+                   $ln =~ s/^\s*//g;
+                   $bqte .= ${style($ln)}."</br>";
+                }else{
+                   $ln =~ s/^\s*[-+*]\s*|^\s*\d+\.\s*//g; 
+                   $bqte .= "<li>".${style($ln)}."</li>\n"; 
+                }
+            }            
         }
         elsif(!$code && $ln =~ /^\s*\*\*\*/){
             if($para){
@@ -198,7 +222,6 @@ try{
                         
                         $pml_val = 1;
                         $para .= qq(<span class='bra'>&#60;&#60;$2<\/span><span class='var'>$3</span><span class='bra'>&#62;<\/span><br>);
-
                        
                     }elsif($8){
                         my $t = $8; 
@@ -220,10 +243,10 @@ try{
                 }
                 
             }else{
-                if($bqoute){
-                    while($bqoute_nested-->0){$bqoute .="</p></blockqoute>\n"}
-                    $para   .= $bqoute;
-                    undef $bqoute;
+                if($bqte){
+                    while($bqte_nested-->0){$bqte .="</$bqte_tag></blockqoute>\n"}
+                    $para   .= $bqte;
+                    undef $bqte;
                 }
                 $para .= ${style($1)}."\n"         
             }
@@ -251,17 +274,14 @@ try{
                 $buffer .= qq(<p>$para</p><br>\n);
                }
                $para=""
-            }else{
-               #$buffer .= qq(<br>\n);
             }
         }
     }
 
-    if($bqoute){
-        while($bqoute_nested-->0){$bqoute .="\n</p></blockquote>\n"}
-        $buffer .= $bqoute;        
+    if($bqte){
+        while($bqte_nested-->0){$bqte .="\n</$bqte_tag></blockquote>\n"}
+        $buffer .= $bqte;        
     }
-
     $buffer .= createList(0,$ltype,\@list) if(@list);
     $buffer .= qq(<p>$para</p>\n) if $para;    
 
