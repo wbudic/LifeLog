@@ -28,8 +28,7 @@ BEGIN {
   set_message(\&handle_errors);
 }
 
-#debug -> 
-use lib "/home/will/dev/LifeLog/htdocs/cgi-bin/system/modules";
+
 use lib "system/modules";
 require CNFParser;
 require CNFNode;
@@ -39,19 +38,19 @@ our $script_path = $0;
 $script_path =~ s/\w+.cgi$//;
 
 
-exit main();
+exit &HTMLPageBuilderFromCNF;
 
-sub main {    
+sub HTMLPageBuilderFromCNF {    
     my $html = obtainDirListingHTML('docs');
-    my $cnf  = CNFParser -> new(
+    my $cnf  = CNFParser -> new (
                             $script_path."index.cnf",{
                              DO_ENABLED => 1, HAS_EXTENSIONS=>1,
                              ANONS_ARE_PUBLIC => 1,
-                                                   PAGE_HEAD    => "<h2>Index Page of Docs</h2>", 
+                                                   PAGE_HEAD    => "<h2>Index Page of Docs Directory</h2>", 
                                                    PAGE_CONTENT => $html, 
                                                    PAGE_FOOT    => "<!--Not Defined-->"
                             }
-                        );
+                );
     my $ptr = $cnf->data();
     $ptr = $ptr->{'PAGE'};   
     say $$ptr if $ptr;    
@@ -59,20 +58,25 @@ sub main {
 }
 
 sub obtainDirListingHTML {
-    my ($dir, $ret) = (shift,"");    
-    $ret .="<b>$dir &#8594;</b><ul>\n";
-    $ret .= listFiles($dir,$script_path,"");    
-    opendir (my $handle, $script_path.$dir) or die "Couldn't open directory, $!";
-    while (my $node = readdir $handle) {
-        my $file_full_path = "$script_path$dir/$node";
-        if($node !~ /^\./ && -d $file_full_path){
-           $ret .= obtainDirListingHTML($dir.'/'.$node);
+    my ($dir, $ret) = (shift,"");
+    my $html = listFiles($dir,$script_path,"");
+    if($html){
+       $ret .="<ul><b>$dir &#8594;</b>\n"; 
+       $ret .= $html;
+        opendir (my $handle, $script_path.$dir) or die "Couldn't open directory, $!";
+        while (my $node = readdir $handle) {
+            my $file_full_path = "$script_path$dir/$node";
+            if($node !~ /^\./ && -d $file_full_path){
+               $html = obtainDirListingHTML($dir.'/'.$node);
+               $ret .= $html if $html
+            }
         }
+        closedir $handle;
+       $ret .= "</ul>";
     }
-    closedir $handle;    
-    $ret .= "</ul>";
     return $ret;
 }
+
 sub listFiles ($){
     my ($dir, $script_path, $ret) = @_;
     my $path = $script_path.$dir;
@@ -83,7 +87,7 @@ sub listFiles ($){
             my $name = $1;
             if($file =~ /\.md$/){
                 my @title = getDocTitle($file);                
-                $ret .= qq(\t\t\t<li><a href="$dir/$title[0]">$title[1] - $name</a></li>\n);
+                $ret .= qq(\t\t\t<li><a href="$dir/$title[0]">$title[1]</a> &dash; $name</li>\n);
             }else{                
                 $ret .= qq(\t\t\t<li><a href="$dir/$name">$name</a></li>\n);
             }

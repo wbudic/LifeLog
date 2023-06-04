@@ -41,7 +41,7 @@ Quick Jump: [CNF Tag Formats](#cnf-tag-formats)  |  [CNF Collections Formatting]
 11. Constants are usually scripted at the beginning of the file, or parsed first in a separate file.
 12. The instruction processor can use them if signifier $ surrounds the constant name. Therefore, replacing it with the constants value if further found in the file.
 
-    ```HTML
+    ```CNF
      <<<CONST $APP_PATH=~/MyApplication>>>
      <<app_path<$APP_PATH$/module/main>>>
     ```
@@ -77,7 +77,7 @@ Quick Jump: [CNF Tag Formats](#cnf-tag-formats)  |  [CNF Collections Formatting]
 26. Anon value is in best practice and in general synchronized, from script to a database configuration store. It is up to the implementation.
 27. Anon value is global to the application and its value can be modified.
 
-    ```HTML
+    ```CNF
             <<USE_SWITCH<true>>>
             <<DIALOG_TITLE_EN<MyApplication Title>>>
     ```
@@ -86,7 +86,7 @@ Quick Jump: [CNF Tag Formats](#cnf-tag-formats)  |  [CNF Collections Formatting]
     2. When querying for an anon value, replacement parameter array can be passed.
     3. Numbering is from **\$\$\$1\$\$\$**..**$$$(n...)\$\$\$** to be part of its value. Strategically placed.
 
-    ```HTML
+    ```CNF
         <<GET_SUB_URL<https://www.$$$1$$$.acme.com/$$$2$$$>>>
     ```
 
@@ -100,14 +100,14 @@ Quick Jump: [CNF Tag Formats](#cnf-tag-formats)  |  [CNF Collections Formatting]
 
 28. Listing is an reappearing same name tag postfixed with an **\$\$**.
 
-    ```HTML Example 1:
+    ```CNF Example 1:
                 <<INS$$>ls -la>
                 <<INS$$>uname -a>
     ```
 
 29. Listing is usually a named list of instructions, items grouped and available as individual entries of the listing value.
 
-    ```HTML Example 2:
+    ```CNF Example 2:
                 <<Animals$$>Cat>
                 <<Animals$$>Dog>
                 <<Animals$$>Eagle>
@@ -119,7 +119,7 @@ Quick Jump: [CNF Tag Formats](#cnf-tag-formats)  |  [CNF Collections Formatting]
     3. It is not recommended to use reserve anons as their value settings, that is; can be modified in scripts for their value.
     4. Reserve anon if present is usually a placeholder, lookup setting, that in contrast if not found there, might rise exceptions from the application using CNF.
 
-    ```HTML Example 2:
+    ```CNF Example 2:
                 Notice to Admin, following please don't modify in any way! 
                 Start --> { 
                 <<^RELEASE>2.3>>
@@ -134,18 +134,18 @@ Quick Jump: [Introduction](#introduction)  |  [CNF Collections Formatting](#cnf-
 
 ### Property Value Tag
 
-   ```HTML
+   ```CNF
         <<{name}<{value}>>>
    ```
 
 ### Instruction Value Tag
 
-   ```HTML
+   ```CNF
         <<<{INSTRUCTION}
         {value\n...valuen\n}>>>
    ```
 
-   ```HTML
+   ```CNF
         <<{name}<{INSTRUCTION}
         {value\n...valuen\n}>>>
    ```
@@ -160,7 +160,7 @@ Quick Jump: [Introduction](#introduction)  |  [CNF Collections Formatting](#cnf-
 
 **Examples:**
 
-```HTML
+```CNF
         <<$HELP<CONST
             Sorry help is currently.
             Not available.
@@ -309,7 +309,7 @@ CNF supports basic SQL Database structure statement generation. This is done via
 
 1. TABLE
 
-    ```HTML
+    ```CNF
         <<MyAliasTable<TABLE
                     ID INT PRIMARY KEY NOT NULL,
                     ALIAS VCHAR(16) UNIQUE CONSTRAINT,
@@ -320,14 +320,14 @@ CNF supports basic SQL Database structure statement generation. This is done via
 
 2. INDEX
 
-    ```HTML
+    ```CNF
         <<MyAliasTable<INDEX<idx_alias on MyAliasTable (ALIAS);>>>
     ```
 
 3. SQL
      1. SQL statements are actual full SQL placed in the tag body value.
 
-    ```HTML
+    ```CNF
         <<VW_ALIASES>SQL
             CREATE VIEW VW_ALIASES AS SELECT ID,ALIAS ORDER BY ALIAS;
         >>>
@@ -340,7 +340,7 @@ CNF supports basic SQL Database structure statement generation. This is done via
    3. Migration is not run on newly created databases. These create the expected latest data structure.
    4. SQL Statements a separated by ';' terminator. To be executed one by one.
 
-    ```HTML
+    ```CNF
         <<1.6<MIGRATE
                 ALTER TABLE LOG ADD STICKY BOOL DEFAULT 0;
         >>
@@ -366,7 +366,7 @@ CNF supports basic SQL Database structure statement generation. This is done via
        1. This behavior can be controlled by disabling something like an auto file storage update. i.e. during application upgrades. To prevent user set settings to reset to factory defaults.
        2. The result would then be that database already stored data remains, and only new ones are added. This exercise is out of scope of this specification.
 
-    ```HTML
+    ```CNF
         <<MyAliasTable<DATA
         01`admin`admin@inc.com`Super User~
         02`chef`chef@inc.com`Bruno Allinoise~
@@ -380,7 +380,7 @@ CNF supports basic SQL Database structure statement generation. This is done via
    3. File is to be sequentially buffer read and processed instead as a whole in one go.
    4. The same principles apply in the file as to the DATA instruction CNF tag format, that is expected to be contained in it.
 
-    ```HTML
+    ```CNF
         <<MyItemsTbl<FILE data_my_app.cnf>
     ```
 
@@ -398,7 +398,7 @@ CNF supports basic SQL Database structure statement generation. This is done via
     3. Requirements are for plugins to work to have the DO_ENABLED=>1 config attribute set.
         1. Plugins currently also will require be last specified in the file, to have access to previous anons that are instructed.
 
-    ```HTML
+    ```CNF
        /**
         * Plugin instructions are the last one setup and processed,
         * by placing the actual result into the plugins tag name.
@@ -444,7 +444,7 @@ CNF supports basic SQL Database structure statement generation. This is done via
             2. This is currently a TREE instruction only inbuilt option in PerlCNF, for the CNFNodes individuals scripts order of processing.
    4. Tree Format Example:
 
-        ```HTML
+        ```CNF
         <<APP<My Nice Application by ACME Wolf PTY>>
 
         <<doc<TREE>
@@ -473,7 +473,7 @@ Quick Jump: [Introduction](#introduction) | [CNF Collections Formatting](#cnf-co
    3. It is recommended to comment out this feature, if never is to be used or found not safe to have such thing enabled.
    4. This if named are assigned as anons, with the last processed value as the return. Making them evaluated and processed ever only once.
 
-```perl
+```CNF
 <<<DO
 print "Hello form CNF, you have ".(scalar %anons) ." anons so far.\n"
 >>>
@@ -517,7 +517,7 @@ print "Welcome to ", $cnf->constant('$APP_NAME'), " version ", $cnf->constant('$
 
 **~//perl_dev/WB_CNF/db/configuration.cnf** file contents:
 
-```HTML
+```CNF
 
 # List command anon with the name of 'list'.
 <<list<ls -lh dev|sort>>>

@@ -23,7 +23,7 @@
 [#[
 
     #container{
-        border: 2px solid black;
+        border: 2px solid #00000017;
         width: 78%;        
         margin: 0 auto;
         padding: 0px;        
@@ -148,16 +148,17 @@
         text-align: left;
     }
 
-    div .CNF {
+    div .cnf {
         border:1px solid lightgray;
         background: rgba(255,255,255,0.2);
         padding:10px; 
         font-family:monospace;
         text-align: left;
         padding-bottom: 10px;
+        margin-top:5px;
     }
 
-    .CNF h1{
+    .cnf h1{
         text-align: left;
         padding-left: 15px;
         margin-top: -20px;
@@ -166,7 +167,7 @@
         font-size: 15px;
     }
 
-    .CNF h1 span{
+    .cnf h1 span{
         background-color: white;
         border:1px solid lightgray;
         color:lightgray;
@@ -215,6 +216,25 @@
         text-decoration-style: wavy;
     }
 
+
+    #menu_page {
+        position: fixed;
+        float: left;
+        margin: 0;
+        margin-top:5px;
+        border: 2px solid #94cde7;
+        padding: 5px;
+        text-align: center;
+        background: #ccffff;
+        margin-left: 89%;
+    }
+
+    
+    .menu_head {
+        border: 2px solid #00000017;
+        font-size:small;        
+    }
+
 ]#]
 >STYLE>
 
@@ -255,12 +275,15 @@ function loadDocResult(content){
  OnLoad : onIndexBodyLoad()
 
 <div< 
-    id:menu
+    id:menu_page
  <#<
-    <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
-            &nbsp;Page&nbsp;
-    <a id="to_top" href="#top" title="Go to top of page.">
-    <span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a><hr>
+    <span class="menu_head">
+        <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
+                &nbsp; Page &nbsp;
+        <a id="to_top" href="#top" title="Go to top of page.">
+        <span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>
+    </span>
+    <hr>
     <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a><hr> 
     <a class="ui-button ui-corner-all ui-widget" href="main.cgi">Life Log</a>
 >#>    
@@ -319,12 +342,10 @@ function loadDocResult(content){
 
 <<INFO_MD<ESCAPED>
 
-
 ### INFO
 \> This Page is the Documentation listing coming with the [LifeLog](https://github.com/wbudic/LifeLog) Application.
 \>
-\>\>[Open Source License](https://choosealicense.com/licenses/isc/)
-
+\>[Open Source License](https://choosealicense.com/licenses/isc/)
 
 >>
 
@@ -333,15 +354,22 @@ function loadDocResult(content){
     subroutine  : convert
     property    : INFO_MD
 >>
+<<1>>
 
-
+//Following for debug purposess and tests.
 
 ```CNF
+
+
 \<\<\<CONST
 $APP_NAME       = "Test Application"
 $APP_VERSION    = v.1.0
 \>\>\>
-\<\<$APP_DESCRIPTION<CONST>
+
+\<\<B\<{Text To Bold}\>\>
+\<\<I\<{Text To Italic}\>\>
+
+\<\<$APP_DESCRIPTION\<CONST\>
 This application presents just
 a nice multi-line template.
 \>\>

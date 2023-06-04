@@ -6,8 +6,10 @@ use Syntax::Keyword::Try;
 use Exception::Class ('MarkdownPluginException');
 use feature qw(signatures);
 use Date::Manip;
+##no critic ControlStructures::ProhibitMutatingListFunctions
 
 our $TAB = ' 'x4;
+our $PARSER;
 
 sub new ($class, $fields={Language=>'English',DateFormat=>'US'}){      
 
@@ -28,6 +30,7 @@ sub new ($class, $fields={Language=>'English',DateFormat=>'US'}){
 sub convert ($self, $parser, $property) {    
 try{    
     my ($item, $script) =  $parser->anon($property);
+    $PARSER = $parser;
     die "Property not found [$property]!" if !$item;
 
     my $ref = ref($item); my $escaped = 0;
@@ -57,10 +60,50 @@ try{
         MarkdownPluginException->throw(error=>$e ,show_trace=>1);
 }}
 
+
+package HTMLListItem {    
+    sub new{
+        my $class = shift;
+        my ($type,$item,$spc) = @_;
+        my @array = ();
+        return bless{type=>$type,item=>$item,spc=>$spc,list=>\@array},$class;
+    }
+    sub parent($self) {
+        return  exists($self->{parent}) ? $self->{parent} : undef
+    }
+    sub add($self, $item){
+        push @{$self->{list}}, $item;        
+        $item ->{parent} = $self;
+    }    
+    sub hasItems($self){        
+        return @{$self->{list}}>0
+    }
+    sub toString($self){        
+        my $t = $self->{type};
+        my $isRootItem = $self -> {spc} == 0 ? 1 : 0;
+        my $hasItems   = $self->hasItems()   ? 1 : 0;
+        my $ret = "<li>".$self -> {item}."</li>\n";  
+        if($hasItems){
+           $ret = "<li>".$self -> {item}."<$t>\n";
+        }
+        foreach my $item(@{$self->{list}}){
+            if($item->hasItems()){
+                $ret .= $item->toString()."\n"
+            }else{
+                $ret .= '<li>'.$item->{item}."</li>\n"
+            }
+        }
+        if($hasItems){
+           $ret .= "</$t></li>\n";
+        }
+        return $ret
+    }
+}
+
 sub setCodeTag($tag, $class){
     if($tag){
-        $tag = $1;
-        if($tag eq 'html' or $tag eq 'CNF' or $tag eq 'code' or $tag eq 'perl'){
+        $tag = lc $tag;        
+        if($tag eq 'html' or $tag eq 'cnf' or $tag eq 'code' or $tag eq 'perl'){
             $class = $tag;
             $tag = 'div';
         }else{
@@ -79,8 +122,8 @@ sub setCodeTag($tag, $class){
 sub parse ($self, $script){
 try{
     my ($buffer, $para, $ol, $lnc); 
-    my @list; my $ltype=0;  my $nix=0;my $nplen=0;
-    my @titels;my $code = 0; my $tag;  my $pml_val = 0;  my ($bqte, $bqte_nested,$bqte_tag);
+    my @list; my $ltype=0;  my $nix=0; my $nplen=0; my $list_item;
+    my @titels;my $code = 0; my ($tag, $class);  my $pml_val = 0;  my ($bqte, $bqte_nested,$bqte_tag);
     $script =~ s/^\s*|\s*$//;
     foreach my $ln(split(/\n/,$script)){        
         $ln =~ s/\t/$TAB/gs;  
@@ -88,27 +131,29 @@ try{
         if($ln =~ /^```(\w*)\s(.*)```$/g){
             $tag = $1;
             $ln  = $2;
-            my @code_tag = setCodeTag($tag, "");            
+            my @code_tag = @{ setCodeTag($tag, "") }; 
             $buffer .= qq(<$code_tag[1] class='$code_tag[0]'>$ln</$code_tag[1]>\n);
             next
-        }elsif($ln =~ /^```(\w*)/){
-            my @code_tag = setCodeTag($tag, $1);
-            my $class = $code_tag[0];         
-            $tag = $code_tag[1];
+        }elsif($ln =~ /^\s*```(\w*)/){
+            if(!$tag){
+                my @code_tag = @{ setCodeTag($1, $1) };
+                $class = $code_tag[0];         
+                $tag = $code_tag[1] if !$tag;
+            }
             if($code){
                if($para){ 
                   $buffer .= "$para\n"
                }
-               $buffer .= "</$tag><br>"; $tag = $para = "";
-               $code = 0;
+               $buffer .= "</$tag><br>"; undef $para;
+               $code = 0; undef $tag;
             }else{
                $buffer .= "<$tag class='$class'>"; 
                if($class eq 'perl'){
                   $buffer .= qq(<h1><span>$class</span></h1>);
                   $code = 2;
                 }else{
-                  if($class eq 'CNF' or $class eq 'html'){
-                     $buffer .= qq(<h1><span>$class</span></h1>);
+                  if($class eq 'cnf' or $class eq 'html'){
+                     $buffer .= '<h1><span>'.uc $class.'</span></h1>'
                   }
                   $code = 1
                 }
@@ -120,25 +165,30 @@ try{
             $buffer .= qq(<$h>$title</$h><a name=").scalar(@titels)."\"></a>\n"
         }
         elsif(!$code &&  ($ln =~ /^(\s*)(\d+)\.\s(.*)/ || $ln =~ /^(\s*)([-+*])\s(.*)/)){
-            my @arr;
+            
             my $spc = length($1);
             my $val = $3 ? ${style($3)} : "";
-            $ltype  = $2 =~ /[-+*]/ ? 1:0;            
-            if($spc>$nplen){            
-               $nplen = $spc;               
-               $list[@list] = \@arr;
-               $nix++;
-            }elsif($spc<$nplen){
-               $nix--; 
+            my $new = HTMLListItem->new((/[-+*]/?'ul':'ol'), $val, $spc);
+
+            if(!$list_item){                
+                $list_item = $new;
+                $list[@list] = $list_item;
+                $nplen = $spc;
+                
+            }elsif($spc>$nplen){                
+                $list_item -> add($new);                
+                $list_item = $new;
+                $nplen = $spc;
+                
+            }else{                
+               while($list_item->{spc}>=$spc && $list_item -> parent()){
+                     $list_item = $list_item -> parent();
+               }                
+               if ( !$list_item ){$list_item = $new}else{
+                     $list_item -> add($new);
+                     $list_item = $new;                
+               }
             }
-            if($list[$nix-1]){
-                @arr = @{$list[$nix-1]};                        
-                $arr[@arr] = $ltype .'|'.$val;
-                $list[$nix-1] = \@arr;
-            }else{
-                $arr[@arr] = $ltype .'|'.$val;
-                $list[@list] = \@arr;
-            }            
         }elsif(!$code && $ln =~ /(^|\\G)[ ]{0,3}(>+) ?/){
             my $nested = length($2);
              $ln =~ s/^\s*\>+//;
@@ -150,7 +200,6 @@ try{
             }else{
                 $bqte_tag = "p";
             }
-
             if(!$bqte_nested){
                 $bqte_nested = $nested;
                 $bqte .="<blockquote><$bqte_tag>\n"
@@ -175,7 +224,7 @@ try{
         }
         elsif(!$code && $ln =~ /^\s*\*\*\*/){
             if($para){
-                $para .= qq(<hr>\n)
+                $para   .= qq(<hr>\n)
             }else{
                 $buffer .= qq(<hr>\n)
             }
@@ -187,36 +236,65 @@ try{
                     $v =~ s/</&#60;/g;
                     $v =~ s/>/&#62;/g;
                     $para .= "$v\n"; 
-                }elsif($code == 2){
-                    $v =~ s/([,;=\(\)\{\}\[\]]|->)/<span class=opr>$1<\/span>/g;
-                    $v =~ s/(['"].*['"])/<span class='str'>$1<\/span>/g;
-                    $v =~ s/class=opr/class='opr'/g;
-                    $v =~ s/(my|our|local|use|lib|require|new|while|for|foreach|while|if|else|elsif)/<span class='bra'>$1<\/span>/g;                    
-                    $v =~ s/(\$\w+)/<span class='inst'>$1<\/span>/g;                    
-                    $para .= "$v<br>\n";
-                }else{                   
+                }elsif($code == 2){   
+                    $para .= code2HTML($v)."<br>\n";
+                }else{           
+
+
+                    $v =~ m/  ^(<{2,3}) ([\$@%]*\w*)$ 
+                            | ^(>{2,3})$
+                            | (<<) ([\$@%]*\w*) <(\w+)>
+                     /gx;
+
+                    if($1&&$2){
+                        my $t = $1;  
+                        my $i = $2;  
+                        $t =~ s/</&#60;/g;                      
+                        $para .= qq(<span class='bra'>$t</span><span class='ins'>$i</span><br>);
+                        $pml_val = 1;
+                        next;
+                        
+                    }elsif($3){
+                        my $t = $3; 
+                        $t =~ s/>/&#62;/g;  
+                        $para .= "<span class='bra'>$t</span><br>\n";
+                        $pml_val = 0;
+                        next;
+                    }elsif($4&&$5&&6){
+                        my $t = $4;   
+                        my $v = $5;
+                        my $i = $6;
+                        $t =~ s/</&#60;/g;
+                        $para .= qq(<span class='bra'>$t</span><span class='var'>$v</span>
+                                    <span class='bra'>&#60;</span><span class='ins'>$i</span><span class='bra'>&#62;</span><br>);
+                        $pml_val = 1;
+                        next;
+
+                    }
                     
                     $v =~ m/ ^(<<)  ([@%]<) ([\$@%]?\w+) ([<>])
                             |^(<{2,3})                          
-                                ([\$@%\w]+)
-                                      (<[\w\ ]*>)* 
-                            |(>{2,3})$
+                                ([\$@%\w]+)\s*
+                                      <*([^>]+)
+                              (>{2,3})$
+                            
                            /gx;# and my @captured = @{^CAPTURE};
-
-                    if($5&&$6&&$7){
+                    
+                    if($5&&$6&&$7&&$8){
                         my $t = $5;
                         my $v = $6;
                         my $i = $7;
-                        $i =~ m/^<([\$@%\w]+?)>$/;
-                        $i = $1; $pml_val = 1;                       
-                        $para .= qq(<span class='bra'>&#60;&#60;</span><span class='var'>$v</span><span class='bra'>&#60;</span><span class='inst'>$i</span><span class='bra'>&#62;</span><br>);
+                        my $c = $8;
+                        $t =~ s/</&#60;/g;
+                        $c =~ s/>/&#62;/g;
+                        $pml_val = 1;                       
+                        $para .= qq(<span class='bra'>$t</span><span class='var'>$v</span><span class='bra'>&#60;</span><span class='inst'>$i</span><span class='bra'>$c</span><br>);
                        
                     }elsif($5&&$6){
-                         my $t = $5;
-                         my $i = $6;
-                         $t =~ s/</&#60;/g; $pml_val = 1;
-                        $para .= qq(<span class='bra'>$t</span><span class='inst'>$i</span><br>
-                                );
+                        my $t = $5;
+                        my $i = $6;
+                        $t =~ s/</&#60;/g; $pml_val = 1;
+                        $para .= qq(<span class='bra'>$t</span><span class='inst'>$i</span><br>);
 
                     }elsif($1 && $2 && $3){
                         
@@ -251,21 +329,14 @@ try{
                 $para .= ${style($1)}."\n"         
             }
         }else{            
+            
             if(@list){
-                if($para){
-                   my @arr;
-                   if($list[$nix-1]){
-                        @arr = @{$list[$nix-1]};
-                        $arr[@arr] = '2|'.$para;
-                        $list[$nix-1] = \@arr; 
-                   }else{
-                        $arr[@arr] = '2|'.$para;
-                        $list[@list] = \@arr;
-                   }
-                   $para=""
+                $buffer .= "<".$list[0]->{type}.">\n"; #This is the root list type, it can only be one per item entry.
+                foreach (@list){
+                $buffer .= $_->toString()."\n";    
                 }
-               $buffer .= createList(0,$ltype,\@list);
-               undef @list; $nplen = 0
+                $buffer .= "</".$list[0]->{type}.">\n";
+                undef @list
             }
             elsif($para){
                if($code){
@@ -282,7 +353,14 @@ try{
         while($bqte_nested-->0){$bqte .="\n</$bqte_tag></blockquote>\n"}
         $buffer .= $bqte;        
     }
-    $buffer .= createList(0,$ltype,\@list) if(@list);
+    
+    if(@list){
+        $buffer .= "<".$list[0]->{type}.">\n"; #This is the root list type, it can only be one per item entry.
+        foreach my$item(@list){
+        $buffer .= $item->toString()."\n";    
+        }
+        $buffer .= "</".$list[0]->{type}.">\n";
+    }
     $buffer .= qq(<p>$para</p>\n) if $para;    
 
 return [\$buffer,\@titels]
@@ -290,63 +368,69 @@ return [\$buffer,\@titels]
         MarkdownPluginException->throw(error=>$e ,show_trace=>1);
 }}
 
-my @LIST_ITEM_TYPE = ('ol','ul','blockquote');
-
-sub createList ($nested,$type,@list){
-    $nested++;
-    my ($bf,$tabs) =("", " "x$nested);
-    my $tag = $LIST_ITEM_TYPE[$type];
-
-    foreach my $arr(@list){
-            $bf .= qq($tabs<$tag>\n) if $nested>1;
-            foreach my $li(@$arr){
-                if(ref($li) eq 'ARRAY'){
-                    $bf =~ s/\s<\/($tag)>\s$//gs if $bf;
-                    my $r = $1;
-                    my @lst = \@$li;
-                    my $typ = get_list_type(@lst);
-                    $bf .= createList($nested,$typ,@lst);
-                    $bf .= qq($tabs</$tag>\n) if($r)                    
-                }else{
-                    $li =~ s/^(\d)\|//;
-                    if($1 == 2){
-                        $bf .= "$tabs<blockquote>$li</blockquote>\n"
-                    }else{
-                        $bf .= "$tabs<li>$li</li>\n"
-                    }
-                }
-            }
-            $bf .= qq($tabs</$tag>\n) if $nested>1;
-    }
-    return $bf
+sub code2HTML($v){
+        $v =~ s/([,;=\(\)\{\}\[\]]|->)/<span class='opr'>$1<\/span>/g;
+        $v =~ s/(['"].*['"])/<span class='str'>$1<\/span>/g;        
+        $v =~ s/(my|our|local|use|lib|require|new|while|for|foreach|while|if|else|elsif)/<span class='bra'>$1<\/span>/g;                    
+        $v =~ s/(\$\w+)/<span class='inst'>$1<\/span>/g;
+        return $v
 }
 
-sub get_list_type (@list){
-    foreach my $arr(@list){
-        foreach my $li(@$arr){
-            if($li =~ /^(\d)|/){
-                return $1;
-            }
-            last;
-        }
-    }
-    return 0;
-}
+
 
 sub style ($script){
     MarkdownPluginException->throw(error=>"Invalid argument passed as script!",show_trace=>1) if !$script;
     #Links <https://duckduckgo.com>
     $script =~ s/<(http[:\/\w.]*)>/<a href=\"$1\">$1<\/a>/g;
-        
+    
     my @result = map {
         s/\*\*(.*)\*\*/\<em\>$1<\/em\>/;
         s/\*(.*)\*/\<strong\>$1<\/strong\>/;
         s/__(.*)__/\<del\>$1<\/del\>/;
         s/~~(.*)~~/\<strike\>$1<\/strike\>/;        
         $_
-    } split(/\s/,$script); 
+    } split(/\s/,$script);
+    my $ret = join(' ',@result);
+
+    #Inline code
+    $ret =~ m/```(.*)```/g;
+    if($1){
+        my $v = $1; 
+           $v =~ m/ ^(<<)  ([@%]<) ([\$@%]?\w+) ([<>])
+                            |^(<{2,3})                          
+                                ([^>]+)
+                                    ( (<[\W\w ]*>) | (>{2,3})$ )
+                /gx;
+            if($5&&$6&&$7){
+                my $t = $5;
+                   $v = $6;
+                my $c = $7;
+                $t =~ s/</&#60;/g; 
+                $c =~ s/>/&#62;/g;
+                $v=~m/^(\w+)/;
+                my $w = $1; 
+                
+                if($PARSER->isReservedWord($w)){
+                    $v =~ s/^(\w+)/<span class='inst'>$w<\/span>/;
+
+                }
+                $v = qq(<span class='bra'>$t</span><span class='var'>$v</span></span><span class='bra'>$c</span>);                
+                
+            }elsif($5&&$6){
+                my $t = $5;
+                my $i = $6;
+                my $c = $7; $c = $8 if !$c;
+                $t =~ s/</&#60;/g; 
+                $c =~ s/>/&#62;/g if $c;
+                $v = qq(<span class='bra'>$t</span><span class='inst'>$i</span>$c);
+            }            
+            elsif($1 && $2 && $3){
+                $v = qq(<span class='bra'>&#60;&#60;$2<\/span><span class='var'>$3</span><span class='bra'>&#62;<\/span>);
+                
+            }
+        $ret =~ s/```(.*)```/\<span\>$v<\/span\>/;         
+    }
     
-    my $ret = join(' ',@result);    
     #Images
     $ret =~ s/!\[(.*)\]\((.*)\)/\<div class="div_img"><img class="md_img" src=\"$2\"\ alt=\"$1\"\/><\/div>/;
     #Links [Duck Duck Go](https://duckduckgo.com)
