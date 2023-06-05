@@ -2,6 +2,7 @@ package HTMLIndexProcessorPlugin;
 
 use strict;
 use warnings;
+no warnings qw(experimental::signatures);
 use Syntax::Keyword::Try;
 use Exception::Class ('HTMLIndexProcessorPluginException');
 use feature qw(signatures);
@@ -32,24 +33,31 @@ sub convert ($self, $parser, $property) {
     my ($buffer,$title, $link, $body_attrs, $body_on_load, $give_me);
     my $cgi          = CGI -> new();
     my $cgi_action   = $cgi-> param('action');    
-    my $cgi_doc      = $cgi-> param('doc');
+    my $cgi_doc      = $cgi-> param('doc'); 
     my $tree         = $parser-> anon($property);
     die "Tree property '$property' is not available!" if(!$tree or ref($tree) ne 'CNFNode');    
 
 try{
-    if ($cgi_action and $cgi_action eq 'load'){
-        $buffer  = $cgi->header(expires => "+0s", -charset => "UTF-8");
-        $buffer .= $cgi->start_html();
-        $buffer .= ${loadDocument($parser, $cgi_doc)} 
-    }else{
-        if (exists $parser->{'HTTP_HEADER'}){            
-            $buffer .= $parser-> {'HTTP_HEADER'};
-        }else{ 
-            if(exists $parser -> collections()->{'%HTTP_HEADER'}){
-                my %http_hdr = $parser -> collection('%HTTP_HEADER');
-                $buffer = $cgi->header(%http_hdr);
-            }
+
+
+    if (exists $parser->{'HTTP_HEADER'}){            
+        $buffer .= $parser-> {'HTTP_HEADER'};
+    }else{ 
+        if(exists $parser -> collections()->{'%HTTP_HEADER'}){
+            my %http_hdr = $parser -> collection('%HTTP_HEADER');
+            $buffer = $cgi->header(%http_hdr);
         }
+    }
+
+    if ($cgi_action and $cgi_action eq 'load'){        
+        $buffer .= $cgi->start_html(); my 
+        $load = loadDocument($parser, $cgi_doc);
+        if($load){
+           $buffer .= $$load if $load;        
+        }else{
+           $buffer .= "Document is empty: $cgi_doc\n"
+        }        
+    }else{
         $title  = $tree  -> {'Title'} if exists $tree->{'Title'};
         $link   = $tree  -> {'HEADER'};
         $body_attrs   = $tree -> {'Body'} if exists $tree -> {'Body'};

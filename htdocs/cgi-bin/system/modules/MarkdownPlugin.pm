@@ -2,6 +2,7 @@ package MarkdownPlugin;
 
 use strict;
 use warnings;
+no warnings qw(experimental::signatures);
 use Syntax::Keyword::Try;
 use Exception::Class ('MarkdownPluginException');
 use feature qw(signatures);
