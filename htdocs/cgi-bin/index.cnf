@@ -21,7 +21,6 @@
 
 <STYLE<
 [#[
-
     #container{
         border: 2px solid #00000017;
         width: 78%;        
@@ -42,6 +41,7 @@
         margin:5px;
         background: rgba(128,128,128,0.2);
     }
+    
     #content ul {        
         padding-left: 20px;  
     }
@@ -126,7 +126,9 @@
         font-weight: bold;   
     }
 
-
+    code, pre{
+       font-family: 'Droid Sans Mono', 'monospace', monospace;
+    }
 
     .pre {
         border:1px solid black;
@@ -236,6 +238,10 @@
     }
 
 ]#]
+>STYLE>
+
+<STYLE<
+    <*<MarkdownPlugin::CSS>*>
 >STYLE>
 
 <SCRIPT<

@@ -74,10 +74,20 @@ try{
                 foreach (@$arr){                
                     push  @hhshJS, {-type => 'text/javascript', -src => $_->val()};                
                 } 
-                my $ps = $link  -> find('STYLE');
-                $give_me .= "\n<style>\n".$ps -> val()."\n</style>\n"  if $ps; 
-                $ps = $link  -> find('SCRIPT');
-                $give_me .="\n<script>\n".$ps -> val()."\n</script>\n" if $ps;            
+                $arr = $link  -> find('STYLE');
+                if(ref($arr) eq 'ARRAY'){
+                    foreach (@$arr){ 
+                        $give_me .= "\n<style>\n".$_ -> val()."\n</style>\n"
+                    }}else{
+                        $give_me .= "\n<style>\n".$arr -> val()."\n</style>\n"
+                }
+                $arr = $link  -> find('SCRIPT');
+                if(ref($arr) eq 'ARRAY'){
+                    foreach (@$arr){ 
+                        $give_me .= "\n<script>\n".$_ -> val()."\n</script>\n"
+                    }}else{
+                        $give_me .= "\n<script>\n".$arr -> val()."\n</script>\n"
+                }
         }       
         delete $tree -> {'HEADER'};       
         }    

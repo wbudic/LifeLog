@@ -16,10 +16,11 @@ use Exception::Class ('LifeLogException');
 use Syntax::Keyword::Try;
 use DateTime;
 ##
-# We is dynamic perl compilations. The following ONLY HERE required to carp to browser on 
+# We use dynamic perl compilations. The following ONLY HERE required to carp to browser on 
 # system requirments or/and unexpected perl compiler errors.
 ##
 use CGI::Carp qw(fatalsToBrowser set_message);
+    
 BEGIN {
    sub handle_errors {
       my $err = shift;
@@ -32,11 +33,10 @@ BEGIN {
 use lib "system/modules";
 require CNFParser;
 require CNFNode;
+require MarkdownPlugin;
 
 our $GLOB_HTML_SERVE = "'{}/*.cgi' '{}/*.htm' '{}/*.html' '{}/*.md' '{}/*.txt'";
-our $script_path = $0;
-$script_path =~ s/\w+.cgi$//;
-
+our $script_path = $0; $script_path =~ s/\w+.cgi$//;
 
 exit &HTMLPageBuilderFromCNF;
 
