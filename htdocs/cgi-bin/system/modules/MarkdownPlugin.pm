@@ -34,7 +34,7 @@ try{
     $PARSER = $parser;
     die "Property not found [$property]!" if !$item;
 
-    my $ref = ref($item); my $escaped = 0;
+    my $ref = ref($item); my $escaped = 0; $script = $item;
     if($ref eq 'CNFNode'){
        $script = $item->{script}  
     }elsif($ref eq 'InstructedDataItem'){
@@ -83,9 +83,11 @@ package HTMLListItem {
         my $t = $self->{type};
         my $isRootItem = $self -> {spc} == 0 ? 1 : 0;
         my $hasItems   = $self->hasItems()   ? 1 : 0;
-        my $ret = "<li>".$self -> {item}."</li>\n";  
-        if($hasItems){
-           $ret = "<li>".$self -> {item}."<$t>\n";
+        my $ret;
+        if($hasItems&&!$isRootItem){
+           $ret = "<li>".$self -> {item}."<$t>\n"
+        }else{
+           $ret = "<li>".$self -> {item}."</li>\n"
         }
         foreach my $item(@{$self->{list}}){
             if($item->hasItems()){
@@ -127,8 +129,7 @@ try{
     my @titels;my $code = 0; my ($tag, $class);  my $pml_val = 0;  my ($bqte, $bqte_nested,$bqte_tag);
     $script =~ s/^\s*|\s*$//;
     foreach my $ln(split(/\n/,$script)){        
-        $ln =~ s/\t/$TAB/gs;  
-        $lnc++;
+           $ln =~ s/\t/$TAB/gs; $lnc++;
         if($ln =~ /^```(\w*)\s(.*)```$/g){
             $tag = $1;
             $ln  = $2;
@@ -136,6 +137,7 @@ try{
             $buffer .= qq(<$code_tag[1] class='$code_tag[0]'>$ln</$code_tag[1]>\n);
             next
         }elsif($ln =~ /^\s*```(\w*)/){
+            my $bfCode;
             if(!$tag){
                 my @code_tag = @{ setCodeTag($1, $1) };
                 $class = $code_tag[0];         
@@ -143,21 +145,32 @@ try{
             }
             if($code){
                if($para){ 
-                  $buffer .= "$para\n"
+                  $bfCode .= "$para\n"
                }
-               $buffer .= "</$tag><br>"; undef $para;
+               $bfCode .= "</$tag><br>"; undef $para;
                $code = 0; undef $tag;
+               if($list_item){
+                  $bfCode  = $list_item -> {item} . $bfCode;
+                  $list_item -> {item} = "$bfCode</dt>\n";
+                  next;
+               }
             }else{
-               $buffer .= "<$tag class='$class'>"; 
+               $bfCode .= "<$tag class='$class'>"; 
                if($class eq 'perl'){
-                  $buffer .= qq(<h1><span>$class</span></h1>);
+                  $bfCode .= qq(<h1><span>$class</span></h1>);
                   $code = 2;
                 }else{
                   if($class eq 'cnf' or $class eq 'html'){
-                     $buffer .= '<h1><span>'.uc $class.'</span></h1>'
+                     $bfCode .= '<h1><span class="cnf"><a title="M.C. Hammer -- Can\'t  touch this!" href="/" style="text-decoration: none;">Perl&nbsp;'.uc $class.'</a></span></h1>'
                   }
                   $code = 1
                 }
+            }
+            if($list_item){            
+                $list_item -> {item} = $list_item -> {item}.'<dt><br>'.$bfCode;
+
+            }else{
+                $buffer .= "$bfCode\n";
             }
         }elsif(!$code && $ln =~ /^\s*(#+)\s*(.*)/){
             my $h = 'h'.length($1);
@@ -240,7 +253,11 @@ try{
                 }elsif($code == 2){   
                     $para .= code2HTML($v)."<br>\n";
                 }else{           
-
+                    $v = inlineCNF($v);
+                    if(length($v) > length($ln)){
+                       $para .= qq($v<br>);
+                       next
+                    }
 
                     $v =~ m/  ^(<{2,3}) ([\$@%]*\w*)$ 
                             | ^(>{2,3})$
@@ -251,14 +268,14 @@ try{
                         my $t = $1;  
                         my $i = $2;  
                         $t =~ s/</&#60;/g;                      
-                        $para .= qq(<span class='bra'>$t</span><span class='ins'>$i</span><br>);
+                        $para .= qq(<span class='B'>$t</span><span class='ins'>$i</span><br>);
                         $pml_val = 1;
                         next;
                         
                     }elsif($3){
                         my $t = $3; 
                         $t =~ s/>/&#62;/g;  
-                        $para .= "<span class='bra'>$t</span><br>\n";
+                        $para .= "<span class='B'>$t</span><br>\n";
                         $pml_val = 0;
                         next;
                     }elsif($4&&$5&&6){
@@ -266,8 +283,8 @@ try{
                         my $v = $5;
                         my $i = $6;
                         $t =~ s/</&#60;/g;
-                        $para .= qq(<span class='bra'>$t</span><span class='var'>$v</span>
-                                    <span class='bra'>&#60;</span><span class='ins'>$i</span><span class='bra'>&#62;</span><br>);
+                        $para .= qq(<span class='B'>$t</span><span class='pv'>$v</span>
+                                    <span class='B'>&#60;</span><span class='ins'>$i</span><span class='B'>&#62;</span><br>);
                         $pml_val = 1;
                         next;
 
@@ -289,31 +306,31 @@ try{
                         $t =~ s/</&#60;/g;
                         $c =~ s/>/&#62;/g;
                         $pml_val = 1;                       
-                        $para .= qq(<span class='bra'>$t</span><span class='var'>$v</span><span class='bra'>&#60;</span><span class='inst'>$i</span><span class='bra'>$c</span><br>);
+                        $para .= qq(<span class='B'>$t</span><span class='pv'>$v</span><span class='B'>&#60;</span><span class='pi'>$i</span><span class='B'>$c</span><br>);
                        
                     }elsif($5&&$6){
                         my $t = $5;
                         my $i = $6;
                         $t =~ s/</&#60;/g; $pml_val = 1;
-                        $para .= qq(<span class='bra'>$t</span><span class='inst'>$i</span><br>);
+                        $para .= qq(<span class='B'>$t</span><span class='pi'>$i</span><br>);
 
                     }elsif($1 && $2 && $3){
                         
                         $pml_val = 1;
-                        $para .= qq(<span class='bra'>&#60;&#60;$2<\/span><span class='var'>$3</span><span class='bra'>&#62;<\/span><br>);
+                        $para .= qq(<span class='B'>&#60;&#60;$2<\/span><span class='pv'>$3</span><span class='B'>&#62;<\/span><br>);
                        
                     }elsif($8){
                         my $t = $8; 
                         $t =~ s/>/&#62;/g;  $pml_val = 0;
-                        $para .= "<span class='bra'>$t</span><br>\n";
+                        $para .= "<span class='B'>$t</span><br>\n";
                     }
                     else{
                         if($pml_val){
                             $v =~ m/(.*)([=:])(.*)/gs;
                             if($1&&$2&&$3){
-                                $para .= "<span class='var'>$1</span> <span class='bra'>$2</span> <span class='val'>$3</span> <br>\n";
+                                $para .= "<span class='pv'>$1</span> <span class='B'>$2</span> <span class='pn'>$3</span> <br>\n";
                             }else{
-                                $para .= " <span class='val'>$v</span><br>\n";
+                                $para .= " <span class='pn'>$v</span><br>\n";
                             }
                         }else{
                             $para .= "$v<br>\n";
@@ -337,7 +354,7 @@ try{
                 $buffer .= $_->toString()."\n";    
                 }
                 $buffer .= "</".$list[0]->{type}.">\n";
-                undef @list
+                undef @list; undef $list_item;
             }
             elsif($para){
                if($code){
@@ -372,12 +389,127 @@ return [\$buffer,\@titels]
 sub code2HTML($v){
         $v =~ s/([,;=\(\)\{\}\[\]]|->)/<span class='opr'>$1<\/span>/g;
         $v =~ s/(['"].*['"])/<span class='str'>$1<\/span>/g;        
-        $v =~ s/(my|our|local|use|lib|require|new|while|for|foreach|while|if|else|elsif)/<span class='bra'>$1<\/span>/g;                    
-        $v =~ s/(\$\w+)/<span class='inst'>$1<\/span>/g;
+        $v =~ s/(my|our|local|use|lib|require|new|while|for|foreach|while|if|else|elsif)/<span class='B'>$1<\/span>/g;                    
+        $v =~ s/(\$\w+)/<span class='pi'>$1<\/span>/g;
         return $v
 }
 
+sub inlineCNF($v){
 
+    # $v =~ m/ ^(<<)  ([@%]<) ([\$@%]?\w+) ([<>])
+    #                         |^(<{2,3})                          
+    #                             ([^>]+)
+    #                                 ( (<|>\w*>) | [<|>] (\w*)  | (>{2,3})\s*)$
+    #             /gmx;
+
+
+    $v =~ m/    ^(<<)  ([@%]<) ([\$@%]?\w+) ([<>])
+                                |^(<{2,3})                          
+                                    ([^>]+)
+                                            ( 
+                                            (<|>\w*>?) | [<|>] (\w*) 
+                                            )
+                                |(>{2,3})$ 
+    /gmx;
+
+    if($5&&$6&&$7){
+        my ($o,$oo,$i,$isVar,$sep,$var,$prop,$c,$cc);
+        $oo = $5; $var  = $6; $cc = $7;        
+        
+        if($cc=~/^([<|>])([\w ]*)(>+)/){
+           $o = $1;
+           $i = $2;
+           $c = $3;
+           if($i && $i ne $c){              
+              $o =~ s/</&#60;/g;
+              $o =~ s/>/&#62;/g;
+              my $iv = $i;
+              if($var=~/^(\w+)([<|>])(\w+)/){
+                 $var = $1;
+                 $sep = $2;
+                 $i = $3;
+                 $sep =~ s/</&#60;/g;
+                 $sep =~ s/>/&#62;/g;
+                 $prop = qq(<span class='pn'>$var</span><span class='B'>$sep</span><span class='pi'>$i</span><span class='B'>&#62</span><span class='pv'>$iv</span>);
+                 $cc   =~ s/$iv//;                 
+              }elsif($PARSER->isReservedWord($i)){
+                 $prop = qq(<span class='pn'>$var</span><span class='B'>$o</span><span class='pv'>$i</span><span class='B'>$c</span>);
+              }else{
+                 $prop = qq(<span class='pn'>$var</span><span class='B'>$o</span><span class='pv'>$i</span>);
+                 $cc   =~ s/$i//;
+              }
+           }elsif($var=~/^(\w+)([<|>])(\w+)/){
+                $var = $1;
+                $sep = $2;
+                $i   = $3;
+                $sep =~ s/</&#60;/g;
+                $sep =~ s/>/&#62;/g;
+                $prop = qq(<span class='pn'>$var</span><span class='B'>$sep</span><span class='pv'>$i</span>);
+           }else{
+                $cc .='>' if length($oo) != length($cc)
+           }
+        }
+        $oo =~ s/</&#60;/g;        
+        $cc =~ s/>/&#62;/g;     
+        
+        if(!$prop){
+            $v = $var;
+            $v =~ m/^(\w+\$*)\s*([<|>])*([^>]+)*/;
+            $var = $1; 
+            $isVar = $2;
+            $i = $3 if $3;
+            $prop = $v;
+            if($isVar){
+                $isVar =~ s/</&#60;/g;
+                $isVar =~ s/>/&#62;/g;        
+                if($i){
+                    $v =~ s/^\w+\s*\s*(<|>)*([^>]*)*/<span class='pn'>$var<\/span><span class='B'>$isVar<\/span><span class='pv'>$i<\/span>/;
+                }else{
+                    $v =~ s/^\w+\s*\s*(<|>)*/<span class='pi'>$var<span class='B'>$isVar<\/span><\/span>/;
+                }
+                $prop = $v
+            }else{
+                if($PARSER->isReservedWord($var)){
+                        $prop = propValCNF($i);
+                        $v =~ s/\s$i$/$prop/;
+                        $v =~ s/^\w+/<span class='pi'>$var<\/span>/;
+                        $prop = $v;
+                }else{
+                        $prop = propValCNF($i);
+                        $v =~ s/\s$i$/$prop/;
+                        $v =~ s/^\w+/<span class='pn'>$var<\/span>/;
+                        $prop = $v;
+                }
+                
+            }
+        }
+
+        $v = qq(<span class='B'>$oo</span>$prop</span><span class='B'>$cc</span>);
+    }
+    elsif($5&&$6){
+        my $t = $5;
+        my $i = $6;
+        my $c = $7; $c = $8 if !$c;
+        $t =~ s/</&#60;/g; 
+        $c =~ s/>/&#62;/g if $c;
+        $v = qq(<span class='B'>$t</span><span class='pi'>$i</span>$c);
+    }            
+    elsif($1 && $2 && $3){
+        my $ins  = $2;
+        my $prop = propValCNF($3);
+        $v = qq(<span class='B'>&#60;&#60;$ins<\/span>$prop<span class='B'>&#62;<\/span>);        
+    }
+    return $v
+}
+sub propValCNF($v){    
+    $v =~ m/(.*)([=:])(.*)/gs;
+    if($1&&$2&&$3){
+       $v = "&nbsp;<span class='pi'>$1</span><span class='O'>$2</span><span class='pv'>$3</span>";
+    }else{
+       $v = "&nbsp;<span class='pv'>$v</span>";
+    }
+    return $v;
+}
 
 sub style ($script){
     MarkdownPluginException->throw(error=>"Invalid argument passed as script!",show_trace=>1) if !$script;
@@ -396,39 +528,7 @@ sub style ($script){
     #Inline code
     $ret =~ m/```(.*)```/g;
     if($1){
-        my $v = $1; 
-           $v =~ m/ ^(<<)  ([@%]<) ([\$@%]?\w+) ([<>])
-                            |^(<{2,3})                          
-                                ([^>]+)
-                                    ( (<[\W\w ]*>) | (>{2,3})$ )
-                /gx;
-            if($5&&$6&&$7){
-                my $t = $5;
-                   $v = $6;
-                my $c = $7;
-                $t =~ s/</&#60;/g; 
-                $c =~ s/>/&#62;/g;
-                $v=~m/^(\w+)/;
-                my $w = $1; 
-                
-                if($PARSER->isReservedWord($w)){
-                    $v =~ s/^(\w+)/<span class='inst'>$w<\/span>/;
-
-                }
-                $v = qq(<span class='bra'>$t</span><span class='var'>$v</span></span><span class='bra'>$c</span>);                
-                
-            }elsif($5&&$6){
-                my $t = $5;
-                my $i = $6;
-                my $c = $7; $c = $8 if !$c;
-                $t =~ s/</&#60;/g; 
-                $c =~ s/>/&#62;/g if $c;
-                $v = qq(<span class='bra'>$t</span><span class='inst'>$i</span>$c);
-            }            
-            elsif($1 && $2 && $3){
-                $v = qq(<span class='bra'>&#60;&#60;$2<\/span><span class='var'>$3</span><span class='bra'>&#62;<\/span>);
-                
-            }
+        my $v = inlineCNF($1);        
         $ret =~ s/```(.*)```/\<span\>$v<\/span\>/;         
     }
     
@@ -439,9 +539,51 @@ sub style ($script){
     return \$ret;
 }
 
-#
+###
+# Style sheet used  for HTML conversion. 
+# Link with <*<MarkdownPlug::CSS>*> in a TREE instructed property.
+###
+use constant CSS => q/
 
+div .cnf {
+    background: aliceblue;
+}
+.cnf h1 span  {
+    color:#05b361;
+    background: aliceblue;
+}
+    .B {
+        color: #c60000;
+        padding: 2px;        
+    }
 
+    .Q {
+        color: #b7ae21;  
+        font-weight: bold;
+    }
+
+    .pn {
+        color: #6800ff;        
+    }
+
+    .pv {
+        color: #883ac8;        
+    }
+
+    .pi {
+        color: #18a7c8;;        
+        font-weight: bold;
+    }
+
+    .opr {
+        color: yellow;        
+    }
+
+    .str {
+        color: red;        
+        font-weight: bold;   
+    }
+/;
 
 
 1;
