@@ -76,7 +76,7 @@ try{
                 } 
                 $arr = $link  -> find('STYLE');
                 if(ref($arr) eq 'ARRAY'){
-                    foreach (@$arr){ 
+                    foreach (@$arr){
                         $give_me .= "\n<style>\n".$_ -> val()."\n</style>\n"
                     }}else{
                         $give_me .= "\n<style>\n".$arr -> val()."\n</style>\n"
