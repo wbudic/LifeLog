@@ -14,6 +14,7 @@
 ]JS]
 [CSS[
     [@@[wsrc/main.css]@@]
+    [@@[wsrc/effects.css]@@]
     [@@[wsrc/jquery-ui.css]@@]
     [@@[wsrc/jquery-ui.theme.css]@@]
     [@@[wsrc/jquery-ui.theme.css]@@]
@@ -48,13 +49,24 @@
     #content li {
         padding: 0px;          
         margin-left:30px;
+    }    
+
+    #content li a:link {
+        font-weight: normal;
+        color:rgb(26, 96, 111);
     }
 
-    #content a:hover {
+    #content li a:hover {
         color: #ff4d21;
-        font-weight: bolder;         
+        font-weight: bolder;
         background: rgba(255,255,255,0.2);
     }
+
+    #content li a:visited {
+     color:  rgb(136, 58, 200);
+     font-weight: bold;
+    }
+
 
     #footer {
         border: 1px solid gray;
@@ -103,28 +115,6 @@
         height:80%;
     }
 
-
-    .bra {
-        color: maroon;
-        padding: 2px;        
-    }
-    .var {
-        color: blue;        
-    }
-    .opr {
-        color: blue;        
-    }
-    .val {
-        color: gray;        
-    }
-    .str {
-        color: red;        
-        font-weight: bold;   
-    }
-    .inst {
-        color: green;        
-        font-weight: bold;   
-    }
 
     code, pre{
        font-family: 'Droid Sans Mono', 'monospace', monospace;
@@ -182,7 +172,7 @@
 
     div .perl {
         border:1px solid lightgray;
-        background: rgba(255,255,255,0.2);
+        background:  rgba(149, 215, 172, 0.2);
         padding-left:5px;
         font-family:monospace;
         text-align: left;  
@@ -195,13 +185,13 @@
         margin-top: -10px;
         height: 20px;
         line-height: 20px;
-        font-size: 15px;
+        font-size: 15px;        
     }
 
-    .perl h1 span{
-        background-color: white;
+    .perl h1 span{        
+        background:  rgba(170, 227, 191, 0.75);
         border:1px solid lightgray;
-        color:lightgray;
+        color:black;
         font-size:small;
         padding: 3px;
         padding-left: 5px;
@@ -216,25 +206,7 @@
         text-align: center;
         background: #ccffff;        
         text-decoration-style: wavy;
-    }
-
-
-    #menu_page {
-        position: fixed;
-        float: left;
-        margin: 0;
-        margin-top:5px;
-        border: 2px solid #94cde7;
-        padding: 5px;
-        text-align: center;
-        background: #ccffff;
-        margin-left: 89%;
-    }
-
-    
-    .menu_head {
-        border: 2px solid #00000017;
-        font-size:small;        
+        filter: drop-shadow(    10px 8px 5px #3e6f70);
     }
 
 ]#]
@@ -253,12 +225,14 @@ function onIndexBodyLoad(){
     $("#content a").click(
         function(e){
             e.preventDefault();
-            $("#status").html("Loading: " + e.target.href).show().fadeOut(1000);
+            e.target.setAttribute("style","color:  rgb(136, 58, 200);font-weight: bolder;font-style: italic");
+            $("#status").html("Loading: " + e.target.href).show().fadeOut(3000);            
             $.post('index.cgi', {action:'load', doc:e.target.getAttribute('href')}, loadDocResult).fail(
                     function(response) {$('#doc_display').html("Service Error: "+response.status,response.responseText)}
             );
         }
     );
+    $("#content a").prop("visitied",false);
     onBodyLoadGeneric();    
 }
 function loadDocResult(content){
@@ -267,7 +241,10 @@ function loadDocResult(content){
 }
 ]#]
 >SCRIPT>
->>
+
+>>HEADER>TREE>
+
+
 
 ###
 # We in plugin mainly access this PAGE property, <*<HEADER>*> is linked in for clarity, 
@@ -338,21 +315,23 @@ function loadDocResult(content){
         >div>
  >div>
     <!<Page brought to you by HTMLIndexProcessorPlugin, from the PerlCNF project.>!>
->>
-
-<<CNF_TO_HTML<PLUGIN>
-    package     : HTMLIndexProcessorPlugin
-    subroutine  : convert
-    property    : PAGE
->>
+>>PAGE>TREE>
 
 <<INFO_MD<ESCAPED>
+
+```cnf
 
 ### INFO
 \> This Page is the Documentation listing coming with the [LifeLog](https://github.com/wbudic/LifeLog) Application.
 \>
 \>[Open Source License](https://choosealicense.com/licenses/isc/)
 
+>>
+
+<<CNF_TO_HTML<PLUGIN>
+    package     : HTMLIndexProcessorPlugin
+    subroutine  : convert
+    property    : PAGE
 >>
 
 <<INFO_MD_TO_HTML<PLUGIN> _HAS_PROCESSING_PRIORITY_

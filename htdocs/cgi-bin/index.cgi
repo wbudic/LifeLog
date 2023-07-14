@@ -46,7 +46,7 @@ sub HTMLPageBuilderFromCNF {
                             $script_path."index.cnf",{
                              DO_ENABLED => 1, HAS_EXTENSIONS=>1,
                              ANONS_ARE_PUBLIC => 1,
-                                                   PAGE_HEAD    => "<h2>Index Page of Docs Directory</h2>", 
+                                                   PAGE_HEAD    => "<h1 id=\"index_head\">Index Page of Docs Directory</h1>", 
                                                    PAGE_CONTENT => $html, 
                                                    PAGE_FOOT    => "<!--Not Defined-->"
                             }

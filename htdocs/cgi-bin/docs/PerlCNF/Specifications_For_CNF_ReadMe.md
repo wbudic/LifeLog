@@ -84,7 +84,7 @@ Quick Jump: [CNF Tag Formats](#cnf-tag-formats)  |  [CNF Collections Formatting]
 
     1. Anon value can be scripted to contain template like but numbered parameters.
     2. When querying for an anon value, replacement parameter array can be passed.
-    3. Numbering is from **\$\$\$1\$\$\$**..**$$$(n...)\$\$\$** to be part of its value. Strategically placed.
+    3. Numbering is from **$$$1$$$**..**$$$(n...)$$$** to be part of its value. Strategically placed.
 
     ```CNF
         <<GET_SUB_URL<https://www.$$$1$$$.acme.com/$$$2$$$>>>
@@ -101,16 +101,16 @@ Quick Jump: [CNF Tag Formats](#cnf-tag-formats)  |  [CNF Collections Formatting]
 28. Listing is a reappearing same name tag postfixed with an **\$\$**.
 
     ```CNF Example 1:
-                <<INS$$>ls -la>
-                <<INS$$>uname -a>
+                <<INS$$>ls -la>>
+                <<INS$$>uname -a>>
     ```
 
 29. Listing is usually a named list of instructions, items grouped and available as individual entries of the listing value.
 
     ```CNF Example 2:
-                <<Animals$$>Cat>
-                <<Animals$$>Dog>
-                <<Animals$$>Eagle>
+                <<Animals$$>Cat>>
+                <<Animals$$>Dog>>
+                <<Animals$$>Eagle>>
     ```
 
 30. Anon used as an **reserve** format is some applications internal meta property.
@@ -188,13 +188,13 @@ Quick Jump: [Introduction](#introduction)  |  [CNF Collections Formatting](#cnf-
     5. Ver. 2.8 of PerlCNF is the third rewrite to boom and make this algorithm efficient.
 2. Example. Instruction is mauling value:
 
-    ```perl
+    ```cnf
         <<CNF_COUNTRY_OF_ORIGIN<Australia>>>
     ```
 
 3. Example. Instruction mauls into multi-new line value:
 
-    ```perl
+    ```cnf
        <<APP_HELP_TXT<CONST
        This is your applications help text in format of an constance. 
        All you see here can't be dynamically changed.
@@ -205,7 +205,7 @@ Quick Jump: [Introduction](#introduction)  |  [CNF Collections Formatting](#cnf-
 
 4. Example. Tag name mauled:
 
-    ```perl
+    ```cnf
        <<<CONST
        $APP_HELP_TXT='This is your applications help text in format of an constance.'       
        >>        
@@ -215,7 +215,7 @@ Quick Jump: [Introduction](#introduction)  |  [CNF Collections Formatting](#cnf-
     1. This will fire warnings but isn't exactly an error.
     2. Introduced with CNF release v.2.5.
 
-    ```perl
+    ```cnf
        <<PWD<>path/to/something>>        
     ```
 
@@ -235,8 +235,8 @@ Quick Jump: [Introduction](#introduction)  | [CNF Tag Formats](#cnf-tag-formats)
       2. For arrays, values are delimited by new line or a comma.
       3. White space is preserved if values are quoted, otherwise are trimmed.
 
-   ```TEXT
-    Format:    <<@<{T}NAME>DATA>>>
+   ```text
+    Format:    <<@<{T}NAME{$$}>DATA>>>
 
     Examples:
     # Following provides an array of listed animal types.

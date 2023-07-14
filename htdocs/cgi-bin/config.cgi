@@ -74,11 +74,11 @@ getHeader();
 if ($ERROR) { &error; }
 else {
     print
-qq(<div id="menu" title="To close this menu click on its heart, and wait.">
+qq(<div id="menu_page" title="To close this menu click on its heart, and wait.">
 <div class="hdr" style="marging=0;padding:0px;">
-<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>&nbsp;
+<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>
+Config
 <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
-<a id="menu_close" href="#" onclick="return hide('menu_close');"><span  class="ui-icon ui-icon-heart" style="float:none;"></span></a>
 </div>
 <hr>
 <a class="a_" href="main.cgi">Log</a><hr>
@@ -446,10 +446,8 @@ print qq(
     <div><a name="categories"></a>$frmCats</div>
     <div><a name="dbsets"></a>$frmDB</div>
     <div><a name="passets"></a>$frmPASS</div>
-    <div id="rz" style="text-align:center;width:)
-  . &Settings::pagePrcWidth
-  . qq(%;"><a name="bottom"></a>
-                <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a>
+    <div id="rz" style="text-align:center;width:). &Settings::pagePrcWidth. qq(%;">
+        <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a>
     </div>
     <br>
     <div id="rz" style="text-align:left; width:640px; padding:10px;">            
@@ -537,7 +535,7 @@ print qq(
     </div>        
 </div>
 <hr>
-<div>
+<div><a name="bottom"></a>
             <a href="main.cgi"><h3>Back to Main Log</h3></a><h3><a href="login_ctr.cgi?logout=bye">LOGOUT</a></h3>
 </div>
 );
@@ -566,6 +564,7 @@ sub getHeader {
                 -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
             },
             { -type => 'text/css', -src => Settings::theme('css') },
+            { -type => 'text/css', -src => 'wsrc/effects.css' },
         ],
         -script => [
             { -type => 'text/javascript', -src => 'wsrc/main.js' },
@@ -782,7 +781,7 @@ qq(<a name="top"></a><form id="frm_log" action="data.cgi" onSubmit="return formD
        <a id="to_top" href="#top" title="Go to top of page.">To Top<span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>
        <a href="config.cgi?CGISESSID=$sid#dbsets">Go Back</a></td>
        <td colspan="4" align="right">
-        <a name="bottom"></a><button onclick="return selectAllLogs()">Select All</button>
+        <button onclick="return selectAllLogs()">Select All</button>
         <input type="reset" value="Unselect All"/>
         <input type="hidden" name="confirmed" value="1">
         <input id="del_sel" type="submit" value="Delete Selected"/>

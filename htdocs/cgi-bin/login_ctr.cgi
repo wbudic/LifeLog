@@ -66,6 +66,7 @@ try{
                                 {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                                 {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
                     -style => [ {-type  => 'text/css', -src => $css},
+                                {-type => 'text/css', -src => 'wsrc/effects.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}],
@@ -81,7 +82,7 @@ try{
         <table border="0" width="50%"  
         style="opacity: 1; box-sizing: border-box; margin-bottom: 5px; box-shadow: 5px 5px 5px $colSHDW;">
         <tr class="r0">
-            <td colspan="3"><h3>Welcome to Life Log</h3></td>
+            <td colspan="3"><h23 id="lifelog_head">Welcome to Life Log</h3></td>
             </tr>
         <tr class="r1">
             <td align="right">Alias:</td><td><input type="text" name="alias" value="$alias"/></td><td></td>
@@ -100,7 +101,7 @@ try{
         <tr class="r0"><td colspan="2">Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
         </table></form>
 HTML
-    print qq(<br><br><div id ="menu" >Menu<hr> <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a></div>
+    print qq(<br><br><div id ="menu_page" ><span class="menu_head">Menu</span><hr> <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a></div>
             <div class="rz login">
                 $frm
                 <br>

@@ -1063,12 +1063,14 @@ else{
 	if(lc $` eq 'pg'){$sql = $s.'&#10132;'.'PostgreSQL'}
 	else{$sql = $s.'&#10132;'.$`}
 	$sideMenu = qq(
-        <div id="menu" title="To close this menu click on its heart, and wait.">
+        <div id="menu_page" title="To close this menu click on its heart, and wait.">
         <div class="hdr" style="marging=0;padding:0px;">
 		<a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
-        &nbsp;        
+		<a id="dutch_left" onclick="return moveMenuLeft();"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
+        	Life
+		<a id="dutch_right" onclick="return moveMenuRight();"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
 		<a id="to_top" href="#top" title="Go to top of page."><span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>
-        <a id="menu_close" href="#" onclick="return hideLog();"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
+        <a id="menu_close" href="#"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
         </div>
         <hr>
         <a class="a_" onclick="return toggle('#div_log',true);">Log</a><br>
@@ -1120,6 +1122,14 @@ $tail
 </script>
 <audio id="au_door_chime"  enabled preload="auto" 
     src="wsrc/Miki-Matsubara-WASH-WASH.mp3">
+        Your browser does not support the
+        <code>audio</code> element.
+</audio>
+<audio id="dutchie_chime"  enabled preload="auto"   src="wsrc/dutchie.mp3">
+        Your browser does not support the
+        <code>audio</code> element.
+</audio>
+<audio id="dutchie_close_chime"  enabled preload="auto"   src="wsrc/dutchie-close.mp3">
         Your browser does not support the
         <code>audio</code> element.
 </audio>
@@ -1617,6 +1627,7 @@ sub outputPage {
 			{ -type => 'text/css', -src => 'wsrc/quill/quill.snow.css' },
 			{ -type => 'text/css', -src => 'wsrc/jquery.sweet-dropdown.css' },
 			{ -type => 'text/css', -src =>  Settings::theme('css') },
+			{ -type => 'text/css', -src => 'wsrc/effects.css' },
 		],
 		-script => [
 			{ -type => 'text/javascript', -src => 'wsrc/main.js' },
