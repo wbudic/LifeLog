@@ -38,7 +38,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
     LOCALE      = locale;
     TIMEZONE    = tz;    
     TIME_STAMP  = new Date(today);
-    DBI_LVAR_SZ = parseInt(log_limit);
+    DBI_LVAR_SZ = parseInt(log_limit);    
     
     onBodyLoadGeneric();
     
@@ -158,21 +158,44 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         alignY: 'bottom',
         offsetX: 5,
         showTimeout: 100
-    });
+    });   
 
     $("#menu_close").poshytip({
+        content: "<b>Do not click on this</b> little heart of mine,<br> <b>the menu will be closed</b>!",
         className: 'tip-yellowsimple',
-        showOn: 'focus',
-        alignX: 'left',
-        alignY: 'bottom',
+        showOn: 'mouseover',        
+        alignTo: 'target',
+        alignX: 'center',
+        alignY: 'bottom',    
+        showTimeout: 100    
     });
 
     $("#menu_close").click(function() {
-        $("#menu").effect("shake", {}, 1000, function() {
-            $("#menu").effect("drop", { direction: "down" }, 1500, function() {
-                $("#menu").hide();
+        $('#dutchie_close_chime').trigger('play');
+        $("#menu_page").effect("shake", {}, 1000, function() {
+            $("#menu_page").effect("drop", { direction: "down" }, 1500, function() {
+                $("#menu_page").hide();
             })
         })
+    });
+
+    $("#dutch_left").poshytip({
+        content: "<span class='ui-icon ui-icon-arrowthick-1-w' style='float:none;'></span>Pass the dutchie to the <b>left</b> on side.",
+        className: 'tip-yellowsimple',
+        showOn: 'mouseover',        
+        alignTo: 'target',
+        alignX: 'center',
+        alignY: 'bottom',    
+        showTimeout: 100    
+    });
+    $("#dutch_right").poshytip({
+        content: "Pass the dutchie to the <b>right</b> on side.<span class='ui-icon ui-icon-arrowthick-1-e' style='float:none;'></span>",
+        className: 'tip-yellowsimple',
+        showOn: 'mouseover',        
+        alignTo: 'target',
+        alignX: 'center',
+        alignY: 'bottom',    
+        showTimeout: 100    
     });
 
 
@@ -829,7 +852,7 @@ function toggle(id, mtoggle) {
 
 function showAll() {
 
-   show("#menu");
+   show("#menu_page");
    
    if(_show_all){
         $("#lnk_show_all").text("Hide All");   
@@ -864,6 +887,17 @@ function display(desc, times){
     pnl.dispPos(true);
     pnl.show();
     pnl.fadeOut(1000*times);
+}
+
+function moveMenuLeft (){
+    $('#menu_page').css('margin-left','.5vw');
+    $('#dutchie_chime').trigger('play');
+return false;
+}
+function moveMenuRight (){
+    $('#menu_page').css('margin-left','90.5vw');
+    $('#dutchie_close_chime').trigger('play');
+return false;
 }
 
 function viewRTFLogs(btn){
