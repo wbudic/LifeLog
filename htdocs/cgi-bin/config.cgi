@@ -289,7 +289,7 @@ while ( my @row = $dbs->fetchrow_array() ) {
                     <option value="1" $u>True</option>
                     </select>);
     }
-    elsif ( $n eq "DISP_ALL" ) {
+    elsif ( $n eq "DISP_ALL" or $n eq 'AUDIO_ENABLED') {
         my ( $l, $u ) = ( "", "" );
         if ( $v == 0 ) {
             $l = "SELECTED";
@@ -306,8 +306,7 @@ while ( my @row = $dbs->fetchrow_array() ) {
         or $n eq 'TRACK_LOGINS'
         or $n eq 'DEBUG'
         or $n eq 'TRANSPARENCY'
-        or $n eq 'AUTO_LOGOFF' )
-    {
+        or $n eq 'AUTO_LOGOFF') {
         my ( $l, $u ) = ( "", "" );
         if ( $v == 0 ) {
             $l = "SELECTED";

@@ -1100,7 +1100,21 @@ my $help = &help;
 ##################################
 #  Final Page Output from here!  #
 ##################################
-
+my $audio = &Settings::audioEnabled ? qq(
+	<audio id="au_door_chime" enabled preload="auto" 
+    src="wsrc/Miki-Matsubara-WASH-WASH.mp3">
+        Your browser does not support the
+        <code>audio</code> element.
+</audio>
+<audio id="dutchie_chime"  enabled preload="auto"   src="wsrc/dutchie.mp3">
+        Your browser does not support the
+        <code>audio</code> element.
+</audio>
+<audio id="dutchie_close_chime"  enabled preload="auto"   src="wsrc/dutchie-close.mp3">
+        Your browser does not support the
+        <code>audio</code> element.
+</audio>
+):"";
 toBuf (
 	qq(
 $sideMenu
@@ -1120,20 +1134,7 @@ $tail
 <script type="text/javascript">
         var AUTOWORDS = [$autowords];
 </script>
-<audio id="au_door_chime"  enabled preload="auto" 
-    src="wsrc/Miki-Matsubara-WASH-WASH.mp3">
-        Your browser does not support the
-        <code>audio</code> element.
-</audio>
-<audio id="dutchie_chime"  enabled preload="auto"   src="wsrc/dutchie.mp3">
-        Your browser does not support the
-        <code>audio</code> element.
-</audio>
-<audio id="dutchie_close_chime"  enabled preload="auto"   src="wsrc/dutchie-close.mp3">
-        Your browser does not support the
-        <code>audio</code> element.
-</audio>
-)
+$audio)
 );
 
 outputPage();

@@ -81,7 +81,7 @@ BankingPlugin->banking.pl
 # Use/see anon properties before, enabling changing settings from this actual config file.
 #
 <<CONFIG<4>
-00|$RELEASE_VER = 2.4`LifeLog Application Version.
+00|$RELEASE_VER = 2.5`LifeLog Application Version.
 01|$REC_LIMIT   = 25`Records shown per page.
 03|$TIME_ZONE   = Australia/Sydney`Time zone of your country and city.
 05|$PRC_WIDTH   = 80`Default presentation width for pages.
@@ -105,6 +105,7 @@ BankingPlugin->banking.pl
 42|$DISP_ALL    = 1`Display whole log entry, default -> 1=true, 0=false for display single line only.
 44|$TRANSPARENCY= 1`Should log panel be transparent, default is yes or on.
 50|$CURR_SYMBOL = &#36;`Currency symbol.
+52|$AUDIO_ENABLED=1`Enable/Disable audio on some events and actions.
 >>
 <<CAT<3>
 01|Unspecified `For quick uncategorized entries.

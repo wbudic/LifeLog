@@ -319,8 +319,6 @@ function loadDocResult(content){
 
 <<INFO_MD<ESCAPED>
 
-```cnf
-
 ### INFO
 \> This Page is the Documentation listing coming with the [LifeLog](https://github.com/wbudic/LifeLog) Application.
 \>
@@ -341,21 +339,3 @@ function loadDocResult(content){
 >>
 <<1>>
 
-//Following for debug purposess and tests.
-
-```CNF
-
-
-\<\<\<CONST
-$APP_NAME       = "Test Application"
-$APP_VERSION    = v.1.0
-\>\>\>
-
-\<\<B\<{Text To Bold}\>\>
-\<\<I\<{Text To Italic}\>\>
-
-\<\<$APP_DESCRIPTION\<CONST\>
-This application presents just
-a nice multi-line template.
-\>\>
-```

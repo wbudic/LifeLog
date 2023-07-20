@@ -51,32 +51,34 @@ use constant META => '^CONFIG_META';
 
 
 # DEFAULT SETTINGS HERE! These settings kick in if not found in config file. i.e. wrong config file or has been altered, things got missing.
-our $RELEASE_VER  = '2.5';
-our $TIME_ZONE    = 'Australia/Sydney';
-our $LANGUAGE     = 'English';
-our $PRC_WIDTH    = '60';
-our $LOG_PATH     = '../../dbLifeLog/';
-our $SESSN_EXPR   = '+30m';
-our $DATE_UNI     = '0';
-our $AUTHORITY    = '';
-our $IMG_W_H      = '210x120';
-our $REC_LIMIT    = 25;
-our $AUTO_WRD_LMT = 1000;
-our $AUTO_WRD_LEN = 17; #Autocompletion word length limit. Internal.
-our $AUTO_LOGOFF  = 0;
-our $VIEW_ALL_LMT = 1000;
-our $DISP_ALL     = 1;
-our $FRAME_SIZE   = 0;
-our $RTF_SIZE     = 0;
-our $THEME        = 'Standard';
-our $TRANSPARENCY = 1;
-our $TRANSIMAGE   = 'wsrc/images/std-log-lbl-bck.png';
-our $TRACK_LOGINS = 1;
-our $KEEP_EXCS    = 0;
-our $COMPRESS_ENC = 0; #HTTP Compressed encoding.
-our $DBI_SOURCE   = "DBI:SQLite:";
-our $DBI_LVAR_SZ  = 1024;
-our $CURR_SYMBOL  = '&#36;';#'$';
+our $RELEASE_VER   = '2.5';
+our $TIME_ZONE     = 'Australia/Sydney';
+our $LANGUAGE      = 'English';
+our $PRC_WIDTH     = '60';
+our $LOG_PATH      = '../../dbLifeLog/';
+our $SESSN_EXPR    = '+30m';
+our $DATE_UNI      = '0';
+our $AUTHORITY     = '';
+our $IMG_W_H       = '210x120';
+our $REC_LIMIT     = 25;
+our $AUTO_WRD_LMT  = 1000;
+our $AUTO_WRD_LEN  = 17;           #Autocompletion word length limit. Internal.
+our $AUTO_LOGOFF   = 0;
+our $AUDIO_ENABLED = 1;
+our $VIEW_ALL_LMT  = 1000;
+our $DISP_ALL      = 1;
+our $FRAME_SIZE    = 0;
+our $RTF_SIZE      = 0;
+our $THEME         = 'Standard';
+our $TRANSPARENCY  = 1;
+our $TRANSIMAGE    = 'wsrc/images/std-log-lbl-bck.png';
+our $TRACK_LOGINS  = 1;
+our $KEEP_EXCS     = 0;
+our $COMPRESS_ENC  = 0;                                #HTTP Compressed encoding.
+our $DBI_SOURCE    = "DBI:SQLite:";
+our $DBI_LVAR_SZ   = 1024;
+our $CURR_SYMBOL   = '&#36;';
+
 
 my ($cgi, $sss, $sid, $alias, $pass, $dbname, $pub);
 our $DSN;
@@ -127,6 +129,7 @@ sub recordLimit    {$REC_LIMIT}
 sub autoWordLimit  {$AUTO_WRD_LMT}
 sub autoWordLength {$AUTO_WRD_LEN}
 sub autoLogoff     {$AUTO_LOGOFF}
+sub audioEnabled   {$AUDIO_ENABLED}
 sub viewAllLimit   {$VIEW_ALL_LMT}
 sub displayAll     {$DISP_ALL}
 sub trackLogins    {$TRACK_LOGINS}
@@ -436,30 +439,31 @@ sub getConfiguration { my ($db, $hsh) = @_;
         my $st = $db->prepare("SELECT ID, NAME, VALUE FROM CONFIG;");  $st->execute();
         while ( @r = $st->fetchrow_array() ){
                 given ( $r[1] ) {
-                when ("RELEASE_VER") {$RELEASE_VER  = $r[2]}
-                when ("TIME_ZONE")   {$TIME_ZONE    = $r[2]}
-                when ("PRC_WIDTH")   {$PRC_WIDTH    = $r[2]}
-                when ("SESSN_EXPR")  {$SESSN_EXPR   = timeFormatSessionValue($r[2])}
-                when ("DATE_UNI")    {$DATE_UNI     = $r[2]}
-                when ("LANGUAGE")    {$LANGUAGE     = $r[2]}
-                when ("LOG_PATH")    {} # Ommited and code static can't change for now.
-                when ("IMG_W_H")     {$IMG_W_H      = $r[2]}
-                when ("REC_LIMIT")   {$REC_LIMIT    = $r[2]}
-                when ("AUTO_WRD_LMT"){$AUTO_WRD_LMT = $r[2]}
-                when ("AUTO_LOGOFF") {$AUTO_LOGOFF  = $r[2]}
-                when ("VIEW_ALL_LMT"){$VIEW_ALL_LMT = $r[2]}
-                when ("DISP_ALL")    {$DISP_ALL     = $r[2]}
-                when ("FRAME_SIZE")  {$FRAME_SIZE   = $r[2]}
-                when ("RTF_SIZE")    {$RTF_SIZE     = $r[2]}
-                when ("THEME")       {$THEME        = $r[2]}
-                when ("TRANSPARENCY"){$TRANSPARENCY = $r[2]}
-                when ("TRANSIMAGE")  {$TRANSIMAGE   = $r[2]}
-                when ("DEBUG")       {$DEBUG        = $r[2]}
-                when ("KEEP_EXCS")   {$KEEP_EXCS    = $r[2]}
-                when ("TRACK_LOGINS"){$TRACK_LOGINS = $r[2]}
-                when ("COMPRESS_ENC"){$COMPRESS_ENC = $r[2]}
-                when ("CURR_SYMBOL") {$CURR_SYMBOL  = $r[2]}
-                default              {$anons{$r[1]} = $r[2]}
+                when ("RELEASE_VER") { $RELEASE_VER = $r[2] }
+                when ("TIME_ZONE")   { $TIME_ZONE   = $r[2] }
+                when ("PRC_WIDTH")   { $PRC_WIDTH   = $r[2] }
+                when ("SESSN_EXPR") {  $SESSN_EXPR = timeFormatSessionValue( $r[2] ) }
+                when ("DATE_UNI") { $DATE_UNI = $r[2] }
+                when ("LANGUAGE") { $LANGUAGE = $r[2] }
+                when ("LOG_PATH") {}    # Ommited and code static can't change for now.
+                when ("IMG_W_H")       { $IMG_W_H        = $r[2] }
+                when ("REC_LIMIT")     { $REC_LIMIT      = $r[2] }
+                when ("AUTO_WRD_LMT")  { $AUTO_WRD_LMT   = $r[2] }
+                when ("AUTO_LOGOFF")   { $AUTO_LOGOFF    = $r[2] }
+                when ("AUDIO_ENABLED") { $AUDIO_ENABLED  = $r[2] }
+                when ("VIEW_ALL_LMT")  { $VIEW_ALL_LMT   = $r[2] }
+                when ("DISP_ALL")      { $DISP_ALL       = $r[2] }
+                when ("FRAME_SIZE")    { $FRAME_SIZE     = $r[2] }
+                when ("RTF_SIZE")      { $RTF_SIZE       = $r[2] }
+                when ("THEME")         { $THEME          = $r[2] }
+                when ("TRANSPARENCY")  { $TRANSPARENCY   = $r[2] }
+                when ("TRANSIMAGE")    { $TRANSIMAGE     = $r[2] }
+                when ("DEBUG")         { $DEBUG          = $r[2] }
+                when ("KEEP_EXCS")     { $KEEP_EXCS      = $r[2] }
+                when ("TRACK_LOGINS")  { $TRACK_LOGINS   = $r[2] }
+                when ("COMPRESS_ENC")  { $COMPRESS_ENC   = $r[2] }
+                when ("CURR_SYMBOL")   { $CURR_SYMBOL    = $r[2] }
+                default                { $anons{ $r[1] } = $r[2] }
                 }
         }
         #Anons are murky grounds. -- @bud        
