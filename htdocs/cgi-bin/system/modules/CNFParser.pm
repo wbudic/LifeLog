@@ -44,7 +44,7 @@ our %ANONS;
 # You probably don't want to use these as your own possible instruction implementation.
 ###
 
-our %RESERVED_WORDS = map +($_, 1), qw{ CONST CONSTANT VARIABLE VAR 
+our %RESERVED_WORDS = map +($_, 1), qw{ CONST CONSTANT DATA VARIABLE VAR 
                                         FILE TABLE TREE INDEX 
                                         VIEW SQL MIGRATE DO LIB
                                         PLUGIN MACRO %LOG INCLUDE INSTRUCTOR };
@@ -1009,6 +1009,33 @@ sub doPlugin {
 }
 
 ###
+# Generic CNF Link utility on this repository.
+##
+sub obtainLink {
+    my ($self,$link, $ret) = @_;
+    my $meths;
+    ## no critic BuiltinFunctions::ProhibitStringyEval
+    no strict 'refs';
+    if($link =~/(\w*)::\w+$/){        
+        use Module::Loaded qw(is_loaded);
+        if(is_loaded($1)){
+           $ret = \&{+$link}($self);                                        
+        }else{
+           eval require "$1.pm";
+           $ret = &{+$link};           
+           if(!$ret){
+            $self->error( qq(Package  constance link -> $link is not available (try to place in main:: package with -> 'use $1;')));
+            $ret = $link
+           }
+        }
+    }else{
+        $ret = $self->anon($link);
+        $ret = $self-> {$link} if !$ret;
+    }    
+    return $ret;
+}
+
+###
 # Writes out to a handle an CNF property or this parsers constance's as default property.
 # i.e. new CNFParser()->writeOut(*STDOUT);
 sub writeOut { my ($self, $handle, $property) = @_;      
@@ -1103,12 +1130,12 @@ sub writeOut { my ($self, $handle, $property) = @_;
 sub log {
     my $self    = shift;
 	my $message = shift;
-    my $type    = shift;
+    my $type    = shift; $type = "" if !$type;
     my $attach  = join @_; $message .= $attach if $attach;
     my %log = $self -> collection('%LOG');    
     my $time = DateTime->from_epoch( epoch => time )->strftime('%Y-%m-%d %H:%M:%S.%3N');   
     $message = "$type $message" if 'WARNG';
-    if($message =~ /^ERROR/ || defined($type eq 'WARNG')){
+    if($message =~ /^ERROR/ || $type eq 'WARNG'){
         warn  $time . " " .$message;
     }
     elsif(%log && $log{console}){

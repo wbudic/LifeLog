@@ -40,3 +40,4 @@ perl -MCPAN -e 'install Perl::LanguageServer'
 perl -MCPAN -e 'install Log::Log4perl'
 perl -MCPAN -e 'install Number::Bytes::Human'
 perl -MCPAN -e 'install File::ReadBackwards'
+

@@ -33,7 +33,6 @@ BEGIN {
 use lib "system/modules";
 require CNFParser;
 require CNFNode;
-require MarkdownPlugin;
 
 our $GLOB_HTML_SERVE = "'{}/*.cgi' '{}/*.htm' '{}/*.html' '{}/*.md' '{}/*.txt'";
 our $script_path = $0; $script_path =~ s/\w+.cgi$//;
@@ -46,9 +45,9 @@ sub HTMLPageBuilderFromCNF {
                             $script_path."index.cnf",{
                              DO_ENABLED => 1, HAS_EXTENSIONS=>1,
                              ANONS_ARE_PUBLIC => 1,
-                                                   PAGE_HEAD    => "<h1 id=\"index_head\">Index Page of Docs Directory</h1>", 
-                                                   PAGE_CONTENT => $html, 
-                                                   PAGE_FOOT    => "<!--Not Defined-->"
+                                PAGE_HEAD    => "<h1 id=\"index_head\">Index Page of Docs Directory</h1>", 
+                                PAGE_CONTENT => $html, 
+                                PAGE_FOOT    => "<!--Not Defined-->"
                             }
                 );
     my $ptr = $cnf->data();

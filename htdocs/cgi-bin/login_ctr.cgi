@@ -20,13 +20,13 @@ BEGIN {
       my $msg = shift;
       print "<html><body><h2>LifeLog Server Error</h2>";
       print "<pre>@[$ENV{PWD}].Error: $msg</pre></body></html>";
- 
+
   }
   set_message(\&handle_errors);
 }
 
 my $cgi = CGI->new();
-my $session = CGI::Session->new("driver:File",$cgi, {Directory=>&Settings::logPath, SameSite=>'Lax'});      
+my $session = CGI::Session->new("driver:File",$cgi, {Directory=>&Settings::logPath, SameSite=>'Lax'});
 my $sssCreatedDB = $session->param("cdb");
 my $sid=$session->id();
 my $cookie = $cgi->cookie(CGISESSID => $sid);
@@ -48,15 +48,15 @@ my $VW_OVR_WHERE="";
 my $LOGOUT_RELOGIN_TXT='No, no, NO! Log me In Again.';
 my $LOGOUT_IFRAME_ENABLED = 0;
 my $LOGOUT_IFRAME = qq|
-    <iframe width="60%" height="600px" src="https://www.youtube.com/embed/qTFojoffE78?autoplay=1" frameborder="0" allow="accelerometer; 
+    <iframe width="60%" height="600px" src="https://www.youtube.com/embed/qTFojoffE78?autoplay=1" frameborder="0" allow="accelerometer;
             autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
     </iframe>|;
 my %reserved = ('AND'=>1, 'OR'=>1, 'NOT'=>1, 'DATE'=>1,'OLDER_THAN'=>1, 'FROM'=>1,'TO'=>1,'>'=>1,'<'=>1,'>='=>1,'<='=>1,'=='=>1,'!='=>1);
-my %columns  = ('CAT'=>1,'STICKY'=>1, 'RTF'=>1, 'LOG'=>1);    
-try{    
+my %columns  = ('CAT'=>1,'STICKY'=>1, 'RTF'=>1, 'LOG'=>1);
+try{
     checkAutologinSet();
     logout() if($cgi->param('logout'));
-    if(processSubmit()==0){   
+    if(processSubmit()==0){
         my ($css,$colBG,$colSHDW) = (Settings::theme('css'),Settings::theme('colBG'),Settings::theme('colSHDW'));
         print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie);
         print $cgi->start_html(
@@ -78,8 +78,8 @@ try{
        $hst = `hostname` . "($ht[0])" if (@ht);
 
     $frm = <<HTML;
-        <form id="frm_login" action="login_ctr.cgi" method="post">
-        <table border="0" width="50%"  
+        <form id="frm_login" action="login_ctr.cgi" method="post" style="filter: drop-shadow(10px 8px 5px #3e6f70);">
+        <table border="0" width="50%"
         style="opacity: 1; box-sizing: border-box; margin-bottom: 5px; box-shadow: 5px 5px 5px $colSHDW;">
         <tr class="r0">
             <td colspan="3"><h23 id="lifelog_head">Welcome to Life Log</h3></td>
@@ -101,17 +101,20 @@ try{
         <tr class="r0"><td colspan="2">Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
         </table></form>
 HTML
-    print qq(<br><br><div id ="menu_page" ><span class="menu_head">Menu</span><hr> <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a></div>
+    print qq(
+            <br>
+            <div id="menu_page" style="margin-left: 85vw;"><span class="menu_head">Menu</span><hr>
+                <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a>
+            </div>
             <div class="rz login">
                 $frm
                 <br>
-                <a href="https://github.com/wbudic/LifeLog" target="_blank" style="font-size:small">                    
+                <a href="https://github.com/wbudic/LifeLog" target="_blank" style="font-size:small">
                 <div style="display: inline-block; vertical-align: middle; text-align: center; width:50%; opacity: 0.8;">
-                <div style="display:table-cell; height:20px; vertical-align: middle;">
-                    <img src="wsrc/images/pingy.svg" height="30px"> LifeLog v.).Settings::release().qq(</a>
+                    <div style="display:table-cell; height:20px; vertical-align: middle;">
+                        <img src="wsrc/images/pingy.svg" height="30px" style="filter: drop-shadow(10px 10px 5px #3e6f70);"> LifeLog v.).Settings::release().qq(</a>
+                    </div>
                 </div>
-                </div>
-                    
                 <br>
             </div>
           );
@@ -131,7 +134,7 @@ HTML
             my $dbg = "";
             my $pwd = `pwd`;
             $pwd =~ s/\s*$//;
-            $dbg = "--DEBUG OUTPUT--\n$DBG" if Settings::debug(); 
+            $dbg = "--DEBUG OUTPUT--\n$DBG" if Settings::debug();
             print $cgi->header,
             "<hr><font color=red><b>SERVER ERROR</b></font> on $now".
             "<pre>".$pwd."/$0 -> [\n$err]","\n$dbg</pre>",
@@ -140,7 +143,7 @@ HTML
 exit;
 
 sub processSubmit {
-    if($alias&&$passw){            
+    if($alias&&$passw){
             $pass = $passw; $passw = uc crypt $passw, hex Settings->CIPHER_KEY;
             #CheckTables will return 1 if it was an logout set in the config table. To bypass redirection.
             if(checkCreateTables()==0){
@@ -148,8 +151,8 @@ sub processSubmit {
                 $session->param('passw', $passw);
                 $session->param('db_source', Settings::dbSrc());
                 $session->param('db_file',   Settings::dbFile());
-                $session->param('database',  Settings::dbName());     
-                $session->expire(Settings::sessionExprs());         
+                $session->param('database',  Settings::dbName());
+                $session->expire(Settings::sessionExprs());
                 $session->flush();
                 ### To MAIN PAGE
                 print $cgi->header(-expires=>"0s", -charset=>"UTF-8", -cookie=>$cookie, -location=>"main.cgi");
@@ -178,7 +181,7 @@ sub checkAutologinSet {
         if($v){$BACKUP_ENABLED = $v; next}
         $v = Settings::parseAutonom('DBI_SOURCE',$line);
         if($v){Settings::dbSrc($v); next}
-        $v = Settings::parseAutonom('AUTO_SET_TIMEZONE',$line);                
+        $v = Settings::parseAutonom('AUTO_SET_TIMEZONE',$line);
         if($v){$AUTO_SET_TIMEZONE = $v; next}
         $v = Settings::parseAutonom('DBI_LOG_VAR_SIZE',$line);
         if($v){Settings::dbVLSZ($v); next}
@@ -193,7 +196,7 @@ sub checkAutologinSet {
                 $TIME_ZONE_MAP .= $line . "\n";
             }
             next;
-        }        
+        }
         $v = Settings::parseAutonom('PAGE_VIEW_EXCLUDES',$line);
         if($v){$PAGE_EXCLUDES=$v;next}
         $v = Settings::parseAutonom('VIEW_OVERRIDE_SYSLOGS',$line);
@@ -217,21 +220,21 @@ sub checkAutologinSet {
                 return;                                # Note, we do assign entered password even passw as autologin is set. Not entering one bypasses this.
             }                                          # If stricter access is required set it to zero in main.cnf, or disable in config.
             $passw = $cre[1] if (!$passw);
-            $db = Settings::connectDB($alias, $passw);            
+            $db = Settings::connectDB($alias, $passw);
             #check if autologin enabled.
-            my $st = Settings::selectRecords($db,"SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");                        
+            my $st = Settings::selectRecords($db,"SELECT VALUE FROM CONFIG WHERE NAME='AUTO_LOGIN';");
             if($st){
                 my @set = $st->fetchrow_array();
                 if($set[0]=="1"){
                         $alias = $cre[0];
-                        $passw = $passw; 
+                        $passw = $passw;
                         Settings::removeOldSessions();
                 }
                 $st->finish();
             }
             $db -> disconnect();
     }
-    Settings::loadLastUsedTheme();    
+    Settings::loadLastUsedTheme();
 }
 
 sub checkPreparePGDB {
@@ -245,7 +248,7 @@ sub checkPreparePGDB {
     }
     if($create){
         # TODO Default expected to exist db is postgres, username and password. This cgi connects locally.
-        # Modify this to take any other situations or create main.cnf anon properties for all this. 
+        # Modify this to take any other situations or create main.cnf anon properties for all this.
         # To the user with roes and database creation powers.
         my $db = DBI->connect('dbi:Pg:dbname=postgres;host=localhost','postgres', 'postgres');
         Settings::debug(1);
@@ -262,7 +265,7 @@ sub checkPreparePGDB {
         ));
         $db->do(qq(
             CREATE DATABASE $alias
-                WITH 
+                WITH
                 OWNER = $alias
                 ENCODING = 'UTF8'
                 LC_COLLATE = 'en_AU.UTF-8'
@@ -272,22 +275,22 @@ sub checkPreparePGDB {
         ));
         $db->disconnect(); undef $db;
         return 1;
-    }    
+    }
     return 0;
 }
 
 sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
  try{
     # We live check database for available tables now only once.
-    # If brand new database, this sill returns fine an empty array.    
+    # If brand new database, this sill returns fine an empty array.
     my %curr_config = ();
-    my %curr_tables;    
-    $changed = checkPreparePGDB() if Settings::isProgressDB();    
-    $db = Settings::connectDB($DB_NAME, $alias, $passw);    
-    %curr_tables = %{Settings::schema_tables($db)};    
+    my %curr_tables;
+    $changed = checkPreparePGDB() if Settings::isProgressDB();
+    $db = Settings::connectDB($DB_NAME, $alias, $passw);
+    %curr_tables = %{Settings::schema_tables($db)};
 
     if($curr_tables{'CONFIG'}) {
-        #Set changed if the configuration data has been wiped out, i.e. by db fix routines.        
+        #Set changed if the configuration data has been wiped out, i.e. by db fix routines.
         $pst = Settings::selectRecords($db,"SELECT NAME, VALUE FROM CONFIG;");
         my @r = $pst->fetchrow_array();
         if(@r){
@@ -305,17 +308,17 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
         #has alter table CONFIG add DESCRIPTION VCHAR(128);
         $rv = $db->do(Settings::createCONFIGStmt());
         $changed = 1;
-    }     
+    }
     # Now we got a db with CONFIG, lets get settings from THERE.
     # Default version is the scripted current one, which could have been updated.
     # We need to maybe update further, if these versions differ.
-    # Source default and the one from the CONFIG table in the (present) database.    
+    # Source default and the one from the CONFIG table in the (present) database.
     Settings::getConfiguration($db,{
                 backup_enabled=>$BACKUP_ENABLED,#<-actual anon property value has been overriden here via &checkAutologinSet.
                 auto_set_timezone=>$AUTO_SET_TIMEZONE,
-                TIME_ZONE_MAP=>$TIME_ZONE_MAP, 
+                TIME_ZONE_MAP=>$TIME_ZONE_MAP,
                 db_log_var_limit=>Settings::dbVLSZ()
-         });    
+         });
     my $DB_VERSION  = Settings::release(); #$After loading of config this has now been changed to the current database one.
     my $hasLogTbl   = $curr_tables{'LOG'};
     my $hasNotesTbl = $curr_tables{'NOTES'};
@@ -339,9 +342,9 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
     }
 
     if($hasLogTbl){
-       if(Settings::isProgressDB()){ 
+       if(Settings::isProgressDB()){
            #Has the DBI_LOG_VAR_SIZE been changed? For Pg it is important. Default code value is in Settings::DBI_LVAR_SZ
-            my $v = Settings::dbVLSZ();            
+            my $v = Settings::dbVLSZ();
             if($curr_config{db_log_var_limit} ne $v){  #<- yes, crap, a different mapping name in the db for the anon DBI_LOG_VAR_SIZE
               if($v>1024){#<-We actually only care that what is set in script is an number value to have to further modify anything.
                 Settings::configProperty($db,0,'db_log_var_limit',$v);
@@ -352,11 +355,11 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
                 $db->do(Settings::createViewLOGStmt()) if $curr_tables{Settings->VW_LOG};
               }
             }
-        }     
+        }
         else{
             #Is it pre or around v.2.1, where ID_RTF is instead of RTF in the LOG table?
             $pst = Settings::selectRecords($db, "SELECT * from pragma_table_info('LOG') where name like 'ID_RTF';");
-            my @row = $pst = $pst->fetchrow_array();  
+            my @row = $pst = $pst->fetchrow_array();
             if(scalar (@row)>0 &&$row[0]==1){
                 $sql="ALTER TABLE LOG RENAME COLUMN ID_RTF TO RTF;";
                 Settings::selectRecords($db, $sql);#<-will make a prepared stmt do, but also with exsception handling.
@@ -386,7 +389,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
                         $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
                         if(Settings::isProgressDB()){
                            $sql="SELECT ID, DATE FROM life_log_login_ctr_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';"}
-                        else{$sql="SELECT rowid, DATE FROM life_log_login_ctr_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';"}                        
+                        else{$sql="SELECT rowid, DATE FROM life_log_login_ctr_temp_table WHERE RTF > 0 AND DATE = '".$sql_date."';"}
                         my $pst2  = Settings::selectRecords($db, $sql);
                         my @rec   = $pst2->fetchrow_array();
                         if(@rec){
@@ -404,7 +407,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
             }
             if($DB_VERSION > 1.6){
                 #is above v.1.6 notes table.
-                $db->do('DROP TABLE '.Settings->VW_LOG);                
+                $db->do('DROP TABLE '.Settings->VW_LOG);
             }
             $db->do('DROP TABLE LOG;');
             #v.1.8 Has fixes, time also properly to take into the sort. Not crucial to drop.
@@ -450,8 +453,8 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
     elsif($hasLogTbl && $SCRIPT_RELEASE > $DB_VERSION && $DB_VERSION < 2.2){
         my $t ="BYTE"; $t = "SMALLINT" if Settings::isProgressDB();
         $db->do("ALTER TABLE LOG ADD COLUMN RTF $t default 0");$changed = 1;
-    }    
-    elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}    
+    }
+    elsif($SCRIPT_RELEASE > $DB_VERSION){$changed = 1;}
 
     if(!$hasLogTbl) {
 
@@ -465,8 +468,8 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
 
         $db->do(Settings::createLOGStmt());
 
-        my $st = $db->prepare('INSERT INTO LOG(ID_CAT,DATE,LOG) VALUES (?,?,?)');        
-           $st->execute( 3, Settings::today(), "DB Created!");            
+        my $st = $db->prepare('INSERT INTO LOG(ID_CAT,DATE,LOG) VALUES (?,?,?)');
+           $st->execute( 3, Settings::today(), "DB Created!");
            $session->param("cdb", "1");
     }
 
@@ -476,7 +479,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
         $db->do(Settings::createViewLOGStmt()) or LifeLogException -> throw("ERROR:".$@);
     }
     # From 2.2+
-    #Do we need to create, view overrides?  
+    #Do we need to create, view overrides?
     if($VW_OVR_SYSLOGS){
         if($PAGE_EXCLUDES && $PAGE_EXCLUDES =~ /,6,/){
             $PAGE_EXCLUDES .= ",6";
@@ -498,7 +501,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
     }elsif($curr_config{'^VW_OVR_WHERE'}){Settings::configProperty($db, 206,'^VW_OVR_WHERE',0);}
 
     if(!$curr_tables{Settings->VW_LOG_WITH_EXCLUDES}) {
-        # To cover all possible situations, this test elses too. 
+        # To cover all possible situations, this test elses too.
         # As an older existing view might need to be recreated, to keep in synch.
         if($PAGE_EXCLUDES){
            $db->do($sql=createPageViewExcludeSQL());
@@ -509,9 +512,9 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
            $db->do('DROP VIEW '.Settings->VW_LOG_WITH_EXCLUDES);
            $db->do($sql=createPageViewExcludeSQL());
            Settings::configProperty($db, 204, '^PAGE_EXCLUDES',$PAGE_EXCLUDES);
-            
+
     }elsif($curr_config{'^PAGE_EXCLUDES'}){Settings::configProperty($db, 204, '^PAGE_EXCLUDES',0);}
-    
+
     if(!$curr_tables{'CAT'}) {
         $db->do($sql=Settings::createCATStmt());
         $changed = 1;
@@ -532,7 +535,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
         $db->do($sql=Settings::createAUTHStmt());
         my $st = $db->prepare('INSERT INTO AUTH VALUES (?,?,?,?);');
            $st->execute($alias, $passw,"",0);
-           $st->finish();           
+           $st->finish();
     }
     Settings::configProperty($db, 222, '^DB_PALS',$pass);
     #
@@ -548,7 +551,7 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
     #
     if(!$hasNotesTbl) {$db->do($sql=Settings::createNOTEStmt())}
 
-    if(Settings::isProgressDB()){        
+    if(Settings::isProgressDB()){
         my @tbls = $db->tables(undef, 'public');
         foreach (@tbls){
             my $t = uc substr($_,7);
@@ -592,23 +595,23 @@ sub checkCreateTables {     my ($pst, $sql,$rv, $changed) = ("","","",0);
     #
     #Still going through checking tables and data, all above as we might have an version update in code.
     #Then we check if we are loged in intereactively back. Interective, logout should bring us to the login screen.
-    # Bypassing auto login. So to start maybe working on another database, and a new session.    
+    # Bypassing auto login. So to start maybe working on another database, and a new session.
     return 1 if $cgi->param('autologoff') == 1;
  }catch{
-     LifeLogException -> throw(error=>"DSN:".Settings::dsn()." Error:".$@."\nLAST_SQL:".$sql."\npwd:".`pwd`,show_trace=>1);     
+     LifeLogException -> throw(error=>"DSN:".Settings::dsn()." Error:".$@."\nLAST_SQL:".$sql."\npwd:".`pwd`,show_trace=>1);
  }
  return 0;
 }
 
 sub createPageViewExcludeSQL {
-    
+
     my ($where,$days) = 0;
     my $parse = $PAGE_EXCLUDES;
     my @a = split('=',$parse);
     if(scalar(@a)==2){
         $days  = $a[0];
         $parse = $a[1];
-    }    
+    }
     if(Settings::isProgressDB()){$where = "WHERE a.date >= (timestamp 'now' - interval '$days days') OR"}
     else{$where = "WHERE a.date >= date('now', '-$days day') OR"}
     @a = split(',',$parse);
@@ -616,11 +619,11 @@ sub createPageViewExcludeSQL {
     $where =~ s/\s+OR$//;
     $where =~ s/\s+AND$//;
     return Settings::createViewLOGStmt(Settings->VW_LOG_WITH_EXCLUDES,$where);
-    
+
 }
 
 sub createPageViewWhereOverrideSQL {
-    
+
     my ($where,$days) = ("",0);
     my $parse = $PAGE_EXCLUDES;
     my @a = split('=',$parse);
@@ -630,8 +633,8 @@ sub createPageViewWhereOverrideSQL {
     }
     @a = split(',',$parse);
     foreach (@a){ $where .= " ID_CAT!=$_ AND"; }
-    
-    @a = toTokens($VW_OVR_WHERE);    
+
+    @a = toTokens($VW_OVR_WHERE);
     foreach (@a){$where .= $_.' '}
         #    my @b = split('=',$_);
         #    if($b[1]){
@@ -642,14 +645,14 @@ sub createPageViewWhereOverrideSQL {
         #    }
 
     #OLDER_THAN=2months
-    #a.date >= date('now', '-24 hour') 
-    
+    #a.date >= date('now', '-24 hour')
+
     if(Settings::isProgressDB()){$where = "WHERE $where a.date >= (timestamp 'now' - interval '24 hours')"}
     else{$where = "WHERE $where a.date >= date('now', '-24 hours')"}
-    
+
 
     return Settings::createViewLOGStmt(Settings->VW_LOG_OVERRIDE_WHERE,$where);
-    
+
 }
 
 
@@ -662,7 +665,7 @@ sub toTokens {
         if($token eq '=' || $token eq '=\''){
             $grp = $prev; next;
         }
-        elsif($token=~ /[^!=<>\n]+=$/){            
+        elsif($token=~ /[^!=<>\n]+=$/){
             $grp = $token =~ s/=$//g; next;
         }
         elsif($grp){
@@ -670,7 +673,7 @@ sub toTokens {
                 push @ret, $grp; $grp = "";
             }
             else{
-                $grp .= ' '.$token; 
+                $grp .= ' '.$token;
                 if($token =~ m/'$/){
                    $grp .=')';
                    if($reserved{$prev}){push @ret, $prev}
@@ -737,7 +740,7 @@ sub toTokens {
                $resolve = $token =~ s/^'//g;
                if($resolve =~ m/'$/){
                    $token = $resolve =~  s/'$//g; $resolve ="";
-               }else{next}               
+               }else{next}
             }
             elsif($token =~ m/'$/ and $resolve){
                 $token =~ s/^$//g;
@@ -779,14 +782,14 @@ sub populate {
     my $insCat = $db->prepare('INSERT INTO CAT VALUES (?,?,?)');
                  $db->begin_work();
     foreach my $line (@lines) {
-    
+
                     last if ($line =~ /<MIG<>/);#Not doing it with CNF1.0
 
                        if( index( $line, '<<CONFIG<' ) == 0 )  {$tt = 0; $inData = 0;}
                     elsif( index( $line, '<<CAT<'    ) == 0 )  {$tt = 1; $inData = 0;}
                     elsif( index( $line, '<<LOG<'    ) == 0 )  {$tt = 2; $inData = 0;}
                     next if($line=~m/^>>/);
-                    
+
                     my @tick = split("`",$line);
                     if( scalar @tick  == 2 ) {
 
@@ -801,15 +804,15 @@ sub populate {
                                                                     if($vars{$id}){
 $err .= "UID{$id} taken by $vars{$id}-> $line\n";
                                                                     }
-                                                                    else{                                                                            
-                                                                            my @arr = Settings::selectRecords($db,"SELECT ID FROM CONFIG WHERE NAME LIKE '$name';")->fetchrow_array();                                                                                 
-                                                                            $inData = 1;                                                                                
+                                                                    else{
+                                                                            my @arr = Settings::selectRecords($db,"SELECT ID FROM CONFIG WHERE NAME LIKE '$name';")->fetchrow_array();
+                                                                            $inData = 1;
                                                                             if(!@arr) {
                                                                                 $DBG .= "conf.ins->".$name.",".$value.",".$tick[1]."\n";
                                                                                if(Settings::isProgressDB()) {$insCnf->execute($name,$value,$tick[1])}
                                                                                else{$insCnf->execute($id,$name,$value,$tick[1])}
                                                                             }
-                                                                                
+
                                                                     }
                                                                 }
                                                         }else{
@@ -909,8 +912,8 @@ sub logout {
 
     $session->delete();
     $session->flush();
-    my $bckLog =  Settings::logPath()."backup_restore.log";    
-    unlink $bckLog if(-e $bckLog);    
+    my $bckLog =  Settings::logPath()."backup_restore.log";
+    unlink $bckLog if(-e $bckLog);
 
     exit;
 }

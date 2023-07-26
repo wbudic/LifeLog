@@ -27,9 +27,9 @@ Quick Jump: [CNF Tag Formats](#cnf-tag-formats)  |  [CNF Collections Formatting]
 4. Multi line values are tag ended on a separate line with an **>>>**.
 5. CNF tag value can post processed by placing macros making it a template.
 6. Standard markup of a macro is to enclose the property name or number with a triple dollar signifier **\$\$\$**{macro}**\$\$\$**.
-    1. Precedence of resolving the property name/value is by first passed macros, then config anons and finally the looking up constance's.
+    1. Precedence of resolving the property name/value is by first passed macros, then config anons and finally the looking up in constants.
     2. Nested macros resolving from linked in other properties is currently not supported.
-7. CNF full tag syntax format: **```<<{$|@|%}NAME{<INSTRUCTION>}{<any type of value>}>>```**, the name and instruction parts, sure open but don't have to be closed with **>** on a multiple line value.
+7. CNF full tag syntax format: ```<<{$|@|%}NAME{<INSTRUCTION>}{<any type of value>}>>```, the name and instruction parts, sure open but don't have to be closed with **>** on a multiple line value.
 8. CNF instructions and constants are uppercase.
     1. Example 1 format with instruction: ```<<<CONST\n{name=value\n..}\n>>>``` autonomous const, with inner properties.
     2. Example 2 format with instruction: ```<<{$sig}{NAME}<CONST {multi line value}>>>``` A single const property with a multi line value.
@@ -119,7 +119,7 @@ Quick Jump: [CNF Tag Formats](#cnf-tag-formats)  |  [CNF Collections Formatting]
     3. It is not recommended to use reserve anons as their value settings, that is; can be modified in scripts for their value.
     4. Reserve anon if present is usually a placeholder, lookup setting, that in contrast if not found there, might rise exceptions from the application using CNF.
 
-    ```CNF Example 2:
+    ```CNF Example 3:
                 Notice to Admin, following please don't modify in any way! 
                 Start --> { 
                 <<^RELEASE>2.3>>
@@ -235,11 +235,11 @@ Quick Jump: [Introduction](#introduction)  | [CNF Tag Formats](#cnf-tag-formats)
       2. For arrays, values are delimited by new line or a comma.
       3. White space is preserved if values are quoted, otherwise are trimmed.
 
-   ```text
+   ```cnf
     Format:    <<@<{T}NAME{$$}>DATA>>>
 
     Examples:
-    # Following provides an array of listed animal types.
+    # Following provides an array of listed animal types. Notice how you don't need text to be quoted.
     <<@<@animals<Cat,"Dog","Pigeon",Horse>>>
     # Following provides an array with numbers from 0..8
     <<@<@numbers<1,2,3,4,5
@@ -381,7 +381,7 @@ CNF supports basic SQL Database structure statement generation. This is done via
    4. The same principles apply in the file as to the DATA instruction CNF tag format, that is expected to be contained in it.
 
     ```CNF
-        <<MyItemsTbl<FILE data_my_app.cnf>
+        <<MyItemsTbl<FILE data_my_app.cnf>>
     ```
 
 3. PLUGIN
@@ -437,7 +437,7 @@ CNF supports basic SQL Database structure statement generation. This is done via
         1. The value of a property is delimited with an [ **#** ] tag as start, end [ **/#** ] as the ending.
             1. Each property's start and end tag must stand and be on its own line, withing the body, except for the value or array attributes.
             2. A value tagged property section is its text and can't contain further nested tree notes.
-                ``` Invalid: [#[<*<link/to/something>*>]#] ```
+                 Invalid: ```[#[<*<link/to/something>*>]#] ```
    3. Tree can contain links to other various properties, anons, that means also to other trees then the current one.
         1. A link (pointer) to an outside anon or property is specified in form of ⇾ ``` [*[ {path/name} ]*] ```.
            1. The link can read only point to:

@@ -6,14 +6,20 @@ CNF file format supports used format extraction from any text file.
 Useful for templates and providing initial properties and values for an application settings.
 Has own textual data format. Therefore, can also be useful for database data batch processing.
 
-This version doesn't parse the actual __DATA__ section of a perl file yet. Contact me if this is needed, and for any other possible, useful requests.
-It is at current v.2.6, and specification implemented.
+This project also contains a custom build TestManager module for general and all test driven development.
+It is at current v.2.9, and specification implemented.
 
-[You can find the specification here.](https://github.com/wbudic/PerlCNF/blob/master/Specifications_For_CNF_ReadMe.md)
+[You can find the original up-to-date specification here.](https://github.com/wbudic/PerlCNF/Specifications_For_CNF_ReadMe.md)
 
 ---
+## Status
+(2023-14-6) - v.2.9, new meta flags and priority can be set via these pre-evaluation settings for instructions.
+              Node processing on demand and JSON translation on demand of CNFNode's (TREE instruction) is now available.  
+              Online demo made available.
+(2023-5-13) - v.2.8, has new instructions VARIABLE, to streamline under one tag like CONST, but for anons.
+Has better tag mauling algorithm. PLUGIN code has been improved, particularly the synchronizing and the linking of properties.
 
-NEWS (2022-11-18) - PerlCNF now provides custom test manager and test cases. 
+(2022-11-18) - PerlCNF now provides custom test manager and test cases. 
 That will in future be used for all projects as an copy from this project.
 This is all available in the ./test directory and is not a Perl module.
 
@@ -42,16 +48,16 @@ This is all available in the ./test directory and is not a Perl module.
 * From your project you can modify and adopt, access it.
 * You can also make an perl bash script. 
 
-```perl
-use lib "system/modules";
-use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
-require CNFParser;
+    ```perl
+    use lib "system/modules";
+    use lib $ENV{'PWD'}.'/htdocs/cgi-bin/system/modules';
+    require CNFParser;
 
- my $cnf1 = new CNFParser('sample.cnf');
- #Load config with enabled evaluation on the fly, of perl code embedded in config file.
- my $cnf2 = new CNFParser('sample.cnf',{DO_enabled=>1, duplicates_overwrite=0});
+    my $cnf1 = new CNFParser('sample.cnf');
+    #Load config with enabled evaluation on the fly, of perl code embedded in config file.
+    my $cnf2 = new CNFParser('sample.cnf',{DO_enabled=>1, duplicates_overwrite=0});
 
-```
+    ```
 
 ## Sample CNF File
 

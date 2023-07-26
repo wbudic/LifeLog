@@ -7,6 +7,7 @@
 
  -- Note - Perl and some modules might take time to install
            as they are fetched and tested for your computer.
+         - Provided sudo ./install.sh will do most stuff for you explained in this old doc.   
 
 
 
@@ -30,7 +31,7 @@ sudo cpan DBD::SQLite;
 
 ## 
 # To compile install from source latest Perl Language Interpreter, to local home.
-# Note I do not recomended now to compile build install 
+# Note I do not recommended now to compile build install 
 # for the whole system, if it comes with perl. Systems can come and go. 
 # Your $HOME directory is important.
 #
