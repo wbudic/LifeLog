@@ -421,7 +421,7 @@ CNF supports basic SQL Database structure statement generation. This is done via
                     So deeply nesting a large property body is not recommended and also not suitable for encapsulating in there data.
                 3. An opening tag is opened being surrounded with the same signifier into the direction of the property body.
                 4. The closing tag is in the opposite direction same signifiers.
-                    - **[sesame[** I am an open and closed value now, nothing you can do about it (X|H)TML! **]sesame]** 
+                    - **[sesame[** I am an open and closed value now, nothing you can do about it (X|H)TML! **]sesame]**
         3. The node characteristic is that each sub property is linked to its parent property
            1. This is contained in the ' **@** ' attribute.
            2. Node characteristic is also the tree can be searched via path.
@@ -437,9 +437,9 @@ CNF supports basic SQL Database structure statement generation. This is done via
         1. The value of a property is delimited with an [ **#** ] tag as start, end [ **/#** ] as the ending.
             1. Each property's start and end tag must stand and be on its own line, withing the body, except for the value or array attributes.
             2. A value tagged property section is its text and can't contain further nested tree notes.
-                 Invalid: ```[#[<*<link/to/something>*>]#] ```
+                 Invalid: ```[#[<*<link/to/something>*>]#]```
    3. Tree can contain links to other various properties, anons, that means also to other trees then the current one.
-        1. A link (pointer) to an outside anon or property is specified in form of ⇾ ``` [*[ {path/name} ]*] ```.
+        1. A link (pointer) to an outside anon or property is specified in form of ⇾ ```cnf [*[ {path/name} ]*]```.
            1. The link can read only point to:
               - A repository anon or constant value.
               - A tree path value.
@@ -451,25 +451,24 @@ CNF supports basic SQL Database structure statement generation. This is done via
             2. This is currently a TREE instruction only inbuilt option in Perl CNF, for the CNF Nodes individuals scripts order of processing.
         4. Links in the root parent node of the tree are assigned as attributes or unique values. In subroperties they are set as own nodes.
    4. Tree Format Example:
+    ```cnf
+    <<APP<My Nice Application by ACME Wolf PTY>>
 
-        ```CNF
-        <<APP<My Nice Application by ACME Wolf PTY>>
-
-        <<doc<TREE>
-        <*<APP>*>
-        thread: 28
-        title = My Application
-            <client<
-                address: 192.168.1.64
-                [paths[
-                    [#[
-                        ./dev
-                        ./sources
-                    ]#]
-                ]paths]
-            >client>
-        >>
-        ```
+    <<doc<TREE>
+    <*<APP>*>
+    thread: 28
+    title = My Application
+        <client<
+            address: 192.168.1.64
+            [paths[
+                [#[
+                    ./dev
+                    ./sources
+                ]#]
+            ]paths]
+        >client>
+    >>
+    ```
 
 ## Sample Perl Language Usage
 
