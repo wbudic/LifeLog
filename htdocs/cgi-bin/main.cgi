@@ -1063,7 +1063,7 @@ else{
 	if(lc $` eq 'pg'){$sql = $s.'&#10132;'.'PostgreSQL'}
 	else{$sql = $s.'&#10132;'.$`}
 	$sideMenu = qq(
-        <div id="menu_page" title="To close this menu click on its heart, and wait.">
+        <div id="menu_page" title="To close this menu click on its heart, and wait." style="visibility:hidden">
         <div class="hdr" style="marging=0;padding:0px;">
 		<a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
 		<a id="dutch_left" onclick="return moveMenuLeft();"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>

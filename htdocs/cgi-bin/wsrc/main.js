@@ -410,7 +410,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             });
     });
 
-    display("Log page is ready!", 5);
+    display("Log page is ready!", 5);    
     
 }
 
@@ -887,6 +887,7 @@ function display(desc, times){
     pnl.dispPos(true);
     pnl.show();
     pnl.fadeOut(1000*times);
+    $('#menu_page').css('visibility','visible');
 }
 
 function moveMenuLeft (){

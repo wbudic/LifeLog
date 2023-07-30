@@ -31,10 +31,24 @@
     border: 2px solid #94cde7;
     padding: 5px;    
     font-size:small;
-    background: #ccffff;    
+    background:  #ccffff2e;  
+    color: black;
     margin-left: 90.5vw;    
-    filter: drop-shadow(    10px 8px 5px #3e6f70);
+    filter: drop-shadow(    10px 8px 5px #3e6f70);    
 }
+#menu_page a:link {
+    color: #1c3535
+   }
+   a:link {
+    color: #1c3535
+   }
+#menu_page a:visited {
+    color: #6b51a9;
+   }
+#menu_page a:hover {
+    color: #04eefa;
+    font-style:bold;
+    }
 
 .menu_head {
     border: 2px solid #00000017;
