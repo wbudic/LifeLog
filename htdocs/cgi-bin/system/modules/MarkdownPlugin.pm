@@ -290,7 +290,7 @@ try{
             }else{
                 if($bqte_tag eq 'p'){
                    $ln =~ s/^\s*//g;
-                   $bqte .= ${style($ln)}."</br>";
+                   $bqte .= ${style($ln)}."<br>";
                 }else{
                    $ln =~ s/^\s*[-+*]\s*|^\s*\d+\.\s*//g;
                    $bqte .= "<li>".${style($ln)}."</li>\n";
@@ -305,8 +305,9 @@ try{
             }
         }
         elsif($ln =~ /^(\s*)(.*)/ && length($2)>0){
+            my $v = $2;
             if($code){
-                 my $v=$2; my $spc=$1; $list_end =0;
+                 my $spc=$1; $list_end =0;
                 if($tag eq 'pre' && $code == 1){
                     $v =~ s/</&#60;/g;
                     $v =~ s/>/&#62;/g;
@@ -315,7 +316,8 @@ try{
                     if($ln =~/^\s*\<+.*>+$/){
                        $para .= inlineCNF($v,$spc)."<br>\n"
                     }else{
-                       $para .= code2HTML($v)."<br>\n"
+                       $spc =~ s/\s/&nbsp;/g;
+                       $para .= $spc.code2HTML($v)."<br>\n"
                     }
                 }else{
                     $v = inlineCNF($v,$spc);
@@ -399,11 +401,11 @@ try{
                 }
             }else{
                 if($bqte){
-                    while($bqte_nested-->0){$bqte .="</$bqte_tag></blockqoute>\n"}
-                    $para   .= $bqte;
-                    undef $bqte;
+                    while($bqte_nested-->0){$bqte .="</$bqte_tag></blockquote>\n"}
+                    $para   .= $bqte; $bqte_nested=0;
+                    undef $bqte; 
                 }
-                $para .= ${style($2)}."\n"
+                $para .= qq( ${style($v)} \n)
             }
         }else{
             if($list_root && ++$list_end>1){
@@ -411,6 +413,11 @@ try{
                undef $list_root;
             }
             elsif($para){
+                if($bqte){
+                    while($bqte_nested-->0){$bqte .="</$bqte_tag></blockquote>\n"}
+                    $para   .= $bqte;
+                    undef $bqte;
+                }
                 if($list_item){
                    $list_item->{item} = $list_item->{item} .  $para;
                    $list_end=0;
