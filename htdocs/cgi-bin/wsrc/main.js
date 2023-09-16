@@ -19,7 +19,7 @@ var RTF_DOC_CUR_ID;
 var TXT_LOG_ROWS = 3;
 var TIME_STAMP;
 var LOCALE;
-var TIMEZONE; 
+var TIMEZONE;
 var DBI_LVAR_SZ;
 var EDIT_LOG_TXT = "";
 
@@ -36,12 +36,12 @@ function onBodyLoadGeneric() {
 function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
 
     LOCALE      = locale;
-    TIMEZONE    = tz;    
+    TIMEZONE    = tz;
     TIME_STAMP  = new Date(today);
-    DBI_LVAR_SZ = parseInt(log_limit);    
-    
+    DBI_LVAR_SZ = parseInt(log_limit);
+
     onBodyLoadGeneric();
-    
+
 
     if (toggle) {
         this.toggle("#div_srh", false);
@@ -117,7 +117,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             let str = $('#el').val();
             let m; var tot = 0;
 
-            while ((m = regex.exec(str)) !== null) {                
+            while ((m = regex.exec(str)) !== null) {
                 if (m.index === regex.lastIndex) {
                     regex.lastIndex++;
                 }
@@ -143,7 +143,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
                 });
             }
             if(tot==0){tot=""}
-            $('#am').val(tot.toFixed(2));            
+            $('#am').val(tot.toFixed(2));
         }
 
 
@@ -158,16 +158,16 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         alignY: 'bottom',
         offsetX: 5,
         showTimeout: 100
-    });   
+    });
 
     $("#menu_close").poshytip({
         content: "<b>Do not click on this</b> little heart of mine,<br> <b>the menu will be closed</b>!",
         className: 'tip-yellowsimple',
-        showOn: 'mouseover',        
+        showOn: 'mouseover',
         alignTo: 'target',
         alignX: 'center',
-        alignY: 'bottom',    
-        showTimeout: 100    
+        alignY: 'bottom',
+        showTimeout: 100
     });
 
     $("#menu_close").click(function() {
@@ -182,40 +182,40 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
     $("#dutch_left").poshytip({
         content: "<span class='ui-icon ui-icon-arrowthick-1-w' style='float:none;'></span>Pass the dutchie to the <b>left</b> on side.",
         className: 'tip-yellowsimple',
-        showOn: 'mouseover',        
+        showOn: 'mouseover',
         alignTo: 'target',
         alignX: 'center',
-        alignY: 'bottom',    
-        showTimeout: 100    
+        alignY: 'bottom',
+        showTimeout: 100
     });
     $("#dutch_right").poshytip({
         content: "Pass the dutchie to the <b>right</b> on side.<span class='ui-icon ui-icon-arrowthick-1-e' style='float:none;'></span>",
         className: 'tip-yellowsimple',
-        showOn: 'mouseover',        
+        showOn: 'mouseover',
         alignTo: 'target',
         alignX: 'center',
-        alignY: 'bottom',    
-        showTimeout: 100    
+        alignY: 'bottom',
+        showTimeout: 100
     });
 
 
     $('#ec').show();
 
     $("#RTF").prop("checked", false);
-    
-    if ($('#editor-container').length) {        
+
+    if ($('#editor-container').length) {
         QUILL = new Quill('#editor-container', {
             placeholder: 'Enter your Document here...',
             theme: 'snow',
             modules: {
                 formula: true,
-                syntax: true,                
-                toolbar: '#toolbar-container'            
+                syntax: true,
+                toolbar: '#toolbar-container'
             }
         });
         Delta = Quill.import('delta');
         CHANGE = new Delta();
-        
+
         // toggleDocument();
     }
 
@@ -226,7 +226,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         // let bg=RGBToHex('rgb(180, 169, 169)'); //<-is set in css file
         // $('#toolbar-container').css('background-color',bg);
         $('#toolbar-container').css('color',DEF_BACKGROUND);
-        
+
     }
     var amf = $( "#amf" );//Amount Field Type dropdown
     var ec = $( "#ec" );  //Category dropdown
@@ -244,7 +244,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
                 }
             }
         }});
-    
+
 
     jQuery.fn.dispPos = function () {
         this.css("position","absolute");
@@ -303,8 +303,8 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         lbl = lbl.replace(/\s*$/g, "");
         lbl = lbl + "&nbsp;".repeat(16-lbl.length);
         $("#lcat_v").html(lbl);
-        $("#vc").val(ci);        
-        $("#cat_desc").show();        
+        $("#vc").val(ci);
+        $("#cat_desc").show();
     }).mouseenter(function(e){
         var pr = $(event.target).parent(); pr = pr.attr('id');
         if(pr){
@@ -334,7 +334,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         }
     }).mouseleave(function(e){$("#cat_desc").hide();});
 
-    
+
     $( "#dlgValidation" ).dialog({
         dialogClass: "alert",
         buttons: [
@@ -371,19 +371,19 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
     setPageSessionTimer(expires);
 
 
-    $(function() {        
+    $(function() {
         $( "#rs_keys, #rs_keys2" ).autocomplete({
             source: AUTOWORDS
             });
     });
     var CHK_PREV;
-    
+
     $("#frm_log td").mouseover(function(e){
         if(e.target != 'thr'){
             var chk = $(e.target).find('input[name="chk"]');
             var tr = e.target.parentNode.closest("tr");
             if(tr.id != "summary_row" && tr.id !="brw_row"){
-                if(CHK_PREV && !CHK_PREV.prop('checked')){        
+                if(CHK_PREV && !CHK_PREV.prop('checked')){
                     CHK_PREV.closest("tr").removeClass("hover");
                 }
                 $(e.target.parentNode).closest("tr").addClass("hover");
@@ -397,21 +397,21 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             $(e.target.parentNode).closest("tr").removeClass("hover");
         }
     });
-    
+
 
     if($("#isInViewMode").val()>0){
-        this.toggle('#div_srh', true); 
+        this.toggle('#div_srh', true);
         this.toggle('#div_log', true);
     }
 
-    $(function() {        
+    $(function() {
         $( "#rs_keys, #rs_keys2" ).autocomplete({
             source: AUTOWORDS
             });
     });
 
-    display("Log page is ready!", 5);    
-    
+    display("Log page is ready!", 5);
+
 }
 
 function encodeText(){
@@ -446,7 +446,7 @@ return true;
 }
 
 function backToMain() {// func. required as chrome submits whole form on if buttons are not falsed.
-    $("[name='confirmed']").val(0);    
+    $("[name='confirmed']").val(0);
     //window.location.href='main.cgi';
     history.back();
     return false;
@@ -478,7 +478,7 @@ function validate(dt, log) {
     if(msg){
         return dialogModal( "Sorry Form Validation Failed", msg);
     }
-    $('#frm_entry').hide();    
+    $('#frm_entry').hide();
     encodeText();
     return true;
 }
@@ -526,7 +526,7 @@ function setNow() {
 
     date.value =  year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + seconds;
     $("#submit_is_edit").val("0");
-    toggleDoc(true);    
+    toggleDoc(true);
     EDIT_LOG_TXT = "";
     return false;
 }
@@ -546,11 +546,11 @@ function decodeToHTMLText(txt) {
     txt = txt.replace("/&#62;/g", ">");
     txt = txt.replace("/&#9;/g", "\t");
     txt = txt.replace(/br\s*[\/]?>/gi, "\n");
-    txt = txt.replace(/\\n/g, "\n");    
-    txt = txt.replace(/&#10;/g, "\n");    
+    txt = txt.replace(/\\n/g, "\n");
+    txt = txt.replace(/&#10;/g, "\n");
     txt = txt.replace(/&#34;/g, "\"");
     txt = txt.replace(/&#39;/g, "'");
-    
+
 
     return txt;
 }
@@ -563,10 +563,10 @@ function decodeToText(txt) {
     txt = txt.replace(/<hr>.*RTF<\/button>/gm, "");
     txt = txt.replace(/<br\s*[\/]?>/gi, "\n");
     //If first line bolded
-    
+
     let res = txt.matchAll(REGX_BTM);
     if(res){
-       txt = txt.replace(REGX_BTM, REGX_BTM_SUBST);        
+       txt = txt.replace(REGX_BTM, REGX_BTM_SUBST);
     }
     return txt;
 }
@@ -713,23 +713,23 @@ function viewAll() {
     frm.rs_prev.value = 0;
     frm.submit_is_view.value = 1;
     frm.submit();
-    
+
     return false;
 }
 
 function resizeLogText() {
 
-    $("#div_log .collpsd").show(); 
+    $("#div_log .collpsd").show();
     $('#div_log').show();
-     
+
     if(TXT_LOG_ROWS == 3){
-        TXT_LOG_ROWS = 10;        
+        TXT_LOG_ROWS = 10;
     }
     else{
         TXT_LOG_ROWS = 3;
     }
     $("#el").prop("rows",TXT_LOG_ROWS)
-    
+
 }
 
 function resizeDoc() {
@@ -839,7 +839,7 @@ function toggle(id, mtoggle) {
             var distance = $(id).offset().top;
             if($(this).scrollTop() <= distance){
                 $(id).toggle();
-            }        
+            }
         }
     }
     else{
@@ -853,9 +853,9 @@ function toggle(id, mtoggle) {
 function showAll() {
 
    show("#menu_page");
-   
+
    if(_show_all){
-        $("#lnk_show_all").text("Hide All");   
+        $("#lnk_show_all").text("Hide All");
         show("#div_log");
         show("#div_srh");
         show("#tbl_hlp");
@@ -874,7 +874,7 @@ function showAll() {
 
 
    $("html, body").animate({ scrollTop: 0 }, "fast");
-   
+
     return false;
 }
 
@@ -1054,14 +1054,14 @@ function viewByDate(btn) {
 
 function submitNewCategory() {
 
-    var frm = $("#frm_config");    
+    var frm = $("#frm_config");
     $("#frm_config [name='cchg']").val(2);
     return true;
 }
 
-function deleteSelected() { 
+function deleteSelected() {
     display("Please Wait!",150);
-    $("#opr").val(0);  
+    $("#opr").val(0);
     $("#del_sel").click();
     display("Please Wait!",150);
     return false;
@@ -1075,7 +1075,7 @@ function exportSelected() {
     display("Please Wait!");
     $("#opr").val(2);
     return true;
-    
+
 }
 function viewSelected() {
     display("Please Wait!");
@@ -1101,7 +1101,7 @@ function sumSelected() {
             let id = chks[i].value;
             let am = $("#a"+id).text();
             let ct = $("#c"+id).text();
-            let at = $("#f"+id).val();           
+            let at = $("#f"+id).val();
 
             am = am.replace(/\,/g,"");//rem formatting
             if(ct=='Expense' || at=='2'){
@@ -1147,11 +1147,11 @@ function saveRTF(id, action) {
 
     var is_submit = (id==-1);
     if (id < 1) {
-        id = $("#submit_is_edit").val();        
+        id = $("#submit_is_edit").val();
     }
 
 
-    
+
     if(is_submit && (EDIT_LOG_TXT && $('#el').val() !== EDIT_LOG_TXT)){
 
         if(formValidation()){ //If it is false, failed. That needs to altered by the user first.
@@ -1169,18 +1169,18 @@ function saveRTF(id, action) {
                 },
                 buttons: [
 
-                    { text: "Yes",                    
+                    { text: "Yes",
                       icons: { primary: "ui-icon-circle-check" },
-                        click: function() {                            
+                        click: function() {
                             $( this ).dialog( "close" );
                             $("#frm_entry").submit();
                         }
                     },
-        
+
                     { text: "No",
                         click: function() {
                             decodeText();
-                            $( this ).dialog( "close" );                        
+                            $( this ).dialog( "close" );
                             return false;
                         }
                     }
@@ -1191,7 +1191,7 @@ function saveRTF(id, action) {
         return false;
     }
     else
-    if(is_submit && !$("#RTF").prop('checked')){           
+    if(is_submit && !$("#RTF").prop('checked')){
        return true;//we submit normal log entry
     }
     RTF_SUBMIT = true;
@@ -1202,7 +1202,7 @@ function saveRTF(id, action) {
                      dialogModal("Service Error: "+response.status,response.responseText);
                 }
                                                  );
-    if(is_submit){        
+    if(is_submit){
         $("#idx_cat").value = "SAVING DOCUMENT...";
         $("#idx_cat").show();
         //we must wait before submitting actual form!
@@ -1211,17 +1211,17 @@ function saveRTF(id, action) {
     return false;
 }
 
-function saveRTFResult(result) {    
+function saveRTFResult(result) {
     //console.log("Result->" + result);
-    var json = JSON.parse(result);    
+    var json = JSON.parse(result);
     $("html, body").animate({ scrollTop: 0 }, "fast");
-    
+
     let msg = json.response;
     if(json.log_id==0){
-        console.log(msg = "Saved to Buffer");  
+        console.log(msg = "Saved to Buffer");
 
     }else{
-        console.log(msg = "Saved document by lid -> "+json.log_id);        
+        console.log(msg = "Saved document by lid -> "+json.log_id);
     }
     display(msg, 5);
 
@@ -1280,7 +1280,7 @@ function loadRTF(under, id){
        id = RTF_DOC_CUR_ID; // btn_load_rtf clicked
     }
 
-    QUILL.setText('Loading Document...\n');    
+    QUILL.setText('Loading Document...\n');
     $.post('json.cgi', {action:'load', id:id}, loadRTFResult).fail(
            function(response) {dialogModal("Service Error: "+response.status,response.responseText);}
     );
@@ -1316,7 +1316,7 @@ function loadRTFResult(content, result, prms, quill) {
         $("#q-scroll"+id).attr('class',cls);
         if(css){
             css.backgroundColor = DEF_BACKGROUND; //Removing colours makes it inherit from parent these properties.
-            css.foregroundColor = "";//json.content.fg;            
+            css.foregroundColor = "";//json.content.fg;
         }
     }
 
@@ -1326,12 +1326,12 @@ function loadRTFResult(content, result, prms, quill) {
     }
     if(json.log_id==0){
         console.log(msg = "Loaded in Buffer");
-        $('#btn_zero_doc').show();                
+        $('#btn_zero_doc').show();
     }else{
         console.log(msg = "Loaded in document by lid -> "+json.log_id);
         $('#btn_load_doc').show();
     }
-    display(msg, 3);    
+    display(msg, 3);
 }
 
 
@@ -1368,8 +1368,8 @@ function RGBToHex(rgb) {
     return "#" + r + g + b;
 }
 
-function fetchBackup() {    
-    window.location = "config.cgi?bck=1";    
+function fetchBackup() {
+    window.location = "config.cgi?bck=1";
     setTimeout("location.reload(true);", 5000);
 }
 function deleteBackup() {
@@ -1408,7 +1408,7 @@ function setPageSessionTimer(expires) {
     var timeout;
     var now = new moment();
     var val = expires.replace(/\+|[A-Z]|[a-z]/g, '');
-    
+
     if(expires.indexOf("h")>0){
         timeout = moment(now).add(val, "h");
     }
@@ -1419,7 +1419,7 @@ function setPageSessionTimer(expires) {
     }
     else
     if(expires.indexOf("s")>0){
-        if(val<60){val=2}; 
+        if(val<60){val=2};
         timeout = moment(now).add(val, "s");
     }
     else{
@@ -1443,7 +1443,7 @@ function setPageSessionTimer(expires) {
                 }
                 display("<span id='sss_expired'>Session is about to expire!</span>",10);}
             }
-            var dsp = "<font size='1px;'>[" + tim + "]</font><span "+sty+"> Session expires in " + out + "</span>";                
+            var dsp = "<font size='1px;'>[" + tim + "]</font><span "+sty+"> Session expires in " + out + "</span>";
             $("#sss_status").html(dsp);
             if(now.isAfter(timeout)){
                 $("#sss_status").html("<span id='sss_expired'><a href='login_ctr.cgi'>Page Session has Expired!</a></span>");
@@ -1451,8 +1451,8 @@ function setPageSessionTimer(expires) {
                 $("#ed").prop( "disabled", true );
                 $("#el").prop( "disabled", true );
                 $("#am").prop( "disabled", true );
-                if($('#auto_logoff').val()=='1'){                    
-                      dialogModal("Page Session has Expired","Please login again!", true);                    
+                if($('#auto_logoff').val()=='1'){
+                      dialogModal("Page Session has Expired","Please login again!", true);
                 }
             }
 
@@ -1470,7 +1470,7 @@ function setPageSessionTimer(expires) {
  }
 
  function dialogModal(title, message, logout) {
-    
+
     if(logout) {
         $('<div></div>').dialog({
             modal: true,
@@ -1485,10 +1485,10 @@ function setPageSessionTimer(expires) {
                     $( this ).dialog( "close" );
                     location.reload();
                 }
-            }    
+            }
         });
-    }else {      
-    
+    }else {
+
             $('<div></div>').dialog({
                 modal: true,
                 title: title,

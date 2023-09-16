@@ -24,3 +24,5 @@ tags
 bck_*
 dbLifeLog/current_theme
 lighttpd.conf
+dump_*
+*.rdf

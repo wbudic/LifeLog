@@ -18,7 +18,7 @@ no warnings qw(experimental::signatures);
 use Syntax::Keyword::Try;
 use Exception::Class ('MarkdownPluginException');
 use feature qw(signatures);
-use Date::Manip;
+use Clone qw(clone);
 ##no critic ControlStructures::ProhibitMutatingListFunctions
 
 use constant VERSION => '1.0';
@@ -37,17 +37,13 @@ use constant {
 };
 
 
-sub new ($class, $fields={Language=>'English',DateFormat=>'US'}){
-
-    if(ref($fields) eq 'REF'){
-       warn "Hash reference required as argument for fields!"
+sub new ($class, $plugin){
+    my $settings;
+    if($plugin){
+       $settings = clone $plugin; #clone otherwise will get hijacked with blessings.
     }
-    my $lang =   $fields->{'Language'};
-    my $frmt =   $fields->{'DateFormat'};
-    Date_Init("Language=$lang","DateFormat=$frmt");
-    $fields->{'disk_load'} = 0 if not exists $fields->{'disk_load'};
-
-    return bless $fields, $class
+    $settings->{'disk_load'} = 0 if not exists $settings->{'disk_load'};
+    return bless $settings, $class
 }
 
 ###
@@ -175,7 +171,7 @@ try{
             my $pret = ""; $pret = $1 if $1;
             my $post = ""; $post = $4 if $4;
             $tag = 'code'; $tag =$2 if $2;
-            my $inline = $3; 
+            my $inline = $3;
             $inline = inlineCNF($inline,"");
             my @code_tag = @{ setCodeTag($tag, "") };
             $ln = qq($pret<$code_tag[1] class='$code_tag[0]'>$inline</$code_tag[1]>$post\n);
@@ -403,9 +399,9 @@ try{
                 if($bqte){
                     while($bqte_nested-->0){$bqte .="</$bqte_tag></blockquote>\n"}
                     $para   .= $bqte; $bqte_nested=0;
-                    undef $bqte; 
+                    undef $bqte;
                 }
-                $para .= qq( ${style($v)} \n)
+                $para .= ${style($2)}."\n"
             }
         }else{
             if($list_root && ++$list_end>1){
@@ -493,7 +489,7 @@ sub inlineCNF($v,$spc){
         my $r = "<span ".C_PV.">[#[</span>";
            $v =~ s/\[\#\[/$r/g;
         if($v =~ m/\]\#\]/){
-           $r = "<span ".C_PV.">]#]</span>"; 
+           $r = "<span ".C_PV.">]#]</span>";
            $v =~ s/\]\#\]/$r/g;
         }
         return "$spc$v"
@@ -524,7 +520,7 @@ sub inlineCNF($v,$spc){
         $v=~/(.*)(>+\s*)$/;
         if(!$1 && $2){
             $v = $2; $v =~ s/>/&#62;/g;
-            return "$spc<span ".C_B.">$v</span>"           
+            return "$spc<span ".C_B.">$v</span>"
         }else{
             $oo =~ s/</&#60;/g;
             if($v=~m/>>>/){
@@ -783,3 +779,10 @@ div .cnf {
 
 
 1;
+
+=begin copyright
+Programed by  : Will Budic
+EContactHash  : 990MWWLWM8C2MI8K (https://github.com/wbudic/EContactHash.md)
+
+Open Source Code License -> https://github.com/wbudic/PerlCNF/blob/master/ISC_License.md
+=cut copyright

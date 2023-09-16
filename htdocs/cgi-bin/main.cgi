@@ -271,7 +271,7 @@ $td_itm_cnt = 0;
 foreach my $key(@keys){
 	if($td_itm_cnt>$present_rows_cnt){
 		$td_cat .= "</ul></td><td><ul>";
-		$td_itm_cnt = 0;		
+		$td_itm_cnt = 0;
 	}
 	$td_cat .= "<li id='".$key."'><a href='#'>".$hshCats{$key}."</a></li>";
 	$td_itm_cnt++;
@@ -676,7 +676,7 @@ sub buildLog {
 			if($log =~ m/(.*\s*.*?)<br>/){$h=$1}
 			elsif($log =~ m/(\s*.*\n)/) {$h=$1}
 			if($h){
-				$log = $h.qq(<input type="hidden" id="h$id" value="$log"/><button id='btnRTF' onclick="return dispFullLog($id);" 
+				$log = $h.qq(<input type="hidden" id="h$id" value="$log"/><button id='btnRTF' onclick="return dispFullLog($id);"
                                  class="ui-button ui-corner-all ui-widget"><span>&#8691;<span></button>);
 			}
 		}
@@ -812,10 +812,10 @@ if($isPUBViewMode){
     <input type="hidden" name="opr" id="opr" value="0"/>
     <input type="submit" value="Sum" onclick="return sumSelected()"/>&nbsp;
     <span style="border-left: 1px solid black;padding:5px;margin:15px;">
-    <button onclick="return selectAllLogs()">Select All</button>    
+    <button onclick="return selectAllLogs()">Select All</button>
     <input type="reset" value="Unselect All"/>
     <input type="submit" value="Date Diff" onclick="return dateDiffSelected()"/>&nbsp;
-    <input type="submit" value="Export" onclick="return exportSelected()"/>&nbsp;        
+    <input type="submit" value="Export" onclick="return exportSelected()"/>&nbsp;
     <input type="submit" value="Print" onclick="return viewSelected()"/>&nbsp;
     <input id="del_sel"  type="submit" value="Delete" onclick="display('Please Wait!')"/>
     </span>
@@ -851,9 +851,9 @@ my $frm = qq(
 			&nbsp;<button type="reset"  onclick="setNow();resetDoc(); return true;">Reset</button>
 
                 <span id="cat_desc" name="cat_desc">Enter log...</span>
-            
+
 			&nbsp;&nbsp;&nbsp;Category:&nbsp;
-            
+
                 <button data-dropdown="#dropdown-standard" style="margin: 0px; padding: 0;">
                 <span id="lcat" class="ui-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i><font size=1>--Select --</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></span>
                &nbsp; &#171; &nbsp;</button>
@@ -994,11 +994,11 @@ $srh .=qq(
 &nbsp;&nbsp; &nbsp;&nbsp;
             <input id="vrtf" name="vrtf" type="hidden" value="0"/>
             View RTF Logs:&nbsp;<button id="btn_rtf" onclick="viewRTFLogs(this);">View</button>
-&nbsp;&nbsp;            
+&nbsp;&nbsp;
 
      </td>
    </tr>
-   
+
    <tr class="collpsd">
      <td align="right">Exclude Category:</td>
      <td align="left">
@@ -1101,7 +1101,7 @@ my $help = &help;
 #  Final Page Output from here!  #
 ##################################
 my $audio = &Settings::audioEnabled ? qq(
-	<audio id="au_door_chime" enabled preload="auto" 
+	<audio id="au_door_chime" enabled preload="auto"
     src="wsrc/Miki-Matsubara-WASH-WASH.mp3">
         Your browser does not support the
         <code>audio</code> element.
@@ -1589,7 +1589,7 @@ sub help{
 
 	  &#60;&#60;FRM&#62;my_cat_simon_frm.png&#62; &#60;&#60;TITLE&#60;Simon The Cat&#62;&#62;
 	  This is my pet, can you hold him for a week while I am on holiday?
-            </pre>					
+            </pre>
 				<p>
 					<b>&#60;&#60;LNK&#60;<i>{url to image}</i>&#62;&#62;</b><br><br>
 					Explicitly tag an URL in the log entry.
@@ -1597,7 +1597,7 @@ sub help{
 					Otherwise link appears as plain text.
 				</p><br>
         <p>&#60;iframe .....&#60;/iframe>  - Experimental html embedding, useful for youtube shared videos.</p>
-	<hr>    
+	<hr>
     <h3>Log Page Particulars</h3><p> &#x219F; or &#x21A1; - Jump links to top or bottom of page respectivelly. </p>
 </div>
 </td></tr></table>)
@@ -1663,3 +1663,9 @@ sub outputPage {
 
 
 1;
+=begin copyright
+Programed by  : Will Budic
+EContactHash  : 990MWWLWM8C2MI8K (https://github.com/wbudic/EContactHash.md)
+Source        : https://github.com/wbudic/LifeLog
+Open Source Code License -> https://github.com/wbudic/PerlCNF/blob/master/ISC_License.md
+=cut copyright

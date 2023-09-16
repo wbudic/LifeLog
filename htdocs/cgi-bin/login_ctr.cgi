@@ -1,8 +1,5 @@
 #!/usr/bin/env perl
 #
-# Programed by: Will Budic
-# Open Source License -> https://choosealicense.com/licenses/isc/
-#
 use strict;
 use warnings;
 use experimental qw( switch );
@@ -67,6 +64,7 @@ try{
                                 {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
                     -style => [ {-type  => 'text/css', -src => $css},
                                 {-type => 'text/css', -src => 'wsrc/effects.css'},
+                                {-type => 'text/css', -src => 'wsrc/feeds.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}],
@@ -104,7 +102,8 @@ HTML
     print qq(
             <br>
             <div id="menu_page" style="margin-left: 85vw;"><span class="menu_head">Menu</span><hr>
-                <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a>
+                <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a><hr>
+                <a class="a_" onclick="return fetchFeeds()">Feeds</a><hr>
             </div>
             <div class="rz login">
                 $frm
@@ -117,6 +116,26 @@ HTML
                 </div>
                 <br>
             </div>
+            <div id="feeds" class="rz" style="width:60% !important;visibility:hidden">RSS</div>
+            <script>
+            function fetchFeeds(){
+                var pnl = \$('#feeds');
+                pnl.html(
+                '<div><span style="border:1px solid Crimson;padding:5px;"><font color="Crimson"><b>P l e a s e &nbsp;&nbsp;    W a i t  &nbsp;&nbsp;   D a r l i n g !</b></font></span><br><img src="images/WelloffHighlevelAlpinegoat.webp" witdht="85" height="85"></div>'
+                );
+                pnl.show();
+                pnl.css('visibility','visible');
+                \$.post('CNFServices.cgi', {service:'feeds',action:'default'}, displayFeeds).fail(
+                    function(response) {pnl.html("Service Error: "+response.status,response.responseText);pnl.fadeOut(10000);}
+                );
+                //
+            }
+            function displayFeeds(content){
+                var pnl = \$('#feeds');
+                pnl.html(content);
+                pnl.show();
+            }
+            </script>
           );
 
     Settings::printDebugHTML($DBG) if Settings::debug();
@@ -918,4 +937,10 @@ sub logout {
     exit;
 }
 
+=begin copyright
+Programed by  : Will Budic
+EContactHash  : 990MWWLWM8C2MI8K (https://github.com/wbudic/EContactHash.md)
+Source        : https://github.com/wbudic/LifeLog
+Open Source Code License -> https://github.com/wbudic/PerlCNF/blob/master/ISC_License.md
+=cut copyright
 
