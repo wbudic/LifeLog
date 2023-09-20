@@ -27,3 +27,4 @@ lighttpd.conf
 dump_*
 *.rdf
 tree_*.cnf
+vscode_local_extensions/extensions.json
