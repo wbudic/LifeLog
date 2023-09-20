@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
-#
+# CNF Services operator. The plugins and services themselve should return html.
+# Idea is that this CGI file contains the actuall CNF to interact in realtime with a web page.
 #
 use v5.30;
 use strict;
@@ -8,6 +9,7 @@ use Exception::Class ('CNFHTMLServiceError');
 use Syntax::Keyword::Try;
 use CGI;
 use CGI::Session '-ip_match';
+no warnings qw(experimental::signatures);
 use feature qw(signatures);
 ##
 # We use dynamic perl compilations. The following ONLY HERE required to carp to browser on
@@ -33,15 +35,12 @@ our $script_path = $0; $script_path =~ s/\w+.cgi$//;
 exit &CNFHTMLService;
 
 sub CNFHTMLService {
-    my ($cgi,$ptr)   = (CGI -> new(),undef); $cgi->param('service', 'feeds');
+    my ($cgi,$ptr)   = (CGI -> new(),undef);
     my  $cnf  = CNFParser -> new (undef,{ DO_ENABLED => 1, HAS_EXTENSIONS=>1, ANONS_ARE_PUBLIC => 1, CGI=>$cgi });
         $cnf->parse(undef,_getServiceScript($cgi));
         $ptr = $cnf->data();
         $ptr = $ptr->{'PAGE'};
     say $$ptr if $ptr;
-    # open my $fh, ">dump_of_output_to_browser.html";
-    # print $fh $$ptr;
-    # close $fh;
     return 0
 }
 
@@ -55,6 +54,15 @@ sub _getServiceScript($cgi) {
 
 sub _CNF_Script_For_Feeds {
 <<__CNF_IS_COOL__;
+<<@<%LOG>
+            file      = web_server.log
+            # Should it mirror to console too?
+            console   = 0
+            # Disable/enable output to file at all?
+            enabled   = 0
+            # Tail size cut, set to 0 if no tail cutting is desired.
+            tail      = 1000
+>>
 <<PROCESS_RSS_FEEDS<PLUGIN>
 
     RUN_FEEDS = yes
@@ -78,8 +86,15 @@ sub _CNF_Script_For_Feeds {
 || The more rows have here the longer it takes to fetch them, what is it, once a day, week, month?
 <<    RSS_FEEDS     <DATA>
 ID`Name`URL`Description~
-01`CPAN`http://search.cpan.org/uploads.rdf`CPAN modules news and agenda.~
+#`CPAN`http://search.cpan.org/uploads.rdf`CPAN modules news and agenda.~
+#`The Perl Foundation RSS Feed`https://news.perlfoundation.org/rss.xml`The Perl Foundation is dedicated to the advancement
+of the Perl programming language through open discussion, collaboration, design, and code.
+ The Perl Foundation is a non-profit organization* based in Holland, Michigan~
+#`Perl Weekly`https://perlweekly.com/perlweekly.rss`A free, once a week e-mail round-up of hand-picked news and articles about Perl.
+The Perl Weekly ( http://perlweekly.com/ ) is a newsletter including links to blog posts and other news items
+ related to the Perl programming language.~
 >>
+
 __CNF_IS_COOL__
 }
 

@@ -59,7 +59,8 @@ try{
         print $cgi->start_html(
                     -title   => "Personal Log Login",
                    # -BGCOLOR => $colBG,
-                    -script=> [{-type  => 'text/javascript', -src => 'wsrc/main.js'},
+                    -script=> [ {-type  => 'text/javascript', -src => 'wsrc/main.js'},
+                                {-type  => 'text/javascript', -src => 'wsrc/feeds.js'},
                                 {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                                 {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
                     -style => [ {-type  => 'text/css', -src => $css},
@@ -117,25 +118,6 @@ HTML
                 <br>
             </div>
             <div id="feeds" class="rz" style="width:60% !important;visibility:hidden">RSS</div>
-            <script>
-            function fetchFeeds(){
-                var pnl = \$('#feeds');
-                pnl.html(
-                '<div><span style="border:1px solid Crimson;padding:5px;"><font color="Crimson"><b>P l e a s e &nbsp;&nbsp;    W a i t  &nbsp;&nbsp;   D a r l i n g !</b></font></span><br><img src="images/WelloffHighlevelAlpinegoat.webp" witdht="85" height="85"></div>'
-                );
-                pnl.show();
-                pnl.css('visibility','visible');
-                \$.post('CNFServices.cgi', {service:'feeds',action:'default'}, displayFeeds).fail(
-                    function(response) {pnl.html("Service Error: "+response.status,response.responseText);pnl.fadeOut(10000);}
-                );
-                //
-            }
-            function displayFeeds(content){
-                var pnl = \$('#feeds');
-                pnl.html(content);
-                pnl.show();
-            }
-            </script>
           );
 
     Settings::printDebugHTML($DBG) if Settings::debug();

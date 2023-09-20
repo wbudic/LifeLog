@@ -15,6 +15,7 @@ sub new {
 }
 
 use constant PRIVATE_FIELDS => qr/@\$|[@#_~^&]/o;
+use constant EMPTY => new CNFNode;
 
 ###
 # CNFNode uses symbol offcodes for all its own field values, foe efficiancy.
@@ -259,7 +260,7 @@ sub node {
                 }
             }
        }
-      return
+      return EMPTY
     }
     foreach my $name(split(/\//, $path)){
         $ret = $self->{'@$'};
@@ -269,9 +270,11 @@ sub node {
                     $ret = $_; last
                 }
             }
-        }
+        }else{
+         $ret = EMPTY;
+       }
     }
-    return $ret;
+    return $ret
 }
 ###
 # Outreached subs list of collected node links found in a property.

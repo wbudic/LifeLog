@@ -26,3 +26,4 @@ dbLifeLog/current_theme
 lighttpd.conf
 dump_*
 *.rdf
+tree_*.cnf
