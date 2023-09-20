@@ -9,12 +9,14 @@
 
 [JS[
     [@@[wsrc/main.js]@@]
+    [@@[wsrc/feeds.js]@@]
     [@@[wsrc/jquery.js]@@]
     [@@[wsrc/jquery-ui.js]@@]
 ]JS]
 [CSS[
     [@@[wsrc/main.css]@@]
     [@@[wsrc/effects.css]@@]
+    [@@[wsrc/feeds.css]@@]
     [@@[wsrc/jquery-ui.css]@@]
     [@@[wsrc/jquery-ui.theme.css]@@]
     [@@[wsrc/jquery-ui.theme.css]@@]
@@ -273,7 +275,9 @@ function loadDocResult(content){
     </span>
     <hr>
     <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a><hr>
-    <a class="ui-button ui-corner-all ui-widget" href="main.cgi">Life Log</a>
+    <a class="ui-button ui-corner-all ui-widget" href="main.cgi">Life Log</a><hr>
+    <a class="ui-button ui-corner-all ui-widget" onclick="return fetchFeeds()">RRS Feeds</a>
+
 >#>
  >div>
 
@@ -301,6 +305,11 @@ function loadDocResult(content){
             id:doc_display
             class:md_doc
                 <*<INFO_MD>*>
+            >div>
+            <div<
+                id="feeds"
+                class="rz"
+                [#[ RSS Here ]#]
             >div>
         >div>
         <div<
