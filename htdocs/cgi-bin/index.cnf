@@ -276,7 +276,7 @@ function loadDocResult(content){
     <hr>
     <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a><hr>
     <a class="ui-button ui-corner-all ui-widget" href="main.cgi">Life Log</a><hr>
-    <a class="ui-button ui-corner-all ui-widget" onclick="return fetchFeeds()">RRS Feeds</a>
+    <a class="ui-button ui-corner-all ui-widget" onclick="return fetchFeeds()">RSS Feeds</a>
 
 >#>
  >div>
@@ -311,6 +311,9 @@ function loadDocResult(content){
                 class="rz"
                 [#[ RSS Here ]#]
             >div>
+            <a<
+                id: rss_anchor
+            >a>
         >div>
         <div<
             id:footer

@@ -6,6 +6,7 @@ function fetchFeeds(){
     );
     pnl.show();
     pnl.css('visibility','visible');
+    $(document).scrollTop( $("#rss_anchor").offset().top );
     $.post('CNFServices.cgi', {service:'feeds',action:'list'}, displayFeeds).fail(
         function(response) {pnl.html("Service Error: "+response.status,response.responseText);pnl.fadeOut(10000);}
     );
@@ -25,4 +26,5 @@ function displayFeeds(content){
     var pnl = $('#feeds');
     pnl.html(content);
     pnl.show();
+    $(document).scrollTop( $("#rss_anchor").offset().top );
 }

@@ -118,6 +118,7 @@ HTML
                 <br>
             </div>
             <div id="feeds" class="rz" style="width:60% !important;visibility:hidden">RSS</div>
+            <a id="rss_anchor"</a>
           );
 
     Settings::printDebugHTML($DBG) if Settings::debug();
