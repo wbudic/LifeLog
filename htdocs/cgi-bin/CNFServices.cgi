@@ -31,6 +31,17 @@ require CNFNode;
 
 our $GLOB_HTML_SERVE = "'{}/*.cgi' '{}/*.htm' '{}/*.html' '{}/*.md' '{}/*.txt'";
 our $script_path = $0; $script_path =~ s/\w+.cgi$//;
+use constant LOG_Settings =>q(
+<<@<%LOG>
+    file      = web_server.log
+    # Should it mirror to console too?
+    console   = 0
+    # Disable/enable output to file at all?
+    enabled   = 0
+    # Tail size cut, set to 0 if no tail cutting is desired.
+    tail      = 1000
+>>
+);
 
 exit &CNFHTMLService;
 
@@ -53,16 +64,7 @@ sub _getServiceScript($cgi) {
 }
 
 sub _CNF_Script_For_Feeds {
-<<__CNF_IS_COOL__;
-<<@<%LOG>
-            file      = web_server.log
-            # Should it mirror to console too?
-            console   = 0
-            # Disable/enable output to file at all?
-            enabled   = 0
-            # Tail size cut, set to 0 if no tail cutting is desired.
-            tail      = 1000
->>
+LOG_Settings . <<__CNF_IS_COOL__;
 <<PROCESS_RSS_FEEDS<PLUGIN>
 
     RUN_FEEDS = yes
@@ -98,8 +100,7 @@ The Perl Weekly ( http://perlweekly.com/ ) is a newsletter including links to bl
 __CNF_IS_COOL__
 }
 
-
-1;
+__END__
 
 =begin copyright
 Programed by  : Will Budic
