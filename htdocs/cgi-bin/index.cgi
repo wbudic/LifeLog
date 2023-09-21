@@ -6,9 +6,6 @@
 # Which then can be moved to a respective include file over there.
 # This controller binds and provides to the parser to do its magic thing.
 #
-# Programed by: Will Budic
-# Open Source License -> https://choosealicense.com/licenses/isc/
-#
 use v5.30;
 use strict;
 use warnings;

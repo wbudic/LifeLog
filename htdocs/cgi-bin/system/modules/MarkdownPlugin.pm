@@ -2,13 +2,6 @@
 # This is an Ambitious Markup Script converter from  MD scripts to HTML. Every programers nightmare.
 # MD scripts can thus be placed in PerlCNF properties for further processing by this plugin.
 # Processing of these is placed in the data parsers data.
-# Programed by  : Will Budic
-# Notice - About this source file, it has been copied and usually placed in a local directory, outside of its project.
-# So it could not be the actual or current version, can vary or has been modiefied for what ever purpose in another project.
-# Please leave source of origin in this file for future references.
-# Source of Origin : https://github.com/wbudic/PerlCNF.git
-# Documentation : Specifications_For_CNF_ReadMe.md
-# Open Source Code License -> https://choosealicense.com/licenses/isc/
 #
 package MarkdownPlugin;
 
@@ -21,7 +14,7 @@ use feature qw(signatures);
 use Clone qw(clone);
 ##no critic ControlStructures::ProhibitMutatingListFunctions
 
-use constant VERSION => '1.0';
+use constant VERSION => '1.1';
 
 our $TAB = ' 'x4;
 our $PARSER;
@@ -233,6 +226,7 @@ try{
             if($list_root){ # Has been previously gathered and hasn't been buffered yet.
                $buff .= $list_root -> toString();
                undef $list_root;
+               undef $list_item;
             }
             $buff .= qq(<$h>$title</$h><a name=").scalar(@titels)."\"></a>\n"
         }
@@ -301,6 +295,7 @@ try{
             }
         }
         elsif($ln =~ /^(\s*)(.*)/ && length($2)>0){
+            my $spc = length($1);
             my $v = $2;
             if($code){
                  my $spc=$1; $list_end =0;
@@ -401,12 +396,38 @@ try{
                     $para   .= $bqte; $bqte_nested=0;
                     undef $bqte;
                 }
-                $para .= ${style($2)}."\n"
+
+                if($list_root && $spc>0){
+                    my $new = HTMLListItem -> new('dt', ${style($v)}, $spc);
+                    if($spc>$nplen){
+                        $list_item -> add($new);
+                        $list_item = $new;
+                        $nplen = $spc;
+                    }else{
+                        my $isEq = $list_item->{spc} == $spc;
+                        while($list_item->{spc} >= $spc && $list_item -> parent()){
+                            $list_item = $list_item -> parent();
+                            last if $isEq
+                        }
+                        $list_item = $list_root if  !$list_item;
+                        $list_item -> add($new);
+                    $list_item = $new;
+                    }
+                    $list_end = 0;
+                }else{
+                    $para .= ${style($v)}."\n"
+                }
             }
         }else{
             if($list_root && ++$list_end>1){
                $buff .= $list_root -> toString();
+               if($para){
+                    $buff .= qq(<p>$para</p>\n);
+                    $list_end=0;
+                    $para  =""
+               }
                undef $list_root;
+               undef $list_item;
             }
             elsif($para){
                 if($bqte){
@@ -421,7 +442,7 @@ try{
                elsif($code){
                     $buff .= $para;
                }else{
-                    $buff .= qq(<p>$para</p><br>\n);
+                    $buff .= qq(<p>$para</p>\n);
                }
                $para=""
             }
@@ -570,13 +591,13 @@ if(!$oo && !$cc){
 
     $body =~ m/ ^([\[<\#\*\[<]+)  (.*?) ([\]>\#\*\]>]+)$  /gmx;
     if($1&&$2&&$3){
-      $oo=$1;
+      $oo   = $1;
       $body = $2;
-      $cc=$3;
-      $oo =~ s/</&#60;/g;
-      $oo =~ s/>/&#62;/g;
-      $cc =~ s/</&#60;/g;
-      $cc =~ s/>/&#62;/g;
+      $cc   = $3;
+      $oo   =~ s/</&#60;/g;
+      $oo   =~ s/>/&#62;/g;
+      $cc   =~ s/</&#60;/g;
+      $cc   =~ s/>/&#62;/g;
       $body =~ s/</&#60;/g;
       $body =~ s/>/&#62;/g;
       return "$spc<span ".C_B.">$oo</span><span ".C_PV.">$body</span>><span ".C_B.">$cc</span>";
