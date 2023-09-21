@@ -122,6 +122,7 @@ Anons which are instructional must be scripted standalone.
 
     There is three type of collections.
     Convention is to prefix collection property name with the instruction signifier of either **@** or **%**.
+
     The list signifier is a **$$** postfix to the name.
 
 1. Array type.
@@ -143,17 +144,17 @@ Anons which are instructional must be scripted standalone.
     ```
 
     ```PERL
-       my $list = $parser->collection('@SomeList');
-       my $hash = %{$parser->collection('%SomeHash')};
+       my @list = $parser->collection('@SomeList');
+       my %hash = %{$parser->collection('%SomeHash')};
     ```
 
-
-3. List Type
-    1. Collections as named list so can be scripted into multiple properties or files (includes).
+3. List Type (experimental)
+    1. Collections as a named list so can be scripted into multiple properties or files (includes).
         ```CNF
         <<MyList$$<@>1,3,5,9,13>>
-        <<MyList$<@>19,23,113>>
+        <<MyList$$<@>19,23,
+        113>>
         ```
     ```PERL
-       my $list = $parser->list('MyList');
+       my @list = $parser->list('MyList');
     ```
