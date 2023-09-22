@@ -93,6 +93,9 @@ sub collectFeeds($self, $parser) {
             }
             if(isCNFTrue($self->{CONVERT_CNF_HTML})){
                $page .= _treeToHTML($tree);
+               $page .=qq(<a class="ui-button ui-corner-all ui-widget" onclick="return fetchFeeds('#feeds_bottom')">RSS Feeds</a>
+                <div id="feeds_bottom" class="rz" style ="margin: 5px; visibility:hidden"></div>
+               )
             }
          }else{
             $parser-> warn("Feed '$name' bailed to return a CNFNode tree.")
@@ -122,7 +125,8 @@ sub _treeToHTML($tree){
         my $item(@{$brew->items()}){
         next if $item->name() ne 'Item';
         my ($Title,$Link,$Date) = $item -> array('Title','Link','Date');
-        my $Description         = $item -> node('Description')-> val();
+        my $Description         = $item -> node('Description') -> val();
+        $Description =~ s/<a class=\"article-read-more\"/<a class=\"article-read-more\" target=\"feed\"/gs if $Description;
         $bf.= qq(
             <div class="feed">
             <div class="feeds_item_$alt">
@@ -185,12 +189,13 @@ sub fetchFeed($self,$name,$url,$description){
         }
         unless ( -e $fname ) {
             try{
-                print "Fetching: $fname -> $url ...";
+                print "Fetching: $fname -> [$url] ...";
                 my  $res = getstore($url, $fname);
                 if ($res == 200){
-                    print "\e[2Adone!\n"
+                    print "done!\n"
                 }else{
-                    print "\e[2AError<$res>!\n"
+                    print "Error<$res>!\n";
+                    `curl $url -o $fname`
                 }
             }catch{
                 print "Error: $@.\n";

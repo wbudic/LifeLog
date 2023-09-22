@@ -59,4 +59,53 @@
     vertical-align: top;
 }
 
+.feed_desc img{
+    width: 10%;
+}
+
+
+/*!
+ *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome
+ *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
+ */
+ @font-face {
+    font-family: flownews-FontAwesome;
+    src: url(fonts/fontawesome-webfont.eot?v=4.7.0);
+    src: url(fonts/fontawesome-webfont.eot?#iefix&v=4.7.0) format('embedded-opentype'),url(fonts/fontawesome-webfont.woff2?v=4.7.0) format('woff2'),url(fonts/fontawesome-webfont.woff?v=4.7.0) format('woff'),url(fonts/fontawesome-webfont.ttf?v=4.7.0) format('truetype'),url(fonts/fontawesome-webfont.svg?v=4.7.0#fontawesomeregular) format('svg');
+    font-weight: 400;
+    font-style: normal
+}
+
+.flownewsicon {
+    display: inline-block;
+    font: normal normal normal 14px/1 flownews-FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale
+}
+
+.fa-angle-double-left:before {
+    content: "\f100"
+}
+
+.fa-angle-double-right:before {
+    content: "\f101"
+}
+
+
+.article-read-more i:before {
+    margin-left: 10px;
+    margin-right: 0;
+    width: 30px;
+    content: "...read\f101";
+}
+
+.article-read-more a {
+    margin-left: 10px;
+    margin-right: 0;
+}
+
+
+
 

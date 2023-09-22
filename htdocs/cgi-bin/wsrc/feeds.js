@@ -1,6 +1,7 @@
-
-function fetchFeeds(){
-    var pnl = $('#feeds');
+var ID = "#feeds";
+function fetchFeeds(id){
+    ID =   id?id:"#feeds";
+    var pnl =$(ID);
     pnl.html(
     '<div><span style="border:1px solid Crimson;padding:5px;"><font color="Crimson"><b>P l e a s e &nbsp;&nbsp;    W a i t  &nbsp;&nbsp;!</b></font></span><br><img src="images/Wedges-9.1s-64px.png"></div>'
     );
@@ -23,7 +24,7 @@ function fetchFeed(feed){
     );
 }
 function displayFeeds(content){
-    var pnl = $('#feeds');
+    var pnl = $(ID);
     pnl.html(content);
     pnl.show();
     $(document).scrollTop( $("#rss_anchor").offset().top );
