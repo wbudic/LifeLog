@@ -63,6 +63,9 @@
 .feed_desc img{
     width: 20%;
 }
+.feed_desc span{
+display: flow-root;
+}
 
 
 /*!
