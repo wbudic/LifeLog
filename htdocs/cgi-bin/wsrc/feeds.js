@@ -3,7 +3,7 @@ function fetchFeeds(id){
     ID =   id?id:"#feeds";
     var pnl =$(ID);
     pnl.html(
-    '<div><span style="border:1px solid Crimson;padding:5px;"><font color="Crimson"><b>P l e a s e &nbsp;&nbsp;    W a i t  &nbsp;&nbsp;!</b></font></span><br><img src="images/Wedges-9.1s-64px.png"></div>'
+    '<div><span style="border:1px solid Crimson;padding:5px;"><font color="Crimson">&nbsp;&nbsp;<b>P l e a s e &nbsp;&nbsp;    W a i t  &nbsp;&nbsp;!&nbsp;&nbsp;</b></font></span><br><img src="images/Wedges-9.1s-64px.png"></div>'
     );
     pnl.show();
     pnl.css('visibility','visible');
@@ -16,7 +16,7 @@ function fetchFeed(feed) {
     ID = '#feeds';
     var pnl = $(ID);
     pnl.html(
-    '<div><span style="border:1px solid Crimson;padding:5px;"><font color="Crimson"><b>Please &nbsp Wait ->  '+feed+' loading...</b></font></span><br><img src="images/Wedges-9.1s-64px.png"></div>'
+    '<div><span style="border:1px solid Crimson;padding:5px;"><font color="Crimson">&nbsp;&nbsp;<b>&nbsp;&nbsp;Please &nbsp Wait ->  '+feed+' loading...&nbsp;&nbsp;</b></font></span><br><img src="images/Wedges-9.1s-64px.png"></div>'
     );
     pnl.show();
     pnl.css('visibility','visible');

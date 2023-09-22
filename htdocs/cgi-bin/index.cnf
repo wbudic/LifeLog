@@ -307,6 +307,9 @@ function loadDocResult(content){
             class:md_doc
                 <*<INFO_MD>*>
             >div>
+                                        <a<
+                                                        name="feed_top"
+                                        >a>
             <div<
                 id="feeds"
                 class="rz"
@@ -327,7 +330,7 @@ function loadDocResult(content){
                             title:Go to top of page.
                             <#<To Top Of Page>#>
                         >a>
-    <span<&#8968;>span>
+            <span<&#8968;>span>
                                                         <a<
                                                             name: bottom
                                                         >a>

@@ -95,7 +95,7 @@ sub collectFeeds($self, $parser) {
             }
             if(isCNFTrue($self->{CONVERT_CNF_HTML})){
                $page .= _treeToHTML($tree);
-               $page .=qq(<a class="ui-button ui-corner-all ui-widget" onclick="return fetchFeeds('#feeds_bottom')">RSS Feeds</a>
+               $page .=qq(<a class="ui-button ui-corner-all ui-widget" onclick="return fetchFeeds('#feeds_bottom')">RSS Feeds</a>&nbsp;[<a href="#feed_top">To Top Of Feed</a>]
                <div id="feeds_bottom" style ="margin: 5px;padding:0;visibility:hidden"><br></div>
                )
             }
