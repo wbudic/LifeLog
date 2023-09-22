@@ -8,7 +8,16 @@
     border: 1px solid black;
     margin-bottom: 5px;
     padding: 8px;
+    background-color: transparent;
+    color: black;
 }
+
+
+.feed:hover{
+    background-color: transparent;
+    color: black;
+}
+
 .feed div {
     text-align:left;
     border:0;
