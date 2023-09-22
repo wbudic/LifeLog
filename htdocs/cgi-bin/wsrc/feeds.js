@@ -12,10 +12,11 @@ function fetchFeeds(id){
         function(response) {pnl.html("Service Error: "+response.status,response.responseText);pnl.fadeOut(10000);}
     );
 }
-function fetchFeed(feed){
-    var pnl = $('#feeds');
+function fetchFeed(feed) {
+    ID = '#feeds';
+    var pnl = $(ID);
     pnl.html(
-    '<div><span style="border:1px solid Crimson;padding:5px;"><font color="Crimson"><b>P l e a s e &nbsp;&nbsp;    W a i t  '+feed+' loading...</b></font></span><br><img src="images/Wedges-9.1s-64px.png"></div>'
+    '<div><span style="border:1px solid Crimson;padding:5px;"><font color="Crimson"><b>Please &nbsp Wait ->  '+feed+' loading...</b></font></span><br><img src="images/Wedges-9.1s-64px.png"></div>'
     );
     pnl.show();
     pnl.css('visibility','visible');

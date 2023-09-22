@@ -52,9 +52,11 @@ sub process ($self, $parser, $property) {
        my $page = '<div class="feed"><h2>List Of Feeds</h2><ol>';
        for my $idx (1 .. $#data){
            my @col = @{$data[$idx]};
-           $page .= qq|<li><span style="border: 1px solid black; padding: 5px; padding-bottom: 0px;"><a onclick="return fetchFeed('$col[1]')" style="cursor: pointer;"> <b>$col[1]</b> </a></span> &nbsp;&nbsp;[ $col[4] ]<dt style="padding:5px;">$col[3]</dt></li>\n|;
+           $page .= qq|<li><span style="border: 1px solid black; padding: 5px; padding-bottom: 0px;">
+           <a onclick="return fetchFeed('$col[1]')" style="cursor: pointer;"> <b>$col[1]</b> </a></span>
+            &nbsp;&nbsp;[ $col[4] ]<dt style="padding:10px;">$col[3]</dt></li>\n|;
        }
-       $page .= '</ol></feed>';
+       $page .= '</ol></div>';
        $parser->data()->{PAGE} = \$page
     }else{
        $parser->addPostParseProcessor($self,'collectFeeds');
@@ -94,7 +96,7 @@ sub collectFeeds($self, $parser) {
             if(isCNFTrue($self->{CONVERT_CNF_HTML})){
                $page .= _treeToHTML($tree);
                $page .=qq(<a class="ui-button ui-corner-all ui-widget" onclick="return fetchFeeds('#feeds_bottom')">RSS Feeds</a>
-                <div id="feeds_bottom" class="rz" style ="margin: 5px; visibility:hidden"></div>
+               <div id="feeds_bottom" style ="margin: 5px;padding:0;visibility:hidden"><br></div>
                )
             }
          }else{
@@ -126,7 +128,7 @@ sub _treeToHTML($tree){
         next if $item->name() ne 'Item';
         my ($Title,$Link,$Date) = $item -> array('Title','Link','Date');
         my $Description         = $item -> node('Description') -> val();
-        $Description =~ s/<a class=\"article-read-more\"/<a class=\"article-read-more\" target=\"feed\"/gs if $Description;
+           $Description =~ s/<a/<a target="feed"/gs if $Description;
         $bf.= qq(
             <div class="feed">
             <div class="feeds_item_$alt">
@@ -261,6 +263,10 @@ my  $buffer = capture_stdout {
             my $CNFItm; $items_cnt++;
             if(!$date) {
                 $date  = $item->query('dc:date');
+            }
+            if(!$date){
+                print "Feed pub date item error with:$title";
+                next
             }
             $date = $date->text_content;
             $date = CNFDateTime::_toCNFDate($date, $self->{TZ})->toTimestampShort();

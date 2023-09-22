@@ -5,7 +5,6 @@
 
 .feed {
     text-align:left;
-    width: 100%;
     border: 1px solid black;
     margin-bottom: 5px;
     padding: 8px;
@@ -13,7 +12,9 @@
 .feed div {
     text-align:left;
     border:0;
-
+}
+.feed li {
+    margin-top: 5px;;
 }
 
 .feed_lbl  {
@@ -98,7 +99,7 @@
     margin-left: 10px;
     margin-right: 0;
     width: 30px;
-    content: "...read\f101";
+    content: "...more\f101";
 }
 
 .article-read-more a {

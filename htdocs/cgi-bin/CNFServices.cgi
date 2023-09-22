@@ -98,7 +98,8 @@ The Perl Weekly ( http://perlweekly.com/ ) is a newsletter including links to bl
 #`The Cipher Brief RSS Feed`https://www.thecipherbrief.com/feed`The Cipher Brief is the go-to digital platform for the latest security news and high-level analysis. Each day, we offer multiple expert perspectives, engaging the private sector to find solutions and foster dialogue on what events mean for businesses and organizations around the world. More than just reporting on the news, The Cipher Brief helps readers understand what the news means to you.~
 #`Viral Now`https://viralnow.uk/feed/`ViralNow is a dynamic online platform at the forefront of curating and delivering trending and viral content. ViralNow brings you the latest and most engaging stories, videos, and articles from around the world.~
 #`The Sydney Morning Herald - World RSS Feed`http://www.smh.com.au/rssheadlines/world/article/rss.xml`The Sydney Morning Herald is Australia's leading news source. The Sydney Morning Herald sets the standard for journalistic excellence for Sydney, Australia, and the rest of the world. From breaking news, to travel and fashion, The Sydney Morning Herald continues to transform the way Australians get their news.~
-#`LifeHacker`https://lifehacker.com/rss`Lifehacker’s an award-winning daily blog that features tips, shortcuts, and downloads that help you work and live smarter and more efficiently.~
+#`Life Hacker`https://lifehacker.com/rss`Lifehacker’s an award-winning daily blog that features tips, shortcuts, and downloads that help you work and live smarter and more efficiently.~
+#`Politico`http://www.politico.com/rss/politicopicks.xml`POLITICO strives to be the dominant source for news on politics and policy in power centers across every continent where access to reliable information, nonpartisan journ.lism and real-time tools create, inform and engage a global citizenry.~
 >>
 
 __CNF_IS_COOL__
