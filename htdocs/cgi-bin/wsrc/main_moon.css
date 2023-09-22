@@ -2,7 +2,15 @@ body{
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     font-size: 14px;
     background-image: url('images/page-bck-moon.png');
-
+    margin: 0;
+    padding:0;
+}
+.content{
+    background-image: url('images/page-bck-moon.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    padding:0;
 }
 p {
     font-family: Bookman;
@@ -140,8 +148,8 @@ th,
     padding:10px;
 }
 .login {
-    
-    vertical-align: middle; text-align:center; width: 60% !important;    
+
+    vertical-align: middle; text-align:center; width: 60% !important;
     background-repeat: no-repeat;
     background:#64614e7a;
 }
@@ -185,7 +193,7 @@ div#rz {
     text-align: left;
     word-wrap: break-word;
     white-space: normal;
-    padding-left: 5px;            
+    padding-left: 5px;
     overflow-y:hidden;
 }
 
@@ -242,7 +250,7 @@ img {
 
 .ui-button,
 .ui-button-text .ui-button {
-    font-size: 12px !important;    
+    font-size: 12px !important;
 }
 
 .ui-menu {
@@ -331,7 +339,7 @@ a:active {
     font-style: italic;
     background-color:#9bb6c3;
     color: #724242;
-    padding:5px;    
+    padding:5px;
 }
 
  #sss_expired a{
@@ -343,7 +351,7 @@ a:active {
     padding:15px
 }
 .hover{
-    background-color: #8d8d83;    
+    background-color: #8d8d83;
 }
 #lcat{ margin: 0; padding: 5px;}
 
@@ -352,7 +360,7 @@ a:active {
     color: rgb(105, 15, 15);
     background-color:#9bb6c3;
     text-align: left;
-    font-family: monospace;    
+    font-family: monospace;
     opacity: 8;
     padding: 5px;
 }

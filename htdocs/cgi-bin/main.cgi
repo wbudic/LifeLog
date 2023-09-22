@@ -1118,6 +1118,7 @@ my $audio = &Settings::audioEnabled ? qq(
 toBuf (
 	qq(
 $sideMenu
+<DIV class="content">
 <a id="top" name="top"></a>
 <div id="div_log">$frm</div>
 $quill
@@ -1125,6 +1126,7 @@ $quill
 <div id="div_hlp">$help</div>
 <div>\n$log_output\n</div><br>
 $tail
+</DIV>
 <!-- Cat Data Start -->
 <span id="meta_cats">
 	$data_cats

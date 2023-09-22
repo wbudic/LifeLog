@@ -1,13 +1,19 @@
 body{
     font-family: Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+    margin: 0;
+    padding:0;
+}
+.content{
     background-image: url('images/page-bck-std.png');
-    margin: 0; 
-    padding:0;  
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    padding:0;
 }
 p {
     font-family: Bookman;
     margin-left: 70px;
-    font-weight: normal;    
+    font-weight: normal;
 }
 pre{
     color: #070707;
@@ -18,14 +24,14 @@ pre{
 }
 table,
 th,
-td {    
+td {
     border-collapse: collapse;
     padding: 5px;
     margin: auto;
 }
 
-div {    
-    text-align: center;    
+div {
+    text-align: center;
 }
 
 #div_log {
@@ -89,7 +95,7 @@ th,
 }
 
 #cat_lst {
-    visibility: hidden; 
+    visibility: hidden;
 }
 
 .r0 {
@@ -135,8 +141,8 @@ th,
     margin: 0px auto;
 }
 .login {
-    
-    vertical-align: middle; text-align:center; width: 60% !important;    
+
+    vertical-align: middle; text-align:center; width: 60% !important;
     background-repeat: no-repeat;
     background:#b2f8ef url('images/std--login-bck.png');
     opacity: 1;
@@ -180,7 +186,7 @@ div#rz {
     text-align: left;
     word-wrap: break-word;
     white-space: normal;
-    padding-left: 5px;            
+    padding-left: 5px;
     overflow-y:hidden;
 }
 
@@ -236,7 +242,7 @@ img {
 
 .ui-button,
 .ui-button-text .ui-button {
-    font-size: 12px !important;    
+    font-size: 12px !important;
 }
 
 .ui-menu {
@@ -300,7 +306,7 @@ img {
 
 #btnRTF {
     float: right;
-    
+
 }
 
 .midnight{
@@ -346,7 +352,7 @@ a:active {
     font-size:smaller;
     background-color:darkturquoise;
     text-align: left;
-    font-family: monospace;    
+    font-family: monospace;
     opacity: 8;
     padding: 5px;
 }

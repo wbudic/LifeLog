@@ -1,11 +1,19 @@
 body{
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     font-size: 14px;
-    background-color: #FFD700;    
+    background-color: #FFD700;
+    margin: 0;
+    padding:0;
+}
+
+.content {
+
     background-image: url('images/page-bck-sun.png');
-    background-repeat: no-repeat;    
-    margin: 0; 
-    padding:0;  
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    padding:0;
+
 }
 p {
     font-family: Bookman;
@@ -138,7 +146,7 @@ th,
     margin: 0px auto;
 }
 .login {
-    
+
     vertical-align: middle; text-align:center; width: 60% !important;
     background:#b2f8ef url('images/Sun-Rotating.gif');
     background-repeat: repeat;
@@ -183,7 +191,7 @@ div#rz {
     text-align: left;
     word-wrap: break-word;
     white-space: normal;
-    padding-left: 5px;            
+    padding-left: 5px;
     overflow-y:hidden;
 }
 
@@ -237,7 +245,7 @@ img {
 
 .ui-button {
   font-size: 12px !important;
-    color: #b87a1d #e4f1fb 
+    color: #b87a1d #e4f1fb
 }
 
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
@@ -245,14 +253,14 @@ img {
     background-color: #d4af37;
     background: #ffdf00;
     font-weight: bold;
-    color: #b87a1d #e4f1fb 
+    color: #b87a1d #e4f1fb
 }
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
     border: 1px solid #ead5ae;
     background-color: #d4af37;
     background: #fbff00;
     font-weight: bold;
-    color: #b87a1d #e4f1fb 
+    color: #b87a1d #e4f1fb
 }
 .dropdown-menu table td{
     color:rgb(226, 34, 34);
@@ -292,14 +300,14 @@ img {
 	color: #e4f1fb;
 }
 
-.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, 
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover,
 html .ui-button.ui-state-disabled:active {
 	border: 1px solid #978567;
 	background: #f6f200;
-	font-weight: bold;	
+	font-weight: bold;
     color: #0c0c0c;
 }
-.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active, a.ui-button:active, .ui-button:active, 
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active, a.ui-button:active, .ui-button:active,
 .ui-button.ui-state-active:hover {
 	border: 1px solid #fa0404;
 	background:#ffdf00;
@@ -311,7 +319,7 @@ html .ui-button.ui-state-disabled:active {
     color: #362b36;
     font-weight: bold;
 }
-.ui-widget-content {	
+.ui-widget-content {
 	background: #fbff00;
 	color: #362b36;
 }
@@ -381,13 +389,13 @@ html .ui-button.ui-state-disabled:active {
 .midnight{
     color:midnightblue;
 }
-a:link {    
+a:link {
     color: #f4f80f
 }
    a:visited {
     color: #0c0c0c;
    }
-   
+
    a:hover {
        color: #2d7081;
        font-style:normal;
@@ -399,8 +407,8 @@ a:link {
     font-size: smaller;
     font-style: italic;
     background-color: #eeff00;
-    color:peru;    
-    padding:5px;  
+    color:peru;
+    padding:5px;
 }
 
 #sss_expired a{
@@ -420,6 +428,6 @@ a:link {
     font-size:smaller;
     background-color:goldenrod;
     text-align: left;
-    font-family: monospace;    
+    font-family: monospace;
     opacity: 8;
 }

@@ -1,10 +1,15 @@
 body{
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     font-size: 14px;
+    margin: 0;
+    padding:0;
+}
+.content {
     background-image: url('images/page-bck-earth.png');
-    background-repeat: no-repeat;    
-    margin: 0; 
-    padding:0;  
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    padding:0;
 }
 p {
     font-family: Bookman;
@@ -74,7 +79,7 @@ th,
     text-align: center;
     background: #d1663c;
     color: #d8d8d8;
-    margin-top: 20px;    
+    margin-top: 20px;
     margin-left: 200px;
     width: 280px;
     text-decoration-style: wavy;
@@ -82,7 +87,7 @@ th,
 
 .span_cat {
     font-family: Bookman;
-    border: 1px solid #7a3d03;    
+    border: 1px solid #7a3d03;
     border-style: inset;
     padding: 2px;
     padding-right: 10px;
@@ -129,9 +134,9 @@ th,
     padding: 2%;
     margin: 0px auto;
 }
-.login {    
+.login {
     vertical-align: middle; text-align:center; width: 60% !important;
-    background-image:repeating-radial-gradient(cyan, green, brown)    
+    background-image:repeating-radial-gradient(cyan, green, brown)
 }
 div#rz {
     border: 1px solid black;
@@ -171,7 +176,7 @@ div#rz {
     text-align: left;
     word-wrap: break-word;
     white-space: normal;
-    padding-left: 5px;            
+    padding-left: 5px;
     overflow-y:hidden;
 }
 
@@ -317,15 +322,15 @@ a:link {
     font-style: italic;
     background-color: #c0a873;
     color:lawngreen;
-    padding:5px; 
-  }    
+    padding:5px;
+  }
 
 
  #sss_expired a {
     font-size: large;
     font-style: normal;
     font-weight: bold;
-    background-color: #26be54;    
+    background-color: #26be54;
     color:crimson;
     padding:15px
 }
