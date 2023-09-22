@@ -100,7 +100,7 @@ try{
         <tr class="r0"><td colspan="2">Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
         </table></form>
 HTML
-    print qq(<DIV class="content" style="height: 100dvh;">
+    print qq(<DIV class="content" style="height: 100dvh;display: flow-root;">
             <br>
             <div id="menu_page" style="margin-left: 85vw;"><span class="menu_head">Menu</span><hr>
                 <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a><hr>
@@ -118,7 +118,7 @@ HTML
                 <br>
             </div><a name="feed_top"/>
             <div id="feeds" class="rz" style="width:60% !important;visibility:hidden">RSS</div>
-            <a id="rss_anchor"</a>
+            <a id="rss_anchor"></a>
             </DIV>
           );
 

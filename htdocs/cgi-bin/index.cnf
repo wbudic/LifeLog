@@ -281,7 +281,10 @@ function loadDocResult(content){
 
 >#>
  >div>
-
+<div<
+id:index-content
+class:content
+style:"height:100vh"
  <div<
     id:container
         <div<
@@ -300,6 +303,7 @@ function loadDocResult(content){
             >span>
             <div<
                 id:content
+                style="height:auto"
                 <*<PAGE_CONTENT>*>
             >div>
             <div<
@@ -337,6 +341,7 @@ function loadDocResult(content){
         >div>
  >div>
     <!<Page brought to you by HTMLIndexProcessorPlugin, from the PerlCNF project.>!>
+>div>
 >>PAGE>TREE>
 
 

@@ -27,6 +27,7 @@ function fetchFeed(feed) {
 function displayFeeds(content){
     var pnl = $(ID);
     pnl.html(content);
+    $("#index-content").css("height",'100%');
     pnl.show();
     $(document).scrollTop( $("#rss_anchor").offset().top );
 }
