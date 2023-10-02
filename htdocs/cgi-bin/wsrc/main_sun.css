@@ -5,7 +5,6 @@ body{
     margin: 0;
     padding:0;
 }
-
 .content {
 
     background-image: url('images/page-bck-sun.png');
@@ -13,6 +12,7 @@ body{
     background-attachment: fixed;
     margin: 0;
     padding:0;
+    height: 100vh;
 
 }
 p {

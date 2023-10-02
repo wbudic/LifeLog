@@ -37,3 +37,11 @@ function displayFeeds(content){
     pnl.show();
     $(document).scrollTop( $("#rss_anchor").offset().top );
 }
+
+
+function demoLogin() {
+    var form = $('#frm_login');
+    $('#frm_login input[name=alias]').val("admin");
+    $('#frm_login input[name=passw]').val("admin");
+    form.submit();
+}

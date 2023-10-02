@@ -3,12 +3,13 @@ body{
     margin: 0;
     padding:0;
 }
-.content{
+.content {
     background-image: url('images/page-bck-std.png');
     background-repeat: no-repeat;
     background-attachment: fixed;
     margin: 0;
     padding:0;
+    height: 100vh;
 }
 p {
     font-family: Bookman;

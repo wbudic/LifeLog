@@ -10,6 +10,7 @@ body{
     background-attachment: fixed;
     margin: 0;
     padding:0;
+    height: 100vh;
 }
 p {
     font-family: Bookman;
