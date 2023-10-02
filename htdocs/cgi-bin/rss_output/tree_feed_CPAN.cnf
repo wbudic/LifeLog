@@ -2,9 +2,9 @@
     Release: 1
     Version: 1.0
       <Feed<
-       Expires: 2023-09-27 08:00:00
+       Expires: 2023-10-11 10:33:12
        File: ./rss_output/tree_feed_CPAN.cnf
-       Published: 2023-09-16 03:26:12.785 UTC
+       Published: 2023-10-01 23:33:12.717 UTC
        Title: Recent CPAN uploads - MetaCPAN
        URL: http://search.cpan.org/uploads.rdf
       [#[
@@ -13,106 +13,41 @@
       >Feed>
       <Brew<
          <Item<
-          Date: 2023-09-16 03:20:02
-          Link: https://metacpan.org/release/TIMLEGGE/Crypt-OpenSSL-AES-0.08
-          Title: Crypt-OpenSSL-AES-0.08
+          Date: 2023-10-01 17:36:06
+          Link: https://metacpan.org/release/MIK/CryptX-0.079_003
+          Title: CryptX-0.079_003
             <Description<
             [#[
-               <p>A Perl wrapper around OpenSSL's AES library</p><p>Changes for 0.08</p><ul><li>Detailed Changes</li>
+               <p>Cryptographic toolkit</p><p>Changes for 0.079_003 - 2023-01-10</p><ul><li>Disable AES-NI</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-16 00:05:19
-          Link: https://metacpan.org/release/PERLANCAR/Bencher-Scenario-Shell-Startup-0.001
-          Title: Bencher-Scenario-Shell-Startup-0.001
+          Date: 2023-10-01 17:35:55
+          Link: https://metacpan.org/release/MIK/CryptX-0.079_002
+          Title: CryptX-0.079_002
             <Description<
             [#[
-               <p>Benchmark startup overhead of various Unix shells</p><p>Changes for 0.001 - 2023-07-08</p><ul><li>First release.</li>
+               <p>Cryptographic toolkit</p><p>Changes for 0.079_002 - 2023-01-10</p><ul><li>Enable AES-NI on gcc/clang/llvm</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-15 20:40:36
-          Link: https://metacpan.org/release/RAWLEYFOW/API-Vultr-0.001
-          Title: API-Vultr-0.001
+          Date: 2023-10-01 14:02:29
+          Link: https://metacpan.org/release/SCHUBIGER/DateTime-Format-Natural-1.17_01
+          Title: DateTime-Format-Natural-1.17_01
             <Description<
             [#[
-               A simple interface to the Vultr v2 API
+               Parse informal natural language date/time strings
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-15 20:06:29
-          Link: https://metacpan.org/release/WATERKIP/WebService-Postex-0.004
-          Title: WebService-Postex-0.004
-            <Description<
-            [#[
-               <p>A Postex WebService implemenation in Perl</p><p>Changes for 0.004 - 2023-09-15T20:05:14Z</p><ul><li>Change to Object::Pad from Moose</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-15 19:08:32
-          Link: https://metacpan.org/release/DJERIUS/CXC-Form-Tiny-OptArgs2-0.01
-          Title: CXC-Form-Tiny-OptArgs2-0.01
-            <Description<
-            [#[
-               <p>a really awesome library</p><p>Changes for 0.01 - 2023-09-15T15:07:02-04:00</p><ul><li>First release upon an unsuspecting world.</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-15 18:20:38
-          Link: https://metacpan.org/release/MARKOV/Mail-Box-Parser-C-3.011
-          Title: Mail-Box-Parser-C-3.011
-            <Description<
-            [#[
-               Parse mbox files with XS
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-15 16:22:26
-          Link: https://metacpan.org/release/WATERKIP/Dist-Zilla-PluginBundle-Author-WATERKIP-3.3
-          Title: Dist-Zilla-PluginBundle-Author-WATERKIP-3.3
-            <Description<
-            [#[
-               <p>An plugin bundle for all distributions by WATERKIP</p><p>Changes for 3.3 - 2023-09-15T16:19:02Z</p><ul><li>Add 'use Data::Dumper' to skip for prereqs</li>
-               <li>Include authors to contributors file</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-15 15:45:17
-          Link: https://metacpan.org/release/BPS/GnuPG-Interface-1.03
-          Title: GnuPG-Interface-1.03
-            <Description<
-            [#[
-               <p>supply object methods for interacting with GnuPG</p><p>Changes for 1.03 - 2023-09-14</p><ul><li>Add fix for running in taint mode for Perl 5.38.0(thanks to Andrew Ruthven)</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-15 13:48:51
-          Link: https://metacpan.org/release/CUKEBOT/Gherkin-27.0.0
-          Title: Gherkin-27.0.0
-            <Description<
-            [#[
-               A parser and compiler for the Gherkin language
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-15 11:42:54
-          Link: https://metacpan.org/release/HANJE/Tk-CodeText-0.44
-          Title: Tk-CodeText-0.44
+          Date: 2023-10-01 13:03:01
+          Link: https://metacpan.org/release/HANJE/Tk-CodeText-0.45
+          Title: Tk-CodeText-0.45
             <Description<
             [#[
                Programmer's Swiss army knife Text widget.
@@ -120,330 +55,807 @@
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-15 11:19:47
-          Link: https://metacpan.org/release/HANJE/Tk-CodeText-0.43
-          Title: Tk-CodeText-0.43
+          Date: 2023-10-01 12:20:32
+          Link: https://metacpan.org/release/MIK/CryptX-0.079
+          Title: CryptX-0.079
             <Description<
             [#[
-               Programmer's Swiss army knife Text widget.
+               Cryptographic toolkit
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-15 08:16:27
-          Link: https://metacpan.org/release/NERDVANA/CodeGen-Cpppp-0.001_02
-          Title: CodeGen-Cpppp-0.001_02
+          Date: 2023-10-01 08:50:49
+          Link: https://metacpan.org/release/FKENTO/Email-Address-Classify-0.01
+          Title: Email-Address-Classify-0.01
             <Description<
             [#[
-               <p>The C Perl-Powered Pre-Processor</p><p>Changes for 0.001_02 - 2023-09-15</p><ul><li>Fix various glaring documentation mistakes</li>
-               <li>List some ideas for future features</li>
-               <li>Remove debugging output</li>
-               <li>&quot;--help&quot; for command line</li>
+               Classify email addresses
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-10-01 01:11:31
+          Link: https://metacpan.org/release/DBOOK/Perl-MinimumVersion-1.42-TRIAL
+          Title: Perl-MinimumVersion-1.42-TRIAL
+            <Description<
+            [#[
+               <p>Find a minimum required version of perl for Perl code</p><p>Changes for 1.42 - 2023-09-30</p><ul><li>Restore detection for Perl version 5.008, which means that 5.006 is now the minimum required version that will be reported.</li>
+               <li>Recognize the minimum required Perl versions for:</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-15 07:52:25
-          Link: https://metacpan.org/release/OODLER/OpenMP-Simple-0.0.2-TRIAL
-          Title: OpenMP-Simple-0.0.2-TRIAL
+          Date: 2023-10-01 00:06:00
+          Link: https://metacpan.org/release/PERLANCAR/Acme-CPANModules-RequireHooks-0.001
+          Title: Acme-CPANModules-RequireHooks-0.001
             <Description<
             [#[
-               Provides some DWIM helpers for using OpenMP via Inline::C.
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-15 07:42:08
-          Link: https://metacpan.org/release/TORBIAK/App-Git-Autofixup-0.004001
-          Title: App-Git-Autofixup-0.004001
-            <Description<
-            [#[
-               create fixup commits for topic branches
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-15 07:24:13
-          Link: https://metacpan.org/release/CORION/HTTP-Request-FromCurl-0.52
-          Title: HTTP-Request-FromCurl-0.52
-            <Description<
-            [#[
-               <p>create a HTTP::Request from a curl command line</p><p>Changes for 0.52 - 2023-09-15</p><ul><li>Switch test suite to Test2::V0</li>
-               <li>Suppress trivial Content-Length headers in -&gt;as_curl</li>
-               <li>--disable is a boolean option</li>
-               <li>Add support for --json</li>
-               <li>Add support for --max-filesize The behaviour is slightly different from cURL. --max-filesize looks at the size of the body, not at the Content-Length header.</li>
-               <li>Add support for --interface (only IP addresses, not interface names)</li>
-               <li>Fix Mojolicious snippet generation with local address</li>
+               <p>List of modules that utilize require() hook</p><p>Changes for 0.001 - 2023-02-08</p><ul><li>First release.</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-15 07:15:14
-          Link: https://metacpan.org/release/NERDVANA/CodeGen-Cpppp-0.001_01
-          Title: CodeGen-Cpppp-0.001_01
+          Date: 2023-09-30 23:51:59
+          Link: https://metacpan.org/release/KIMOTO/SPVM-Errno-0.090003
+          Title: SPVM-Errno-0.090003
             <Description<
             [#[
-               <p>The C Perl-Powered Pre-Processor</p><p>Changes for 0.001_01 - 2023-09-15</p><ul><li>Basic intermingling of perl variables in C code</li>
-               <li>Arbitrary perl in '##' directives</li>
-               <li>Magic indent adjustment after variable substitution</li>
+               <p>Error Numbers</p><p>Changes for 0.090003 - 2023-10-01</p><ul><li>Exception Message Changes</li>
+               <li>Document Changes</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-15 00:18:28
-          Link: https://metacpan.org/release/BENNIE/VMware-vCloud-2.404
-          Title: VMware-vCloud-2.404
+          Date: 2023-09-30 23:37:55
+          Link: https://metacpan.org/release/ETHER/Test-Warnings-0.032
+          Title: Test-Warnings-0.032
             <Description<
             [#[
-               <p>VMware vCloud API</p><p>Changes for 2.404 - 2023-09-14</p><ul><li>Added: POD test</li>
-               <li>Improved: 'use warnings' on all modules</li>
+               <p>Test for warnings and the lack of them</p><p>Changes for 0.032 - 2023-09-30T23:36:50Z</p><ul><li>new config variable, $ENV{PERL_TEST_WARNINGS_ONLY_REPORT_WARNINGS}, for temporarily turning failures into reports</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-15 00:05:37
-          Link: https://metacpan.org/release/PERLANCAR/Dist-Zilla-Plugin-Acme-CPANModules-Blacklist-0.002
-          Title: Dist-Zilla-Plugin-Acme-CPANModules-Blacklist-0.002
+          Date: 2023-09-30 23:21:22
+          Link: https://metacpan.org/release/OODLER/Dispatch-Fu-0.99
+          Title: Dispatch-Fu-0.99
             <Description<
             [#[
-               <p>Blacklist prereqs using an Acme::CPANModules module</p><p>Changes for 0.002 - 2023-07-09</p><ul><li>No functional changes.</li>
-               <li>Remove the usage of smartmatch.</li>
+               <p>Converts any complicated conditional dispatch situation into familiar static hash-key based dispatch</p><p>Changes for 0.99</p><ul><li>fixed xdefault to allow for the first parameter to to be C&lt;undef&gt;</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 21:56:09
-          Link: https://metacpan.org/release/TIMLEGGE/Crypt-OpenSSL-AES-0.07
-          Title: Crypt-OpenSSL-AES-0.07
+          Date: 2023-09-30 22:28:24
+          Link: https://metacpan.org/release/ZHUMARIN/Win-SerialPort-0.23
+          Title: Win-SerialPort-0.23
             <Description<
             [#[
-               <p>A Perl wrapper around OpenSSL's AES library</p><p>Changes for 0.07</p><ul><li>Significant updates since 0.02</li>
-               <li>Detailed Changes</li>
+               User interface to Win32 Serial API calls (fork for 64bit)
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-30 22:04:09
+          Link: https://metacpan.org/release/RKAPL/EAI-Wrap-1.0
+          Title: EAI-Wrap-1.0
+            <Description<
+            [#[
+               <p>framework for easy creation of Enterprise Application Integration tasks</p><p>Changes for 1.0</p><ul><li>improved API Doc, enabled overriding of redoDir, logRootPath, historyFolder and historyFolderUpload using commandline parameters, e.g. --config redoDir=/your/redo/folder, prevent error mail (logger) and uncaught exception in sendGeneralMail when no smtp configured; use custom locales in DateUtil in all textual month functions now; allow anonymous subs in all configuration places, where strings were used (executeOnInit, postDumpProcessing, postReadProcessing, lineCode and fieldCode).</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 21:45:52
-          Link: https://metacpan.org/release/TORBIAK/App-Git-Autofixup-0.004
-          Title: App-Git-Autofixup-0.004
+          Date: 2023-09-30 21:45:04
+          Link: https://metacpan.org/release/PRBRENAN/GitHub-Crud-20230930
+          Title: GitHub-Crud-20230930
             <Description<
             [#[
-               create fixup commits for topic branches
+               Create, Read, Update, Delete files, commits, issues, and web hooks on GitHub.
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 20:00:02
-          Link: https://metacpan.org/release/OKURZ/Mojo-IOLoop-ReadWriteProcess-0.34
-          Title: Mojo-IOLoop-ReadWriteProcess-0.34
+          Date: 2023-09-30 21:24:45
+          Link: https://metacpan.org/release/PRBRENAN/Math-Vectors2-20230930
+          Title: Math-Vectors2-20230930
             <Description<
             [#[
-               <p>Execute external programs or internal code blocks as separate process.</p><p>Changes for 0.34 - 2023-09-14T19:55:18Z</p><ul><li>Adapt to deprecation of spurt in upstream Mojolicious</li>
-               <li>Make git work in github workflow</li>
-               <li>Turn warnings &quot;Sleeping inside locked section&quot; into notes</li>
-               <li>Avoid warnings about using undefined value as file handle</li>
+               Vectors in two dimensions.
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-30 19:57:54
+          Link: https://metacpan.org/release/ZHUMARIN/Win-SerialPort-0.22
+          Title: Win-SerialPort-0.22
+            <Description<
+            [#[
+               User interface to Win32 Serial API calls
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-30 19:55:09
+          Link: https://metacpan.org/release/IVANWILLS/App-Git-Workflow-Command-Take-0.8
+          Title: App-Git-Workflow-Command-Take-0.8
+            <Description<
+            [#[
+               <p>Resolve merge conflicts by only taking one side of each conflicted section</p><p>Changes for 0.8 - 2023-09-30</p><ul><li>Updating for release of version 0.8 Updating travis (Ivan Wills) Updated (Ivan Wills) Fixing conflict resolution when &quot;both added&quot; (Ivan Wills)</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 17:55:34
-          Link: https://metacpan.org/release/HANJE/Tk-YANoteBook-0.04
-          Title: Tk-YANoteBook-0.04
+          Date: 2023-09-30 16:49:23
+          Link: https://metacpan.org/release/LICHTKIND/App-GUI-Harmonograph-0.61
+          Title: App-GUI-Harmonograph-0.61
             <Description<
             [#[
-               <p>Yet another NoteBook widget</p><p>Changes for 0.04</p><ul><li>tidied up documentation. gave the NameTab widget it's own pm file added -autoupdate option added -onlyselect option addid -rigid option added -unselecttabcall option fixed some minor bugs</li>
+               <p>sculpting beautiful circular drawings</p><p>Changes for 0.61 - 2023-09-30</p><ul><li>= bug fix</li>
+               <li>adopt code to new GTC API</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 16:43:48
-          Link: https://metacpan.org/release/MTYRRELL/Config-Structured-2.004
-          Title: Config-Structured-2.004
+          Date: 2023-09-30 16:47:57
+          Link: https://metacpan.org/release/LICHTKIND/App-GUI-Cellgraph-0.26
+          Title: App-GUI-Cellgraph-0.26
             <Description<
             [#[
-               <p>Provides generalized and structured configuration value access</p><p>Changes for 2.004</p><ul><li>Switched to Perl6::Junction to avoid smartmatch warnings from Syntax::Keyword::Junction</li>
+               <p>draw pattern by cellular automata</p><p>Changes for 0.26 - 2023-09-30</p><ul><li>= bug fix</li>
+               <li>adopt code to new GTC API</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 12:22:38
-          Link: https://metacpan.org/release/ABRAXXA/Net-Silverpeak-Orchestrator-0.008000
-          Title: Net-Silverpeak-Orchestrator-0.008000
+          Date: 2023-09-30 11:55:29
+          Link: https://metacpan.org/release/PERLANCAR/List-Util-mapsplice-0.001
+          Title: List-Util-mapsplice-0.001
             <Description<
             [#[
-               <p>Silverpeak Orchestrator REST API client library</p><p>Changes for 0.008000 - 2023-09-14T14:21:59+02:00</p><ul><li>enable TLS verification by default by requiring HTTP::Tiny 0.088</li>
+               <p>Splice array with code, replace items with result from code</p><p>Changes for 0.001 - 2023-09-30</p><ul><li>First version, no tests yet.</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 08:33:57
-          Link: https://metacpan.org/release/SHLOMIF/XML-GrammarBase-0.2.10
-          Title: XML-GrammarBase-0.2.10
+          Date: 2023-09-30 11:55:23
+          Link: https://metacpan.org/release/PERLANCAR/List-Util-groupby-0.002
+          Title: List-Util-groupby-0.002
             <Description<
             [#[
-               <p>Provide roles and base classes for processors of specialized XML grammars.</p><p>Changes for 0.2.10 - 2023-09-14</p><ul><li>Better compatibility with bleadperl</li>
+               <p>Group items of a list into several (possibly multilevel) buckets</p><p>Changes for 0.002 - 2023-09-30</p><ul><li>No functional changes.</li>
+               <li>[doc] Fix See Also section.</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 08:01:08
-          Link: https://metacpan.org/release/SYP/Net-Curl-0.54_2
-          Title: Net-Curl-0.54_2
+          Date: 2023-09-30 11:53:57
+          Link: https://metacpan.org/release/PERLANCAR/List-Util-groupby-0.003
+          Title: List-Util-groupby-0.003
             <Description<
             [#[
-               Perl interface for libcurl
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-14 03:02:53
-          Link: https://metacpan.org/release/ANATOFUZ/Teng-0.34
-          Title: Teng-0.34
-            <Description<
-            [#[
-               <p>very simple DBI wrapper/ORMapper</p><p>Changes for 0.34 - 2023-09-14T03:02:36Z</p><ul><li>[IMPORTANT]  change the minimum supported perl version to 5.16 (#165)</li>
-               <li>FIX: Don't update when set column from null to null (#164 thanks hitode909)</li>
+               <p>Group items of a list into several (possibly multilevel) buckets</p><p>Changes for 0.003 - 2023-09-30</p><ul><li>No functional changes.</li>
+               <li>Fix documentation, add example in Synopsis.</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 02:18:56
-          Link: https://metacpan.org/release/KIMOTO/SPVM-0.989042
-          Title: SPVM-0.989042
+          Date: 2023-09-30 11:53:46
+          Link: https://metacpan.org/release/PERLANCAR/List-Util-groupby-0.001
+          Title: List-Util-groupby-0.001
             <Description<
             [#[
-               <p>SPVM Language</p><p>Changes for 0.989042 - 2023-09-12</p><ul><li>Incompatible Changes</li>
+               <p>Group items of a list into several (possibly multilevel) buckets</p><p>Changes for 0.001 - 2023-09-30</p><ul><li>First version, no tests yet.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-30 01:21:20
+          Link: https://metacpan.org/release/KIMOTO/SPVM-0.989047
+          Title: SPVM-0.989047
+            <Description<
+            [#[
+               <p>SPVM Language</p><p>Changes for 0.989047 - 2023-09-30</p><ul><li>New Features</li>
+               <li>Bug Fix</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-30 00:53:30
+          Link: https://metacpan.org/release/CHRISARG/Task-FASTQTools-0.01
+          Title: Task-FASTQTools-0.01
+            <Description<
+            [#[
+               <p>Provide native perl tools for manipulating FASTQ files</p><p>Changes for 0.01 - 2023-09-29T18:52:08-06:00</p><ul></ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-30 00:05:19
+          Link: https://metacpan.org/release/PERLANCAR/BorderStyle-3.0.3
+          Title: BorderStyle-3.0.3
+            <Description<
+            [#[
+               <p>Border styles</p><p>Changes for 3.0.3 - 2023-07-14</p><ul><li>No spec changes.</li>
+               <li>[doc] Mention somewhat related specification: ColorTheme.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-29 23:47:32
+          Link: https://metacpan.org/release/BOD/WWW-Crawl-0.1
+          Title: WWW-Crawl-0.1
+            <Description<
+            [#[
+               <p>A simple web crawler for extracting links and more from web pages</p><p>Changes for 0.1</p><ul><li>First version, released on an unsuspecting world.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-29 23:10:11
+          Link: https://metacpan.org/release/WYANT/Astro-satpass-0.129_01
+          Title: Astro-satpass-0.129_01
+            <Description<
+            [#[
+               <p>Classes and app to compute satellite visibility</p><p>Changes for 0.129_01 - 2023-09-29</p><ul><li>Update magnitude table to track Kelso visual.txt.</li>
+               <li>Track Mike McCants' web site move.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-29 23:10:00
+          Link: https://metacpan.org/release/TURNERJW/TkWeather_3.40
+          Title: TkWeather_3.40
+         >Item>
+         <Item<
+          Date: 2023-09-29 23:09:49
+          Link: https://metacpan.org/release/PERLANCAR/App-ListSoftwareLicenses-0.080
+          Title: App-ListSoftwareLicenses-0.080
+            <Description<
+            [#[
+               <p>List all Software::License's</p><p>Changes for 0.080 - 2023-07-11</p><ul><li>No functional changes.</li>
+               <li>Remove usage of smartmatch to avoid warning under perl 5.38.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-29 23:09:38
+          Link: https://metacpan.org/release/KIMOTO/SPVM-0.989046
+          Title: SPVM-0.989046
+            <Description<
+            [#[
+               <p>SPVM Language</p><p>Changes for 0.989046 - 2023-09-28</p><ul><li>Internal Changes</li>
+               <li>Incompatible Changes</li>
                <li>New Features</li>
-               <li>Document Improvement</li>
+               <li>Deprecations</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-14 00:05:27
-          Link: https://metacpan.org/release/PERLANCAR/Perinci-To-Doc-0.881
-          Title: Perinci-To-Doc-0.881
+          Date: 2023-09-29 23:09:27
+          Link: https://metacpan.org/release/JDEGUEST/Nice-Try-v1.3.5
+          Title: Nice-Try-v1.3.5
             <Description<
             [#[
-               <p>Convert Rinci metadata to documentation</p><p>Changes for 0.881 - 2023-07-09</p><ul><li>No functional changes.</li>
-               <li>Remove usage of smartmatch.</li>
+               <p>A real Try Catch Block Implementation Using Perl Filter</p><p>Changes for v1.3.5 - 2023-09-29T12:28:19Z</p><ul><li>Improved code by giving up early if no 'try' block is detected in the code.</li>
+               <li>Fixed bug #6 arising when token __SUB__ is used within a try-catch block (Credits to Clay Fouts for finding this)</li>
+               <li>Nice::Try now supports subroutine prototype and signature</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 23:57:14
-          Link: https://metacpan.org/release/MARIOROY/MCE-Shared-1.886
-          Title: MCE-Shared-1.886
+          Date: 2023-09-29 23:09:15
+          Link: https://metacpan.org/release/DKECHAG/Benchmark-DKbench-2.4
+          Title: Benchmark-DKbench-2.4
             <Description<
             [#[
-               <p>MCE extension for sharing data supporting threads and processes</p><p>Changes for 1.886</p><ul><li>Add Android support. This required moving MCE::Shared::Base::Common out of MCE::Shared::Base to separate file MCE::Shared::Common.</li>
-               <li>Bump MCE dependency to 1.889.</li>
+               <p>Perl CPU Benchmark</p><p>Changes for 2.4 - 2023-09-29</p><ul><li>Added --scale and --stdev options.</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 23:37:02
-          Link: https://metacpan.org/release/MARIOROY/MCE-1.889
-          Title: MCE-1.889
+          Date: 2023-09-29 23:09:04
+          Link: https://metacpan.org/release/DJERIUS/Iterator-Flex-0.16
+          Title: Iterator-Flex-0.16
             <Description<
             [#[
-               <p>Many-Core Engine for Perl providing parallel processing capabilities</p><p>Changes for 1.889</p><ul><li>Add Android support. Thank you, Dimitrios Kechagias.</li>
-               <li>Revert defer signal-handling in MCE::Channel (send2 method).</li>
-               <li>Improve mutex synchronize (aka enter) with guard capability. Thank you, José Joaquín Atria.</li>
-               <li>Fix mutex re-entrant lock on the Windows platform.</li>
-               <li>Add mutex guard_lock method.</li>
+               <p>Iterators with flexible behaviors</p><p>Changes for 0.16 - 2023-09-28T19:17:13-04:00</p><ul><li>ENHANCEMENT</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 23:35:35
-          Link: https://metacpan.org/release/MARIOROY/Mutex-1.011
-          Title: Mutex-1.011
+          Date: 2023-09-28 18:51:17
+          Link: https://metacpan.org/release/KARJALA/RxPerl-v6.28.0
+          Title: RxPerl-v6.28.0
             <Description<
             [#[
-               <p>Various locking implementations supporting processes and threads</p><p>Changes for 1.011</p><ul><li>Bump version.</li>
+               <p>an implementation of Reactive Extensions / rxjs for Perl</p><p>Changes for v6.28.0 - 2023-09-28T18:45:00Z</p><ul><li>removed op_group_by operator, because it was too buggy. (If anyone has a good grasp of how it works/what it should do, feel free to contact me)</li>
+               <li>removed EXPERIMENTAL status of the two promise functions, since rxjs v7 has been released</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 22:40:32
-          Link: https://metacpan.org/release/EXODIST/Test2-Suite-0.000156
-          Title: Test2-Suite-0.000156
+          Date: 2023-09-28 18:47:12
+          Link: https://metacpan.org/release/RKAPL/EAI-Wrap-0.10
+          Title: EAI-Wrap-0.10
             <Description<
             [#[
-               <p>Distribution with a rich set of tools built upon the Test2 framework.</p><p>Changes for 0.000156 - 2023-09-13T15:11:52-07:00</p><ul><li>Fix typo in POD for Test2::Util::Importer</li>
+               <p>framework for easy creation of Enterprise Application Integration tasks</p><p>Changes for 0.10</p><ul><li>improved API Doc, enabled overriding of redoDir, logRootPath, historyFolder and historyFolderUpload using commandline parameters, e.g. --config redoDir=/your/redo/folder, prevent error mail (logger) and uncaught exception in sendGeneralMail when no smtp configured; use custom locales in DateUtil in all textual month functions now.</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 21:57:38
-          Link: https://metacpan.org/release/PEVANS/Device-AVR-UPDI-0.14
-          Title: Device-AVR-UPDI-0.14
+          Date: 2023-09-28 18:14:20
+          Link: https://metacpan.org/release/OODLER/Dispatch-Fu-0.98
+          Title: Dispatch-Fu-0.98
             <Description<
             [#[
-               <p>interact with an AVR microcontroller over UPDI</p><p>Changes for 0.14 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>Converts any complicated conditional dispatch situation into familiar static hash-key based dispatch</p><p>Changes for 0.98</p><ul><li>added xdefault handling the situation where the case name is the same as the string value, which is the simlest case possible and what people use straight HASH ref dispatching for; see the tests and POD examples</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 21:30:55
-          Link: https://metacpan.org/release/AJNN/Mac-Finder-Tags-0.02
-          Title: Mac-Finder-Tags-0.02
+          Date: 2023-09-28 16:07:20
+          Link: https://metacpan.org/release/DART/Aion-0.1
+          Title: Aion-0.1
             <Description<
             [#[
-               <p>Access macOS file tags (aka Finder labels)</p><p>Changes for 0.02 - 2023-09-13</p><ul><li>Avoid syntax that causes warnings in Object::Pad 0.801.</li>
-               <li>Tests no longer fail for unexpected warnings, except during author testing.</li>
-               <li>Drop Devel::CheckOS prerequisite (by bundling it).</li>
+               <p>a postmodern object system for Perl 5, as Moose and Moo, but with improvements</p><p>Changes for 0.1 - 2023-09-28T16:04:10Z</p><ul><li>original version</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 21:00:16
-          Link: https://metacpan.org/release/MICHIELB/GD-Barcode-2.00
-          Title: GD-Barcode-2.00
+          Date: 2023-09-28 15:54:26
+          Link: https://metacpan.org/release/LEONT/Module-Build-Tiny-0.047
+          Title: Module-Build-Tiny-0.047
             <Description<
             [#[
-               <p>Create barcode image with GD</p><p>Changes for 2.00 - 2023-09-13</p><ul><li>'Production' release, no changes to 1.99_03</li>
+               <p>A tiny replacement for Module::Build</p><p>Changes for 0.047 - 2023-09-28T17:53:41+02:00</p><ul><li>Avoid using empty regex for backwards compatability</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 20:58:49
-          Link: https://metacpan.org/release/BENNIE/VMware-vCloud-2.403
-          Title: VMware-vCloud-2.403
+          Date: 2023-09-28 15:52:14
+          Link: https://metacpan.org/release/LEONT/Magic-Check-0.003
+          Title: Magic-Check-0.003
             <Description<
             [#[
-               <p>VMware vCloud API</p><p>Changes for 2.403 - 2023-09-13</p><ul><li>Added: POD test</li>
-               <li>Improved: 'use warnings' on all modules</li>
+               <p>Add type/value checks to variables</p><p>Changes for 0.003 - 2023-09-28T17:51:58+02:00</p><ul><li>Validate when applying magic</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 20:44:39
-          Link: https://metacpan.org/release/RKAPL/EAI-Wrap-0.3
-          Title: EAI-Wrap-0.3
+          Date: 2023-09-28 15:50:48
+          Link: https://metacpan.org/release/EXODIST/Test2-Harness-UI-0.000142
+          Title: Test2-Harness-UI-0.000142
+            <Description<
+            [#[
+               <p>Web interface for viewing and inspecting yath test logs</p><p>Changes for 0.000142 - 2023-09-28T08:49:37-07:00</p><ul><li>Work harder at uploading results</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 15:36:40
+          Link: https://metacpan.org/release/SCHROEDER/Game-FaceGenerator-1.03
+          Title: Game-FaceGenerator-1.03
+            <Description<
+            [#[
+               <p>a web app to combine random images into faces</p><p>Changes for 1.03</p><ul><li>various new face types added (goblins, bugbears, dogs)</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 13:08:26
+          Link: https://metacpan.org/release/PROCH/FASTX-Reader-1.12.1-TRIAL
+          Title: FASTX-Reader-1.12.1-TRIAL
+            <Description<
+            [#[
+               <p>A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.</p><p>Changes for 1.12.1 - 2023-09-28</p><ul><li>Add citation</li>
+               <li>Suppress warnings in test</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 11:24:05
+          Link: https://metacpan.org/release/BLIAKO/Config-JSON-Enhanced-0.08
+          Title: Config-JSON-Enhanced-0.08
+            <Description<
+            [#[
+               <p>JSON-based config with C/Shell-style comments, verbatim sections and variable substitutions</p><p>Changes for 0.08</p><ul><li>-Changed the regex for identifying comments, variables, verbatime sections to no need escaping special regex characters. -Added one more test for testing tags of comments, variables, etc.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 11:13:50
+          Link: https://metacpan.org/release/PROCH/NBI-Slurm-0.7.0-TRIAL
+          Title: NBI-Slurm-0.7.0-TRIAL
+            <Description<
+            [#[
+               <p>NBI Slurm module</p><p>Changes for 0.7.0 - 2023-10-01</p><ul><li>`make_image_from_bioconda` now supports multiple packages [experimental]</li>
+               <li>`make_package` will now read the binaries from images, if made with make_image_from_bioconda</li>
+               <li>Improved `shelf`</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 10:04:20
+          Link: https://metacpan.org/release/JIRO/UID2-Client-0.02
+          Title: UID2-Client-0.02
+            <Description<
+            [#[
+               <p>Unified ID 2.0 Perl Client</p><p>Changes for 0.02 - 2023-09-28T10:03:10Z</p><ul><li>Support Token v4</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 09:56:21
+          Link: https://metacpan.org/release/JIRO/UID2-Client-XS-0.02
+          Title: UID2-Client-XS-0.02
+            <Description<
+            [#[
+               <p>Unified ID 2.0 Client for Perl (binding to the UID2 C++ library)</p><p>Changes for 0.02 - 2023-09-28T09:53:39Z</p><ul><li>Support Token v4</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 09:04:41
+          Link: https://metacpan.org/release/KUERBIS/Term-Choose-Util-0.139
+          Title: Term-Choose-Util-0.139
+            <Description<
+            [#[
+               <p>TUI-related functions for selecting directories, files, numbers and subsets of lists.</p><p>Changes for 0.139 - 2023-09-28</p><ul><li>Adapted the code to the documentation.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 08:00:28
+          Link: https://metacpan.org/release/KUERBIS/Term-Choose-Util-0.138
+          Title: Term-Choose-Util-0.138
+            <Description<
+            [#[
+               <p>TUI-related functions for selecting directories, files, numbers and subsets of lists.</p><p>Changes for 0.138 - 2023-09-28</p><ul><li>settings_menu: set out of bonds indexes to 0.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 07:40:06
+          Link: https://metacpan.org/release/KUERBIS/App-DBBrowser-2.342
+          Title: App-DBBrowser-2.342
+            <Description<
+            [#[
+               <p>Browse SQLite/MySQL/PostgreSQL databases and their tables interactively.</p><p>Changes for 2.342 - 2023-09-28</p><ul><li>Bugfix: don't remove outer parentheses in Subqueries.pm.</li>
+               <li>Bugfix: wrong format of auto generated aliases in Union.pm.</li>
+               <li>Bugfix in table alias: undefined variable.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 00:05:44
+          Link: https://metacpan.org/release/PERLANCAR/Dist-Zilla-Plugin-GenPericmdScript-0.425
+          Title: Dist-Zilla-Plugin-GenPericmdScript-0.425
+            <Description<
+            [#[
+               <p>Generate Perinci::CmdLine script</p><p>Changes for 0.425 - 2023-07-11</p><ul><li>No functional changes.</li>
+               <li>Remove usage of smartmatch to avoid warning under perl 5.38.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-28 00:00:29
+          Link: https://metacpan.org/release/CUKEBOT/Cucumber-Test-Release-Automation-v0.0.69
+          Title: Cucumber-Test-Release-Automation-v0.0.69
+            <Description<
+            [#[
+               Dummy project for testing release automation
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 22:41:11
+          Link: https://metacpan.org/release/CUKEBOT/Cucumber-Test-Release-Automation-v0.0.68
+          Title: Cucumber-Test-Release-Automation-v0.0.68
+            <Description<
+            [#[
+               Dummy project for testing release automation
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 22:41:00
+          Link: https://metacpan.org/release/CUKEBOT/Cucumber-Test-Release-Automation-v0.0.67
+          Title: Cucumber-Test-Release-Automation-v0.0.67
+            <Description<
+            [#[
+               Dummy project for testing release automation
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 22:40:49
+          Link: https://metacpan.org/release/CUKEBOT/Cucumber-Test-Release-Automation-v0.0.66
+          Title: Cucumber-Test-Release-Automation-v0.0.66
+            <Description<
+            [#[
+               Dummy project for testing release automation
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 21:24:01
+          Link: https://metacpan.org/release/DART/Liveman-1.0
+          Title: Liveman-1.0
+            <Description<
+            [#[
+               <p>markdown compiller to test and pod.</p><p>Changes for 1.0 - 2023-09-27T21:23:35Z</p><ul><li>change version in pod</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 21:03:40
+          Link: https://metacpan.org/release/DART/Liveman-0.9
+          Title: Liveman-0.9
+            <Description<
+            [#[
+               <p>markdown compiller to test and pod.</p><p>Changes for 0.9 - 2023-09-27T21:02:18Z</p><ul><li>remove debug info</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 20:59:38
+          Link: https://metacpan.org/release/DART/Liveman-0.8
+          Title: Liveman-0.8
+            <Description<
+            [#[
+               <p>markdown compiller to test and pod.</p><p>Changes for 0.8 - 2023-09-27T20:58:40Z</p><ul><li>change version on release</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 20:30:33
+          Link: https://metacpan.org/release/WWILLIS/Acme-MyFirstModule-WWILLIS-0.03
+          Title: Acme-MyFirstModule-WWILLIS-0.03
+            <Description<
+            [#[
+               <p>The great new Acme::MyFirstModule::WWILLIS!</p><p>Changes for 0.03</p><ul><li>Third version. The dates have been bumped. Going through the cpan/pause process every decade, so I don't forget how its done.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 20:08:47
+          Link: https://metacpan.org/release/PJACKLAM/Math-BigInt-1.999842
+          Title: Math-BigInt-1.999842
+            <Description<
+            [#[
+               <p>Pure Perl module to test Math::BigInt with scalars</p><p>Changes for 1.999842 - 2023-09-27</p><ul><li>Fix a bug causing Math::BigInt and Math::BigFloat to be caught in an endless recursion. The bug was introduced when trying to fix https://github.com/pjacklam/p5-Math-BigInt/issues/8</li>
+               <li>Allow div_scale to be 0. It is not documented what div_scale &lt;= 0 means, but there are modules that set div_scale to 0 (e.g., Astro::Units) and fail their tests if this is not supported.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 16:51:39
+          Link: https://metacpan.org/release/DART/config-1.3
+          Title: config-1.3
+            <Description<
+            [#[
+               <p>Perl module constant configurator</p><p>Changes for 1.3 - 2023-09-27T16:48:37Z</p><ul><li>change license to perl_5</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 16:47:39
+          Link: https://metacpan.org/release/DART/config-1.2
+          Title: config-1.2
+            <Description<
+            [#[
+               <p>Perl module constant configurator</p><p>Changes for 1.2 - 2023-09-27T16:44:15Z</p><ul><li>use config for more version of perl!</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 16:38:34
+          Link: https://metacpan.org/release/DDUMONT/Software-Copyright-0.012
+          Title: Software-Copyright-0.012
+            <Description<
+            [#[
+               <p>Copyright class</p><p>Changes for 0.012 - 2023-09-27</p><ul><li>refine copyright cleanup</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 16:32:04
+          Link: https://metacpan.org/release/DART/config-1.1
+          Title: config-1.1
+            <Description<
+            [#[
+               <p>Perl module constant configurator</p><p>Changes for 1.1 - 2023-09-27T16:28:23Z</p><ul><li>Set minimal version of perl</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 16:16:46
+          Link: https://metacpan.org/release/CDN/Crypt-xxHash-0.07
+          Title: Crypt-xxHash-0.07
+            <Description<
+            [#[
+               <p>xxHash implementation for Perl</p><p>Changes for 0.07</p><ul><li>do not use SSE instructions for ARM architecture</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 14:52:27
+          Link: https://metacpan.org/release/DART/Liveman-0.07
+          Title: Liveman-0.07
+            <Description<
+            [#[
+               <p>markdown compiller to test and pod.</p><p>Changes for 0.07 - 2023-09-27T14:49:32Z</p><ul><li>set minimal version of perl!</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 14:31:38
+          Link: https://metacpan.org/release/OALDERS/HTTP-Message-6.45
+          Title: HTTP-Message-6.45
+            <Description<
+            [#[
+               <p>HTTP style message (base class)</p><p>Changes for 6.45 - 2023-09-27T14:27:31Z</p><ul><li>Allow for file ownership conflicts with Docker and GitHub Actions (GH#193) (Olaf Alders)</li>
+               <li>Add the 'status_code' function for getting all status codes as hash (GH#194) (Dai Okabayashi)</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 13:27:43
+          Link: https://metacpan.org/release/OLIVER/App-Netdisco-2.067002
+          Title: App-Netdisco-2.067002
+            <Description<
+            [#[
+               <p>An open source web-based network management tool.</p><p>Changes for 2.067002 - 2023-09-27</p><ul><li>BUG FIXES</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 13:20:00
+          Link: https://metacpan.org/release/OLIVER/App-Netdisco-2.067001
+          Title: App-Netdisco-2.067001
+            <Description<
+            [#[
+               <p>An open source web-based network management tool.</p><p>Changes for 2.067001 - 2023-09-27</p><ul><li>BUG FIXES</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 12:00:42
+          Link: https://metacpan.org/release/DART/Liveman-0.06
+          Title: Liveman-0.06
+            <Description<
+            [#[
+               <p>markdown compiller to test and pod.</p><p>Changes for 0.06 - 2023-09-27T11:57:06Z</p><ul><li>first release</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 08:07:04
+          Link: https://metacpan.org/release/LNATION/Rope-0.03
+          Title: Rope-0.03
+            <Description<
+            [#[
+               The great new Rope!
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 07:05:15
+          Link: https://metacpan.org/release/NERDVANA/DBIx-Class-ResultDDL-2.04
+          Title: DBIx-Class-ResultDDL-2.04
+            <Description<
+            [#[
+               <p>Result class declaration syntactic-sugar that looks like DDL</p><p>Changes for 2.04 - 2023-09-27</p><ul><li>Enhancements to SchemaLoaderMixin:</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 05:15:54
+          Link: https://metacpan.org/release/MBV/MailboxValidator-SingleValidation-2.00
+          Title: MailboxValidator-SingleValidation-2.00
+            <Description<
+            [#[
+               <p>Email verification module for Perl using MailboxValidator API. It validates if the email is valid, from a free provider, contains high-risk keywords, whether it's a catch-all address and so much more.</p><p>Changes for 2.00</p><ul><li>Updated to call MailboxValidator v2 APIs</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 04:04:08
+          Link: https://metacpan.org/release/HIROSE/String-IRC-0.05
+          Title: String-IRC-0.05
+            <Description<
+            [#[
+               <p>add color codes for mIRC compatible client</p><p>Changes for 0.05 - 2023-09-27T04:03:19+00:00</p><ul><li>BUG FIXES</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 01:14:27
+          Link: https://metacpan.org/release/DUNCAND/Set-Relation-0.13.4
+          Title: Set-Relation-0.13.4
+            <Description<
+            [#[
+               A relation data type
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-27 00:05:11
+          Link: https://metacpan.org/release/PERLANCAR/App-GenPericmdCompleterScript-0.126
+          Title: App-GenPericmdCompleterScript-0.126
+            <Description<
+            [#[
+               <p>Generate Perinci::CmdLine completer script</p><p>Changes for 0.126 - 2023-07-11</p><ul><li>No functional changes.</li>
+               <li>Remove usage of smartmatch to avoid warning under perl 5.38.</li>
+               </ul>
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-26 21:54:19
+          Link: https://metacpan.org/release/RKAPL/EAI-Wrap-0.9
+          Title: EAI-Wrap-0.9
             <Description<
             [#[
                framework for easy creation of Enterprise Application Integration tasks
@@ -451,745 +863,262 @@
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 20:27:57
-          Link: https://metacpan.org/release/MIYAGAWA/Starman-0.4017
-          Title: Starman-0.4017
+          Date: 2023-09-26 21:50:17
+          Link: https://metacpan.org/release/BLIAKO/Config-JSON-Enhanced-0.07
+          Title: Config-JSON-Enhanced-0.07
             <Description<
             [#[
-               <p>High-performance preforking PSGI/Plack web server</p><p>Changes for 0.4017 - 2023-09-13T13:27:02Z</p><ul><li>Handle EINTR when doing sysread calls (Rob Mueller) #148</li>
-               <li>Requires perl 5.14</li>
+               JSON-based config with C/Shell-style comments, verbatim sections and variable substitutions
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-26 20:44:49
+          Link: https://metacpan.org/release/BIGPRESH/Catalyst-Plugin-CheckFileUploadTypes-0.02
+          Title: Catalyst-Plugin-CheckFileUploadTypes-0.02
+            <Description<
+            [#[
+               <p>Check uploaded files are expected and of the correct type</p><p>Changes for 0.02 - 2023-09-26</p><ul><li>Rewind filehandles after determining type</li>
+               <li>Intelligent handling for Catalyst::Action::REST actions</li>
+               <li>Better handling for multiple types</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 17:41:55
-          Link: https://metacpan.org/release/EXODIST/Term-Table-0.017
-          Title: Term-Table-0.017
+          Date: 2023-09-26 20:37:46
+          Link: https://metacpan.org/release/DJERIUS/Data-Record-Serialize-1.05
+          Title: Data-Record-Serialize-1.05
             <Description<
             [#[
-               <p>Format a header and rows into a table</p><p>Changes for 0.017 - 2023-09-13T10:41:08-07:00</p><ul><li>Remove 'Importer' dependency</li>
+               <p>Flexible serialization of a record</p><p>Changes for 1.05 - 2023-09-26T16:36:38-04:00</p><ul><li>PACKAGING</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 16:02:42
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-TSL256x-0.09
-          Title: Device-Chip-TSL256x-0.09
+          Date: 2023-09-26 17:46:55
+          Link: https://metacpan.org/release/BPS/RT-Extension-PreviewInSearch-0.05
+          Title: RT-Extension-PreviewInSearch-0.05
             <Description<
             [#[
-               <p>chip driver for TSL256x</p><p>Changes for 0.09 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>preview tickets right from search results page</p><p>Changes for 0.05 - 2023-09-26</p><ul><li>Update for RT 5.0</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 16:01:19
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-TCS3472x-0.05
-          Title: Device-Chip-TCS3472x-0.05
+          Date: 2023-09-26 17:27:49
+          Link: https://metacpan.org/release/PEVANS/String-Tagged-0.21
+          Title: String-Tagged-0.21
             <Description<
             [#[
-               <p>chip driver for TCS3472x-family</p><p>Changes for 0.05 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>string buffers with value tags on extents</p><p>Changes for 0.21 - 2023-09-26</p><ul><li>CHANGES</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 16:01:04
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-SSD1306-0.14
-          Title: Device-Chip-SSD1306-0.14
+          Date: 2023-09-26 15:09:33
+          Link: https://metacpan.org/release/BPS/RT-Extension-RepeatTicket-2.02
+          Title: RT-Extension-RepeatTicket-2.02
             <Description<
             [#[
-               <p>chip driver for monochrome OLED modules</p><p>Changes for 0.14 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>Repeat tickets based on schedule</p><p>Changes for 2.02 - 2023-09-26</p><ul><li>Fix display issue with selectpicker controls</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:59:38
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-Si5351-0.02
-          Title: Device-Chip-Si5351-0.02
+          Date: 2023-09-26 15:00:53
+          Link: https://metacpan.org/release/JDEGUEST/Net-API-CPAN-v0.1.1
+          Title: Net-API-CPAN-v0.1.1
             <Description<
             [#[
-               <p>chip driver for Si5351</p><p>Changes for 0.02 - 2023-09-13</p><ul><li>CHANGES</li>
-               <li>BUGFIXES</li>
+               <p>Meta CPAN API</p><p>Changes for v0.1.1 - 2023-09-26T16:24:10Z</p><ul><li>Improved documentation and added missing documentation in cpanapi</li>
+               <li>Implemented paging for cpanapi --favorite --recent</li>
+               <li>Corrected function favorite() in cpanapi</li>
+               <li>Improved method next() in Net::API::CPAN::List when no query has been set on the URI yet</li>
+               <li>Correcting a bug in function changes in cpanapi</li>
+               <li>Updated the method package() in Net::API::CPAN to account for the property 'version' in JSON sometimes having a value of 'undef'</li>
+               <li>Corrected build/fields2api_def.pl to change the method bugs in Net::API::CPAN::Distribution</li>
+               <li>Updated the function _show_file() in cpanapi</li>
+               <li>Updated method release() in Net::API::CPAN for the endpoint /release/all_by_author with the issue of wrong arguments order now resolved</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:58:10
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-SDCard-0.04
-          Title: Device-Chip-SDCard-0.04
+          Date: 2023-09-26 11:18:56
+          Link: https://metacpan.org/release/BODOLFO/Process-SubProcess-2.1.8
+          Title: Process-SubProcess-2.1.8
             <Description<
             [#[
-               <p>chip driver for SD and MMC cards</p><p>Changes for 0.04 - 2023-09-13</p><ul><li>CHANGES</li>
+               Library to manage Sub Processes as objects
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-26 11:17:29
+          Link: https://metacpan.org/release/JAVONET/JavonetPerlSdk-v2.1.9
+          Title: JavonetPerlSdk-v2.1.9
+            <Description<
+            [#[
+               Javonet SDK for Perl
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-26 10:50:15
+          Link: https://metacpan.org/release/PLAIN/Redis-Cluster-Fast-0.089
+          Title: Redis-Cluster-Fast-0.089
+            <Description<
+            [#[
+               <p>A fast perl binding for Redis Cluster</p><p>Changes for 0.089 - 2023-09-26T10:49:21Z</p><ul><li>Fix tests.</li>
+               <li>Use system libevent.</li>
+               <li>Fix startup_nodes validation.</li>
+               <li>Some chores.</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:56:44
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-PCF8574-0.06
-          Title: Device-Chip-PCF8574-0.06
+          Date: 2023-09-26 10:33:41
+          Link: https://metacpan.org/release/BURAK/App-Oozie-0.007
+          Title: App-Oozie-0.007
             <Description<
             [#[
-               <p>chip driver for a PCF8574 or PCA8574</p><p>Changes for 0.06 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>Tooling/wrappers for Oozie job deployment and scheduling</p><p>Changes for 0.007 - 2023-09-26T12:32:17+02:00</p><ul><li>Fork ttree as a module (not enabled yet).</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:56:33
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-PCF8563-0.04
-          Title: Device-Chip-PCF8563-0.04
+          Date: 2023-09-26 10:25:49
+          Link: https://metacpan.org/release/PROCH/FASTX-Reader-1.12.0
+          Title: FASTX-Reader-1.12.0
             <Description<
             [#[
-               <p>chip driver for a PCF8563</p><p>Changes for 0.04 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.</p><p>Changes for 1.12.0 - 2023-09-24</p><ul><li>5.16 minimum Perl version required</li>
+               <li>minor updates to POD, tests</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:54:59
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-OPT3001-0.03
-          Title: Device-Chip-OPT3001-0.03
+          Date: 2023-09-26 09:01:31
+          Link: https://metacpan.org/release/BDFOY/Business-ISBN-Data-20230926.001
+          Title: Business-ISBN-Data-20230926.001
             <Description<
             [#[
-               <p>chip driver for OPT3001</p><p>Changes for 0.03 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>data pack for Business::ISBN</p><p>Changes for 20230926.001 - 2023-09-26T09:01:09Z</p><ul><li>Data update for 2023-09-26</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:53:40
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-nRF24L01P-0.08
-          Title: Device-Chip-nRF24L01P-0.08
+          Date: 2023-09-26 08:37:27
+          Link: https://metacpan.org/release/BLIAKO/Config-JSON-Enhanced-0.06
+          Title: Config-JSON-Enhanced-0.06
             <Description<
             [#[
-               <p>chip driver for a nRF24L01+</p><p>Changes for 0.08 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>JSON-based config with C/Shell-style comments, verbatim sections and variable substitutions</p><p>Changes for 0.06</p><ul><li>-Added more test files to check propgram behaviour when dealing with comments. -Some pod enhancements.</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:52:21
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-NoritakeGU_D-0.06
-          Title: Device-Chip-NoritakeGU_D-0.06
+          Date: 2023-09-26 08:34:41
+          Link: https://metacpan.org/release/BLIAKO/Config-JSON-Enhanced-0.05
+          Title: Config-JSON-Enhanced-0.05
             <Description<
             [#[
-               <p>chip driver for Noritake GU-D display modules</p><p>Changes for 0.06 - 2023-09-13</p><ul><li>CHANGES</li>
+               JSON-based config with C/Shell-style comments, verbatim sections and variable substitutions
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-26 08:13:00
+          Link: https://metacpan.org/release/MRUEDA/Pheno-Ranker-0.00_2
+          Title: Pheno-Ranker-0.00_2
+            <Description<
+            [#[
+               A module that performs semantic similarity in PXF/BFF data structures and beyond (JSON|YAML)
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-26 02:42:46
+          Link: https://metacpan.org/release/DUNCAND/Set-Relation-0.13.3
+          Title: Set-Relation-0.13.3
+            <Description<
+            [#[
+               A relation data type
+            ]#]
+            >Description>
+         >Item>
+         <Item<
+          Date: 2023-09-26 01:46:16
+          Link: https://metacpan.org/release/KIMOTO/SPVM-0.989045
+          Title: SPVM-0.989045
+            <Description<
+            [#[
+               <p>SPVM Language</p><p>Changes for 0.989045 - 2023-09-26</p><ul><li>New Features</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:50:58
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-MPL3115A2-0.13
-          Title: Device-Chip-MPL3115A2-0.13
+          Date: 2023-09-26 00:25:45
+          Link: https://metacpan.org/release/BLIAKO/Config-JSON-Enhanced-0.03
+          Title: Config-JSON-Enhanced-0.03
             <Description<
             [#[
-               <p>chip driver for a MPL3115A2</p><p>Changes for 0.13 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>JSON-based config with C/Shell-style comments, verbatim sections and variable substitutions</p><p>Changes for 0.03</p><ul><li>-Added the ability for the user to use custom comment style by specifying an opening and, optionally, a closing comment string. By adding a new comment style: 'custom()()'. -Added the ability for the user to specify if comments within strings (keys or scalar string values in the JSON) should be retained or removed. By adding a new optional parameter 'remove-comments-in-strings' to sub 'config2perl()'. -Added the ability for the user to increase verbosity of sub 'config2perl()'. The verbatim sections are checked for templated variables but do not have any comments contained in them to be replaced. All comments in Verbatim Sections are now left as they are. -Added the ability for the user to select tags for denoting variables and verbatim sections, the default value is '&lt;%' and '%&gt;'. -Made documentation's SYNOPSIS clearer. -Added 'META_MERGE' key in Makefile.PL. -Added CI via github actions (thanks https://perlmonks.org/?node_id=11127196 and https://perlmonks.org/?node_id=11154429).</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:49:37
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-MCP23x17-0.07
-          Title: Device-Chip-MCP23x17-0.07
+          Date: 2023-09-26 00:05:24
+          Link: https://metacpan.org/release/PERLANCAR/App-EANUtils-0.003
+          Title: App-EANUtils-0.003
             <Description<
             [#[
-               <p>chip driver for the MCP23x17 family</p><p>Changes for 0.07 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>Utilities related to EAN (International/European Article Number)</p><p>Changes for 0.003 - 2023-01-28</p><ul><li>[ux] Add examples.</li>
+               <li>[cli check-ean8][cli check-ean13][ux] print message unless --quiet (-q) option is given.</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:48:18
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-MAX7219-0.09
-          Title: Device-Chip-MAX7219-0.09
+          Date: 2023-09-25 22:17:51
+          Link: https://metacpan.org/release/SANKO/Template-Liquid-1.0.23
+          Title: Template-Liquid-1.0.23
             <Description<
             [#[
-               <p>chip driver for a MAX7219</p><p>Changes for 0.09 - 2023-09-13</p><ul><li>CHANGES</li>
+               <p>A Simple, Stateless Template System</p><p>Changes for 1.0.23 - 2023-09-25T22:13:36Z</p><ul><li>Resolve issue around passing a single string to {%for ... %} (amit777++)</li>
                </ul>
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:47:00
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-MAX44009-0.05
-          Title: Device-Chip-MAX44009-0.05
+          Date: 2023-09-25 21:42:40
+          Link: https://metacpan.org/release/ZHMYLOVE/X11-XCB-0.20
+          Title: X11-XCB-0.20
             <Description<
             [#[
-               <p>chip driver for MAX44009</p><p>Changes for 0.05 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
+               perl bindings for libxcb
             ]#]
             >Description>
          >Item>
          <Item<
-          Date: 2023-09-13 15:45:41
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-INA219-0.10
-          Title: Device-Chip-INA219-0.10
+          Date: 2023-09-25 21:26:59
+          Link: https://metacpan.org/release/LEONT/Magic-Coerce-0.002
+          Title: Magic-Coerce-0.002
             <Description<
             [#[
-               <p>chip driver for an INA219</p><p>Changes for 0.10 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:44:22
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-HTU21D-0.10
-          Title: Device-Chip-HTU21D-0.10
-            <Description<
-            [#[
-               <p>chip driver for HTU21D</p><p>Changes for 0.10 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:43:03
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-DS1307-0.08
-          Title: Device-Chip-DS1307-0.08
-            <Description<
-            [#[
-               <p>chip driver for a DS1307</p><p>Changes for 0.08 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:41:44
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-CCS811-0.03
-          Title: Device-Chip-CCS811-0.03
-            <Description<
-            [#[
-               <p>chip driver for CCS811</p><p>Changes for 0.03 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:40:25
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-CC1101-0.09
-          Title: Device-Chip-CC1101-0.09
-            <Description<
-            [#[
-               <p>chip driver for a CC1101</p><p>Changes for 0.09 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:38:58
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-BV4243-0.04
-          Title: Device-Chip-BV4243-0.04
-            <Description<
-            [#[
-               <p>chip driver for a BV4243</p><p>Changes for 0.04 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:37:36
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-BNO055-0.04
-          Title: Device-Chip-BNO055-0.04
-            <Description<
-            [#[
-               <p>chip driver for BNO055</p><p>Changes for 0.04 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:36:09
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-BME280-0.06
-          Title: Device-Chip-BME280-0.06
-            <Description<
-            [#[
-               <p>chip driver for BME280</p><p>Changes for 0.06 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:33:22
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-AVR_HVSP-0.07
-          Title: Device-Chip-AVR_HVSP-0.07
-            <Description<
-            [#[
-               <p>high-voltage serial programming for AVR chips</p><p>Changes for 0.07 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:26:50
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-AS3935-0.04
-          Title: Device-Chip-AS3935-0.04
-            <Description<
-            [#[
-               <p>chip driver for AS3935</p><p>Changes for 0.04 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:25:06
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-AnalogConverters-0.15
-          Title: Device-Chip-AnalogConverters-0.15
-            <Description<
-            [#[
-               <p>a collection of chip drivers</p><p>Changes for 0.15 - 2023-08-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 15:23:40
-          Link: https://metacpan.org/release/PEVANS/Device-Chip-AD9833-0.05
-          Title: Device-Chip-AD9833-0.05
-            <Description<
-            [#[
-               <p>chip driver for AD9833</p><p>Changes for 0.05 - 2023-09-13</p><ul><li>CHANGES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 14:58:27
-          Link: https://metacpan.org/release/YANICK/Dist-Zilla-Plugin-CoalescePod-1.0.0
-          Title: Dist-Zilla-Plugin-CoalescePod-1.0.0
-            <Description<
-            [#[
-               <p>merge .pod files into their .pm counterparts</p><p>Changes for 1.0.0 - 2023-09-13</p><ul><li>API CHANGES</li>
-               <li>STATISTICS</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 14:57:01
-          Link: https://metacpan.org/release/YANICK/Dist-Zilla-Plugin-CoalescePod-0.3.1
-          Title: Dist-Zilla-Plugin-CoalescePod-0.3.1
-            <Description<
-            [#[
-               <p>merge .pod files into their .pm counterparts</p><p>Changes for 0.3.1 - 2023-09-13</p><ul><li>STATISTICS</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 14:10:21
-          Link: https://metacpan.org/release/PEVANS/App-sdview-Output-Tickit-0.03
-          Title: App-sdview-Output-Tickit-0.03
-            <Description<
-            [#[
-               <p>interactive terminal-based viewer for App::sdview</p><p>Changes for 0.03 - 2023-09-13</p><ul><li>CHANGES</li>
-               <li>BUGFIXES</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 11:25:40
-          Link: https://metacpan.org/release/AWNCORP/Venus-4.11
-          Title: Venus-4.11
-            <Description<
-            [#[
-               <p>OO Library for Perl 5</p><p>Changes for 4.11 - 2023-09-13</p><ul><li>[feature] Implement Venus::Assert#includes</li>
-               <li>[feature] Implement Venus::Future</li>
-               <li>[feature] Refactor Venus::Assert, Implement Venus::{Coercion,Constraint}</li>
-               <li>[feature] Implement Venus::Space#{patch,patched,unpatch}</li>
-               <li>[feature] Implement Venus::Sealed</li>
-               <li>[feature] Implement Venus::Atom</li>
-               <li>[feature] Implement Venus::Enum</li>
-               <li>[feature] Implement Venus::Role::Superable</li>
-               <li>[feature] Implement Venus::Role::Patchable</li>
-               <li>[feature] Implement Venus#clone</li>
-               <li>[feature] Implement Venus::Process#future</li>
-               <li>[feature] Implement Venus::Future#wait</li>
-               <li>[update] Refactor Venus::Test</li>
-               <li>[update] Add test and documentation for Venus::Process#is_dyadic</li>
-               <li>[update] Update Venus::Process#await, auto-reap processes</li>
-               <li>[update] Research CPANTS issue with Venus::Process</li>
-               <li>[update] Update Venus::Process, prevent PPID in dyads</li>
-               <li>[update] Use Venus::Check types in all signatures</li>
-               <li>[update] Update Venus#async to return Venus::Future</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 11:00:19
-          Link: https://metacpan.org/release/JBAIER/Pass-OTP-1.6
-          Title: Pass-OTP-1.6
-            <Description<
-            [#[
-               <p>Perl implementation of HOTP / TOTP algorithms</p><p>Changes for 1.6 - 2023-09-13</p><ul><li>fix SHA384 and SHA512 blocksize (#1)</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 10:35:02
-          Link: https://metacpan.org/release/BOD/Image-Square-0.01_4
-          Title: Image-Square-0.01_4
-            <Description<
-            [#[
-               <p>Crop and resize an image to create a square image</p><p>Changes for 0.01_4</p><ul><li>Tests still fail on different builds of GD.  Now using PNG as input image and native GD format for output.</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 09:13:52
-          Link: https://metacpan.org/release/MRUEDA/Convert-Pheno-0.13
-          Title: Convert-Pheno-0.13
-            <Description<
-            [#[
-               <p>A module to interconvert common data models for phenotypic data</p><p>Changes for 0.13 - 2023-09-12T00:00:00Z</p><ul><li>Pushing new version after passing all tests</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 09:12:25
-          Link: https://metacpan.org/release/TONYC/Imager-zxing-1.001
-          Title: Imager-zxing-1.001
-            <Description<
-            [#[
-               <p>Barcode scanning with libzxing-cpp</p><p>Changes for 1.001</p><ul><li>re-work std::string handling to use the typemap</li>
-               <li>fix &quot;decoder&quot; -&gt; &quot;decode&quot; in the SYNOPSIS</li>
-               <li>support all Imager image layouts</li>
-               <li>require a recent enough ExtUtils::CppGuess and set the required C++ standard</li>
-               <li>allow the zxing-cpp package name for pkg-config, which seems to be what packagers used before upstream decided on &quot;zxing.pc&quot;. https://github.com/tonycoz/imager-zxing/issues/1</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 05:55:56
-          Link: https://metacpan.org/release/KIMOTO/SPVM-Sys-0.491
-          Title: SPVM-Sys-0.491
-            <Description<
-            [#[
-               <p>System Calls for File IO, User, Process, Signal, Socket</p><p>Changes for 0.491 - 2023-09-13</p><ul><li>New Features</li>
-               <li>Incompatible Changes</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 04:12:50
-          Link: https://metacpan.org/release/GRYPHON/Log-Dispatch-Email-Mailer-1.13
-          Title: Log-Dispatch-Email-Mailer-1.13
-            <Description<
-            [#[
-               <p>Log::Dispatch::Email subclass that sends mail using Email::Mailer</p><p>Changes for 1.13 - 2023-09-12T21:12:32-07:00</p><ul><li>Require exact v1.23 (resolves issue #5)</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 04:11:27
-          Link: https://metacpan.org/release/GRYPHON/exact-me-1.05
-          Title: exact-me-1.05
-            <Description<
-            [#[
-               <p>Original program path locations extension for exact</p><p>Changes for 1.05 - 2023-09-12T21:10:17-07:00</p><ul><li>Remove redundant strict (since it's provided by exact)</li>
-               <li>New import signature change required by exact v1.23</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 04:10:01
-          Link: https://metacpan.org/release/GRYPHON/exact-lib-1.04
-          Title: exact-lib-1.04
-            <Description<
-            [#[
-               <p>Compile-time @INC manipulation extension for exact</p><p>Changes for 1.04 - 2023-09-12T21:09:28-07:00</p><ul><li>Remove redundant strict (since it's provided by exact)</li>
-               <li>New import signature change required by exact v1.23</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 04:09:57
-          Link: https://metacpan.org/release/GRYPHON/exact-fun-1.01
-          Title: exact-fun-1.01
-            <Description<
-            [#[
-               <p>Functions and methods with parameter lists for exact</p><p>Changes for 1.01 - 2023-09-12T21:08:36-07:00</p><ul><li>Use Import::Into instead of eval to inject/import</li>
-               <li>New import signature change required by exact v1.23</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 04:08:39
-          Link: https://metacpan.org/release/GRYPHON/exact-conf-1.08
-          Title: exact-conf-1.08
-            <Description<
-            [#[
-               <p>Cascading merged application configuration extension for exact</p><p>Changes for 1.08 - 2023-09-12T21:07:37-07:00</p><ul><li>Remove redundant strict (since it's provided by exact)</li>
-               <li>New import signature change required by exact v1.23</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 04:07:18
-          Link: https://metacpan.org/release/GRYPHON/exact-cli-1.07
-          Title: exact-cli-1.07
-            <Description<
-            [#[
-               <p>Command-line interface helper utilities extension for exact</p><p>Changes for 1.07 - 2023-09-12T21:06:47-07:00</p><ul><li>Remove redundant strict (since it's provided by exact)</li>
-               <li>New import signature change required by exact v1.23</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 04:05:52
-          Link: https://metacpan.org/release/GRYPHON/exact-class-1.19
-          Title: exact-class-1.19
-            <Description<
-            [#[
-               <p>Simple class interface extension for exact</p><p>Changes for 1.19 - 2023-09-12T21:05:22-07:00</p><ul><li>New import signature change required by exact v1.23</li>
-               <li>Use Import::Into instead of eval to inject code</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 01:04:01
-          Link: https://metacpan.org/release/MBRADSHAW/Mail-BIMI-3.20230913
-          Title: Mail-BIMI-3.20230913
-            <Description<
-            [#[
-               <p>BIMI object</p><p>Changes for 3.20230913 - 2023-09-13</p><ul><li>Add policy.mark-type to Authentication-Results</li>
-               <li>Add policy.experimental to Authentication-Results</li>
-               <li>Add options to limit which mark types a MBP accepts</li>
-               <li>Add options to limit acceptance of experimental certificates</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-13 00:06:02
-          Link: https://metacpan.org/release/PERLANCAR/App-rimetadb-0.226
-          Title: App-rimetadb-0.226
-            <Description<
-            [#[
-               <p>Manage a Rinci metadata database</p><p>Changes for 0.226 - 2023-07-09</p><ul><li>No functional changes.</li>
-               <li>Remove the usage of smartmatch.</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 23:33:11
-          Link: https://metacpan.org/release/DRCLAW/constant-more-v0.3.0
-          Title: constant-more-v0.3.0
-            <Description<
-            [#[
-               <p>Constants and Enumerations. Assign constant values from the command line</p><p>Changes for v0.3.0 - 2023-09-13</p><ul><li>Features</li>
-               <li>Tests</li>
-               <li>POD</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 23:07:51
-          Link: https://metacpan.org/release/GRYPHON/exact-1.23
-          Title: exact-1.23
-            <Description<
-            [#[
-               <p>Perl pseudo pragma to enable strict, warnings, features, mro, filehandle methods</p><p>Changes for 1.23 - 2023-09-12T16:06:03-07:00</p><ul><li>Improve/fix import of packages into other packages (resolves issue #4)</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 22:14:53
-          Link: https://metacpan.org/release/JIMAVERA/ODF-MailMerge-1.000
-          Title: ODF-MailMerge-1.000
-            <Description<
-            [#[
-               <p>&quot;Mail Merge&quot; or just substitute tokens in ODF documents</p><p>Changes for 1.000</p><ul><li>ODF::MailMerge::Engine-&gt;new positional args eliminated; now use proto_elt =&gt; $table   # specify the object directly context =&gt; $context, proto_tag =&gt; &quot;tagstring&quot;  # search for it Modifier :die (&quot;Delete If Empty&quot;) replaces :delempty</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 21:49:07
-          Link: https://metacpan.org/release/SHANCOCK/Perl-Tidy-20230912
-          Title: Perl-Tidy-20230912
-            <Description<
-            [#[
-               indent and reformat perl scripts
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 21:45:10
-          Link: https://metacpan.org/release/BOD/Image-Square-0.01_3
-          Title: Image-Square-0.01_3
-            <Description<
-            [#[
-               Crop and resize an image to create a square image
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 19:38:33
-          Link: https://metacpan.org/release/TURNERJW/StreamFinder-2.19
-          Title: StreamFinder-2.19
-            <Description<
-            [#[
-               <p>Fetch actual raw streamable URLs from various radio-station, video &amp; podcast websites.</p><p>Changes for 2.19 - 2023-09-12</p><ul><li>StreamFinder::Youtube - 1) Fix failure to fetch artist, icon, etc. sometimes on embedded IFRAME urls (slight site changes) and first episode from some channels.  2) Add -youtube-site argument to specify a different default youtube site (default https://www.youtube.com). 3) Add ability to parse youtube channel URLs containing an at-sign, ie.: https://www.youtube.com/@channelID.</li>
-               <li>StreamFinder::Subsplash - Restore as EXPERIMENTAL, as this site seems to now work again, at least for audio streams on some sites.</li>
-               <li>StreamFinder::Anystream - doc. touchups.</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 19:00:33
-          Link: https://metacpan.org/release/AWNCORP/Venus-4.10
-          Title: Venus-4.10
-            <Description<
-            [#[
-               <p>OO Library for Perl 5</p><p>Changes for 4.10 - 2023-09-12</p><ul><li>[feature] Implement Venus::Assert#includes</li>
-               <li>[feature] Implement Venus::Future</li>
-               <li>[feature] Refactor Venus::Assert, Implement Venus::{Coercion,Constraint}</li>
-               <li>[feature] Implement Venus::Space#{patch,patched,unpatch}</li>
-               <li>[feature] Implement Venus::Sealed</li>
-               <li>[feature] Implement Venus::Atom</li>
-               <li>[feature] Implement Venus::Enum</li>
-               <li>[feature] Implement Venus::Role::Superable</li>
-               <li>[feature] Implement Venus::Role::Patchable</li>
-               <li>[feature] Implement Venus#clone</li>
-               <li>[feature] Implement Venus::Process#future</li>
-               <li>[feature] Implement Venus::Future#wait</li>
-               <li>[update] Refactor Venus::Test</li>
-               <li>[update] Add test and documentation for Venus::Process#is_dyadic</li>
-               <li>[update] Update Venus::Process#await, auto-reap processes</li>
-               <li>[update] Research CPANTS issue with Venus::Process</li>
-               <li>[update] Update Venus::Process, prevent PPID in dyads</li>
-               <li>[update] Use Venus::Check types in all signatures</li>
-               <li>[update] Update Venus#async to return Venus::Future</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 17:09:39
-          Link: https://metacpan.org/release/DERIV/Net-Async-Blockchain-0.003
-          Title: Net-Async-Blockchain-0.003
-            <Description<
-            [#[
-               <p>base for blockchain subscription clients.</p><p>Changes for 0.003 - 2023-09-12T17:08:09+00:00</p><ul><li>Improvements</li>
-               <li>Breaking changes</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 14:47:38
-          Link: https://metacpan.org/release/OALDERS/Open-This-0.000033
-          Title: Open-This-0.000033
-            <Description<
-            [#[
-               <p>Try to Do the Right Thing when opening files</p><p>Changes for 0.000033 - 2023-09-12T14:46:08Z</p><ul><li>Add support for IntellJ IDEA, VSCode, VSCodium and more. Also fix typo (GH#51) (mcneb10)</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 13:50:33
-          Link: https://metacpan.org/release/NLNETLABS/Net-DNS-SEC-1.22
-          Title: Net-DNS-SEC-1.22
-            <Description<
-            [#[
-               DNSSEC extensions to Net::DNS
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 09:35:41
-          Link: https://metacpan.org/release/MIKIHOSHI/WebService-Mailgun-0.16
-          Title: WebService-Mailgun-0.16
-            <Description<
-            [#[
-               <p>API client for Mailgun (https://mailgun.com/)</p><p>Changes for 0.16 - 2023-09-12T09:33:42Z</p><ul><li>fix document</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 09:29:10
-          Link: https://metacpan.org/release/MIKIHOSHI/WebService-Mailgun-0.15.1
-          Title: WebService-Mailgun-0.15.1
-            <Description<
-            [#[
-               <p>API client for Mailgun (https://mailgun.com/)</p><p>Changes for 0.15.1 - 2023-09-12T09:27:19Z</p><ul><li>fix document</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 09:16:10
-          Link: https://metacpan.org/release/MRUEDA/Convert-Pheno-0.12_4
-          Title: Convert-Pheno-0.12_4
-            <Description<
-            [#[
-               A module to interconvert common data models for phenotypic data
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 08:44:03
-          Link: https://metacpan.org/release/LICHTKIND/Graphics-Toolkit-Color-1.61
-          Title: Graphics-Toolkit-Color-1.61
-            <Description<
-            [#[
-               <p>color palette creation helper</p><p>Changes for 1.61 - 2023-09-12</p><ul><li>= fix tests</li>
-               <li>+ renamed complementary method =&gt; complement</li>
-               <li>- deprecated complementary, will be removed at 2.0</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 06:33:21
-          Link: https://metacpan.org/release/MERKYS/Graph-SSSR-0.1.0
-          Title: Graph-SSSR-0.1.0
-            <Description<
-            [#[
-               <p>Find Smallest Set of Smallest Rings in graphs</p><p>Changes for 0.1.0 - 2022-12-15</p><ul><li>Initial release.</li>
-               </ul>
-            ]#]
-            >Description>
-         >Item>
-         <Item<
-          Date: 2023-09-12 03:59:54
-          Link: https://metacpan.org/release/DJZORT/Net-Proxmox-VE-0.38
-          Title: Net-Proxmox-VE-0.38
-            <Description<
-            [#[
-               <p>Pure perl API for Proxmox virtualisation</p><p>Changes for 0.38 - 2023-09-11</p><ul><li>fix/use correct parameter name for user in tests thanks to MartijnLivaart</li>
-               <li>Feat/check new arguments thanks to MartijnLivaart</li>
-               <li>Fix/test access directory thanks to MartijnLivaart via GH#27</li>
-               <li>feat: check if debug parameter propagates from new() thanks to MartijnLivaart via GH#29</li>
-               <li>Pod corrections thanks to poptix via GH#31</li>
+               <p>magical coercers for scalar values</p><p>Changes for 0.002 - 2023-09-25T23:26:41+02:00</p><ul><li>Include ppport.h for backwards-compatability</li>
                </ul>
             ]#]
             >Description>
