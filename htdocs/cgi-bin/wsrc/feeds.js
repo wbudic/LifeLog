@@ -9,7 +9,10 @@ function fetchFeeds(id){
     pnl.css('visibility','visible');
     $(document).scrollTop( $("#rss_anchor").offset().top );
     $.post('CNFServices.cgi', {service:'feeds',action:'list'}, displayFeeds).fail(
-        function(response) {pnl.html("Service Error: "+response.status,response.responseText);pnl.fadeOut(10000);}
+        function(response) {
+            pnl.html(response.responseText);
+            pnl.fadeOut(10000);
+        }
     );
 }
 function fetchFeed(feed) {
@@ -21,7 +24,10 @@ function fetchFeed(feed) {
     pnl.show();
     pnl.css('visibility','visible');
     $.post('CNFServices.cgi', {service:'feeds', action:'read', feed:feed}, displayFeeds).fail(
-        function(response) {pnl.html("Service Error: "+response.status,response.responseText);pnl.fadeOut(10000);}
+        function(response) {
+            pnl.html(response.responseText);
+            pnl.fadeOut(20000);
+        }
     );
 }
 function displayFeeds(content){
@@ -31,3 +37,5 @@ function displayFeeds(content){
     pnl.show();
     $(document).scrollTop( $("#rss_anchor").offset().top );
 }
+
+

@@ -100,10 +100,21 @@ try{
         <tr class="r0"><td colspan="2">Host -> <b>$hst</b></td><td><input type="submit" value="Login"/></td></tr>
         </table></form>
 HTML
-    print qq(<DIV class="content" style="height: 100dvh;display: flow-root;">
+    print qq(<DIV class="content"><a name="top"/>
             <br>
-            <div id="menu_page" style="margin-left: 85vw;"><span class="menu_head">Menu</span><hr>
+            <div id="menu_page" style="margin-left: 85vw;">
+            <span class="menu_head">
+
+                    <a id="to_bottom" href="#bottom" title="Go to bottom of page.">
+                    <span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;background-color: aliceblue"></span></a>
+                            &nbsp; Menu  &nbsp;
+                    <a id="to_top" href="#top" title="Go to top of page.">
+                    <span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;background-color: aliceblue"></span></a>
+
+            </span>
+            <hr>
                 <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a><hr>
+                <a class="a_" onclick="return demoLogin()">Demo</a><hr>
                 <a class="a_" onclick="return fetchFeeds()">Feeds</a><hr>
             </div>
             <div class="rz login">
@@ -117,15 +128,13 @@ HTML
                 </div>
                 <br>
             </div><a name="feed_top"/>
-            <div id="feeds" class="rz" style="width:60% !important;visibility:hidden">RSS</div>
             <a id="rss_anchor"></a>
+            <div id="feeds" class="rz" style="width:60% !important;visibility:hidden">RSS</div>
+            <a name="bottom"/>
             </DIV>
           );
-
     Settings::printDebugHTML($DBG) if Settings::debug();
-    #print $cgi->pre(Settings->dump());
     print $cgi->end_html;
-
     }
     else{
         print $cgi->start_html;

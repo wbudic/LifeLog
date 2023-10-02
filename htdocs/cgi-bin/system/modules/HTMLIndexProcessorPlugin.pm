@@ -77,9 +77,12 @@ try{
                 $arr = $link  -> find('SCRIPT');
                 if(ref($arr) eq 'ARRAY'){
                     foreach (@$arr){
-                        $give_me .= "\n<script>\n".$_ -> val()."\n</script>\n"
+                        my $attributes = _nodeHTMLAtrributes($_);
+                        $give_me .= "\n<script$attributes>\n".$_ -> val()."\n</script>\n"
                     }}else{
-                        $give_me .= "\n<script>\n".$arr -> val()."\n</script>\n"
+                        my $attributes = _nodeHTMLAtrributes($arr);
+                        $give_me .= "\n<script$attributes>\n".$arr -> val()."\n</script>\n";
+
                 }
         }
         delete $tree -> {'HEADER'};
@@ -102,6 +105,17 @@ try{
  }catch($e){
          HTMLIndexProcessorPluginException->throw(error=>$e);
  }
+}
+
+sub _nodeHTMLAtrributes {
+    my $node = shift;
+    my $attributes =" ";
+    my @attrs = $node -> attributes();
+    foreach my $a(@attrs){
+        $attributes .= @$a[0] . " = \"" .@$a[1]."\""
+    }
+    $attributes = "" if $attributes eq " ";
+    return $attributes
 }
 #
 sub loadDocument($parser, $doc) {

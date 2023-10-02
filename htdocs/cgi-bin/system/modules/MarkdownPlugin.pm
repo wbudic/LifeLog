@@ -138,12 +138,14 @@ sub setCodeTag($tag, $class){
         if($tag eq 'html' or $tag eq 'cnf' or $tag eq 'code' or $tag eq 'perl'){
             $class = $tag if !$class;
             $tag = 'div' if $tag ne 'code';
-        }else{
-            $tag = 'pre' if($tag eq 'sh' or $tag eq 'bash');
-        }
-        if($tag eq 'perl'){
+        }elsif($tag eq 'perl'){
             $class='perl' if !$class;
             $tag  ='div';
+        }elsif($tag eq 'mermaid'){
+            $class = $tag;
+            $tag="pre";
+        }else{
+            $tag = 'pre' if($tag eq 'sh' or $tag eq 'bash');
         }
         $class = lc $class; #convention is that style class to be all lower case like tags.
     }else{
@@ -396,7 +398,6 @@ try{
                     $para   .= $bqte; $bqte_nested=0;
                     undef $bqte;
                 }
-
                 if($list_root && $spc>0){
                     my $new = HTMLListItem -> new('dt', ${style($v)}, $spc);
                     if($spc>$nplen){
@@ -456,7 +457,6 @@ try{
        $buff .= $list_root-> toString();
     }
     $buff .= qq(<p>$para</p>\n) if $para;
-
 return [\$buff,\@titels]
 }catch($e){
         MarkdownPluginException->throw(error=>$e ,show_trace=>1);

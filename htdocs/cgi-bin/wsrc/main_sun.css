@@ -5,7 +5,6 @@ body{
     margin: 0;
     padding:0;
 }
-
 .content {
 
     background-image: url('images/page-bck-sun.png');
@@ -13,6 +12,7 @@ body{
     background-attachment: fixed;
     margin: 0;
     padding:0;
+    height: 100vh;
 
 }
 p {
@@ -148,9 +148,10 @@ th,
 .login {
 
     vertical-align: middle; text-align:center; width: 60% !important;
-    background:#b2f8ef url('images/Sun-Rotating.gif');
-    background-repeat: repeat;
-    background2:#ffd9007a;
+    background:black url('images/Sun-Rotating.gif');
+    background-repeat: no-repeat;
+    background-repeat: space;
+    background-position-x: right;
 }
 div#rz {
     border: 1px solid black;

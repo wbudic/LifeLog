@@ -33,7 +33,7 @@
 
     #header {
         border: 1px solid gray;
-        background: rgba(128,128,128,0.2);
+        background: rgba(0, 223, 246, 0.13);
         margin:5px;
     }
 
@@ -126,7 +126,7 @@
         padding:15px;
         text-align: left;
     }
-    .sh{
+    .sh {
         background: black;
         color: lightgreen;
         padding: 15px;
@@ -152,8 +152,12 @@
         font-family:monospace;
         text-align: left;
         padding-bottom: 10px;
-        margin-right: 30px;
+        margin-right: 2px;
         margin-top: 15px;
+    }
+
+    dt{
+        margin-right: 2px;
     }
 
     .cnf h1{
@@ -183,7 +187,17 @@
         font-family:monospace;
         text-align: left;
         padding-bottom: 20px;
-        margin-right: 30px;
+        margin-right: 2px;
+        margin-top: 15px;
+    }
+
+    .mermaid{
+        border:1px solid lightgray;
+        background: transparent;
+        padding-left:15px;
+        text-align: left;
+        padding-bottom: 20px;
+        margin-right: 2px;
         margin-top: 15px;
     }
 
@@ -225,6 +239,15 @@
 >STYLE>
 
 <SCRIPT<
+    type:module
+[#[
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true });
+  window.mermaid = mermaid;
+]#]
+>SCRIPT>
+
+<SCRIPT<
 [#[
 function onIndexBodyLoad(){
     console.log("Initiated page.");
@@ -246,6 +269,17 @@ function onIndexBodyLoad(){
 function loadDocResult(content){
     $('#doc_display').html(content);
     $(document).scrollTop($("#doc_display").offset().top);
+    window.mermaid.run();
+}
+]#]
+>SCRIPT>
+<SCRIPT<
+[#[
+function demoLogin() {
+    var form = $('#frm_login');
+    $('#frm_login input[name=alias]').val("admin");
+    $('#frm_login input[name=passw]').val("admin");
+    form.submit();
 }
 ]#]
 >SCRIPT>
@@ -269,7 +303,8 @@ function loadDocResult(content){
     id:menu_page
  <#<
     <span class="menu_head">
-        <a id="to_bottom" href="#bottom" title="Go to bottom of page."><span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;background-color: aliceblue"></span></a>
+        <a id="to_bottom" href="#bottom" title="Go to bottom of page.">
+        <span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;background-color: aliceblue"></span></a>
                 &nbsp; Page &nbsp;
         <a id="to_top" href="#top" title="Go to top of page.">
         <span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;background-color: aliceblue"></span></a>
@@ -314,15 +349,15 @@ style:"height:100vh"
                                         <a<
                                                         name="feed_top"
                                         >a>
+            <a<
+                id: rss_anchor
+            >a>
             <div<
                 id="feeds"
                 class="rz"
                 style ="margin: 5px; visibility:hidden"
                 [#[ RSS Here ]#]
             >div>
-            <a<
-                id: rss_anchor
-            >a>
         >div>
         <div<
             id:footer
@@ -342,12 +377,14 @@ style:"height:100vh"
  >div>
     <!<Page brought to you by HTMLIndexProcessorPlugin, from the PerlCNF project.>!>
 >div>
+
 >>PAGE>TREE>
 
 
 <<INFO_MD<ESCAPED>
 
 **Now, if you please, select a link from the directory listing above.**
+
 
 ### INFO
 \> This Page is the Documentation listing coming with the [LifeLog](https://github.com/wbudic/LifeLog) Application.

@@ -7,8 +7,9 @@ use strict;
 use warnings;
 use Exception::Class ('CNFHTMLServiceError');
 use Syntax::Keyword::Try;
-use CGI;
-use CGI::Session '-ip_match';
+use utf8;
+use CGI::Tiny;
+use Path::Tiny;
 no warnings qw(experimental::signatures);
 use feature qw(signatures);
 ##
@@ -17,15 +18,10 @@ use feature qw(signatures);
 ##
 use CGI::Carp qw(fatalsToBrowser set_message);
 
-BEGIN {
-   sub handle_errors {
-      my $err = shift;
-      say "<html><body><h2>Server Error</h2><code style='color:crimson; font-weight:bold'>$err<code></body></html>";
-   }
-   set_message(\&handle_errors);
-}
-
-use lib "system/modules";
+##
+# This is a entry point script (main).
+##
+use lib::relative "system/modules";
 require CNFParser;
 require CNFNode;
 
@@ -43,24 +39,44 @@ use constant LOG_Settings =>q(
 >>
 );
 
-exit &CNFHTMLService;
+cgi {
+  my $cgi = $_;
+     $cgi->set_error_handler(
+        sub {
+            my ($cgi, $error, $rendered) = @_;
+            chomp $error;
+            $cgi->render(text=>qq(<html><body><font style="color:crimson; font-weight:bold">You have unfortunately hit an cgi-bin::CNFHTMLServiceError</font>
+                                            <div class='content-debug_output'><pre style="background:transparent">$error</pre><br> </div>
+                                </body></html>
+                                )
+                    );
+        }
+     );
+  exit CNFHTMLService($cgi);
+};
+
 
 sub CNFHTMLService {
-    my ($cgi,$ptr)   = (CGI -> new(),undef);
+
+    my ($cgi,$ptr)   = (shift, undef);
     my  $cnf  = CNFParser -> new (undef,{ DO_ENABLED => 1, HAS_EXTENSIONS=>1, ANONS_ARE_PUBLIC => 1, CGI=>$cgi });
         $cnf->parse(undef,_getServiceScript($cgi));
         $ptr = $cnf->data();
         $ptr = $ptr->{'PAGE'};
-    say $$ptr if $ptr;
+    #say $$ptr if $ptr;
+    $cgi -> render(text=>$$ptr);
     return 0
 }
 
 sub _getServiceScript($cgi) {
-     my $service = $cgi->param('service'); $service = "undef" if not $service;
+     my $service = $cgi->param('service');
+     unless ($service){
+        $cgi->set_response_status(404);
+        CNFHTMLServiceError->throw(error=>'The Service parameter \'service\' is not set!', show_trace=>1);
+     }
      if($service eq 'feeds'){
         return _CNF_Script_For_Feeds();
      }
-     CNFHTMLServiceError->throw(error=>"UNKNOWN SERVICE -> $service", show_trace=>1)
 }
 
 sub _CNF_Script_For_Feeds {
