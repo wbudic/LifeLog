@@ -169,7 +169,7 @@ my @kangaroos = sort keys %skip_candidates;
 # Some modules if found to be forcefeed. can be hardcoded here my friends, why not?
 # You got plenty of space on your disc, these days, don't you?
 ##
-foreach ((
+foreach (('lib::relative,',
                 'Syntax::Keyword::Try',
                 'DBD::SQLite',
                 'DBD::Pg',
