@@ -3,14 +3,13 @@ body{
     font-size: 14px;
     margin: 0;
     padding:0;
-}
-.content {
     background-image: url('images/page-bck-earth.png');
     background-repeat: no-repeat;
     background-attachment: fixed;
+}
+.content {
     margin: 0;
     padding:0;
-    height: 100vh;
 }
 p {
     font-family: Bookman;

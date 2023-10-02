@@ -1,4 +1,10 @@
-!CNF2.8
+!CNF3.0
+
+<<@<%WEBAPP_SETTINGS>
+    $LOG_PATH    = ../../dbLifeLog/
+    //We are reading only the css property, old way is the following hash, preserved as reminder.
+    $THEME       = css => wsrc/main.css, colBG => #c8fff8, colSHDW => #9baec8
+>>
 
 <<@<%HTTP_HEADER>
 -charset =   "UTF8"

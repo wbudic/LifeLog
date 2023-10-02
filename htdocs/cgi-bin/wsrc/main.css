@@ -1,15 +1,16 @@
 body{
     font-family: Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+    font-size: 14px;
     margin: 0;
     padding:0;
-}
-.content {
     background-image: url('images/page-bck-std.png');
     background-repeat: no-repeat;
     background-attachment: fixed;
-    margin: 0;
-    padding:0;
-    height: 100vh;
+    background-size: cover;
+}
+.content {
+   margin: 0;
+   padding:0;
 }
 p {
     font-family: Bookman;

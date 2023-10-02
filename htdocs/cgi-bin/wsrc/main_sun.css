@@ -4,17 +4,16 @@ body{
     background-color: #FFD700;
     margin: 0;
     padding:0;
-}
-.content {
-
     background-image: url('images/page-bck-sun.png');
     background-repeat: no-repeat;
     background-attachment: fixed;
+    background-size: cover;
+}
+.content {
     margin: 0;
     padding:0;
-    height: 100vh;
-
 }
+
 p {
     font-family: Bookman;
     margin-left: 70px;

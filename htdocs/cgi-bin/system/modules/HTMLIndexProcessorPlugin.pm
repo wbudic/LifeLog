@@ -34,6 +34,37 @@ sub convert ($self, $parser, $property) {
     my $tree         = $parser-> anon($property);
     die "Tree property '$property' is not available!" if(!$tree or ref($tree) ne 'CNFNode');
 try{
+    #TODO 20231002 Move -> %WEBAPP_SETTINGS into utility.
+    my %THEME;
+    my %wsettings = $parser -> collection('%WEBAPP_SETTINGS');
+    if(%wsettings){
+       my $theme = $wsettings{THEME};
+       my @els = split(/, /, $theme);
+       foreach (@els) {
+         my ($key,$val) = split(/\s*=>\s*/, $_);
+         $THEME{$key} = $val;
+         last if $key eq 'css'
+       }
+       my $theme_file = $wsettings{LOG_PATH}.'current_theme';
+       $theme_file =~ /^\.\.\/\.\.\// if(-e $theme_file);
+       if(-e $theme_file){
+         open my $fh, '<', $theme_file;
+         my $theme = <$fh>;
+         close($fh);
+         if($theme =~ m/standard/i){
+            $THEME{css} = "wsrc/main.css"
+         }elsif($theme =~ m/moon/i){
+            $THEME{css} = "wsrc/main_moon.css"
+         }
+         elsif($theme =~ m/sun/i){
+            $THEME{css} = "wsrc/main_sun.css"
+         }
+         elsif($theme =~ m/earth/i){
+            $THEME{css} = "wsrc/main_earth.css"
+         }
+       }
+    }
+
     if (exists $parser->{'HTTP_HEADER'}){
         $buffer .= $parser-> {'HTTP_HEADER'};
     }else{
@@ -61,7 +92,11 @@ try{
         if(ref($link) eq 'CNFNode'){
                 my $arr = $link->find('CSS/@@');
                 foreach (@$arr){
-                    push  @hhshCSS, {-type => 'text/css', -src => $_->val()};
+                    if($THEME{css} && $_->val() =~ /main.css$/){
+                        push  @hhshCSS, {-type => 'text/css', -src => $THEME{css}};
+                    }else{
+                        push  @hhshCSS, {-type => 'text/css', -src => $_->val()};
+                    }
                 }
                 $arr = $link->find('JS/@@');
                 foreach (@$arr){
