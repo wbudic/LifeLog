@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Web interaction, reusable tri state of configuration concerns, set of utilities. 
+# Web interaction, reusable tri state of configuration concerns, set of utilities.
 #
 # Programed by: Will Budic
 # Open Source License -> https://choosealicense.com/licenses/isc/
@@ -23,7 +23,7 @@ BEGIN {
       my $msg = shift;
       print "<html><body><h2>LifeLog Server Error</h2>";
       print "<pre>@[$ENV{PWD}].Error: $msg</pre></body></html>"; return
- 
+
   }
   set_message(\&handle_errors);
 }
@@ -35,11 +35,11 @@ use constant CIPHER_PADDING         => 'fe0a2b6a83e81f13a2d76ab104763773310df6b0
 # Default VIEW for all pages, it lists and sorts on all logs, super fast server side.
 use constant VW_LOG                 => 'VW_LOG';
 
-# Optional instructional VIEW from config file replacing VW_LOG. 
+# Optional instructional VIEW from config file replacing VW_LOG.
 # Filtering out by category ID certain specified entries.
 use constant VW_LOG_WITH_EXCLUDES   => 'VW_LOG_WITH_EXCLUDES';
 
-# Optional instructional VIEW from config directly overriding the 
+# Optional instructional VIEW from config directly overriding the
 # where clause for data being delivered for pages.
 # This view will always return all last 24 hour entered log entries.
 # This view AND's by extending on VW_LOG_WITH_EXCLUDES, if is also set, which is something to be aware.
@@ -51,7 +51,7 @@ use constant META => '^CONFIG_META';
 
 
 # DEFAULT SETTINGS HERE! These settings kick in if not found in config file. i.e. wrong config file or has been altered, things got missing.
-our $RELEASE_VER   = '2.5';
+our $RELEASE_VER   = '2.6';
 our $TIME_ZONE     = 'Australia/Sydney';
 our $LANGUAGE      = 'English';
 our $PRC_WIDTH     = '60';
@@ -106,7 +106,7 @@ our $SQL_PUB = undef;
 our $TIME_ZONE_MAP ="";
 
 #The all purpose '$S_' class get/setter variable, we do better with less my new variable assignments.
-our $S_ =""; 
+our $S_ ="";
 #
 sub anons {keys %anons}
 #Check call with defined(Settings::anon('my_anon'))
@@ -141,7 +141,7 @@ sub css            {$TH_CSS}
 sub js             {$JS}
 sub compressPage   {$COMPRESS_ENC}
 sub debug          {$S_ = shift; $DEBUG = $S_ if $S_; $DEBUG}
-sub dbSrc          {$S_= shift; if($S_) {$DBI_SOURCE=$S_; $IS_PG_DB = 1 if(index (uc $S_, 'DBI:PG') ==0)}  
+sub dbSrc          {$S_= shift; if($S_) {$DBI_SOURCE=$S_; $IS_PG_DB = 1 if(index (uc $S_, 'DBI:PG') ==0)}
                     $DBI_SOURCE}
 sub dbVLSZ         {$S_ = shift; if(!$S_){$S_ = $DBI_LVAR_SZ}else{$S_=128 if($S_<128);$DBI_LVAR_SZ=$S_}}
 sub dbFile         {$S_ = shift; $DBFILE = $S_ if $S_; $DBFILE}
@@ -165,32 +165,32 @@ try {
     $cgi     = $cgi = CGI->new();
     $sss     = shift; #shift will only and should, ONLY happen for test scripts.
     $sss     = CGI::Session->new("driver:File", $cgi, {Directory=>$LOG_PATH, SameSite=>'Lax'}) if !$sss;
-    $sid     = $sss->id();    
+    $sid     = $sss->id();
     $alias   = $sss->param('alias');
     $pass    = $sss->param('passw');
     $pub     = $cgi->param('pub');$pub = $sss->param('pub') if not $pub; #maybe test script session set in $sss.
     $dbname  = $sss->param('database'); $dbname = $alias if(!$dbname);
-    
+
     ##From here we have data source set, currently Progress DB SQL and SQLite SQL compatible.
     dbSrc($sss->param('db_source'));
 
     if($pub){#we override session to obtain pub(alias)/pass from file main config.
-        open(my $fh, '<', logPath().'main.cnf') or LifeLogException->throw("Can't open main.cnf: $!");        
+        open(my $fh, '<', logPath().'main.cnf') or LifeLogException->throw("Can't open main.cnf: $!");
         while (my $line = <$fh>) {
                   chomp $line;
                   my $v = parseAutonom('PUBLIC_LOGIN',$line);
-                  if($v){my @cre = split '/', $v; 
-                           $alias = $cre[0];                           
+                  if($v){my @cre = split '/', $v;
+                           $alias = $cre[0];
                            $pass = uc crypt $cre[1], hex Settings->CIPHER_KEY;
-                  }                    
+                  }
                   $v = parseAutonom('PUBLIC_CATS',$line);
                   if($v){my @cats= split(',',$v);
                         foreach(@cats){
                             $SQL_PUB .= "ID_CAT=".trim($_)." OR ";
                         }
                         $SQL_PUB =~ s/\s+OR\s+$//;
-                   }elsif($line =~ /<<PLUGINS</){        
-                        $S_ = substr($line, 10);               
+                   }elsif($line =~ /<<PLUGINS</){
+                        $S_ = substr($line, 10);
                         while ($line = <$fh>) {
                             chomp $line;
                             last if($line =~ />$/);
@@ -199,27 +199,27 @@ try {
                         $anons{'PLUGINS'} = $S_;
                         next;
                     }else{
-                        $v = $v = parseAutonom(META,$line); #($line =~ /<<^CONFIG_META<'/p){                        
+                        $v = $v = parseAutonom(META,$line); #($line =~ /<<^CONFIG_META<'/p){
                         if($v){
                             $anons{META} = $v;
                             last #we can stop reading the config here, rest of it is irrelevant.
                         }
                     }
-                   
+
         }
-        close $fh; 
-        if(!$SQL_PUB&&$pub ne 'test'){$alias=undef}       
+        close $fh;
+        if(!$SQL_PUB&&$pub ne 'test'){$alias=undef}
     }
     if(!$alias){
-        print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");        
+        print $cgi->redirect("login_ctr.cgi?CGISESSID=$sid");
         exit;
-    }    
+    }
     my $ret  = connectDB($dbname, $alias, $pass);
-    getConfiguration($ret);    
+    getConfiguration($ret);
     setupTheme();
     $sss->expire($SESSN_EXPR);
     return $ret;
-}catch{    
+}catch{
     SettingsException->throw(error=>"DSN<$DSN>".$@, show_trace=>$DEBUG);
     exit;
 }
@@ -237,9 +237,9 @@ sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag
         my ($t,$val) = ($2,$4);
         $val =~ s/""$//g; #empty is like not set
         $val =~ s/^"|"$//g;chop $val if $val =~ s/>$//g;
-        if($t eq $tag && $val){           
+        if($t eq $tag && $val){
            return toPropertyValue( $val );
-        }        
+        }
     }
 
     return;
@@ -248,9 +248,9 @@ sub parseAutonom { #Parses autonom tag for its crest value, returns undef if tag
 sub toPropertyValue {
     my $prm = shift;
     if($prm){
-       my $p = lc $prm; 
+       my $p = lc $prm;
        foreach(@T){return 1 if $_ eq $p}
-       foreach(@F){return 0 if $_ eq $p}       
+       foreach(@F){return 0 if $_ eq $p}
     }
     return $prm;
 }
@@ -262,8 +262,8 @@ sub today {
 }
 
 #Call after getConfig subroutine. Returns DateTime->now() set to timezone.
-sub setTimezone {    
-    my $to  = shift; #optional for testing purposes.    
+sub setTimezone {
+    my $to  = shift; #optional for testing purposes.
     my $ret = DateTime->now();
     if(!$anons{'auto_set_timezone'}){
        if($TIME_ZONE_MAP){
@@ -282,7 +282,7 @@ sub setTimezone {
             }
             else{
                 try{#maybe current setting is valid and the actual one?
-                    $ret -> set_time_zone($TIME_ZONE); 
+                    $ret -> set_time_zone($TIME_ZONE);
                 }catch{
                  SettingsException->throw(error=>"Zone not mapped:$TIME_ZONE\n<b>Available zones:</b>\n$TIME_ZONE_MAP\n", show_trace=>$DEBUG);
                 }
@@ -316,7 +316,7 @@ return qq(
 )}
 sub createCATStmt {
     if($IS_PG_DB){
-        return qq(    
+        return qq(
         CREATE TABLE CAT(
             ID INT             GENERATED BY DEFAULT AS IDENTITY,
             NAME               VARCHAR(16),
@@ -325,7 +325,7 @@ sub createCATStmt {
         );
         CREATE INDEX idx_cat_name ON CAT (NAME);
     )}
-return qq(    
+return qq(
     CREATE TABLE CAT(
         ID INT             PRIMARY KEY NOT NULL,
         NAME               VARCHAR(16),
@@ -333,13 +333,13 @@ return qq(
     );
     CREATE INDEX idx_cat_name ON CAT (NAME);
 )}
-sub createLOGStmt { 
+sub createLOGStmt {
 #ID_RTF in v.2.0 and lower is not an id, changed to byte from v.2.1.
-if($IS_PG_DB){ 
+if($IS_PG_DB){
         return qq(
         CREATE TABLE LOG (
             ID INT UNIQUE GENERATED ALWAYS AS IDENTITY,
-            ID_CAT INT        NOT NULL,            
+            ID_CAT INT        NOT NULL,
             DATE TIMESTAMP    NOT NULL,
             LOG VARCHAR ($DBI_LVAR_SZ) NOT NULL,
             RTF    SMALLINT   DEFAULT 0,
@@ -347,11 +347,11 @@ if($IS_PG_DB){
             AFLAG  INT        DEFAULT 0,
             STICKY BOOL       DEFAULT FALSE,
             PRIMARY KEY(ID)
-        );)} 
+        );)}
 
   return qq(
     CREATE TABLE LOG (
-        ID_CAT INT        NOT NULL,        
+        ID_CAT INT        NOT NULL,
         DATE DATETIME     NOT NULL,
         LOG VARCHAR ($DBI_LVAR_SZ) NOT NULL,
         RTF    BYTE       DEFAULT 0,
@@ -380,7 +380,7 @@ sub createViewLOGStmt {
         SELECT *, (select count(ID) from LOG as recount where a.id >= recount.id) as PID
             FROM LOG as a $where ORDER BY DATE DESC;
         );
-    } 
+    }
 return qq(
 CREATE VIEW $name AS
     SELECT rowid as ID,*, (select count(rowid) from LOG as recount where a.rowid >= recount.rowid) as PID
@@ -395,7 +395,7 @@ sub createAUTHStmt {
             EMAIL               varchar(44),
             ACTION INT
         );
-        CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);      
+        CREATE INDEX idx_auth_name_passw ON AUTH (ALIAS, PASSW);
     )}
 return qq(
     CREATE TABLE AUTH(
@@ -409,7 +409,7 @@ return qq(
 sub createNOTEStmt {
     if($IS_PG_DB){
       # return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC jsonb);)
-      return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC bytea);) 
+      return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC bytea);)
     }
     return qq(CREATE TABLE NOTES (LID INT PRIMARY KEY NOT NULL, DOC BLOB);)
 }
@@ -419,11 +419,11 @@ return qq(
     CREATE TABLE LOGCATSREF (
         LID INT NOT NULL,
         CID INT NOT NULL,
-		primary key(LID)		
-    );    
+		primary key(LID)
+    );
 )}
-# CONSTRAINT fk_log  FOREIGN KEY(LID) REFERENCES LOG(ID) ON DELETE CASCADE, 
-# CONSTRAINT fk_cats FOREIGN KEY(CID) REFERENCES CAT(ID) ON DELETE CASCADE 
+# CONSTRAINT fk_log  FOREIGN KEY(LID) REFERENCES LOG(ID) ON DELETE CASCADE,
+# CONSTRAINT fk_cats FOREIGN KEY(CID) REFERENCES CAT(ID) ON DELETE CASCADE
 return qq(
     CREATE TABLE LOGCATSREF (
         LID INT NOT NULL,
@@ -466,7 +466,7 @@ sub getConfiguration { my ($db, $hsh) = @_;
                 default                { $anons{ $r[1] } = $r[2] }
                 }
         }
-        #Anons are murky grounds. -- @bud        
+        #Anons are murky grounds. -- @bud
         if($hsh){
             my %m = %{$hsh};
             $TIME_ZONE_MAP = $m{'TIME_ZONE_MAP'}; #This can be a large mapping we file it to tz.map, rather then keep in db.
@@ -504,9 +504,9 @@ sub getConfiguration { my ($db, $hsh) = @_;
             read  $fh, $TIME_ZONE_MAP, -s $fh;
             close $fh;
         }
-        &setTimezone; 
+        &setTimezone;
     }
-    catch {       
+    catch {
         SettingsException->throw(error=>"DSN:$DSN \@Settings::getConfiguration.ERR ->[$@]", show_trace=>$DEBUG);
     };return
 }
@@ -514,16 +514,16 @@ sub getConfiguration { my ($db, $hsh) = @_;
 sub timeFormatSessionValue {
     my $v = shift;
     my $ret = "+2m";
-    if(!$v){$v=$ret}    
+    if(!$v){$v=$ret}
     if($v !~ /^\+/){$v='+'.$v.'m'}# Must be positive added time
     # Find first match in whatever passed.
-    my @a = $v =~ m/(\+\d+[shm])/gis;    
+    my @a = $v =~ m/(\+\d+[shm])/gis;
     if(scalar(@a)>0){$v=$a[0]}
-    # Test acceptable setting, which is any number from 2, having any s,m or h. 
+    # Test acceptable setting, which is any number from 2, having any s,m or h.
     if($v =~ m/(\+*[2-9]\d*[smh])|(\+[1-9]+\d+[smh])/){
         # Next is actually, the dry booger in the nose. Let's pick it out!
         # Someone might try to set in seconds value to be under two minutes.
-        @a = $v =~ m/(\d[2-9]\d+)/gs;        
+        @a = $v =~ m/(\d[2-9]\d+)/gs;
         if(scalar(@a)>0 && int($a[0])<120){return $ret}else{return $v}
     }
     elsif($v =~ m/\+\d+/){# is passed still without time unit? Minutetise!
@@ -542,7 +542,7 @@ sub setupTheme {
         when ("Moon")  { %theme = (css=>'wsrc/main_moon.css',  colBG=>'#000000', colSHDW=>'#DCDCDC') }
         when ("Earth") { %theme = (css=>'wsrc/main_earth.css', colBG=>'#228B22', colSHDW=>'#8FBC8F') }
         default { # Standard;
-                         %theme = (css=>'wsrc/main.css',colBG=>'#c8fff8',colSHDW=>'#9baec8');           
+                         %theme = (css=>'wsrc/main.css',colBG=>'#c8fff8',colSHDW=>'#9baec8');
         }
     }
 }
@@ -550,7 +550,7 @@ sub setupTheme {
 sub schema_tables{
     my ($db) = @_;
     my %tables = ();
-    if(Settings::isProgressDB()){        
+    if(Settings::isProgressDB()){
         my @tbls = $db->tables(undef, 'public');
         foreach (@tbls){
             my $t = uc substr($_,7); #We check for tables in uc.
@@ -558,7 +558,7 @@ sub schema_tables{
         }
     }
     else{
-        my $pst = selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");        
+        my $pst = selectRecords($db,"SELECT name FROM sqlite_master WHERE type='table' or type='view';");
         while(my @r = $pst->fetchrow_array()){
             $tables{$r[0]} = 1;
         }
@@ -576,16 +576,16 @@ sub renumerate {
     if($stbls{'LIFE_LOG_TEMP_TABLE'}){
        $db->do('DROP TABLE LIFE_LOG_TEMP_TABLE;');
     }
-    $db->do($sql);    
+    $db->do($sql);
     # Delete any possible orphaned Notes records.
     my $st = selectRecords($db, "SELECT LID, LOG.$CI from NOTES LEFT JOIN LOG ON NOTES.LID = LOG.$CI WHERE LOG.$CI is NULL;");
     while(my @row=$st->fetchrow_array()) {
         $db->do("DELETE FROM NOTES WHERE LID=".$row[0].";")
-    }    
+    }
     $st->finish();
 
     if($IS_PG_DB){$db->do('DROP TABLE LOG CASCADE;')}else{$db->do('DROP TABLE LOG;')}
-    
+
     $db->do(&createLOGStmt);
     $db->do('INSERT INTO LOG (ID_CAT, DATE, LOG, RTF ,AMOUNT, AFLAG, STICKY)
                        SELECT ID_CAT, DATE, LOG, RTF, AMOUNT, AFLAG, STICKY FROM life_log_temp_table ORDER by DATE;');
@@ -595,7 +595,7 @@ sub renumerate {
     while(my @row=$st->fetchrow_array()) {
         my $ID_OLD   = $row[0];
         my $sql_date = $row[1];  #$sql_date =~ s/T/ /;
-        # if(!$IS_PG_DB){           
+        # if(!$IS_PG_DB){
         #   $sql_date = DateTime::Format::SQLite->parse_datetime($sql_date);
         # }
         $sql = "SELECT $CI DATE FROM LOG WHERE RTF > 0 AND DATE = '".$sql_date."';";
@@ -608,8 +608,8 @@ sub renumerate {
              catch{
                  SettingsException->throw(error=>"\@Settings::renumerate Database error encountered. sql->$sql", show_trace=>$DEBUG);
              };
-        }    
-    }    
+        }
+    }
     $st->finish();
 
 
@@ -622,7 +622,7 @@ sub selectRecords {
          die  "Wrong number of arguments, expecting Settings::selectRecords(\$db, \$sql) got Settings::selectRecords('@_').\n";
     }
     try{
-        my $pst	= $db->prepare($sql);                
+        my $pst	= $db->prepare($sql);
         return 0 if(!$pst);
         $pst->execute();
         return $pst;
@@ -636,13 +636,13 @@ sub getTableColumnNames {
         if(scalar(@_) < 2){
                 SettingsException->throw("ERROR Argument number is wrong->db is:$db\n", show_trace=>$DEBUG);
         }
-        
+
         my $pst = selectRecords($db, "SELECT name FROM PRAGMA_table_info('$table_name');");
         my @ret = ();
         while(my @r = $pst->fetchrow_array()){
             push @ret, $r[0];
         }
-        
+
 }
 
 sub printDebugHTML {
@@ -678,7 +678,7 @@ sub countRecordsIn {
 sub getCurrentSQLTimeStamp {
      my $dt;
      if(anon('auto_set_timezone')){$dt = DateTime->from_epoch(epoch => time())}
-     else{                         $dt = DateTime->from_epoch(epoch => time(), time_zone=> $TIME_ZONE)}     
+     else{                         $dt = DateTime->from_epoch(epoch => time(), time_zone=> $TIME_ZONE)}
      # 20200225  Found that SQLite->format_datetime, changes internally to UTC timezone, which is wrong.
      # Strange that this format_datetime will work from time to time, during day and some dates. (A Pitfall)
     #return DateTime::Format::SQLite->format_datetime($dt);
@@ -727,7 +727,7 @@ sub configPropertyRange {
 # Set it up   call -> Settings::configProperty($db, 0, $name, $value);
 sub configProperty {
     my($db, $id, $name, $value) = @_;  my $sql;
-    if (defined($db)&&defined($id)&&!defined($value)){  #trickeryy here to obtain existing.      
+    if (defined($db)&&defined($id)&&!defined($value)){  #trickeryy here to obtain existing.
         my $dbs = selectRecords($db, looks_like_number($id) ? "SELECT VALUE FROM CONFIG WHERE ID = $id;":
                                                               "SELECT VALUE FROM CONFIG WHERE NAME like '$id'");
         my @r = $dbs->fetchrow_array();
@@ -763,10 +763,10 @@ sub configProperty {
             if($id<$cnf_id_range){SettingsException->throw(
                   error => "ERROR Invalid id value provided, it is not in reserve meta range-> Settings::configProperty('$db',$id,'$name','$value')\n",
                   show_trace=>$DEBUG)}
-            if($_=$cnf_ids_taken{$id}){ die "ERROR Config property id: $id is already taken by: $name\n",}            
+            if($_=$cnf_ids_taken{$id}){ die "ERROR Config property id: $id is already taken by: $name\n",}
             }
             $sql = "INSERT INTO CONFIG (ID, NAME, VALUE) VALUES ($id, '$name', '$value');";
-            try{                
+            try{
                 $db->do($sql);
                 $cnf_ids_taken{$id} = $name;
             }
@@ -784,7 +784,7 @@ sub connectDBWithAutocommit {
     connectDB(undef,undef,undef,1);
 }
 sub connectDB {
-    my ($d,$u,$p,$a) = @_;    
+    my ($d,$u,$p,$a) = @_;
     $u = $alias if !$u;
     $p = $alias if !$p;
     $a = 1      if !$a;
@@ -795,11 +795,11 @@ sub connectDB {
         if ($IS_PG_DB)  {
             $DSN = $DBI_SOURCE .'dbname='.$d;
         }else{
-            $DSN = $DBI_SOURCE .'dbname='.$DBFILE;        
-        }    
-    try{        
+            $DSN = $DBI_SOURCE .'dbname='.$DBFILE;
+        }
+    try{
         return DBI->connect($DSN, $u, $p, {AutoCommit => $a, RaiseError => 1, PrintError => 0, show_trace=>1});
-    }catch{           
+    }catch{
        LifeLogException->throw(error=>"<p>Error->$@</p><br><pre>DSN: $DSN</pre>",  show_trace=>1);
     }
 }
@@ -809,7 +809,7 @@ sub connectDB {
 use Crypt::Blowfish;
 use Crypt::CBC;
 sub newCipher {
-    my $p = shift;    
+    my $p = shift;
        $p = $alias.$p.Settings->CIPHER_KEY;
        $p =~ s/(.)/sprintf '%04x', ord $1/seg;
        $p = substr $p.CIPHER_PADDING, 0, 58;
@@ -824,10 +824,10 @@ sub saveCurrentTheme {
         close($fh);
     }return;
 }
-sub loadLastUsedTheme {    
+sub loadLastUsedTheme {
     open my $fh, '<', $LOG_PATH.'current_theme' or return $THEME;
     $THEME = <$fh>;
-    close($fh);    
+    close($fh);
     &setupTheme; return
 }
 sub saveReserveAnons {
@@ -835,29 +835,29 @@ sub saveReserveAnons {
     my @dr = split(':', dbSrc());
     LifeLogException->throw(error=>"Meta anon property ".META." not found!\n".
                                    "You possibly have an old main.cnf file there.",  show_trace=>1) if not $meta;
-    try{        
+    try{
         my $db = connectDBWithAutocommit(0);
         open (my $fh, '>', $LOG_PATH.'config_meta_'.(lc($dr[1])).'_'.$dbname) or die $!;
          print $fh $meta;
          #It is reserve meta anon type, value (200) is not mutuable, internal.
-         my $dbs = selectRecords($db, "SELECT ID, NAME, VALUE FROM CONFIG WHERE ID >= 200;"); 
+         my $dbs = selectRecords($db, "SELECT ID, NAME, VALUE FROM CONFIG WHERE ID >= 200;");
         while(my @r=$dbs->fetchrow_array()){
             print $fh "$r[0]|$r[1] = $r[2]\n" if $r[0] =~ /^\^/;
         }
         close($fh);return
 
-    }catch{           
+    }catch{
        LifeLogException->throw(error=>"<p>Error->$@</p><br><pre>DSN: $DSN</pre>",  show_trace=>$DEBUG);
     }return
 }
-sub loadReserveAnons(){    
-    try{        
-        my @dr = split(':', dbSrc());    
+sub loadReserveAnons(){
+    try{
+        my @dr = split(':', dbSrc());
         my $db = connectDBWithAutocommit(0);
-        my %reservs = ();        
+        my %reservs = ();
         my $stInsert = $db->prepare('INSERT INTO CONFIG VALUES(??);');
         my $stUpdate = $db->prepare('UPDATE CONFIG (NAME, VALUE) WHERE ID =? VALUES(?, ?);');
-        my $dbs = selectRecords($db, "SELECT ID, NAME, VALUE FROM CONFIG WHERE ID >= 200;"); 
+        my $dbs = selectRecords($db, "SELECT ID, NAME, VALUE FROM CONFIG WHERE ID >= 200;");
         $db->do('BEGIN TRANSACTION;');
                     while(my @r=$dbs->fetchrow_array()){
                     $reservs{$r[1]} = $r[2] if !$reservs{$r[1]}
@@ -878,16 +878,16 @@ sub loadReserveAnons(){
                     }
                     close($fh);
         $db->commit();
-    }catch{       
+    }catch{
        LifeLogException->throw(error=>"<p>Error->$@</p><br><pre>DSN: $DSN</pre>",  show_trace=>1);
     }
-    return 1;    
+    return 1;
 }
 
 sub dumpVars {
-    # Following will not help, as in perl package variables are codes 
+    # Following will not help, as in perl package variables are codes
     # and the web container needs sudo permissions for memory access.
-    # my $class = shift;    
+    # my $class = shift;
     # my $self = bless {}, $class;
     # use DBG;
     # dmp $self;
@@ -896,7 +896,7 @@ sub dumpVars {
     my $meta = $anons{META};
     return qq/
 release        {$RELEASE_VER}
-logPath        {$LOG_PATH} 
+logPath        {$LOG_PATH}
 logPathSet     {$LOG_PATH}
 timezone       {$TIME_ZONE}
 transparent    {$TRANSPARENCY}
@@ -922,14 +922,14 @@ css            {$TH_CSS}
 js             {$JS}
 compressPage   {$COMPRESS_ENC}
 debug          {$DEBUG}
-dbSrc          {$DBI_SOURCE}  
+dbSrc          {$DBI_SOURCE}
 dbVLSZ         {$DBI_LVAR_SZ}
 dbFile         {$DBFILE}
 dbName         {$dbname}
 dsn            {$DSN}
-isProgressDB   {$IS_PG_DB} 
-sqlPubors      {$SQL_PUB}      
-meta           {$meta}  
+isProgressDB   {$IS_PG_DB}
+sqlPubors      {$SQL_PUB}
+meta           {$meta}
 /
 }
 
