@@ -93,11 +93,8 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         className: 'tip-yellowsimple',
         showOn: 'focus',
         alignTo: 'target',
-        alignX: 'left',
-        alignY: 'center',
-        offsetX: 5,
-        showTimeout: 50,
-        allowTipHover: true
+        alignX: 'center',
+        alignY: 'bottom'
     });
     $('#am').poshytip({
         content: "Symbolic amount in your local or preferred currency. Can be left empty.",
@@ -109,6 +106,19 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         offsetX: 5,
         showTimeout: 100
     });
+
+    $('#Log_btn').poshytip({
+        content: "Clicking the Log button is naturally the next move.",
+        className: 'tip-yellowsimple',
+        showOn: 'none',
+        alignTo: 'target',
+        alignX: 'left',
+        alignY: 'center',
+        offsetX: 15
+    });
+    $('#Log_btn').poshytip('show');
+    setTimeout(function() {  $('#Log_btn').poshytip('hide');  }, 5000);
+
     $('#am').click(function(e){
         e.preventDefault();
         let v = $('#am').val();
@@ -365,11 +375,10 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
         if(event.which === 13) {
           $(this).next().focus();
         }
-      });
+    });
 
 
     setPageSessionTimer(expires);
-
 
     $(function() {
         $( "#rs_keys, #rs_keys2" ).autocomplete({
@@ -409,7 +418,7 @@ function onBodyLoad(toggle, locale, tz, today, expires, rs_cur, log_limit) {
             source: AUTOWORDS
             });
     });
-
+    $('#main_table').css('visibility', 'visible');
     display("Log page is ready!", 5);
 
 }
@@ -828,7 +837,7 @@ function show(id) {
     return false;
 }
 
-function toggle(id, mtoggle) {
+function toggle(id, mtoggle, focus_point) {
    //Menu button untoggle it up first. Complex interaction situation.
     if(mtoggle){
         if(!$(id+" .collpsd").is(":visible")){
@@ -846,6 +855,9 @@ function toggle(id, mtoggle) {
         $(id).toggle();
     }
     $("html, body").animate({ scrollTop: 0 }, "fast");
+    if(focus_point){
+        setTimeout(function(){$(focus_point).focus()}, 100);
+    }
     return false;
 }
 

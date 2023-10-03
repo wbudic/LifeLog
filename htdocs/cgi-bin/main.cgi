@@ -300,7 +300,7 @@ my $currsymb = &Settings::currenySymbol;
 if($isPUBViewMode){$eh = ""}
 else{$eh='<th>Edit</th>'}
 my $log_output =qq(<FORM id="frm_log" action="data.cgi" onSubmit="return formDelValidation();">
-<TABLE class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
+<TABLE id="main_table" style="visibility:hidden" class="tbl" border="0" width=").&Settings::pagePrcWidth.qq(%">
 <tr class="hdr">
 	<th>Date</th>
 	<th>Time</th>
@@ -850,7 +850,7 @@ my $frm = qq(
 	&nbsp;<button type="button" onclick="return setNow();">Now</button>
 			&nbsp;<button type="reset"  onclick="setNow();resetDoc(); return true;">Reset</button>
 
-                <span id="cat_desc" name="cat_desc">Enter log...</span>
+                <span id="cat_desc" name="cat_desc">Please Wait...</span>
 
 			&nbsp;&nbsp;&nbsp;Category:&nbsp;
 
@@ -865,7 +865,7 @@ my $frm = qq(
 	</tr>
 	<tr class="collpsd"><td style="text-align:right; vertical-align:top;">Log:</td>
 		<td id="al" colspan="2" style="text-align:top;">
-			<textarea id="el" name="log" rows="3" style="float:left; width:99%;" onChange="toggleVisibility('cat_desc',true)"></textarea>
+			<textarea id="el" name="log" rows="5" style="float:left; width:99%;" onChange="toggleVisibility('cat_desc',true)"></textarea>
 		</td>
 	</tr>
 	<tr class="collpsd" style="text-align:right; vertical-align:top;">
@@ -1073,7 +1073,7 @@ else{
         <a id="menu_close" href="#"><span class="ui-icon ui-icon-heart" style="float:none;"></span></a>
         </div>
         <hr>
-        <a class="a_" onclick="return toggle('#div_log',true);">Log</a><br>
+        <a id="Log_btn" class="a_" onclick="return toggle('#div_log',true, '#el');" title="Click to enter a log.">Log</a><br>
         <a href="#" title="TOP" onclick="return submitTop();" ><span class="ui-icon ui-icon-triangle-1-w" style="float:none;"></span></a>
         <a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
         <a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
