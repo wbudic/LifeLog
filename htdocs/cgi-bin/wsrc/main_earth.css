@@ -152,7 +152,7 @@ div#rz {
     font-style: normal;
     font-weight: bold;
     font-size: large;
-    background-color: #7a3d03;
+    background-color: #d1663c;
     border: 1px solid #16380f;
     border-right: 1px solid black;
     text-align: center;
@@ -216,25 +216,49 @@ img {
     position: fixed;
     float: left;
     margin: 0;
-    border: 2px solid #23771c;
+    border: 2px solid #6a4d17;
     padding: 5px;
     text-align: center;
+    margin-left: 90%;
     background: #c28a4a;
-    margin-left: 91%;
+
 }
 
+/*extends properties in effects.css*/
+#menu_page {
+    border: 1px solid #506354;
+    padding: 8px;
+    filter: drop-shadow(10px 8px 5px #577272);
+}
 
 #frm_login {
     vertical-align: middle;
     margin: 0;
 }
 
-
-
-.ui-button,
-.ui-button-text .ui-button {
+.marg-top-2{
+    margin-top: 2px;
+}
+.nav_data{
+margin-top: 5px;
+border: 1px solid;
+padding: 5px;
+}
+.ui-icon,.menu_title {
+    background-color: aliceblue;
+    font-weight: bolder;
+    color: #070707;
+}
+.ui-button {
     font-size: 12px !important;
-    background: #b5e7a1 !important;
+}
+.ui-button:hover {
+    background: #a0d7dc;
+    background-image: none;
+    color: #000000  !important;
+}
+.ui-selectmenu-button:{
+    background-image: none;
 }
 
 .ui-menu {
