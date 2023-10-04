@@ -24,7 +24,7 @@ require Settings;
 my $db      = Settings::fetchDBSettings();
 my $cgi     = Settings::cgi();
 my $sss     = Settings::session();
-my $sid     = Settings::sid(); 
+my $sid     = Settings::sid();
 my $dbname  = Settings::dbFile();
 my $alias   = Settings::alias();
 
@@ -46,8 +46,8 @@ my $CSS=<<_____CSS;
 }
 
 .info span {
-    border: 1px solid black;    
-    margin-top: 5px;    
+    border: 1px solid black;
+    margin-top: 5px;
     float: left;
     width:97%
 }
@@ -71,22 +71,22 @@ my $CSS=<<_____CSS;
     display:table-row-group;
 }
 .cell1 {
-	display: table-cell;	
+	display: table-cell;
     padding: 5px;
-    border-bottom: solid 1px;	
+    border-bottom: solid 1px;
 	border-right: solid 2px;
     vertical-align: top;
     width: 10%;
 }
 .cell2 {
-    display:table-cell;    
+    display:table-cell;
     padding: 5px;
     border-bottom: solid 1px;
     vertical-align: top;
     width:25%;
 }
 .cell3 {
-    display:table-cell;    
+    display:table-cell;
     padding: 5px;
     border-bottom: solid 1px;
     vertical-align: top;
@@ -100,7 +100,6 @@ print $cgi->start_html(-title => "Log Data Stats",
                                   {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                                   {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
                        -style => [{-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
-                                  {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
                                   {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
                                   {-type => 'text/css', -src => Settings::theme('css')},
                                   {-script=>$CSS}
@@ -147,12 +146,12 @@ my $hardware_status = "<b>Host: </b>$hst<br>".join("\t", map { defined ? $_ : ''
    $hardware_status =~ s/^(\w+:)/<b>$1<\/b>/m;
    #$hardware_status =~ s/(\t\w+:)/<b>$1<\/b>/gms;
    $hardware_status =~ s/\t+/<br>/gm; #TODO: This temp. resolves the regex needs to be adjusted so we join with <br>
-   $hardware_status =~ s/Memory:/<br><b>Memory: <\/b>/g;   
+   $hardware_status =~ s/Memory:/<br><b>Memory: <\/b>/g;
    $hardware_status =~ s/up\s/<b>Server is up: <\/b>/g;
 
-my $log = "<span>".$hardware_status."</span>"."<pre>\n".`df -h -l -x tmpfs`."</pre>";   
+my $log = "<span>".$hardware_status."</span>"."<pre>\n".`df -h -l -x tmpfs`."</pre>";
 ###
-   Settings::toLog($db, $log);   
+   Settings::toLog($db, $log);
 ###
 my $prc = 'ps -eo size,pid,user,command --sort -size | awk \'{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }\'';
 my $processes = qx($prc | sort -u -r -);
@@ -179,7 +178,7 @@ my $tbl = qq(
   </div>
   <div class="row r2">
         <div class="cell1">Number of Records:</div><div class="cell2">$log_rc</div>
-  </div> 
+  </div>
   <div class="row r3">
         <div class="cell1">No. of Records This Year:</div><div class="cell2">$log_this_year_rc</div>
   </div>
@@ -202,7 +201,7 @@ my $tbl = qq(
   </div>
   <div class="row r3">
         <div class="cell1">Private IP</div><div class="cell2">$IPPrivate</div>
-  </div> 
+  </div>
 </div>
 <div class="table r0">
     <div class="header"><div class="cell2">Server Info</div></div>
@@ -214,6 +213,7 @@ print qq(<div id="menu" title="Menu" style="border: 2px solid black; padding: 5p
 <div class="r0" style="border: 1px solid black; margin: 2px; margin-bottom: 10px; padding:5px;"><b>Menu</b></div>
 <div><a class="a_" href="main.cgi">Log</a><hr></div>
 <div><a class="a_" href="config.cgi">Config</a><hr></div>
+<div><a class="a_" href="index.cgi">Index</a><hr></div>
 <div><a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a></div>
 </div>);
 
@@ -225,7 +225,7 @@ print qq(
     </div>
 
     <div>&nbsp;</div>
-    
+
     <div class="info">
         <span class="info r2" style="font-size:larger;padding:5px;width:98%;"><b>Status & Information</b></span>
         <span style="font-size:larger;padding:5px;width:98%;">$tbl</span>
@@ -233,7 +233,7 @@ print qq(
 
     <div>&nbsp;</div>
 
-    <div class="info">    
+    <div class="info">
         <span class="r2" style="font-size:larger;padding:5px;width:98%;"><b>Server Side Processes</b></span>
         <span style="border: 1px solid black; padding-right: 0px;  width:98%">
                 <pre class="ql-container r2" style="max-height:480px; width:100%; overflow-x:auto; margin-top:0; margin-bottom:0"">$processes</pre>

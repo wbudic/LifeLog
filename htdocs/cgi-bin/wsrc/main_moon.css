@@ -240,17 +240,42 @@ img {
     color: white;
     background-color: #363531;
 }
+/*extends properties in effects.css*/
+#menu_page {
+    border: 1px solid aliceblue;
+    padding: 8px;
+    filter: drop-shadow(10px 8px 5px #577272);
+}
 
 #frm_login {
     vertical-align: middle;
     margin: 0;
 }
 
+.marg-top-2{
+    margin-top: 2px;
+}
+.nav_data{
+margin-top: 5px;
+border: 1px solid;
+padding: 5px;
+}
 
-
-.ui-button,
-.ui-button-text .ui-button {
+.ui-icon,.menu_title {
+    background-color: aliceblue;
+    font-weight: bolder;
+    color: #070707;
+}
+.ui-button {
     font-size: 12px !important;
+}
+.ui-button:hover {
+    background: #a0d7dc;
+    background-image: none;
+    color: #000000  !important;
+}
+.ui-selectmenu-button:{
+    background-image: none;
 }
 
 .ui-menu {
@@ -258,8 +283,9 @@ img {
     padding: 10px;
     margin: 0;
     display: block;
-    width: 227px;
     text-align: left;
+    background-image: none;
+    background:  #e4f1fb;
 }
 
 .ui-menu .ui-menu {
@@ -270,7 +296,11 @@ img {
     margin: 0;
     padding: 0;
     width: 200px;
+    color: #000000;
 }
+.ui-menu .ui-menu-item-wrapper {
+    color: #000000;
+  }
 
 .ui-menu .ui-menu-item a {
     text-decoration: none;

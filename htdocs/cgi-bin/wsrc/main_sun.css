@@ -15,7 +15,6 @@ body{
 }
 
 p {
-    font-family: Bookman;
     margin-left: 70px;
     font-weight: bold;
 }
@@ -29,7 +28,6 @@ pre{
 table,
 th,
 td {
-    font-family: Bookman;
     border-collapse: collapse;
     padding: 5px;
     margin: auto;
@@ -144,14 +142,6 @@ th,
     padding: 2%;
     margin: 0px auto;
 }
-.login {
-
-    vertical-align: middle; text-align:center; width: 60% !important;
-    background:black url('images/Sun-Rotating.gif');
-    background-repeat: no-repeat;
-    background-repeat: space;
-    background-position-x: right;
-}
 div#rz {
     border: 1px solid black;
     text-align: left;
@@ -172,7 +162,13 @@ div#rz {
     border-right: 1px solid black;
     text-align: center;
 }
-
+.login {
+    vertical-align: middle; text-align:center; width: 60% !important;
+    background:black url('images/Sun-Rotating.gif');
+    background-repeat: no-repeat;
+    background-repeat: space;
+    background-position-x: right;
+}
 .edit {
     margin: 2px;
     padding: 2px;
@@ -238,29 +234,41 @@ img {
     margin-left: 91%;
 }
 
+#menu_page {
+    border: 2px solid #C2B034;
+}
+.marg-top-2{
+    margin-top: 2px;
+}
+
 #frm_login {
     vertical-align: middle;
     margin: 0;
 }
-
+.ui-icon,.menu_title {
+    background-color: gold;
+    font-weight: bolder;
+}
 .ui-button {
   font-size: 12px !important;
-    color: #b87a1d #e4f1fb
+}
+.ui-button:hover {
+    background: #fad900;
+    background-image: none;
+    color: #000000  !important;
+}
+.ui-selectmenu-button:{
+    background-image: none;
+}
+.ui-selectmenu-button:hover{
+    background-image: none;
+    background: #fad900;
 }
 
-.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
-    border: 1px solid #ead5ae;
-    background-color: #d4af37;
-    background: #ffdf00;
-    font-weight: bold;
-    color: #b87a1d #e4f1fb
-}
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
     border: 1px solid #ead5ae;
     background-color: #d4af37;
     background: #fbff00;
-    font-weight: bold;
-    color: #b87a1d #e4f1fb
 }
 .dropdown-menu table td{
     color:rgb(226, 34, 34);
@@ -296,8 +304,6 @@ img {
 	border: 1px solid #ead5ae;
 	background-color: #d4af37;
 	background: #e9ff27;
-	font-weight: bold;
-	color: #e4f1fb;
 }
 
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover,
@@ -390,19 +396,19 @@ html .ui-button.ui-state-disabled:active {
     color:midnightblue;
 }
 a:link {
-    color: #f4f80f
+    color: #5c00ff;
 }
-   a:visited {
-    color: #0c0c0c;
-   }
-
-   a:hover {
-       color: #2d7081;
-       font-style:normal;
-   }
-   a:active {
-       color: #1eff00;
-   }
+a:visited {
+color: #d7165a;
+font-style: italic;
+}
+a:hover {
+    color: #000000;
+    font-style:normal;
+}
+a:active {
+    color: #1eff00;
+}
 #sss_status{
     font-size: smaller;
     font-style: italic;

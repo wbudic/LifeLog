@@ -1074,10 +1074,12 @@ else{
         </div>
         <hr>
         <a id="Log_btn" class="a_" onclick="return toggle('#div_log',true, '#el');" title="Click to enter a log.">Log</a><br>
-        <a href="#" title="TOP" onclick="return submitTop();" ><span class="ui-icon ui-icon-triangle-1-w" style="float:none;"></span></a>
-        <a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>
-        <a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>
+		<div class="nav_data">
+        <a href="#" title="TOP" onclick="return submitTop();"><span class="ui-icon ui-icon-triangle-1-w" style="float:none;"></span></a>&nbsp;
+        <a href="#" title="PREVIOUS" onclick="return submitPrev($log_rc_prev, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-w" style="float:none;"></span></a>&nbsp;
+        <a href="#" title="NEXT" onclick="return submitNext($log_cur_id, $rec_limit);"><span class="ui-icon ui-icon-arrowthick-1-e" style="float:none;"></span></a>&nbsp;
         <a href="#" title="END" onclick="return submitEnd($rec_limit);"><span class="ui-icon ui-icon-triangle-1-e" style="float:none;"></span></a>
+		</div>
         <hr>
         <a class="a_" onclick="return toggle('#div_srh',true);">Search</a><hr>
         <a class="a_" onclick="return deleteSelected();">Delete</a><hr>
@@ -1629,8 +1631,8 @@ sub outputPage {
 			{ -type => 'text/css', -src => 'wsrc/quill/monokai-sublime.min.css' },
 			{ -type => 'text/css', -src => 'wsrc/quill/quill.snow.css' },
 			{ -type => 'text/css', -src => 'wsrc/jquery.sweet-dropdown.css' },
-			{ -type => 'text/css', -src =>  Settings::theme('css') },
 			{ -type => 'text/css', -src => 'wsrc/effects.css' },
+			{ -type => 'text/css', -src =>  Settings::theme('css') },
 		],
 		-script => [
 			{ -type => 'text/javascript', -src => 'wsrc/main.js' },

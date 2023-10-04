@@ -20,12 +20,12 @@
     [@@[wsrc/jquery-ui.js]@@]
 ]JS]
 [CSS[
-    [@@[wsrc/main.css]@@]
     [@@[wsrc/effects.css]@@]
     [@@[wsrc/feeds.css]@@]
     [@@[wsrc/jquery-ui.css]@@]
     [@@[wsrc/jquery-ui.theme.css]@@]
     [@@[wsrc/jquery-ui.theme.css]@@]
+    [@@[wsrc/main.css]@@]
 ]CSS]
 
 <STYLE<
@@ -301,10 +301,10 @@ function loadDocResult(content){
  <#<
     <span class="menu_head">
         <a id="to_bottom" href="#bottom" title="Go to bottom of page.">
-        <span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;background-color: aliceblue"></span></a>
-                &nbsp; Page &nbsp;
+        <span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
+               <span class="menu_title">&nbsp; Page &nbsp;</span>
         <a id="to_top" href="#top" title="Go to top of page.">
-        <span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;background-color: aliceblue"></span></a>
+        <span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>
     </span>
     <hr>
     <a class="ui-button ui-corner-all ui-widget" href="index.cgi">Index</a><hr>

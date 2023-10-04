@@ -83,13 +83,15 @@ Config
 <hr>
 <a class="a_" href="main.cgi">Log</a><hr>
 <a class="a_" href="stats.cgi">Stats</a><hr>
-<font size="2"><b>Jump to Sections</b><br>
-[<a href="#categories"><b>Categories</b></a>]<br>
-[<a href="#vars"><b>System</b></a>]<br>
-[<a href="#dbsets"><b>DB Fix</b></a>]<br>
-[<a href="#passets"><b>Pass</b></a>]<br>
-[<a href="#backup"><b>Backup</b></a>]
-</font>
+<div class="menu_title">
+&nbsp;Jump to Sections&nbsp;<br>
+<a class="ui-button marg-top-2" href="#categories"><b>Categories</b></a><br>
+<a class="ui-button marg-top-2" href="#vars"><b>System</b></a><br>
+<a class="ui-button marg-top-2" href="#dbsets"><b>DB Fix</b></a><br>
+<a class="ui-button marg-top-2" href="#passets"><b>Pass</b></a><br>
+<a class="ui-button marg-top-2" href="#backup"><b>Backup</b></a><hr>
+</div>
+
 <hr>
 <br>
 <a class="a_" href="login_ctr.cgi?logout=bye">LOGOUT</a>
@@ -363,7 +365,7 @@ my $frmDB = qq(
         <tr class="r1" align="left"><th>Extra Action</th><th>Description</th></tr>
         <tr class="r0" align="left"><td><input type="checkbox" name="reset_syst"/>Reset Settings</td><td>Resets system settings to default values.</td></tr>
         <tr class="r1" align="left"><td><input type="checkbox" name="wipe_syst"/>Wipe Settings</td><td>Wipes system settings to be forced from the config file (will initiate logoff).</td></tr>
-        <tr class="r0" align="left"><td><input type="checkbox" name="reset_cats"/>Reset Categories</td><td>Resets Categories to factory values (will initiate logoff).</td></tr>        
+        <tr class="r0" align="left"><td><input type="checkbox" name="reset_cats"/>Reset Categories</td><td>Resets Categories to factory values (will initiate logoff).</td></tr>
         <tr class="r1" align="left"><td><input type="checkbox" name="del_by_cats"/>Delete by Category <font color=red></font><br>
         $cats</td><td>Selects and displays by category logs to delete.</td></tr>
         <tr class="r0" align="left"><td><input type="checkbox" name="del_from"/>Delete from Date <br>
@@ -449,14 +451,14 @@ print qq(
         <a href="#top">&#x219F;</a>&nbsp;Configuration status -> <b>$status</b>&nbsp;<a href="#bottom">&#x21A1;</a>
     </div>
     <br>
-    <div id="rz" style="text-align:left; width:640px; padding:10px;">            
+    <div id="rz" style="text-align:left; width:640px; padding:10px;">
             <table border="0" width="100%">
 
-                
+
                 <tr><td><a name="backup"></a><H3>Backup File Format</H3></td></tr>
                 <tr><td><input id="btnFetch" type="button" onclick="alert('Backing up next, this can take up some time. Please give it few minutes and return or refresh the config page!');return fetchBackup();" value="Fetch"/><hr></td></tr>
 
-                <tr><td><div id="div_backups"><form id="frm_bck" action="config.cgi" method="post">$bck_list</form></div><hr></td></tr>                
+                <tr><td><div id="div_backups"><form id="frm_bck" action="config.cgi" method="post">$bck_list</form></div><hr></td></tr>
 
                 <tr><td>Notice - Uploads might fail on large backups, corrupt file, and/or due to browser settings.<br>
                         <form id="frmUpload" action="config.cgi" method="post" enctype="multipart/form-data">
@@ -464,7 +466,7 @@ print qq(
                         <input type="hidden" name="upload" value="1"/>
                         </form><hr>
                 </td></tr>
- 
+
                 <form action="config.cgi" method="post" enctype="multipart/form-data">
                 <tr>
                 <td><H3>CSV File Format</H3>Notice: (<font color=red>This is an obsolete feature, use is not recommended!</font>)</td></tr>
@@ -476,7 +478,7 @@ print qq(
                 </td></tr>
                 <tr><td style="text-align:right;">
                         <input type="submit" name="Submit" value="Submit"/></td>
-                </tr>                
+                </tr>
                 <tr><td><b>Export Categories:</b>
                        <input type="button" onclick="return exportToCSV('cat',0);" value="Export"/>&nbsp;
                        <input type="button" onclick="return exportToCSV('cat',1);" value="View"/>
@@ -488,7 +490,7 @@ print qq(
                         <input type="submit" name="Submit" value="Submit"/></td></tr>
                 </form>
                 <tr><td><b>Export Log:</b>$inpCVS
-                </td></tr>                
+                </td></tr>
             </table><br><a href="#top">&#x219F;&nbsp;Go to Top of page</a>
     </div>
    <hr>
@@ -514,13 +516,13 @@ print qq(
                 <li>Restoration might not be possible after an server application upgrade.</li>
                 <li>Restoration of old backups is not made possible or is safe, on new stable application releases.
                  <ul><li><i>Upgrade your application after restoring it first, as an upgrade will/might migrate structure and data.</i></li></ul></li>
-                <li>                
-                Restoration will import on an previous date backuped data, in case when recreating a newly created same alias database. 
+                <li>
+                Restoration will import on an previous date backuped data, in case when recreating a newly created same alias database.
                     <ul><li>For example: If the database file has been deleted or is blank on login, you than can run a restore, if you have an backup, for given server.</li></ul>
                 </li>
-                
-                
-            </ol>            
+
+
+            </ol>
         </li>
         <li><h3>Purpose</h3>
             <ol>
@@ -531,7 +533,7 @@ print qq(
             </ol>
         </li>
     </ol></p>
-    </div>        
+    </div>
 </div>
 <hr>
 <div><a name="bottom"></a>
@@ -562,8 +564,8 @@ sub getHeader {
                 -type => 'text/css',
                 -src  => 'wsrc/tip-yellowsimple/tip-yellowsimple.css'
             },
-            { -type => 'text/css', -src => Settings::theme('css') },
             { -type => 'text/css', -src => 'wsrc/effects.css' },
+            { -type => 'text/css', -src => Settings::theme('css') },
         ],
         -script => [
             { -type => 'text/javascript', -src => 'wsrc/main.js' },
@@ -921,7 +923,7 @@ sub processDBFix {
         }
 
         if     ($rs_syst) {
-            print "Doing resetSystemConfiguration next..." if &Settings::debug;            
+            print "Doing resetSystemConfiguration next..." if &Settings::debug;
             &resetSystemConfiguration();
             print "Doing resetSystemConfiguration next..." if &Settings::debug;
         }elsif ($wipe_ss) {
@@ -1047,14 +1049,14 @@ sub renumerate {
 
 
 sub resetSystemConfiguration {
-    
+
     my ( $id, $name, $value, $desc);
     my $cnf    = new CNFParser( &Settings::logPath . 'main.cnf' );
     my $inData = 0;
     my $err    = "";
     my %vars   = {};
     my @lines  = split( '\n', $cnf->anon('CONFIG') );
-    
+
     try {
         my $insert = $db->prepare('INSERT INTO CONFIG VALUES (?,?,?,?)');
         my $update = $db->prepare('UPDATE CONFIG SET VALUE=? WHERE ID=?;');
@@ -1854,7 +1856,7 @@ sub cats {
 sub error {
     my $url = $cgi->url( -path_info => 1 );
     print
-qq(<div class="debug_output" style="font-size:large;"><div style="text-align: left; width:100%; overflow-x:wrap;">                
+qq(<div class="debug_output" style="font-size:large;"><div style="text-align: left; width:100%; overflow-x:wrap;">
                 $ERROR
     );
     print "<h3>CGI Parameters</h3><ol>";

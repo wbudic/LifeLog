@@ -63,12 +63,13 @@ try{
                                 {-type  => 'text/javascript', -src => 'wsrc/feeds.js'},
                                 {-type => 'text/javascript', -src => 'wsrc/jquery.js'},
                                 {-type => 'text/javascript', -src => 'wsrc/jquery-ui.js'}],
-                    -style => [ {-type  => 'text/css', -src => $css},
+                    -style => [
                                 {-type => 'text/css', -src => 'wsrc/effects.css'},
                                 {-type => 'text/css', -src => 'wsrc/feeds.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.css'},
                                 {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'},
-                                {-type => 'text/css', -src => 'wsrc/jquery-ui.theme.css'}],
+                                {-type  => 'text/css', -src => $css}
+                              ],
                     -onload  => "onBodyLoadGeneric()"
         );
 
@@ -106,10 +107,10 @@ HTML
             <span class="menu_head">
 
                     <a id="to_bottom" href="#bottom" title="Go to bottom of page.">
-                    <span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;background-color: aliceblue"></span></a>
-                            &nbsp; Menu  &nbsp;
+                    <span class="ui-icon ui-icon-arrowthick-1-s" style="float:none;"></span></a>
+                            <span class="menu_title">&nbsp; Menu  &nbsp;</span>
                     <a id="to_top" href="#top" title="Go to top of page.">
-                    <span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;background-color: aliceblue"></span></a>
+                    <span class="ui-icon ui-icon-arrowthick-1-n" style="float:none;"></span></a>
 
             </span>
             <hr>
